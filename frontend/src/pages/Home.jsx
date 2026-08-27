@@ -1,126 +1,448 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import profileImage from "../assets/profile.png";
 import "../App.css";
+import DocumentUploadPage from "./DocumentUpload";
+import StatusPage from "./Status";
 import {
   LayoutDashboard,
   UserCircle,
   CloudUpload,
-  FileText,
   Clock3,
   Bell,
+  LifeBuoy,
   LogOut,
   Shield,
   User,
-  FilePlus,
-  Play,
-  CheckCircle,
-  AlertTriangle,
+  CheckCircle2,
   XCircle,
+  AlertTriangle,
+  ArrowRight,
+  TrendingUp,
   Sliders,
-  Database,
-  Users,
-  Settings,
-  ListFilter,
-  Check,
-  Plus
+  FileCheck2,
+  HelpCircle,
+  BookOpen
 } from "lucide-react";
 
-export default function Home({ role, onLogout }) {
-  // Global Shared States (so they feel connected)
-  const [tenders, setTenders] = useState([
-    { id: "GEM/2026/001", title: "Catering Services for Office Delhi", budget: "₹15,00,000", docsRequired: "GST, PAN, MSME", status: "Active" },
-    { id: "GEM/2026/002", title: "Supply of 500 Laptops (Core i7)", budget: "₹3,50,00,000", docsRequired: "GST, PAN, OEM Auth, ITR", status: "Active" },
-    { id: "GEM/2026/003", title: "Office Security Upgrade", budget: "₹45,00,000", docsRequired: "GST, ISO Cert, MSME", status: "Closed" }
-  ]);
+// Mock Database of submitted bids (visible globally to allow live sync between Supplier upload and Admin queue)
+const INITIAL_BIDS = [
+  {
+    id: "GEM-BID-2026-001",
+    bidderName: "Acme Tech Solutions Private Limited",
+    gstin: "27AAPCS1234M1Z5",
+    pan: "AAPCS1234M",
+    udyam: "UDYAM-MH-12-0012345",
+    submittedOn: "26 Aug 2026",
+    status: "Verified",
+    score: 95,
+    risk: "LOW",
+    compliance_record: "Excellent",
+    taxpayer_type: "Regular",
+    enterprise_type: "Micro",
+    warnings: ["All parameters are highly compliant. No risks identified."],
+    logs: [
+      "[16:04:12] [System] Initiating cryptographic bid compliance inspection...",
+      "[16:04:13] [SmartPDFHandler] Page 1: Digital text structure detected.",
+      "[16:04:13] [RegexExtractor] Extracted GSTIN: 27AAPCS1234M1Z5",
+      "[16:04:14] [RegexExtractor] Extracted Udyam ID: UDYAM-MH-12-0012345",
+      "[16:04:14] [MockVerifier] Verifying GSTIN status: 'Active' (Owner: Acme Tech Solutions)",
+      "[16:04:15] [MockVerifier] Verifying Udyam MSME status: 'Active' (Owner: Acme Tech Solutions)",
+      "[16:04:15] [ScoringEngine] Full registry token alignment confirmed.",
+      "[16:04:16] [ScoringEngine] Integrity verification completed. Compliance score: 95/100 (Risk: LOW)."
+    ]
+  },
+  {
+    id: "GEM-BID-2026-002",
+    bidderName: "Global Traders Inc",
+    gstin: "22AAAAA1111A1Z1",
+    pan: "AAAAA1111A",
+    udyam: "UDYAM-DL-01-0098765",
+    submittedOn: "24 Aug 2026",
+    status: "Under Review",
+    score: 55,
+    risk: "MEDIUM",
+    compliance_record: "Poor",
+    taxpayer_type: "Regular",
+    enterprise_type: "Small",
+    warnings: [
+      "GSTIN status registered as 'Suspended' (-10 pts)",
+      "GST compliance history marked as 'Poor' (-10 pts)",
+      "Officer action recommended: Request GSTR-3B filing receipts for the last 3 consecutive months."
+    ],
+    logs: [
+      "[11:15:30] [System] Initiating cryptographic bid compliance inspection...",
+      "[11:15:32] [SmartPDFHandler] Page 1: Scanned image detected. Running OpenCV image filters...",
+      "[11:15:33] [SmartPDFHandler] Preprocessing done. Running Tesseract OCR on page canvas...",
+      "[11:15:34] [RegexExtractor] Extracted GSTIN: 22AAAAA1111A1Z1",
+      "[11:15:35] [MockVerifier] WARNING: GSTIN registry status returned 'Suspended'!",
+      "[11:15:35] [MockVerifier] WARNING: Compliance history returned 'Poor'!",
+      "[11:15:36] [ScoringEngine] Penalty applied for suspended GSTIN status. Score: 55/100 (Risk: MEDIUM)."
+    ]
+  },
+  {
+    id: "GEM-BID-2026-003",
+    bidderName: "Vanguard Systems Ltd",
+    gstin: "27AAACV9876K1Z9",
+    pan: "AAACV9876K",
+    udyam: "",
+    submittedOn: "20 Aug 2026",
+    status: "Pending",
+    score: 40,
+    risk: "HIGH",
+    compliance_record: "Good",
+    taxpayer_type: "Regular",
+    enterprise_type: "N/A",
+    warnings: [
+      "Mandatory PAN details mismatch (-10 pts)",
+      "Udyam MSME certificate missing. MSME exemptions (EMD waiver) will not apply.",
+      "CRITICAL: Registry mismatch between GSTIN name ('Vanguard Systems Ltd') and PAN owner ('Vanguard Director')."
+    ],
+    logs: [
+      "[09:40:02] [System] Initiating cryptographic bid compliance inspection...",
+      "[09:40:03] [SmartPDFHandler] Page 1: Digital text structure detected.",
+      "[09:40:04] [RegexExtractor] Extracted GSTIN: 27AAACV9876K1Z9",
+      "[09:40:04] [RegexExtractor] Extracted Standalone PAN: AAACV9876K",
+      "[09:40:05] [MockVerifier] Comparing legal names across databases...",
+      "[09:40:05] [MockVerifier] WARNING: Mismatch found: GSTIN Owner ('Vanguard Systems Ltd') vs PAN Owner ('Vanguard Director')",
+      "[09:40:06] [ScoringEngine] Deducted 10 points for Registry name mismatch.",
+      "[09:40:06] [ScoringEngine] Final Score: 40/100. Risk level: HIGH."
+    ]
+  }
+];
 
-  const [auditLogs, setAuditLogs] = useState([
-    { timestamp: "2026-08-27 10:24:12", user: "Procurement Officer", action: "Created Tender GEM/2026/001", status: "Success" },
-    { timestamp: "2026-08-27 11:15:30", user: "System Engine", action: "MSME Verification for Bidder 'Alpha Tech' passed", status: "Success" },
-    { timestamp: "2026-08-27 12:02:44", user: "Admin", action: "Updated GST rule weight to 30%", status: "Info" }
-  ]);
+function SectionPlaceholder({ title, description, rows }) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <p className="subtitle">{description}</p>
+      <div className="section-panel">
+        {rows.map((row) => (
+          <div className="detail-item" key={row.label}>
+            <span>{row.label}</span>
+            <strong>{row.value}</strong>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
-  const [users, setUsers] = useState([
-    { id: 1, name: "Shweta Beelwal", role: "Procurement Officer", email: "shweta.b@gemprocurement.in", status: "Active" },
-    { id: 2, name: "Yogesh Singh", role: "Admin", email: "admin@gemprocurement.in", status: "Active" },
-    { id: 3, name: "Ramesh Kumar", role: "Procurement Officer", email: "ramesh.k@gemprocurement.in", status: "Suspended" }
-  ]);
-
-  const [rules, setRules] = useState([
-    { id: "gst", name: "GSTIN Valid Match", weight: 30, active: true },
-    { id: "pan", name: "PAN Verification Check", weight: 20, active: true },
-    { id: "msme", name: "MSME/Udyam Registration", weight: 30, active: true },
-    { id: "itr", name: "ITR Turn-over Validation", weight: 20, active: true }
-  ]);
-
-  const [apis, setApis] = useState([
-    { id: "gst-api", name: "GSTIN Search Gateway", url: "https://api.gst.gov.in/v2/search", status: "Online" },
-    { id: "income-tax-api", name: "PAN Card Validator API", url: "https://api.incometax.gov.in/pan", status: "Online" },
-    { id: "udyam-api", name: "MSME Udyam Verify Gateway", url: "https://udyamregistration.gov.in/api", status: "Offline" }
-  ]);
-
-  // Active Navigation tab
+function Home({ role, onLogout }) {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [bids, setBids] = useState(INITIAL_BIDS);
+  const [selectedBid, setSelectedBid] = useState(null);
+  const [officerNotes, setOfficerNotes] = useState("");
 
-  // Reset active section if role changes
-  useEffect(() => {
-    setActiveSection("dashboard");
-  }, [role]);
-
-  // Sidebar navigation mapping based on role
-  const navigationItems = role === "Admin" ? [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "users", label: "Manage Users", icon: Users },
-    { id: "rules", label: "Compliance Rules", icon: Sliders },
-    { id: "apis", label: "API Configurations", icon: Database },
-    { id: "settings", label: "System Settings", icon: Settings }
-  ] : [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "createTender", label: "Create Tender", icon: FilePlus },
-    { id: "uploadDocs", label: "Bidder Documents", icon: CloudUpload },
-    { id: "verification", label: "Verification Suite", icon: Play },
-    { id: "audit", label: "Audit Trail", icon: Clock3 }
-  ];
-
-  // Helper to append audit logs
-  const addAuditLog = (action, status = "Success") => {
-    const now = new Date();
-    const timeStr = now.toISOString().replace("T", " ").substring(0, 19);
-    setAuditLogs(prev => [
-      { timestamp: timeStr, user: role, action, status },
-      ...prev
-    ]);
+  const handleAddBid = (newBid) => {
+    // Add dynamically to local database array
+    setBids((prev) => [newBid, ...prev]);
   };
 
-  // Rendering matching sub-panels
+  const handleAuditAction = (bidId, newStatus) => {
+    setBids((prevBids) =>
+      prevBids.map((bid) => {
+        if (bid.id === bidId) {
+          const timestamp = new Date().toLocaleTimeString();
+          const logEntry = `[${timestamp}] [Officer Action] Bid marked as '${newStatus}'. Notes: "${officerNotes || 'None'}"`;
+          return {
+            ...bid,
+            status: newStatus,
+            logs: [...bid.logs, logEntry]
+          };
+        }
+        return bid;
+      })
+    );
+    alert(`Success: Bid status updated to ${newStatus}`);
+    setSelectedBid(null);
+    setOfficerNotes("");
+  };
+
+  // 1. Supplier Navigation Items
+  const supplierNav = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "documentUpload", label: "Verification Terminal", icon: CloudUpload },
+    { id: "status", label: "Status Tracker", icon: Clock3 },
+    { id: "profile", label: "My Profile", icon: UserCircle },
+    { id: "support", label: "Help & Support", icon: LifeBuoy }
+  ];
+
+  // 2. Buyer (Officer) Navigation Items
+  const buyerNav = [
+    { id: "dashboard", label: "Master Audit Queue", icon: Sliders },
+    { id: "profile", label: "Officer Profile", icon: UserCircle },
+    { id: "support", label: "Compliance Helpdesk", icon: LifeBuoy }
+  ];
+
+  const navigationItems = role === "Buyer" ? buyerNav : supplierNav;
+
+  // Supplier Dashboard Section
+  const SupplierDashboard = () => {
+    const verifiedCount = bids.filter((b) => b.status === "Verified").length;
+    const reviewCount = bids.filter((b) => b.status === "Under Review").length;
+    const pendingCount = bids.filter((b) => b.status === "Pending" || b.status === "Rejected").length;
+
+    return (
+      <>
+        <h1>Welcome back, Shweta Beelwal</h1>
+        <p className="subtitle">
+          Submit compliance certificates and track verification milestones in real-time.
+        </p>
+
+        <div className="stats-grid">
+          <div className="stat-card purple">
+            <p>TOTAL BIDS FILED</p>
+            <h2>{String(bids.length).padStart(2, "0")}</h2>
+            <span className="stat-icon"><FileCheck2 size={20} /></span>
+          </div>
+
+          <div className="stat-card green">
+            <p>VERIFIED PASSED</p>
+            <h2>{String(verifiedCount).padStart(2, "0")}</h2>
+            <span className="stat-icon"><CheckCircle2 size={20} /></span>
+          </div>
+
+          <div className="stat-card orange">
+            <p>UNDER AUDIT</p>
+            <h2>{String(reviewCount).padStart(2, "0")}</h2>
+            <span className="stat-icon"><AlertTriangle size={20} /></span>
+          </div>
+
+          <div className="stat-card blue">
+            <p>PENDING UPLOADS</p>
+            <h2>{String(pendingCount).padStart(2, "0")}</h2>
+            <span className="stat-icon"><Clock3 size={20} /></span>
+          </div>
+        </div>
+
+        <div className="dashboard-grid">
+          <div className="applications-card">
+            <div className="card-header">
+              <h2>📁 Bid Documents Status Registry</h2>
+              <button type="button" onClick={() => setActiveSection("status")}>Track Milestones</button>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Bid ID</th>
+                  <th>Submitted Document</th>
+                  <th>Submitted On</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bids.map((bid) => (
+                  <tr key={bid.id} onClick={() => {
+                    setSelectedBid(bid);
+                  }}>
+                    <td>{bid.id}</td>
+                    <td>{bid.bidderName}</td>
+                    <td>{bid.submittedOn}</td>
+                    <td>
+                      <span className={`risk-badge ${bid.risk.toLowerCase()}`}>
+                        {bid.score} / {bid.risk}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${bid.status.toLowerCase().replace(" ", "")}`}>
+                        {bid.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="right-column">
+            <div className="application-status">
+              <h2>Compliance Split</h2>
+              <div className="circle" style={{
+                background: `conic-gradient(#10b981 0deg 220deg, #f59e0b 220deg 290deg, #ef4444 290deg 360deg)`
+              }}>
+                <div>LOW RISK</div>
+              </div>
+              <div className="legend">
+                <div className="legend-item">
+                  <div className="legend-color"><span className="dot verified"></span>Low Risk</div>
+                  <strong>{verifiedCount}</strong>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color"><span className="dot review"></span>Medium Risk</div>
+                  <strong>{reviewCount}</strong>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color"><span className="dot rejected"></span>High Risk</div>
+                  <strong>{pendingCount}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="quick-actions" style={{ padding: '20px' }}>
+              <h2 style={{ marginBottom: '14px' }}>Quick Actions</h2>
+              <div className="quick-actions-list">
+                <button type="button" className="action-btn" onClick={() => setActiveSection("documentUpload")}>
+                  <span>Upload & Analyze Document</span>
+                  <ArrowRight size={14} />
+                </button>
+                <button type="button" className="action-btn" onClick={() => setActiveSection("status")}>
+                  <span>Check Audit History</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="help-section" style={{ marginTop: '30px' }}>
+          <div>
+            <h2><BookOpen size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} /> MSME Purchase Preference Benefit</h2>
+            <p>
+              Upload a valid MSME Udyam Certificate in the verification terminal to automatically trigger eligibility waivers.
+            </p>
+          </div>
+          <button type="button" onClick={() => setActiveSection("support")}>MSME Guidelines</button>
+        </div>
+      </>
+    );
+  };
+
+  // Buyer (Auditor / Admin) Dashboard Section
+  const BuyerDashboard = () => {
+    const totalBids = bids.length;
+    const avgScore = Math.round(bids.reduce((sum, b) => sum + b.score, 0) / (totalBids || 1));
+    const highRiskCount = bids.filter((b) => b.risk === "HIGH").length;
+    const pendingAudits = bids.filter((b) => b.status === "Pending" || b.status === "Under Review").length;
+
+    return (
+      <>
+        <h1>Compliance Inspection Command Center</h1>
+        <p className="subtitle">
+          Review, query, and sign off on bidder compliance documents submitted through the sovereign gateway.
+        </p>
+
+        <div className="stats-grid">
+          <div className="stat-card purple">
+            <p>TOTAL BIDS SUBMITTED</p>
+            <h2>{String(totalBids).padStart(2, "0")}</h2>
+            <span className="stat-icon"><FileCheck2 size={20} /></span>
+          </div>
+
+          <div className="stat-card green">
+            <p>AVG COMPLIANCE SCORE</p>
+            <h2>{avgScore}%</h2>
+            <span className="stat-icon"><TrendingUp size={20} /></span>
+          </div>
+
+          <div className="stat-card orange">
+            <p>HIGH RISK ALERTS</p>
+            <h2>{String(highRiskCount).padStart(2, "0")}</h2>
+            <span className="stat-icon"><AlertTriangle size={20} /></span>
+          </div>
+
+          <div className="stat-card blue">
+            <p>PENDING AUDITS</p>
+            <h2>{String(pendingAudits).padStart(2, "0")}</h2>
+            <span className="stat-icon"><Sliders size={20} /></span>
+          </div>
+        </div>
+
+        <div className="section-panel">
+          <div className="card-header">
+            <h2>🚨 Master Audit Verification Queue</h2>
+            <small style={{ color: '#64748b', fontFamily: 'var(--mono)' }}>REAL-TIME REGISTRY STREAM</small>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Bid ID</th>
+                <th>Bidder Organization</th>
+                <th>Score</th>
+                <th>Risk Classification</th>
+                <th>Submitted On</th>
+                <th>Status</th>
+                <th>Inspection Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bids.map((bid) => (
+                <tr key={bid.id} onClick={() => {
+                  setSelectedBid(bid);
+                  setOfficerNotes("");
+                }}>
+                  <td>{bid.id}</td>
+                  <td><strong>{bid.bidderName}</strong></td>
+                  <td><code style={{ fontSize: '0.85rem' }}>{bid.score}/100</code></td>
+                  <td>
+                    <span className={`risk-badge ${bid.risk.toLowerCase()}`}>{bid.risk}</span>
+                  </td>
+                  <td>{bid.submittedOn}</td>
+                  <td>
+                    <span className={`status-badge ${bid.status.toLowerCase().replace(" ", "")}`}>
+                      {bid.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button type="button" className="action-btn" style={{ height: '30px', padding: '0 12px', fontSize: '0.75rem', width: 'auto' }}>
+                      Inspect Bid
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    );
+  };
+
   const renderContent = () => {
-    if (role === "Admin") {
-      switch (activeSection) {
-        case "users":
-          return <AdminUsers users={users} setUsers={setUsers} addAuditLog={addAuditLog} />;
-        case "rules":
-          return <AdminRules rules={rules} setRules={setRules} addAuditLog={addAuditLog} />;
-        case "apis":
-          return <AdminApis apis={apis} setApis={setApis} addAuditLog={addAuditLog} />;
-        case "settings":
-          return <AdminSettings addAuditLog={addAuditLog} />;
-        case "dashboard":
-        default:
-          return <AdminDashboard users={users} rules={rules} apis={apis} />;
-      }
-    } else {
-      switch (activeSection) {
-        case "createTender":
-          return <OfficerCreateTender tenders={tenders} setTenders={setTenders} addAuditLog={addAuditLog} />;
-        case "uploadDocs":
-          return <OfficerUploadDocs tenders={tenders} addAuditLog={addAuditLog} />;
-        case "verification":
-          return <OfficerVerification tenders={tenders} rules={rules} addAuditLog={addAuditLog} />;
-        case "audit":
-          return <OfficerAuditTrail auditLogs={auditLogs} />;
-        case "dashboard":
-        default:
-          return <OfficerDashboard tenders={tenders} auditLogs={auditLogs} />;
-      }
+    switch (activeSection) {
+      case "profile":
+        return (
+          <SectionPlaceholder
+            title={role === "Buyer" ? "Officer Profile" : "Supplier Profile"}
+            description="Review details relating to your security clearances and portal role."
+            rows={
+              role === "Buyer"
+                ? [
+                    { label: "Officer Name", value: "Dr. Shashi Kumar (Auditor)" },
+                    { label: "Clearance Authority", value: "GeM Audit Division" },
+                    { label: "Clearance Level", value: "Level-3 Compliance Officer" },
+                    { label: "Active Session ID", value: "SES-GEM-7890X" }
+                  ]
+                : [
+                    { label: "Full Name", value: "Shweta Beelwal" },
+                    { label: "Supplier Organization", value: "Acme Tech Solutions Private Limited" },
+                    { label: "Verified GSTIN", value: "27AAPCS1234M1Z5" },
+                    { label: "Verified PAN ID", value: "AAPCS1234M" }
+                  ]
+            }
+          />
+        );
+      case "documentUpload":
+        return <DocumentUploadPage onAddBid={handleAddBid} />;
+      case "status":
+        return <StatusPage bids={bids} onSelectBid={setSelectedBid} />;
+      case "support":
+        return (
+          <SectionPlaceholder
+            title="Sovereign Compliance Helpdesk"
+            description="Contact the helpdesk for portal issues, compliance warnings, or regulatory guidance."
+            rows={[
+              { label: "Auditing Helpdesk", value: "compliance-support@gem.gov.in" },
+              { label: "Emergency Hotline", value: "1800-425-8888 (Toll Free)" },
+              { label: "Verification SLA", value: "Under 4 Hours" },
+              { label: "Active Escalations", value: "0 tickets open" }
+            ]}
+          />
+        );
+      case "dashboard":
+      default:
+        return role === "Buyer" ? <BuyerDashboard /> : <SupplierDashboard />;
     }
   };
 
@@ -129,11 +451,11 @@ export default function Home({ role, onLogout }) {
       <aside className="sidebar">
         <div className="logo-section">
           <div className="logo-box">
-            <Shield size={22} />
+            <Shield size={24} />
           </div>
           <div>
-            <h2>GeM Compliance</h2>
-            <p className="role-tag">{role.toUpperCase()}</p>
+            <h2>GeM Procurement</h2>
+            <p>Secure Portal</p>
           </div>
         </div>
 
@@ -148,7 +470,7 @@ export default function Home({ role, onLogout }) {
                 setActiveSection(id);
               }}
             >
-              <Icon size={17} />
+              <Icon size={18} />
               <span>{label}</span>
             </a>
           ))}
@@ -157,16 +479,20 @@ export default function Home({ role, onLogout }) {
         <div className="user-section">
           <div className="user-info">
             <div className="user-avatar">
-              <User size={17} />
+              <User size={18} />
             </div>
             <div>
-              <strong>{role === "Admin" ? "Yogesh Singh" : "Shweta Beelwal"}</strong>
-              <small>{role}</small>
+              <strong>{role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal"}</strong>
+              <small>
+                {role === "Buyer" ? "Auditor" : "Supplier"}
+                <span className={`role-badge ${role.toLowerCase()}`}>{role}</span>
+              </small>
             </div>
           </div>
+
           <button type="button" className="signout" onClick={onLogout}>
-            <LogOut size={15} />
-            <span>Sign Out</span>
+            <LogOut size={16} />
+            <span>Sign Out Terminal</span>
           </button>
         </div>
       </aside>
@@ -174,821 +500,185 @@ export default function Home({ role, onLogout }) {
       <main className="main-content">
         <header className="topbar">
           <div className="breadcrumb">
-            <strong>GeM Portal</strong>
+            <strong>Sovereign GeM Gateway</strong>
             <span>/</span>
             <span>{navigationItems.find((item) => item.id === activeSection)?.label || "Dashboard"}</span>
           </div>
+
           <div className="profile">
-            <span className="role-indicator">{role}</span>
             <div className="profile-avatar">
               <img src={profileImage} alt="Profile" />
             </div>
-            <strong>{role === "Admin" ? "Yogesh Singh" : "Shweta Beelwal"}</strong>
+            <strong>{role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal"}</strong>
           </div>
         </header>
 
         <section className="content">{renderContent()}</section>
       </main>
-    </div>
-  );
-}
 
-/* ==================== SUBCOMPONENTS ==================== */
-
-// 1. OFFICER DASHBOARD
-function OfficerDashboard({ tenders, auditLogs }) {
-  return (
-    <div className="officer-dash animate-fade">
-      <h1>Officer Dashboard Overview</h1>
-      <p className="subtitle">Track bid processing, verify compliance matrices, and inspect audit trails.</p>
-      
-      <div className="stats-grid">
-        <div className="stat-card blue">
-          <p>ACTIVE TENDERS</p>
-          <h2>{tenders.length}</h2>
-          <span>📁</span>
-        </div>
-        <div className="stat-card green">
-          <p>BIDDERS VERIFIED</p>
-          <h2>18</h2>
-          <span>✓</span>
-        </div>
-        <div className="stat-card orange">
-          <p>PENDING REVIEW</p>
-          <h2>03</h2>
-          <span>⚠</span>
-        </div>
-        <div className="stat-card purple">
-          <p>RECENT ACTIONS</p>
-          <h2>{auditLogs.length}</h2>
-          <span>⚡</span>
-        </div>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="applications-card">
-          <h2>Active Tenders List</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Tender ID</th>
-                <th>Tender Title</th>
-                <th>Budget Limit</th>
-                <th>Required Docs</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tenders.map((tender) => (
-                <tr key={tender.id}>
-                  <td><strong>{tender.id}</strong></td>
-                  <td>{tender.title}</td>
-                  <td>{tender.budget}</td>
-                  <td>{tender.docsRequired}</td>
-                  <td>
-                    <span className={`status ${tender.status === "Active" ? "verified" : "review"}`}>
-                      {tender.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="right-column">
-          <div className="quick-actions">
-            <h2>Portal Logins</h2>
-            <div style={{ padding: "10px 0", fontSize: "13px", color: "rgba(255,255,255,0.7)" }}>
-              Current User: <strong>Shweta Beelwal</strong><br/>
-              Security Level: <strong>Level-2 Procurement</strong><br/>
-              Active Session: <strong>Valid</strong>
+      {/* ADMIN DETAIL DRILLDOWN INSPECTION DRAWER */}
+      {selectedBid && (
+        <div className="drawer-overlay" onClick={() => setSelectedBid(null)}>
+          <div className="audit-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-header">
+              <div className="drawer-title">
+                <h2>{selectedBid.bidderName}</h2>
+                <span>Bid System ID: {selectedBid.id} | Submitted: {selectedBid.submittedOn}</span>
+              </div>
+              <button className="close-btn" onClick={() => setSelectedBid(null)}>✕</button>
             </div>
+
+            <div className="drawer-content">
+              {/* Score section inside drawer */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div style={{ position: 'relative', width: '90px', height: '90px' }}>
+                  <svg className="dial-svg" viewBox="0 0 100 100">
+                    <circle className="dial-track" cx="50" cy="50" r="40" strokeWidth="8" />
+                    <circle 
+                      className="dial-value" 
+                      cx="50" 
+                      cy="50" 
+                      r="40" 
+                      strokeWidth="8"
+                      strokeDasharray={`${(selectedBid.score / 100) * 251.2} 251.2`}
+                      stroke={selectedBid.score >= 85 ? '#10b981' : selectedBid.score >= 50 ? '#f59e0b' : '#ef4444'}
+                    />
+                  </svg>
+                  <div className="dial-text">
+                    <span className="dial-score" style={{ fontSize: '1.25rem' }}>{selectedBid.score}</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>Compliance Score & Risk</h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', textAlign: 'left', marginBottom: '8px' }}>
+                    Weighted registry status and name matching analysis.
+                  </p>
+                  <span className={`risk-badge ${selectedBid.risk.toLowerCase()}`}>
+                    {selectedBid.risk} Risk Rating
+                  </span>
+                  <span className={`status-badge ${selectedBid.status.toLowerCase().replace(" ", "")}`} style={{ marginLeft: '10px' }}>
+                    {selectedBid.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Cross Registry Verification Details */}
+              <div className="cross-verification-box">
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
+                  Registry Cross-Verification Records
+                </h4>
+                <table className="cross-table">
+                  <thead>
+                    <tr>
+                      <th>Registry</th>
+                      <th>Identifier</th>
+                      <th>Registrant Name</th>
+                      <th>Verification</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>GSTIN</strong></td>
+                      <td>{selectedBid.gstin || <em style={{ color: '#ef4444' }}>Missing</em>}</td>
+                      <td>{selectedBid.bidderName}</td>
+                      <td>
+                        {selectedBid.gstin ? (
+                          <span style={{ color: '#10b981', fontWeight: 600 }}>Active ✓</span>
+                        ) : (
+                          <span style={{ color: '#ef4444', fontWeight: 600 }}>Not Provided ✕</span>
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>PAN</strong></td>
+                      <td>{selectedBid.pan || <em style={{ color: '#ef4444' }}>Missing</em>}</td>
+                      <td>{selectedBid.bidderName}</td>
+                      <td>
+                        {selectedBid.pan ? (
+                          <span style={{ color: '#10b981', fontWeight: 600 }}>Active ✓</span>
+                        ) : (
+                          <span style={{ color: '#ef4444', fontWeight: 600 }}>Not Provided ✕</span>
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Udyam MSME</strong></td>
+                      <td>{selectedBid.udyam || <em>Not Provided</em>}</td>
+                      <td>{selectedBid.udyam ? selectedBid.bidderName : "N/A"}</td>
+                      <td>
+                        {selectedBid.udyam ? (
+                          <span style={{ color: '#10b981', fontWeight: 600 }}>Verified ✓</span>
+                        ) : (
+                          <span style={{ color: '#f59e0b', fontWeight: 600 }}>Exempt / Missing</span>
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Warnings List */}
+              {selectedBid.warnings && selectedBid.warnings.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>Integrity Assessment & Deductions</h4>
+                  <div className="warnings-list">
+                    {selectedBid.warnings.map((w, idx) => (
+                      <div key={idx} className={`warning-item ${selectedBid.risk === "HIGH" ? "critical" : selectedBid.risk === "MEDIUM" ? "warning" : "info"}`}>
+                        <div className="warning-icon">⚠</div>
+                        <div className="warning-text">{w}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cryptographic Execution Logs */}
+              <div>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>Audit Execution Console Trace</h4>
+                <div className="terminal-window" style={{ marginTop: '0' }}>
+                  <div className="terminal-body" style={{ height: '180px' }}>
+                    {selectedBid.logs.map((log, idx) => {
+                      let typeClass = "info";
+                      if (log.includes("WARNING") || log.includes("Penalty")) typeClass = "warning";
+                      if (log.includes("CRITICAL") || log.includes("mismatch")) typeClass = "danger";
+                      if (log.includes("completed") || log.includes("Verified") || log.includes("confirmed")) typeClass = "success";
+                      return (
+                        <div key={idx} className={`term-line ${typeClass}`}>
+                          {log}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {role === "Buyer" && (
+                <div className="audit-action-sheet">
+                  <label>Auditor Sign-Off & Review Notes</label>
+                  <textarea 
+                    value={officerNotes}
+                    onChange={(e) => setOfficerNotes(e.target.value)}
+                    placeholder="Enter audit validation comments, details regarding requested revision documents, or justification notes..."
+                  />
+                </div>
+              )}
+            </div>
+
+            {role === "Buyer" && (
+              <div className="drawer-actions">
+                <button type="button" className="approve-btn" onClick={() => handleAuditAction(selectedBid.id, "Verified")}>
+                  Approve Bid Compliance
+                </button>
+                <button type="button" className="reject-btn" onClick={() => handleAuditAction(selectedBid.id, "Rejected")}>
+                  Reject Bid / Request Revision
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 2. OFFICER CREATE TENDER
-function OfficerCreateTender({ tenders, setTenders, addAuditLog }) {
-  const [tenderId, setTenderId] = useState("");
-  const [title, setTitle] = useState("");
-  const [budget, setBudget] = useState("");
-  const [docs, setDocs] = useState("GST, PAN, MSME");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!tenderId || !title || !budget) return;
-    
-    const newTender = {
-      id: tenderId,
-      title,
-      budget,
-      docsRequired: docs,
-      status: "Active"
-    };
-
-    setTenders([newTender, ...tenders]);
-    addAuditLog(`Created Tender ${tenderId}`);
-    alert(`Tender ${tenderId} successfully created!`);
-    setTenderId("");
-    setTitle("");
-    setBudget("");
-  };
-
-  return (
-    <div className="create-tender-panel animate-fade">
-      <h1>Create New Procurement Tender</h1>
-      <p className="subtitle">Publish tenders and outline document checklist constraints for bidding organizations.</p>
-
-      <div className="section-panel" style={{ maxWidth: "600px", padding: "30px" }}>
-        <form onSubmit={handleSubmit} className="custom-dashboard-form">
-          <div className="form-group">
-            <label>Tender Reference Number *</label>
-            <input 
-              type="text" 
-              placeholder="e.g. GEM/2026/045" 
-              value={tenderId} 
-              onChange={e => setTenderId(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tender Title *</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Purchase of Air Conditioners for Headquarters" 
-              value={title} 
-              onChange={e => setTitle(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Estimated Budget Limit (INR) *</label>
-            <input 
-              type="text" 
-              placeholder="e.g. ₹20,00,000" 
-              value={budget} 
-              onChange={e => setBudget(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Required Verification Documents Checklist</label>
-            <input 
-              type="text" 
-              value={docs} 
-              onChange={e => setDocs(e.target.value)} 
-            />
-          </div>
-
-          <button type="submit" className="neon-button">Publish Tender</button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// 3. OFFICER UPLOAD DOCUMENTS
-function OfficerUploadDocs({ tenders, addAuditLog }) {
-  const [selectedTender, setSelectedTender] = useState(tenders[0]?.id || "");
-  const [bidderName, setBidderName] = useState("");
-  const [documentFile, setDocumentFile] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
-  const [error, setError] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!bidderName || !documentFile) return;
-
-    setIsAnalyzing(true);
-    setError("");
-    setAnalysis(null);
-    const formData = new FormData();
-    formData.append("file", documentFile);
-
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
-      const response = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
-      const payload = await response.json();
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "The document could not be analyzed.");
-      }
-      setAnalysis(payload);
-      addAuditLog(`Analyzed compliance documents for Bidder '${bidderName}' under tender ${selectedTender}`);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  return (
-    <div className="upload-docs-panel animate-fade">
-      <h1>Upload Bidder Verification Documents</h1>
-      <p className="subtitle">Upload certificates for automated OCR parsing and validation checks.</p>
-
-      <div className="section-panel" style={{ maxWidth: "600px", padding: "30px" }}>
-        <form onSubmit={handleUpload} className="custom-dashboard-form">
-          <div className="form-group">
-            <label>Select Target Tender</label>
-            <select value={selectedTender} onChange={e => setSelectedTender(e.target.value)}>
-              {tenders.map(t => (
-                <option key={t.id} value={t.id}>{t.id} - {t.title}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Bidding Organization Name *</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Alpha Tech Industries" 
-              value={bidderName} 
-              onChange={e => setBidderName(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Bidder Compliance Document (PDF)</label>
-            <input 
-              type="file" 
-              accept="application/pdf,.pdf"
-              onChange={e => setDocumentFile(e.target.files[0] || null)}
-              required
-            />
-          </div>
-
-          <button type="submit" className="neon-button" disabled={isAnalyzing}>
-            {isAnalyzing ? "Analyzing PDF..." : "Upload and Analyze PDF"}
-          </button>
-          {error && <p className="status review" role="alert">{error}</p>}
-        </form>
-      </div>
-
-      {analysis && (
-        <div className="section-panel" style={{ maxWidth: "600px", padding: "30px", marginTop: "20px" }}>
-          <h2>Analysis Result</h2>
-          <p><strong>Bidder:</strong> {bidderName}</p>
-          <p><strong>Score:</strong> {analysis.compliance_report.score}/100</p>
-          <p><strong>Risk:</strong> {analysis.compliance_report.risk_level}</p>
-          <p><strong>GSTIN:</strong> {analysis.extracted_identifiers.gstin.join(", ") || "Not found"}</p>
-          <p><strong>PAN:</strong> {analysis.extracted_identifiers.pan.join(", ") || "Not found"}</p>
-          <p><strong>Udyam:</strong> {analysis.extracted_identifiers.udyam.join(", ") || "Not found"}</p>
-          {analysis.compliance_report.recommendations.map((recommendation) => (
-            <p key={recommendation} className="subtitle">{recommendation}</p>
-          ))}
         </div>
       )}
     </div>
   );
 }
 
-// 4. OFFICER VERIFICATION SUITE
-function OfficerVerification({ tenders, rules, addAuditLog }) {
-  const [selectedTender, setSelectedTender] = useState(tenders[0]?.id || "");
-  const [selectedBidder, setSelectedBidder] = useState("Alpha Tech Pvt Ltd");
-  const [progress, setProgress] = useState(0);
-  const [logs, setLogs] = useState([]);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-
-  const startVerification = () => {
-    setIsVerifying(true);
-    setProgress(0);
-    setLogs([]);
-    setShowResult(false);
-
-    const steps = [
-      { text: "Initializing OCR Engine...", delay: 500 },
-      { text: "Scanning GST details. Found Registration: 07AAAAA1111A1Z2...", delay: 1200 },
-      { text: "Invoking government GST database validator API...", delay: 2000 },
-      { text: "GST registration status: ACTIVE. Matching corporate identity...", delay: 2800 },
-      { text: "Evaluating PAN registration status. Signature valid...", delay: 3500 },
-      { text: "Calculating compliance score index based on configured rule weights...", delay: 4200 },
-      { text: "Compliance evaluation complete!", delay: 4800 }
-    ];
-
-    steps.forEach((step, idx) => {
-      setTimeout(() => {
-        setLogs(prev => [...prev, step.text]);
-        setProgress(Math.floor(((idx + 1) / steps.length) * 100));
-        if (idx === steps.length - 1) {
-          setIsVerifying(false);
-          setShowResult(true);
-          addAuditLog(`Ran compliance verification for Bidder '${selectedBidder}' on tender ${selectedTender}`);
-        }
-      }, step.delay);
-    });
-  };
-
-  const handleAction = (action) => {
-    addAuditLog(`Manual status updated: Bidder '${selectedBidder}' ${action}ed`);
-    alert(`Bidder ${action}ed successfully!`);
-    setShowResult(false);
-  };
-
-  return (
-    <div className="verification-panel animate-fade">
-      <h1>AI Compliance Verification Suite</h1>
-      <p className="subtitle">Execute AI rules check on uploaded bidder documents using government APIs.</p>
-
-      <div className="dashboard-grid">
-        <div className="applications-card" style={{ padding: "24px" }}>
-          <h2>Select Verification Scope</h2>
-          <div className="custom-dashboard-form" style={{ marginTop: "15px" }}>
-            <div className="form-group">
-              <label>Select Tender Reference</label>
-              <select value={selectedTender} onChange={e => setSelectedTender(e.target.value)}>
-                {tenders.map(t => (
-                  <option key={t.id} value={t.id}>{t.id}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Select Bidder Organization</label>
-              <select value={selectedBidder} onChange={e => setSelectedBidder(e.target.value)}>
-                <option value="Alpha Tech Pvt Ltd">Alpha Tech Pvt Ltd</option>
-                <option value="Global Solutions Corp">Global Solutions Corp</option>
-                <option value="Dynamic Infrastructure">Dynamic Infrastructure</option>
-              </select>
-            </div>
-
-            <button 
-              onClick={startVerification} 
-              disabled={isVerifying} 
-              className="neon-button"
-            >
-              {isVerifying ? "Verifying..." : "Run AI Verification"}
-            </button>
-          </div>
-
-          {/* Progress bar */}
-          {(isVerifying || progress > 0) && (
-            <div className="progress-section" style={{ marginTop: "30px" }}>
-              <div className="progress-label" style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "5px" }}>
-                <span>AI compliance progress</span>
-                <strong>{progress}%</strong>
-              </div>
-              <div className="progress-bar-container" style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px", overflow: "hidden" }}>
-                <div className="progress-bar-fill" style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg, #0e7490, #06b6d4)", transition: "width 0.3s ease" }}></div>
-              </div>
-            </div>
-          )}
-
-          {/* Real-time Logs Console */}
-          {logs.length > 0 && (
-            <div className="console-logs" style={{ marginTop: "20px", background: "#02040a", border: "1px solid rgba(6,182,212,0.2)", borderRadius: "8px", padding: "15px", fontFamily: "monospace", fontSize: "12px", height: "180px", overflowY: "auto", color: "#38bdf8" }}>
-              <div style={{ color: "rgba(255,255,255,0.4)", marginBottom: "8px" }}>CONSOLE LOG OUTPUT:</div>
-              {logs.map((log, index) => (
-                <div key={index} style={{ marginBottom: "4px" }}>&gt; {log}</div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Verification Result Scorecard */}
-        <div className="right-column">
-          {showResult ? (
-            <div className="application-status animate-fade" style={{ background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6,182,212,0.3)" }}>
-              <h2>Verification Scorecard</h2>
-              <div className="circle" style={{ borderColor: "#06b6d4", color: "#06b6d4", boxShadow: "0 0 15px rgba(6,182,212,0.3)" }}>
-                <div>88%</div>
-              </div>
-              <div style={{ textAlign: "center", fontSize: "14px", margin: "15px 0" }}>
-                Status: <strong style={{ color: "#10b981" }}>COMPLIANT (PASS)</strong>
-              </div>
-              <div className="legend" style={{ fontSize: "12px", display: "grid", gap: "5px", color: "rgba(255,255,255,0.8)" }}>
-                <div>✓ GST Registration: <strong style={{ color: "#10b981" }}>VALID</strong></div>
-                <div>✓ PAN verification: <strong style={{ color: "#10b981" }}>MATCHED</strong></div>
-                <div>✓ MSME checklist: <strong style={{ color: "#10b981" }}>COMPLIANT</strong></div>
-                <div>⚠ ITR filing status: <strong style={{ color: "#f59e0b" }}>MARGINAL</strong></div>
-              </div>
-
-              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-                <button 
-                  onClick={() => handleAction("Approve")} 
-                  className="neon-button" 
-                  style={{ background: "#10b981", boxShadow: "0 0 10px rgba(16,185,129,0.3)", flex: 1, marginTop: 0 }}
-                >
-                  Approve Bid
-                </button>
-                <button 
-                  onClick={() => handleAction("Reject")} 
-                  className="neon-button" 
-                  style={{ background: "#ef4444", boxShadow: "0 0 10px rgba(239,68,68,0.3)", flex: 1, marginTop: 0 }}
-                >
-                  Reject Bid
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="quick-actions">
-              <h2>Awaiting Command</h2>
-              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>
-                Select a bidder profile and run the AI scanner to generate compliance scores.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 5. OFFICER AUDIT TRAIL
-function OfficerAuditTrail({ auditLogs }) {
-  return (
-    <div className="audit-trail-panel animate-fade">
-      <h1>Audit Trail Logs</h1>
-      <p className="subtitle">Immutable logging history of verification events and compliance actions.</p>
-
-      <div className="applications-card" style={{ padding: "20px" }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Triggered By</th>
-              <th>Action Description</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {auditLogs.map((log, index) => (
-              <tr key={index}>
-                <td style={{ fontFamily: "monospace", fontSize: "12px" }}>{log.timestamp}</td>
-                <td><strong>{log.user}</strong></td>
-                <td>{log.action}</td>
-                <td>
-                  <span className={`status ${log.status === "Success" ? "verified" : "review"}`}>
-                    {log.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// 6. ADMIN DASHBOARD
-function AdminDashboard({ users, rules, apis }) {
-  const activeApis = apis.filter(a => a.status === "Online").length;
-  const activeUsers = users.filter(u => u.status === "Active").length;
-
-  return (
-    <div className="admin-dash animate-fade">
-      <h1>Admin Command Centre</h1>
-      <p className="subtitle">Manage security policies, configure AI engines, monitor system APIs, and view logs.</p>
-
-      <div className="stats-grid">
-        <div className="stat-card blue">
-          <p>TOTAL GATEWAYS</p>
-          <h2>{apis.length}</h2>
-          <span>🔌</span>
-        </div>
-        <div className="stat-card green">
-          <p>ACTIVE RULES</p>
-          <h2>{rules.filter(r => r.active).length}</h2>
-          <span>✓</span>
-        </div>
-        <div className="stat-card orange">
-          <p>API STATUS</p>
-          <h2>{activeApis}/{apis.length} Online</h2>
-          <span>⚡</span>
-        </div>
-        <div className="stat-card purple">
-          <p>SYSTEM USERS</p>
-          <h2>{activeUsers} Active</h2>
-          <span>👥</span>
-        </div>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="applications-card">
-          <h2>System Performance & Connected APIs</h2>
-          <table style={{ marginTop: "15px" }}>
-            <thead>
-              <tr>
-                <th>API Connection</th>
-                <th>Endpoint URI</th>
-                <th>Latency Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {apis.map(api => (
-                <tr key={api.id}>
-                  <td><strong>{api.name}</strong></td>
-                  <td style={{ fontFamily: "monospace", fontSize: "12px" }}>{api.url}</td>
-                  <td>
-                    <span className={`status ${api.status === "Online" ? "verified" : "review"}`}>
-                      {api.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="right-column">
-          <div className="quick-actions">
-            <h2>Server Status Indicators</h2>
-            <div style={{ display: "grid", gap: "10px", fontSize: "13px", marginTop: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Core Engine Server:</span>
-                <strong style={{ color: "#10b981" }}>ONLINE</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>AI OCR Parser Node:</span>
-                <strong style={{ color: "#10b981" }}>HEALTHY</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Database Sync Time:</span>
-                <strong style={{ color: "#06b6d4" }}>12ms latency</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 7. ADMIN MANAGE USERS
-function AdminUsers({ users, setUsers, addAuditLog }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [userRole, setUserRole] = useState("Procurement Officer");
-
-  const handleAddUser = (e) => {
-    e.preventDefault();
-    if (!name || !email) return;
-
-    const newUser = {
-      id: Date.now(),
-      name,
-      role: userRole,
-      email,
-      status: "Active"
-    };
-
-    setUsers([...users, newUser]);
-    addAuditLog(`Created system user '${name}' with role ${userRole}`);
-    alert(`User ${name} successfully added!`);
-    setName("");
-    setEmail("");
-  };
-
-  const toggleStatus = (id, currentStatus, userName) => {
-    const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
-    setUsers(users.map(u => u.id === id ? { ...u, status: nextStatus } : u));
-    addAuditLog(`Toggled user status of '${userName}' to ${nextStatus}`);
-  };
-
-  return (
-    <div className="admin-users animate-fade">
-      <h1>User Policy Management</h1>
-      <p className="subtitle">Delegate credentials and toggle portal access permissions for corporate security.</p>
-
-      <div className="dashboard-grid">
-        <div className="applications-card">
-          <h2>Active Platform Credentials</h2>
-          <table style={{ marginTop: "15px" }}>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Email Address</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user.id}>
-                  <td><strong>{user.name}</strong></td>
-                  <td>{user.role}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`status ${user.status === "Active" ? "verified" : "review"}`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      onClick={() => toggleStatus(user.id, user.status, user.name)} 
-                      style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "4px", padding: "4px 8px", fontSize: "11px", color: "#ffffff", cursor: "pointer" }}
-                    >
-                      {user.status === "Active" ? "Suspend" : "Activate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="right-column">
-          <div className="quick-actions" style={{ padding: "20px" }}>
-            <h2>Add Access Credentials</h2>
-            <form onSubmit={handleAddUser} className="custom-dashboard-form" style={{ marginTop: "15px" }}>
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Ramesh Kumar" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
-                  required 
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email Address *</label>
-                <input 
-                  type="email" 
-                  placeholder="e.g. ramesh@gem.gov.in" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  required 
-                />
-              </div>
-
-              <div className="form-group">
-                <label>User Role Scope</label>
-                <select value={userRole} onChange={e => setUserRole(e.target.value)}>
-                  <option value="Procurement Officer">Procurement Officer</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
-
-              <button type="submit" className="neon-button" style={{ width: "100%" }}>Add User Account</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 8. ADMIN COMPLIANCE RULES
-function AdminRules({ rules, setRules, addAuditLog }) {
-  const updateWeight = (id, newWeight) => {
-    const val = parseInt(newWeight) || 0;
-    setRules(rules.map(r => r.id === id ? { ...r, weight: val } : r));
-  };
-
-  const handleSave = () => {
-    const total = rules.reduce((acc, r) => acc + r.weight, 0);
-    if (total !== 100) {
-      alert(`Warning: Total weights equal ${total}%. Standard weights must total exactly 100%.`);
-      return;
-    }
-    addAuditLog(`Reconfigured compliance engine weights: ${rules.map(r => `${r.name}: ${r.weight}%`).join(", ")}`);
-    alert("Compliance rules configuration saved successfully!");
-  };
-
-  return (
-    <div className="admin-rules animate-fade">
-      <h1>AI Compliance Rules Configuration</h1>
-      <p className="subtitle">Customize weights and algorithms determining automated compliance scores.</p>
-
-      <div className="section-panel" style={{ maxWidth: "600px", padding: "30px" }}>
-        <h2>Configure Score Weights</h2>
-        <div style={{ margin: "15px 0", fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>
-          The total summation of rule weights must equal exactly <strong>100%</strong>.
-        </div>
-
-        <div className="custom-dashboard-form">
-          {rules.map(rule => (
-            <div className="form-group" key={rule.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-              <label style={{ margin: 0, flex: 2 }}>{rule.name}</label>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1 }}>
-                <input 
-                  type="number" 
-                  value={rule.weight} 
-                  onChange={e => updateWeight(rule.id, e.target.value)} 
-                  style={{ width: "80px", textAlign: "right" }} 
-                />
-                <span style={{ color: "#06b6d4" }}>%</span>
-              </div>
-            </div>
-          ))}
-
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", padding: "15px 0", display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
-            <span>Total Weight Accumulation:</span>
-            <span style={{ color: rules.reduce((acc, r) => acc + r.weight, 0) === 100 ? "#10b981" : "#ef4444" }}>
-              {rules.reduce((acc, r) => acc + r.weight, 0)}%
-            </span>
-          </div>
-
-          <button onClick={handleSave} className="neon-button">Save Rules Configuration</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 9. ADMIN API CONFIGS
-function AdminApis({ apis, setApis, addAuditLog }) {
-  const toggleApiStatus = (id, currentStatus, name) => {
-    const nextStatus = currentStatus === "Online" ? "Offline" : "Online";
-    setApis(apis.map(a => a.id === id ? { ...a, status: nextStatus } : a));
-    addAuditLog(`Toggled API Endpoint '${name}' to ${nextStatus}`);
-  };
-
-  return (
-    <div className="admin-apis animate-fade">
-      <h1>API Gateway Settings</h1>
-      <p className="subtitle">Register endpoints and manage connections to central government registry services.</p>
-
-      <div className="applications-card" style={{ padding: "20px" }}>
-        <h2>Government Verification Channels</h2>
-        <table style={{ marginTop: "15px" }}>
-          <thead>
-            <tr>
-              <th>Integration Module</th>
-              <th>Endpoint Connection Address</th>
-              <th>Ping Status</th>
-              <th>Toggle Connection</th>
-            </tr>
-          </thead>
-          <tbody>
-            {apis.map(api => (
-              <tr key={api.id}>
-                <td><strong>{api.name}</strong></td>
-                <td style={{ fontFamily: "monospace", fontSize: "12px", color: "#a5f3fc" }}>{api.url}</td>
-                <td>
-                  <span className={`status ${api.status === "Online" ? "verified" : "review"}`}>
-                    {api.status}
-                  </span>
-                </td>
-                <td>
-                  <button 
-                    onClick={() => toggleApiStatus(api.id, api.status, api.name)} 
-                    style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "4px", padding: "4px 8px", fontSize: "11px", color: "#ffffff", cursor: "pointer" }}
-                  >
-                    {api.status === "Online" ? "Disconnect" : "Connect"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// 10. ADMIN SYSTEM SETTINGS
-function AdminSettings({ addAuditLog }) {
-  const [captchaDiff, setCaptchaDiff] = useState("Medium");
-  const [timeout, setTimeoutVal] = useState("30 mins");
-
-  const handleSave = () => {
-    addAuditLog(`Saved global system config: Captcha difficulty: ${captchaDiff}, Session Timeout: ${timeout}`);
-    alert("Global system settings saved successfully!");
-  };
-
-  return (
-    <div className="admin-settings animate-fade">
-      <h1>Portal Security Settings</h1>
-      <p className="subtitle">Configure automated protection rules and session timeout constraints.</p>
-
-      <div className="section-panel" style={{ maxWidth: "600px", padding: "30px" }}>
-        <div className="custom-dashboard-form">
-          <div className="form-group">
-            <label>Auto-Session Timeout duration</label>
-            <select value={timeout} onChange={e => setTimeoutVal(e.target.value)}>
-              <option value="15 mins">15 minutes</option>
-              <option value="30 mins">30 minutes</option>
-              <option value="60 mins">60 minutes</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Bot Captcha Validation Complexity</label>
-            <select value={captchaDiff} onChange={e => setCaptchaDiff(e.target.value)}>
-              <option value="Easy">Easy (Numeric 4-digits)</option>
-              <option value="Medium">Medium (Alphanumeric 5-char)</option>
-              <option value="Hard">Hard (Case-sensitive 6-char)</option>
-            </select>
-          </div>
-
-          <button onClick={handleSave} className="neon-button">Apply Global Configurations</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+export default Home;

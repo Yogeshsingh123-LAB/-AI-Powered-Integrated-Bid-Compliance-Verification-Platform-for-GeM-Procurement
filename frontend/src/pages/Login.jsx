@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function Login({ onLogin }) {
   const [isSignUp, setIsSignUp] = useState(false);
-
+  
   // Login states
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [loginRole, setLoginRole] = useState("Supplier");
   const [captcha, setCaptcha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [captchaText, setCaptchaText] = useState("G7K4P");
@@ -15,7 +16,11 @@ function Login({ onLogin }) {
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [organization, setOrganization] = useState("");
-  const [role, setRole] = useState("Supplier");
+  const [signUpRole, setSignUpRole] = useState("Supplier");
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   const generateCaptcha = () => {
     const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -30,30 +35,31 @@ function Login({ onLogin }) {
   const handleLogin = (e) => {
     e.preventDefault();
     if (!loginId || !password) {
-      alert("Please enter Login ID and Password");
+      alert("Please enter Username and Password");
       return;
     }
     if (!captcha) {
-      alert("Please enter Captcha");
+      alert("Please enter the security verification Captcha code.");
       return;
     }
     if (captcha.toUpperCase() !== captchaText) {
-      alert("Invalid Captcha");
+      alert("Verification failed. The CAPTCHA code is incorrect.");
       generateCaptcha();
       return;
     }
-    const detectedRole = loginId.toLowerCase().includes("admin") ? "Admin" : "Procurement Officer";
-    alert(`Login Successful as ${detectedRole}!`);
-    onLogin(detectedRole);
+    onLogin(loginRole);
   };
 
   const handleSignUp = (e) => {
     e.preventDefault();
     if (!signUpId || !signUpEmail || !signUpPassword || !organization) {
-      alert("Please fill all required fields");
+      alert("Please fill out all required fields to register.");
       return;
     }
-    alert("Sign Up Successful! Please log in.");
+    alert(`Registration Successful for ${signUpId}! Directing to Login.`);
+    // Autofill login username and set login role to the registered role
+    setLoginId(signUpId);
+    setLoginRole(signUpRole);
     setIsSignUp(false); // Switch back to Sign In
   };
 
@@ -63,8 +69,8 @@ function Login({ onLogin }) {
     const box = card.getBoundingClientRect();
     const x = e.clientX - box.left - box.width / 2;
     const y = e.clientY - box.top - box.height / 2;
-    const rx = -(y / (box.height / 2)) * 12; // cap at 12 deg tilt
-    const ry = (x / (box.width / 2)) * 12; // cap at 12 deg tilt
+    const rx = -(y / (box.height / 2)) * 6; // max 6 deg
+    const ry = (x / (box.width / 2)) * 6; // max 6 deg
     card.style.setProperty("--rx", `${rx}deg`);
     card.style.setProperty("--ry", `${ry}deg`);
   };
@@ -77,7 +83,7 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-3d-page-wrapper">
-      <div
+      <div 
         className={`login-container ${isSignUp ? "right-panel-active" : ""}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -85,62 +91,62 @@ function Login({ onLogin }) {
         {/* SIGN UP PANEL */}
         <div className="form-container sign-up-container">
           <form onSubmit={handleSignUp}>
-            <h2>Register</h2>
-
+            <h2>Create Account</h2>
+            
             <div className="input-group">
               <label>Username</label>
-              <input
-                type="text"
-                value={signUpId}
-                onChange={(e) => setSignUpId(e.target.value)}
-                required
+              <input 
+                type="text" 
+                value={signUpId} 
+                onChange={(e) => setSignUpId(e.target.value)} 
+                required 
               />
               <span className="input-icon-right">👤</span>
             </div>
 
             <div className="input-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={signUpEmail}
-                onChange={(e) => setSignUpEmail(e.target.value)}
-                required
+              <label>Email Address</label>
+              <input 
+                type="email" 
+                value={signUpEmail} 
+                onChange={(e) => setSignUpEmail(e.target.value)} 
+                required 
               />
               <span className="input-icon-right">✉</span>
             </div>
 
             <div className="input-group">
-              <label>Password</label>
-              <input
-                type="password"
-                value={signUpPassword}
-                onChange={(e) => setSignUpPassword(e.target.value)}
-                required
+              <label>Secure Password</label>
+              <input 
+                type="password" 
+                value={signUpPassword} 
+                onChange={(e) => setSignUpPassword(e.target.value)} 
+                required 
               />
               <span className="input-icon-right">🔒</span>
             </div>
 
             <div className="input-group">
-              <label>Organization</label>
-              <input
-                type="text"
-                value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
-                required
+              <label>Organization / Department</label>
+              <input 
+                type="text" 
+                value={organization} 
+                onChange={(e) => setOrganization(e.target.value)} 
+                required 
               />
               <span className="input-icon-right">🏢</span>
             </div>
 
             <div className="input-group select-group">
-              <label>Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="Supplier">Supplier / Seller</option>
-                <option value="Buyer">Buyer / Officer</option>
+              <label>System Role</label>
+              <select value={signUpRole} onChange={(e) => setSignUpRole(e.target.value)}>
+                <option value="Supplier">Supplier / Seller (Document Verification)</option>
+                <option value="Buyer">Buyer / Officer (Bid Compliance Audit)</option>
               </select>
             </div>
 
-            <button type="submit" className="neon-button">Register</button>
-
+            <button type="submit" className="neon-button">Register Account</button>
+            
             <span className="toggle-text">
               Already have an account?{" "}
               <span className="toggle-link" onClick={() => setIsSignUp(false)}>
@@ -153,52 +159,60 @@ function Login({ onLogin }) {
         {/* SIGN IN PANEL */}
         <div className="form-container sign-in-container">
           <form onSubmit={handleLogin}>
-            <h2>Login</h2>
-
+            <h2>Bidder Terminal</h2>
+            
             <div className="input-group">
               <label>Username</label>
-              <input
-                type="text"
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-                required
+              <input 
+                type="text" 
+                value={loginId} 
+                onChange={(e) => setLoginId(e.target.value)} 
+                required 
               />
               <span className="input-icon-right">👤</span>
             </div>
 
             <div className="input-group">
               <label>Password</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? "🔓" : "🔒"}
-              </button>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "🔓" : "🔒"}
+                </button>
+              </div>
             </div>
 
-
+            <div className="input-group select-group">
+              <label>Portal Access Role</label>
+              <select value={loginRole} onChange={(e) => setLoginRole(e.target.value)}>
+                <option value="Supplier">Supplier / Seller (Upload Bids)</option>
+                <option value="Buyer">Buyer / Audit Officer (Admin Console)</option>
+              </select>
+            </div>
 
             {/* Captcha */}
             <div className="captcha-section">
               <div className="captcha-header">
-                <span className="captcha-label">Captcha:</span>
+                <span className="captcha-label">Security Verification Code</span>
                 <div className="captcha-box-wrapper">
-                  <div
+                  <div 
                     className="captcha-box"
                     onCopy={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {captchaText}
                   </div>
-                  <button
-                    type="button"
+                  <button 
+                    type="button" 
                     className="refresh-captcha"
                     onClick={generateCaptcha}
                   >
@@ -206,23 +220,23 @@ function Login({ onLogin }) {
                   </button>
                 </div>
               </div>
-
+              
               <div className="input-group">
-                <input
-                  type="text"
-                  placeholder="Enter Captcha *"
-                  value={captcha}
-                  onChange={(e) => setCaptcha(e.target.value)}
-                  required
+                <input 
+                  type="text" 
+                  placeholder="Enter Captcha *" 
+                  value={captcha} 
+                  onChange={(e) => setCaptcha(e.target.value)} 
+                  required 
                 />
                 <span className="input-icon-right">🛡️</span>
               </div>
             </div>
 
-            <button type="submit" className="neon-button">Login</button>
-
+            <button type="submit" className="neon-button">Authenticate Securely</button>
+            
             <span className="toggle-text">
-              Don't have an account?{" "}
+              New to GeM Procurement?{" "}
               <span className="toggle-link" onClick={() => setIsSignUp(true)}>
                 Sign Up
               </span>
@@ -234,11 +248,17 @@ function Login({ onLogin }) {
         <div className="overlay-container">
           <div className="overlay">
             <div className="overlay-panel overlay-left">
-              <h2>WELCOME!</h2>
+              <h2>Secure Portal</h2>
+              <p style={{ fontSize: '0.85rem', color: '#a5b4fc', marginTop: '8px' }}>
+                Join the integrated AI-Powered compliance verification platform for Indian government procurement.
+              </p>
             </div>
-
+            
             <div className="overlay-panel overlay-right">
-              <h2>WELCOME BACK!</h2>
+              <h2>Sovereign GeM</h2>
+              <p style={{ fontSize: '0.85rem', color: '#a5b4fc', marginTop: '8px' }}>
+                Access the cryptographic verification pipeline. Auditing compliance certificates with speed, safety, and precision.
+              </p>
             </div>
           </div>
         </div>

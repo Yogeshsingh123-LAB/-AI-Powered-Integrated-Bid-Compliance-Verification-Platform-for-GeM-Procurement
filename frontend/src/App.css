@@ -10,8 +10,8 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background: #f7f4ff;
-  color: #25213b;
+  background: #f0f4f8;
+  color: #1e293b;
 }
 
 #root {
@@ -31,7 +31,7 @@ button {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background: #f7f4ff;
+  background: #f0f4f8;
 }
 
 
@@ -43,7 +43,7 @@ button {
   width: 245px;
   min-width: 245px;
   min-height: 100vh;
-  background: linear-gradient(180deg, #24104f 0%, #180b38 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -63,7 +63,7 @@ button {
   width: 38px;
   height: 38px;
   background: white;
-  color: #5b21b6;
+  color: #06b6d4;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -75,6 +75,18 @@ button {
   line-height: 1.2;
   font-weight: 700;
   color: #ffffff;
+}
+.role-tag {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-top: 3px;
+  text-transform: uppercase;
 }
 
 
@@ -116,9 +128,9 @@ button {
 }
 
 .sidebar-menu a.active {
-  background: linear-gradient(90deg, #8745e8, #7040d9);
+  background: linear-gradient(90deg, #0e7490, #06b6d4);
   color: white;
-  box-shadow: 0 4px 12px rgba(120, 64, 220, 0.3);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
 }
 
 .sidebar-menu a span {
@@ -148,7 +160,7 @@ button {
   height: 34px;
   border-radius: 50%;
   background: white;
-  color: #5b21b6;
+  color: #06b6d4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,7 +175,7 @@ button {
 .user-info small {
   display: block;
   font-size: 10px;
-  color: #bfb3dc;
+  color: #a5f3fc;
   margin-top: 3px;
 }
 
@@ -189,7 +201,7 @@ button {
 .main-content {
   flex: 1;
   min-width: 0;
-  background: #f7f4ff;
+  background: #f0f4f8;
 }
 
 
@@ -200,7 +212,7 @@ button {
 .topbar {
   height: 64px;
   background: white;
-  border-bottom: 1px solid #ebe6f5;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -212,11 +224,11 @@ button {
   align-items: center;
   gap: 9px;
   font-size: 12px;
-  color: #8b849b;
+  color: #64748b;
 }
 
 .breadcrumb strong {
-  color: #332653;
+  color: #0f172a;
 }
 
 .profile {
@@ -228,7 +240,7 @@ button {
 
 .notification {
   font-size: 17px;
-  color: #5c35a4;
+  color: #06b6d4;
   margin-right: 8px;
 }
 
@@ -237,7 +249,7 @@ button {
   height: 31px;
   border-radius: 50%;
   overflow: hidden;
-  background: #eee8ff;
+  background: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -321,12 +333,12 @@ button {
 }
 
 .stat-card.purple {
-  border-left: 3px solid #7c3aed;
+  border-left: 3px solid #06b6d4;
 }
 
 .stat-card.purple span {
-  background: #f0e7ff;
-  color: #7134d1;
+  background: #ecfeff;
+  color: #0891b2;
 }
 
 .stat-card.blue {
@@ -397,8 +409,8 @@ button {
 
 .card-header button {
   border: none;
-  background: #f0e8ff;
-  color: #6736ae;
+  background: #ecfeff;
+  color: #0891b2;
   padding: 7px 12px;
   border-radius: 6px;
   font-size: 10px;
@@ -414,18 +426,18 @@ button {
 .applications-card th {
   text-align: left;
   padding: 12px 10px;
-  background: #fbfaff;
-  color: #817b8e;
+  background: #f8fafc;
+  color: #64748b;
   font-size: 9px;
   font-weight: 600;
-  border-bottom: 1px solid #eeeaf4;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .applications-card td {
   padding: 13px 10px;
-  color: #4e475c;
+  color: #334155;
   font-size: 10px;
-  border-bottom: 1px solid #f0edf5;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
@@ -458,7 +470,7 @@ button {
 .applications-card th:nth-child(5),
 .applications-card td:nth-child(5) {
   width: 12%;
-  color: #6736ae;
+  color: #0891b2;
   font-weight: 600;
 }
 
@@ -1353,7 +1365,7 @@ footer {
 
 .sidebar-menu a svg {
   flex-shrink: 0;
-  color: #c9b9e8;
+  color: #a5f3fc;
   stroke-width: 1.8;
 }
 
@@ -1368,7 +1380,7 @@ footer {
 }
 
 .logo-box svg {
-  color: #6d35c9;
+  color: #06b6d4;
   stroke-width: 2;
 }
 
@@ -1379,7 +1391,7 @@ footer {
 }
 
 .user-avatar svg {
-  color: #6d35c9;
+  color: #06b6d4;
 }
 
 .signout {
@@ -1390,4 +1402,77 @@ footer {
 
 .signout svg {
   flex-shrink: 0;
+}
+
+/* =========================
+   CUSTOM DASHBOARD FORMS
+========================= */
+.custom-dashboard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.custom-dashboard-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.custom-dashboard-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.custom-dashboard-form input,
+.custom-dashboard-form select,
+.custom-dashboard-form textarea {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #1e293b;
+  outline: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  transition: border-color 0.2s ease;
+}
+
+.custom-dashboard-form input:focus,
+.custom-dashboard-form select:focus,
+.custom-dashboard-form textarea:focus {
+  border-color: #06b6d4;
+}
+
+.custom-dashboard-form .neon-button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+/* Animations */
+.animate-fade {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.role-indicator {
+  background: #ecfeff;
+  color: #0891b2;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 20px;
 }

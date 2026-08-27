@@ -42,8 +42,9 @@ function Login({ onLogin }) {
       generateCaptcha();
       return;
     }
-    alert("Login Successful!");
-    onLogin();
+    const detectedRole = loginId.toLowerCase().includes("admin") ? "Admin" : "Procurement Officer";
+    alert(`Login Successful as ${detectedRole}!`);
+    onLogin(detectedRole);
   };
 
   const handleSignUp = (e) => {
@@ -181,6 +182,8 @@ function Login({ onLogin }) {
                 {showPassword ? "🔓" : "🔒"}
               </button>
             </div>
+
+
 
             {/* Captcha */}
             <div className="captcha-section">

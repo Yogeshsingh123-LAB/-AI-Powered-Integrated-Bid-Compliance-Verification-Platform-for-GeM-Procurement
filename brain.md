@@ -111,6 +111,7 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `PATCH` | `/api/users/profile` | Update current user's profile metadata | Yes | None |
 | `GET` | `/api/admin/users` | List all registered users | Yes | `ADMIN` |
 | `PATCH` | `/api/admin/users/{user_id}/status` | Activate/deactivate user account | Yes | `ADMIN` |
+| `POST | /api/analyze | Main PDF compliance analysis endpoint | No | None |
 | `POST` | `/api/documents/upload` | Upload compliance document for a bid | Yes | `BIDDER` |
 | `GET` | `/api/documents/bid/{bid_id}` | List all uploaded documents for a bid | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
@@ -119,8 +120,9 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 
 ---
 
-## 5. Future Development Phases
+## 5. Completed Development Phases
 
-1. **AI OCR Integration**: Connect PyMuPDF or Tesseract to extract key metadata fields (like GSTIN, PAN number, expiration dates, and financial figures) from PDFs.
-2. **Government API Connectors**: Develop client wrappers to invoke mock gateways (GST portal, Income Tax portal, and Udyam database) to authenticate the parsed document attributes.
-3. **Compliance Scoring Algorithm**: Implement dynamic calculation based on weights set by the administrator in the rules editor.
+1. **✅ AI OCR Integration**: Implemented PyMuPDF, OpenCV preprocessors, and Tesseract OCR to parse certificates and run Named Entity Recognition (NER) via spaCy for organizations, dates, and locations.
+2. **✅ Government API Connectors**: Developed mock gateways with Faker database backends simulating GST portal, Income Tax PAN, and Udyam registrations, integrated with HTTP REST and local fallbacks.
+3. **✅ Compliance Scoring Algorithm**: Constructed a weighted scoring engine, name suffix token matcher, risk classifier, and severity-tiered recommendations handler.
+4. **✅ Main Integration Endpoint**: Wired everything to `/api/analyze` supporting upload validation, mock registry lookups, risk report formatting, and DB audit logging.

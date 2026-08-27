@@ -78,6 +78,29 @@ class StorageService:
             raise
 
     @classmethod
+    def download_file(cls, storage_path: str) -> bytes:
+        client = cls.get_client()
+        bucket = settings.SUPABASE_BUCKET
+
+        if client is None:
+            logger.warning(f"MOCK DOWNLOAD: Downloading mock file for: {storage_path}")
+            # Try to read local test files as fallbacks for development/tests
+            for filename in ["digital_test.pdf", "scanned_test.pdf"]:
+                if os.path.exists(filename):
+                    try:
+                        with open(filename, "rb") as f:
+                            return f.read()
+                    except Exception:
+                        pass
+            return b"%PDF-1.4 mock pdf data"
+
+        try:
+            return client.storage.from_(bucket).download(storage_path)
+        except Exception as e:
+            logger.exception(f"Failed to download file from Supabase: {e}")
+            raise
+
+    @classmethod
     def delete_file(cls, storage_path: str) -> bool:
         client = cls.get_client()
         bucket = settings.SUPABASE_BUCKET
@@ -94,3 +117,4 @@ class StorageService:
         except Exception as e:
             logger.exception(f"Failed to delete file from Supabase: {e}")
             raise
+

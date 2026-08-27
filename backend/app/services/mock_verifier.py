@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ MOCK_GSTIN_DB: Dict[str, Dict[str, Any]] = {
         "state_name": "Chhattisgarh",
         "date_of_registration": "2020-09-01",
         "compliance_record": "Poor",
+        "blacklisted": True,
         "is_valid": True
     }
 }

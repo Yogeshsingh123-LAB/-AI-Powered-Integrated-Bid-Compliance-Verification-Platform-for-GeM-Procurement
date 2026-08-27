@@ -7,10 +7,10 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 # Import our pipeline modules
-from pdf_handler import SmartPDFHandler
-from regex_extractor import RegexExtractor
-from mock_verifier import MockVerifier
-from scoring_engine import ScoringEngine
+from app.services.pdf_handler import SmartPDFHandler
+from app.services.regex_extractor import RegexExtractor
+from app.services.mock_verifier import MockVerifier
+from app.services.scoring_engine import ScoringEngine
 
 # Configure logging
 logging.basicConfig(
@@ -21,8 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Enable CORS for all routes (essential for frontend integrations)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Content-Type"])
 
 # Configure temporary upload folder inside project
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_uploads')
@@ -81,7 +80,10 @@ def analyze_pdf():
     temp_path = None
     try:
         filename = secure_filename(file.filename)
-        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        with tempfile.NamedTemporaryFile(
+            prefix="gem-analysis-", suffix=".pdf", dir=app.config['UPLOAD_FOLDER'], delete=False
+        ) as temp_file:
+            temp_path = temp_file.name
         file.save(temp_path)
         logger.info(f"Uploaded file saved temporarily to: {temp_path}")
         

@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Dict, List, Any, Tuple
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,16 @@ class ScoringEngine:
         integrity_score = 30
         deductions = []
         recommendations = []
+
+        blacklisted = any(
+            item.get("verified") and item.get("data", {}).get("blacklisted", False)
+            for items in verification_results.values()
+            for item in items
+        )
+        if blacklisted:
+            integrity_score = 0
+            deductions.append("Vendor is blacklisted (-30 pts)")
+            recommendations.append("CRITICAL: The vendor is blacklisted. Reject the bid and escalate for review.")
         
         # Collect legal names to check for alignment mismatches
         legal_names: List[Tuple[str, str]] = []  # List of (registry_type, name)
@@ -178,7 +189,9 @@ class ScoringEngine:
         total_score = presence_score + verification_score + integrity_score
         
         # Determine Risk Level
-        if total_score >= 85:
+        if blacklisted:
+            risk_level = "HIGH"
+        elif total_score >= 85:
             risk_level = "LOW"
         elif total_score >= 50:
             risk_level = "MEDIUM"

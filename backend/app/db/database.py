@@ -11,7 +11,10 @@ Base = declarative_base()
 is_sqlite = False
 try:
     logger.info(f"Connecting to database: {settings.DATABASE_URL}")
-    engine = create_engine(settings.DATABASE_URL)
+    connect_args = {}
+    if "postgresql" in settings.DATABASE_URL:
+        connect_args["connect_timeout"] = 3
+    engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
     with engine.connect() as conn:
         pass
     logger.info("Database connection to PostgreSQL successful.")

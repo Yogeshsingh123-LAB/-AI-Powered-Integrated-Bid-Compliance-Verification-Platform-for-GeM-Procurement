@@ -358,17 +358,35 @@ function OfficerCreateTender({ tenders, setTenders, addAuditLog }) {
 function OfficerUploadDocs({ tenders, addAuditLog }) {
   const [selectedTender, setSelectedTender] = useState(tenders[0]?.id || "");
   const [bidderName, setBidderName] = useState("");
-  const [gstFile, setGstFile] = useState(null);
-  const [panFile, setPanFile] = useState(null);
+  const [documentFile, setDocumentFile] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [error, setError] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
-    if (!bidderName) return;
-    addAuditLog(`Uploaded verification documents for Bidder '${bidderName}' under tender ${selectedTender}`);
-    alert(`Documents for '${bidderName}' uploaded successfully! Ready for Verification Suite.`);
-    setBidderName("");
-    setGstFile(null);
-    setPanFile(null);
+    if (!bidderName || !documentFile) return;
+
+    setIsAnalyzing(true);
+    setError("");
+    setAnalysis(null);
+    const formData = new FormData();
+    formData.append("file", documentFile);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+      const response = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || "The document could not be analyzed.");
+      }
+      setAnalysis(payload);
+      addAuditLog(`Analyzed compliance documents for Bidder '${bidderName}' under tender ${selectedTender}`);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -399,24 +417,36 @@ function OfficerUploadDocs({ tenders, addAuditLog }) {
           </div>
 
           <div className="form-group">
-            <label>GST Certificate (PDF/PNG)</label>
+            <label>Bidder Compliance Document (PDF)</label>
             <input 
               type="file" 
-              onChange={e => setGstFile(e.target.files[0])} 
+              accept="application/pdf,.pdf"
+              onChange={e => setDocumentFile(e.target.files[0] || null)}
+              required
             />
           </div>
 
-          <div className="form-group">
-            <label>PAN Card Copy (PDF/PNG)</label>
-            <input 
-              type="file" 
-              onChange={e => setPanFile(e.target.files[0])} 
-            />
-          </div>
-
-          <button type="submit" className="neon-button">Upload and Parse Documents</button>
+          <button type="submit" className="neon-button" disabled={isAnalyzing}>
+            {isAnalyzing ? "Analyzing PDF..." : "Upload and Analyze PDF"}
+          </button>
+          {error && <p className="status review" role="alert">{error}</p>}
         </form>
       </div>
+
+      {analysis && (
+        <div className="section-panel" style={{ maxWidth: "600px", padding: "30px", marginTop: "20px" }}>
+          <h2>Analysis Result</h2>
+          <p><strong>Bidder:</strong> {bidderName}</p>
+          <p><strong>Score:</strong> {analysis.compliance_report.score}/100</p>
+          <p><strong>Risk:</strong> {analysis.compliance_report.risk_level}</p>
+          <p><strong>GSTIN:</strong> {analysis.extracted_identifiers.gstin.join(", ") || "Not found"}</p>
+          <p><strong>PAN:</strong> {analysis.extracted_identifiers.pan.join(", ") || "Not found"}</p>
+          <p><strong>Udyam:</strong> {analysis.extracted_identifiers.udyam.join(", ") || "Not found"}</p>
+          {analysis.compliance_report.recommendations.map((recommendation) => (
+            <p key={recommendation} className="subtitle">{recommendation}</p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

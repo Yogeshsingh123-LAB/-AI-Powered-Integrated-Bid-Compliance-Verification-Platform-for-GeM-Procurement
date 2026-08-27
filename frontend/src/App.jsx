@@ -5,7 +5,12 @@ import Click3DEffect from "./components/Click3DEffect";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState("Procurement Officer");
+  const [userRole, setUserRole] = useState("Supplier"); // Supplier or Buyer
+
+  const handleLogin = (role) => {
+    setUserRole(role || "Supplier");
+    setIsLoggedIn(true);
+  };
 
   return (
     <>
@@ -13,12 +18,7 @@ function App() {
       {isLoggedIn ? (
         <Home role={userRole} onLogout={() => setIsLoggedIn(false)} />
       ) : (
-        <Login 
-          onLogin={(role) => {
-            setUserRole(role);
-            setIsLoggedIn(true);
-          }} 
-        />
+        <Login onLogin={handleLogin} />
       )}
     </>
   );

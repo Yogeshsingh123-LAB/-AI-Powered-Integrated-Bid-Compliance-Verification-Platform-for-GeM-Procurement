@@ -1,13 +1,46 @@
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
-engine = create_engine(
-    settings.DATABASE_URL,
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
+
+# Try connecting to PostgreSQL; fall back to SQLite if unreachable or connection fails.
+is_sqlite = False
+try:
+    logger.info(f"Connecting to database: {settings.DATABASE_URL}")
+    engine = create_engine(settings.DATABASE_URL)
+    with engine.connect() as conn:
+        pass
+    logger.info("Database connection to PostgreSQL successful.")
+except Exception as e:
+    logger.warning(
+        f"PostgreSQL database connection failed ({e}). "
+        "Falling back to local SQLite database: sqlite:///./bid_compliance.db"
+    )
+    sqlite_url = "sqlite:///./bid_compliance.db"
+    engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+    is_sqlite = True
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# If we are using SQLite, auto-create tables so it works out-of-the-box
+if is_sqlite:
+    try:
+        # Import models so they register with Base.metadata
+        from app.models.user import User
+        from app.models.bid import Bid
+        from app.models.requirement import Requirement
+        from app.models.document import Document
+        from app.models.document_extraction import DocumentExtraction
+        from app.models.audit_log import AuditLog
+        
+        Base.metadata.create_all(bind=engine)
+        logger.info("Auto-created model tables in SQLite database.")
+    except Exception as create_err:
+        logger.error(f"Failed to auto-create tables in SQLite: {create_err}")
 
 def get_db():
     db = SessionLocal()

@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.documents import router as documents_router
+from app.api.analysis import router as analysis_router
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router
 
 app = FastAPI(
@@ -27,6 +28,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
+app.include_router(analysis_router, prefix="/api")
 app.include_router(gst_router)
 app.include_router(pan_router)
 app.include_router(udyam_router)

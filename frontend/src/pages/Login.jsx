@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function Login({ onLogin }) {
   const [isSignUp, setIsSignUp] = useState(false);
-  
+
   // Login states
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
@@ -77,7 +77,7 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-3d-page-wrapper">
-      <div 
+      <div
         className={`login-container ${isSignUp ? "right-panel-active" : ""}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -86,47 +86,47 @@ function Login({ onLogin }) {
         <div className="form-container sign-up-container">
           <form onSubmit={handleSignUp}>
             <h2>Register</h2>
-            
+
             <div className="input-group">
               <label>Username</label>
-              <input 
-                type="text" 
-                value={signUpId} 
-                onChange={(e) => setSignUpId(e.target.value)} 
-                required 
+              <input
+                type="text"
+                value={signUpId}
+                onChange={(e) => setSignUpId(e.target.value)}
+                required
               />
               <span className="input-icon-right">👤</span>
             </div>
 
             <div className="input-group">
               <label>Email</label>
-              <input 
-                type="email" 
-                value={signUpEmail} 
-                onChange={(e) => setSignUpEmail(e.target.value)} 
-                required 
+              <input
+                type="email"
+                value={signUpEmail}
+                onChange={(e) => setSignUpEmail(e.target.value)}
+                required
               />
               <span className="input-icon-right">✉</span>
             </div>
 
             <div className="input-group">
               <label>Password</label>
-              <input 
-                type="password" 
-                value={signUpPassword} 
-                onChange={(e) => setSignUpPassword(e.target.value)} 
-                required 
+              <input
+                type="password"
+                value={signUpPassword}
+                onChange={(e) => setSignUpPassword(e.target.value)}
+                required
               />
               <span className="input-icon-right">🔒</span>
             </div>
 
             <div className="input-group">
               <label>Organization</label>
-              <input 
-                type="text" 
-                value={organization} 
-                onChange={(e) => setOrganization(e.target.value)} 
-                required 
+              <input
+                type="text"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                required
               />
               <span className="input-icon-right">🏢</span>
             </div>
@@ -140,7 +140,7 @@ function Login({ onLogin }) {
             </div>
 
             <button type="submit" className="neon-button">Register</button>
-            
+
             <span className="toggle-text">
               Already have an account?{" "}
               <span className="toggle-link" onClick={() => setIsSignUp(false)}>
@@ -154,28 +154,28 @@ function Login({ onLogin }) {
         <div className="form-container sign-in-container">
           <form onSubmit={handleLogin}>
             <h2>Login</h2>
-            
+
             <div className="input-group">
               <label>Username</label>
-              <input 
-                type="text" 
-                value={loginId} 
-                onChange={(e) => setLoginId(e.target.value)} 
-                required 
+              <input
+                type="text"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                required
               />
               <span className="input-icon-right">👤</span>
             </div>
 
             <div className="input-group">
               <label>Password</label>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
               >
@@ -190,15 +190,15 @@ function Login({ onLogin }) {
               <div className="captcha-header">
                 <span className="captcha-label">Captcha:</span>
                 <div className="captcha-box-wrapper">
-                  <div 
+                  <div
                     className="captcha-box"
                     onCopy={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {captchaText}
                   </div>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="refresh-captcha"
                     onClick={generateCaptcha}
                   >
@@ -206,21 +206,21 @@ function Login({ onLogin }) {
                   </button>
                 </div>
               </div>
-              
+
               <div className="input-group">
-                <input 
-                  type="text" 
-                  placeholder="Enter Captcha *" 
-                  value={captcha} 
-                  onChange={(e) => setCaptcha(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  placeholder="Enter Captcha *"
+                  value={captcha}
+                  onChange={(e) => setCaptcha(e.target.value)}
+                  required
                 />
                 <span className="input-icon-right">🛡️</span>
               </div>
             </div>
 
             <button type="submit" className="neon-button">Login</button>
-            
+
             <span className="toggle-text">
               Don't have an account?{" "}
               <span className="toggle-link" onClick={() => setIsSignUp(true)}>
@@ -236,7 +236,7 @@ function Login({ onLogin }) {
             <div className="overlay-panel overlay-left">
               <h2>WELCOME!</h2>
             </div>
-            
+
             <div className="overlay-panel overlay-right">
               <h2>WELCOME BACK!</h2>
             </div>

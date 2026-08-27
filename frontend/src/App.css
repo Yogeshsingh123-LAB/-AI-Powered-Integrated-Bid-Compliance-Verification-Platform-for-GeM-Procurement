@@ -1441,3 +1441,7 @@ footer {
   border-top: 1px solid var(--border);
   margin-top: auto;
 }
+
+.drop-zone.disabled {
+  cursor: not-allowed !important;
+}

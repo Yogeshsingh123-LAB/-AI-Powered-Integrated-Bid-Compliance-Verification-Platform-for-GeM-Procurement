@@ -55,12 +55,8 @@ function DocumentUploadPage({ onAddBid }) {
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === "application/pdf" || droppedFile.name.endsWith(".pdf")) {
-        setFile(droppedFile);
-        triggerComplianceAnalysis(droppedFile);
-      } else {
-        alert("Verification System Error: Only PDF files (.pdf) are permitted.");
-      }
+      setFile(droppedFile);
+      triggerComplianceAnalysis(droppedFile);
     }
   };
 
@@ -72,7 +68,32 @@ function DocumentUploadPage({ onAddBid }) {
     }
   };
 
+  const fetchWithTimeout = (url, options, timeout = 30000) => {
+    return Promise.race([
+      fetch(url, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timeout — backend may be busy")), timeout)
+      )
+    ]);
+  };
+
   const triggerComplianceAnalysis = async (uploadedFile) => {
+    // 1. File Validation Checks
+    const MAX_SIZE_MB = 16;
+    if (uploadedFile.size > MAX_SIZE_MB * 1024 * 1024) {
+      alert(`Verification System Error: File too large. Maximum allowed size is ${MAX_SIZE_MB}MB.`);
+      setFile(null);
+      return;
+    }
+
+    const isPDF = uploadedFile.type === "application/pdf" || 
+                  uploadedFile.name.toLowerCase().endsWith(".pdf");
+    if (!isPDF) {
+      alert("Verification System Error: Only PDF files (.pdf) are permitted.");
+      setFile(null);
+      return;
+    }
+
     setUploading(true);
     setReport(null);
     setParsingProgress(1);
@@ -101,15 +122,16 @@ function DocumentUploadPage({ onAddBid }) {
       timeouts.push(t);
     });
 
-    // Make live Flask API call
+    // Make live FastAPI API call using env configuration
+    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
     const formData = new FormData();
     formData.append("file", uploadedFile);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/analyze", {
+      const response = await fetchWithTimeout(`${API_BASE}/api/analyze`, {
         method: "POST",
         body: formData
-      });
+      }, 30000); // 30 second timeout
 
       // Clear any remaining fake logs timeouts
       timeouts.forEach(clearTimeout);
@@ -123,44 +145,64 @@ function DocumentUploadPage({ onAddBid }) {
       
       // Print final extraction success logs
       addLog("SmartPDFHandler: Successfully extracted document string data.", "success");
-      const extractionMethod = data.text_extraction.pages_detail.map(p => `Page ${p.page_number} (${p.method.toUpperCase()})`).join(", ");
-      addLog(`Extraction Methods: ${extractionMethod}`, "success");
       
-      const ids = data.extracted_identifiers;
+      // Handle page extraction method logs format details
+      const extractionMethod = data.analysis.ocr_used 
+        ? `OCR (${data.analysis.ocr_engine.toUpperCase()})` 
+        : "Digital text extraction";
+      addLog(`Extraction Method: ${extractionMethod}`, "success");
+      
+      const ids = data.analysis.identifiers;
       addLog(`RegexExtractor: Found GSTINs: [${ids.gstin.join(", ")}], PANs: [${ids.pan.join(", ")}], Udyam: [${ids.udyam.join(", ")}]`, "success");
       
       addLog("MockVerifier: Batch queries complete. Registry alignment scores computed.", "success");
-      addLog(`ScoringEngine: Final compliance score is: ${data.compliance_report.score}/100. Risk Tier: ${data.compliance_report.risk_level}`, "success");
+      addLog(`ScoringEngine: Final compliance score is: ${data.compliance.score}/100. Risk Tier: ${data.compliance.risk_level}`, "success");
 
-      setReport(data);
+      // Adapt key fields to format required by report card components
+      const adaptedData = {
+        success: data.analysis.success,
+        text_extraction: {
+          pages_detail: [{ page_number: 1, method: data.analysis.ocr_used ? "ocr" : "digital" }]
+        },
+        extracted_identifiers: ids,
+        compliance_report: {
+          score: data.compliance.score,
+          risk_level: data.compliance.risk_level,
+          breakdown: data.compliance.breakdown,
+          recommendations: data.compliance.recommendations
+        },
+        verification_details: data.verification
+      };
+
+      setReport(adaptedData);
       setParsingProgress(2);
 
       // Create new bid log array
       const terminalLogsList = [
         `[System] Initialized cryptographic inspection for uploaded document: ${uploadedFile.name}`,
-        `[SmartPDFHandler] Text extraction completed using pages summary: ${extractionMethod}`,
+        `[SmartPDFHandler] Text extraction completed using page summary: ${extractionMethod}`,
         `[RegexExtractor] Extracted GSTIN: ${ids.gstin[0] || 'None'} | PAN: ${ids.pan[0] || 'None'} | Udyam: ${ids.udyam[0] || 'None'}`,
-        ...data.compliance_report.recommendations.map(r => `[ScoringEngine] Analysis: ${r}`)
+        ...data.compliance.recommendations.map(r => `[ScoringEngine] Analysis: ${r}`)
       ];
 
       // Format a clean object to sync to Home.jsx state array
-      const randomBidId = `GEM-BID-2026-${Math.floor(Math.random() * 900) + 100}`;
-      const bidderName = data.verification_details.gstin[0]?.data.legal_name || data.verification_details.pan[0]?.data.name || data.verification_details.udyam[0]?.data.enterprise_name || "Unknown Bidder Org";
+      const bidId = `GEM-BID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const bidderName = data.verification.gstin[0]?.data.legal_name || data.verification.pan[0]?.data.name || data.verification.udyam[0]?.data.enterprise_name || "Unknown Bidder Org";
       
       const newBid = {
-        id: randomBidId,
+        id: bidId,
         bidderName: bidderName,
         gstin: ids.gstin[0] || "",
         pan: ids.pan[0] || "",
         udyam: ids.udyam[0] || "",
         submittedOn: new Date().toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
         status: "Under Review", // Default to Under Review for auditing
-        score: data.compliance_report.score,
-        risk: data.compliance_report.risk_level,
-        compliance_record: data.verification_details.gstin[0]?.data.compliance_record || "Good",
-        taxpayer_type: data.verification_details.gstin[0]?.data.taxpayer_type || "Regular",
-        enterprise_type: data.verification_details.udyam[0]?.data.enterprise_type || "N/A",
-        warnings: data.compliance_report.recommendations,
+        score: data.compliance.score,
+        risk: data.compliance.risk_level,
+        compliance_record: data.verification.gstin[0]?.data.compliance_record || "Good",
+        taxpayer_type: data.verification.gstin[0]?.data.taxpayer_type || "Regular",
+        enterprise_type: data.verification.udyam[0]?.data.enterprise_type || "N/A",
+        warnings: data.compliance.recommendations,
         logs: terminalLogsList
       };
 
@@ -172,7 +214,7 @@ function DocumentUploadPage({ onAddBid }) {
     } catch (err) {
       timeouts.forEach(clearTimeout);
       addLog(`FATAL PIPELINE EXCEPTION: ${err.message}`, "danger");
-      addLog("Audit cancelled due to errors. Please start Flask backend on port 5000.", "danger");
+      addLog(`Audit cancelled due to errors. Please check backend status at ${API_BASE}.`, "danger");
       console.error(err);
     } finally {
       setUploading(false);
@@ -194,12 +236,13 @@ function DocumentUploadPage({ onAddBid }) {
 
       <div className="section-panel" style={{ padding: '30px' }}>
         <div 
-          className={`drop-zone ${dragActive ? "active" : ""}`}
+          className={`drop-zone ${dragActive ? "active" : ""} ${uploading ? "disabled" : ""}`}
+          style={{ opacity: uploading ? 0.6 : 1, pointerEvents: uploading ? "none" : "auto" }}
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
           onDragLeave={handleDrag}
-          onDrop={handleDrop}
-          onClick={handleBrowseClick}
+          onDrop={uploading ? undefined : handleDrop}
+          onClick={uploading ? undefined : handleBrowseClick}
         >
           <input 
             type="file" 
@@ -207,6 +250,7 @@ function DocumentUploadPage({ onAddBid }) {
             className="file-input" 
             accept=".pdf"
             onChange={handleFileChange}
+            disabled={uploading}
           />
           {uploading ? (
             <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent)' }} />

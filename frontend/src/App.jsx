@@ -5,14 +5,20 @@ import Click3DEffect from "./components/Click3DEffect";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState("Procurement Officer");
 
   return (
     <>
       <Click3DEffect />
       {isLoggedIn ? (
-        <Home onLogout={() => setIsLoggedIn(false)} />
+        <Home role={userRole} onLogout={() => setIsLoggedIn(false)} />
       ) : (
-        <Login onLogin={() => setIsLoggedIn(true)} />
+        <Login 
+          onLogin={(role) => {
+            setUserRole(role);
+            setIsLoggedIn(true);
+          }} 
+        />
       )}
     </>
   );

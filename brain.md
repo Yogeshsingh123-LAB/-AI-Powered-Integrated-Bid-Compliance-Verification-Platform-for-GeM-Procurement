@@ -15,71 +15,107 @@ The goal of this platform is to automate compliance checking for bids submitted 
 graph TD
     A[React/Vite Frontend] -- HTTP / JSON --> B[FastAPI Backend Engine]
     B -- SQLAlchemy 2.x --> C[(PostgreSQL Database)]
-    B -- External Integration --> D[Govt API Gateways]
-    B -- OCR Processing --> E[AI OCR Parser]
+    B -- Supabase Storage --> D[Private Storage Bucket]
+    B -- External Integration --> E[Govt API Gateways]
+    B -- OCR Processing --> F[AI OCR Parser]
 ```
 
 ### Frontend (User Interface)
 - **Tech Stack**: React 18, Vite, Custom Vanilla CSS, Lucide Icons.
 - **Design Aesthetic**: Space-themed futuristic dark UI (`#060913`) featuring glassmorphism elements, custom diagonal slide transitions, and 3D mouse parallax tilt.
 - **Role-Based Views**:
-  - **Procurement Officer**: Tender management, bidder document upload portal, verification suite logs terminal, and audit trails.
+  - **Procurement Officer / Buyer**: Tender management, bidder document upload portal, verification suite logs terminal, and audit trails.
   - **Admin**: User credentials management, API gateways connectivity toggles, and dynamic compliance rules weight tuning.
+  - **Bidder / Supplier**: Document upload, listing, and lifecycle management.
 
 ### Backend (Core Engine)
-- **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), PostgreSQL.
-- **Security**: JWT-based session tokens and bcrypt password hashing via `passlib`.
+- **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), Neon PostgreSQL.
+- **Security**: Stateless JWT-based session tokens and bcrypt password hashing via `passlib`.
 - **CORS Configuration**: Open-access configured to allow seamless communication with dev clients on ports `5173` and `5174`.
 
 ---
 
 ## 3. Database Schema Blueprint
-The SQLAlchemy 2.x structure will incorporate the following core tables:
+The SQLAlchemy 2.x structure incorporates the following core tables:
 
 ### Users Table
 - `id` (UUID, Primary Key)
-- `username` (String, Unique)
-- `email` (String, Unique)
-- `hashed_password` (String)
-- `role` (Enum: `Admin`, `Procurement Officer`)
-- `status` (Enum: `Active`, `Suspended`)
+- `full_name` (String)
+- `email` (String, Unique, Indexed)
+- `phone` (String, Optional)
+- `password_hash` (String)
+- `role` (Enum: `BIDDER`, `OFFICER`, `ADMIN`)
+- `is_active` (Boolean)
+- `created_at` (DateTime)
+- `updated_at` (DateTime)
 
 ### Tenders Table
 - `id` (String, Primary Key) - *e.g., GEM/2026/001*
 - `title` (String)
-- `description` (Text)
 - `budget_limit` (Numeric)
-- `docs_required` (String / Array)
-- `status` (Enum: `Active`, `Closed`)
+- `status` (String)
+- `created_at` (DateTime)
 
-### Bids / Bidders Table
+### Requirements Table
 - `id` (UUID, Primary Key)
 - `tender_id` (String, ForeignKey -> Tenders)
-- `organization_name` (String)
-- `compliance_score` (Numeric)
-- `status` (Enum: `Pending`, `Compliant`, `Non-Compliant`)
+- `code` (String)
+- `description` (Text)
+- `is_mandatory` (Boolean)
 
-### Verification Logs Table (Audit Trail)
+### Bids Table
+- `id` (UUID, Primary Key)
+- `tender_id` (String, ForeignKey -> Tenders)
+- `bidder_id` (UUID, ForeignKey -> Users)
+- `status` (String)
+- `created_at` (DateTime)
+
+### Documents Table
+- `id` (UUID, Primary Key)
+- `bid_id` (UUID, ForeignKey -> Bids)
+- `requirement_id` (UUID, ForeignKey -> Requirements)
+- `document_type` (String)
+- `original_filename` (String)
+- `storage_path` (String)
+- `mime_type` (String)
+- `file_size` (Integer)
+- `file_hash` (String)
+- `document_status` (String)
+- `uploaded_by` (UUID, ForeignKey -> Users)
+- `created_at` (DateTime)
+- `updated_at` (DateTime)
+
+### Audit Logs Table
 - `id` (UUID, Primary Key)
 - `timestamp` (DateTime)
-- `user_role` (String)
-- `action` (Text)
-- `status` (String)
+- `user_id` (UUID, Optional, ForeignKey -> Users)
+- `user_role` (String, Optional)
+- `action` (String)
+- `details` (Text, Optional)
+- `ip_address` (String, Optional)
 
 ---
 
 ## 4. API Endpoints Map
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/` | Root running message | No |
-| `GET` | `/health` | Server status | No |
-| `POST` | `/api/v1/auth/login` | Login, returns JWT token | No |
-| `POST` | `/api/v1/tenders/` | Create a new tender | Yes (Officer) |
-| `POST` | `/api/v1/bids/upload` | Upload document attachments | Yes (Officer) |
-| `POST` | `/api/v1/verification/run` | Execute AI OCR scanning | Yes (Officer) |
-| `GET` | `/api/v1/audit/logs` | Retrieve immutable trail | Yes (Officer/Admin) |
-| `PUT` | `/api/v1/rules/config` | Update rule weights | Yes (Admin) |
+| Method | Endpoint | Description | Auth Required | Role Restrictions |
+|--------|----------|-------------|---------------|-------------------|
+| `GET` | `/` | Root running message | No | None |
+| `GET` | `/health` | Server health status | No | None |
+| `POST` | `/api/auth/register` | Register a new Bidder account | No | None (Forces BIDDER) |
+| `POST` | `/api/auth/login` | Login and obtain JWT token | No | None |
+| `GET` | `/api/auth/me` | Retrieve authenticated profile | Yes | None |
+| `POST` | `/api/auth/change-password` | Update current user's password | Yes | None |
+| `POST` | `/api/auth/logout` | Revoke session (Client-side token removal) | Yes | None |
+| `POST` | `/api/auth/seed` | Seed developer mock data | No | None |
+| `PATCH` | `/api/users/profile` | Update current user's profile metadata | Yes | None |
+| `GET` | `/api/admin/users` | List all registered users | Yes | `ADMIN` |
+| `PATCH` | `/api/admin/users/{user_id}/status` | Activate/deactivate user account | Yes | `ADMIN` |
+| `POST` | `/api/documents/upload` | Upload compliance document for a bid | Yes | `BIDDER` |
+| `GET` | `/api/documents/bid/{bid_id}` | List all uploaded documents for a bid | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
+| `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
+| `POST` | `/api/documents/{doc_id}/replace` | Replace an uploaded document | Yes | `BIDDER` (Owner) |
+| `DELETE` | `/api/documents/{doc_id}` | Delete a document from bucket & DB | Yes | `BIDDER` (Owner) |
 
 ---
 

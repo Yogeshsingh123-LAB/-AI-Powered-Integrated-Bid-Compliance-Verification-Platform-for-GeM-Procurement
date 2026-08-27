@@ -13,7 +13,7 @@ The goal of this platform is to automate compliance checking for bids submitted 
 
 ```mermaid
 graph TD
-    A[React/Vite Frontend] -- HTTP / JSON --> B[FastAPI Backend Engine]
+    A[React/Vite Frontend] -- HTTP / JSON + JWT Bearer --> B[FastAPI Backend Engine]
     B -- SQLAlchemy 2.x --> C[(PostgreSQL Database)]
     B -- Supabase Storage --> D[Private Storage Bucket]
     B -- External Integration --> E[Govt API Gateways]
@@ -22,15 +22,23 @@ graph TD
 
 ### Frontend (User Interface)
 - **Tech Stack**: React 18, Vite, Custom Vanilla CSS, Lucide Icons.
-- **Design Aesthetic**: Space-themed futuristic dark UI (`#060913`) featuring glassmorphism elements, custom diagonal slide transitions, and 3D mouse parallax tilt.
+- **Design Aesthetic**: Space-themed futuristic dark UI (`#060913`) featuring glassmorphism elements, custom diagonal slide transitions, 3D mouse parallax tilt, and custom theme overrides (neon green/emerald for Supplier Terminal, neon red/crimson for Audit Console).
+- **Separated Login & Selector Gateway**:
+  - **Portal Selection Landing page**: Entry screen featuring interactive cards to select either the Supplier Procurement Terminal or the Administrative Audit Console.
+  - **Supplier Procurement Terminal**: Supports login and self-registration. Submits requests directly to the backend authentication APIs.
+  - **Administrative Audit Console**: Restricted login-only interface for government auditors. Does not allow public signup.
+- **Strict Role Boundaries & Access Checks**:
+  - Enforces client-side role validation against the JWT: `BIDDER` accounts are denied entry to the Administrative Audit Console and display a warning banner.
+  - Restores active sessions automatically on mount by checking the validity of the JWT token via `/api/auth/me`.
+  - Clears browser storage securely upon Sign Out.
 - **Role-Based Views**:
-  - **Procurement Officer / Buyer**: Tender management, bidder document upload portal, verification suite logs terminal, and audit trails.
+  - **Procurement Officer / Buyer**: Master Audit Queue, bid details inspection, compliance audit reports, logs console, and compliance sign-off actions.
   - **Admin**: User credentials management, API gateways connectivity toggles, and dynamic compliance rules weight tuning.
-  - **Bidder / Supplier**: Document upload, listing, and lifecycle management.
+  - **Bidder / Supplier**: Secure document upload terminal, bid status milestones tracker, and corporate profiles.
 
 ### Backend (Core Engine)
 - **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), Neon PostgreSQL.
-- **Security**: Stateless JWT-based session tokens and bcrypt password hashing via `passlib`.
+- **Security**: Stateless JWT-based session tokens, password strength verification, and bcrypt password hashing via `passlib`.
 - **CORS Configuration**: Open-access configured to allow seamless communication with dev clients on ports `5173` and `5174`.
 
 ---
@@ -111,7 +119,7 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `PATCH` | `/api/users/profile` | Update current user's profile metadata | Yes | None |
 | `GET` | `/api/admin/users` | List all registered users | Yes | `ADMIN` |
 | `PATCH` | `/api/admin/users/{user_id}/status` | Activate/deactivate user account | Yes | `ADMIN` |
-| `POST | /api/analyze | Main PDF compliance analysis endpoint | No | None |
+| `POST` | `/api/analyze` | Main PDF compliance analysis endpoint | No | None |
 | `POST` | `/api/documents/upload` | Upload compliance document for a bid | Yes | `BIDDER` |
 | `GET` | `/api/documents/bid/{bid_id}` | List all uploaded documents for a bid | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
@@ -128,4 +136,4 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 4: End-to-End Integration** ✅ COMPLETE (Main POST `/api/analyze` endpoint orchestration, upload handling, scoring report formatters, audit trail entries)
 - **Phase 5: Testing & Validation** ✅ COMPLETE (4 validation test suites, 5 scenario PDF mock documents, TestClient integration tests)
 - **Phase 6: UI/UX & Refactoring** ✅ COMPLETE (Configurable environmental base URL, API request timeout controls, upload dropzone locks, frontend validation, unique ID mappings, and milestone empty states)
-- **Phase 7: Demo & Documentation** 🔄 IN PROGRESS (Demo video and presentation slides updates)
+- **Phase 7: Separate Portals & Secure Auth** ✅ COMPLETE (Separated Supplier/Officer login portals, integrated backend JWT sessions, client-side session auto-login check via `/api/auth/me`, and access-denied security blocks)

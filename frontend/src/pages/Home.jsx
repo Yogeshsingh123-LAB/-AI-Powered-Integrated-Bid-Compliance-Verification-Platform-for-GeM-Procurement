@@ -127,7 +127,7 @@ function SectionPlaceholder({ title, description, rows }) {
   );
 }
 
-function Home({ role, onLogout }) {
+function Home({ role, user, onLogout }) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [bids, setBids] = useState(INITIAL_BIDS);
   const [selectedBid, setSelectedBid] = useState(null);
@@ -184,7 +184,7 @@ function Home({ role, onLogout }) {
 
     return (
       <>
-        <h1>Welcome back, Shweta Beelwal</h1>
+        <h1>Welcome back, {user ? user.full_name : "Supplier User"}</h1>
         <p className="subtitle">
           Submit compliance certificates and track verification milestones in real-time.
         </p>
@@ -409,16 +409,16 @@ function Home({ role, onLogout }) {
             rows={
               role === "Buyer"
                 ? [
-                    { label: "Officer Name", value: "Dr. Shashi Kumar (Auditor)" },
+                    { label: "Officer Name", value: user ? user.full_name : "Dr. Shashi Kumar (Auditor)" },
                     { label: "Clearance Authority", value: "GeM Audit Division" },
-                    { label: "Clearance Level", value: "Level-3 Compliance Officer" },
-                    { label: "Active Session ID", value: "SES-GEM-7890X" }
+                    { label: "Clearance Level", value: user?.role === "ADMIN" ? "Super Administrator" : "Level-3 Compliance Officer" },
+                    { label: "Officer Email", value: user ? user.email : "officer@gem.gov.in" }
                   ]
                 : [
-                    { label: "Full Name", value: "Shweta Beelwal" },
-                    { label: "Supplier Organization", value: "Acme Tech Solutions Private Limited" },
-                    { label: "Verified GSTIN", value: "27AAPCS1234M1Z5" },
-                    { label: "Verified PAN ID", value: "AAPCS1234M" }
+                    { label: "Full Name", value: user ? user.full_name : "Shweta Beelwal" },
+                    { label: "Supplier Email", value: user ? user.email : "supplier@gem.gov.in" },
+                    { label: "Sovereign Clearing ID", value: user ? user.id : "N/A" },
+                    { label: "Verified Role", value: user ? user.role : "BIDDER" }
                   ]
             }
           />
@@ -482,7 +482,7 @@ function Home({ role, onLogout }) {
               <User size={18} />
             </div>
             <div>
-              <strong>{role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal"}</strong>
+              <strong>{user ? user.full_name : (role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal")}</strong>
               <small>
                 {role === "Buyer" ? "Auditor" : "Supplier"}
                 <span className={`role-badge ${role.toLowerCase()}`}>{role}</span>
@@ -509,7 +509,7 @@ function Home({ role, onLogout }) {
             <div className="profile-avatar">
               <img src={profileImage} alt="Profile" />
             </div>
-            <strong>{role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal"}</strong>
+            <strong>{user ? user.full_name : (role === "Buyer" ? "Dr. Shashi Kumar" : "Shweta Beelwal")}</strong>
           </div>
         </header>
 

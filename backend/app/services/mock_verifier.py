@@ -248,16 +248,28 @@ class MockVerifier:
     @classmethod
     def verify_all_identifiers(cls, ids: Dict[str, List[str]]) -> Dict[str, Any]:
         """Runs batch verification across GSTIN, PAN, and Udyam lists."""
+        gstin_list = ids.get("gstin", [])
+        pan_list = ids.get("pan", [])
+        udyam_list = ids.get("udyam", [])
+
+        # Auto-extract PAN from GSTIN if PAN is not separately present
+        for gstin in gstin_list:
+            if len(gstin) >= 12:
+                pan_candidate = gstin[2:12].upper()
+                if pan_candidate not in [p.upper() for p in pan_list]:
+                    pan_list.append(pan_candidate)
+        ids["pan"] = pan_list
+
         verified_results = {
             "gstin": [],
             "pan": [],
             "udyam": []
         }
-        for g in ids.get("gstin", []):
+        for g in gstin_list:
             verified_results["gstin"].append(cls.verify_gstin(g))
-        for p in ids.get("pan", []):
+        for p in pan_list:
             verified_results["pan"].append(cls.verify_pan(p))
-        for u in ids.get("udyam", []):
+        for u in udyam_list:
             verified_results["udyam"].append(cls.verify_udyam(u))
         return verified_results
 

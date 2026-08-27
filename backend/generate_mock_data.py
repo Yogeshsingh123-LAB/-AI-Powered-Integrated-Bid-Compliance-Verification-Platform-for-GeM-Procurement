@@ -39,7 +39,7 @@ def generate_databases(n=60):
     ]
     
     # 1. Seed some standard test records for predictable unit/integration testing
-    # Seed Acme Tech Solutions Private Limited (Fully Compliant)
+    # Seed 1: Acme Tech Solutions Private Limited (Fully Compliant)
     seed_pan_acme = "AAPCS1234M"
     seed_gst_acme = "27AAPCS1234M1Z5"
     seed_udyam_acme = "UDYAM-MH-12-0012345"
@@ -82,8 +82,52 @@ def generate_databases(n=60):
     }
     blacklist_records[seed_gst_acme] = blacklist_records[seed_pan_acme].copy()
     blacklist_records[seed_gst_acme]["identifier"] = seed_gst_acme
+
+    # Seed 2: Suspended Enterprise Private Limited (Suspended GSTIN, not blacklisted)
+    seed_pan_susp = "AAPCS5678N"
+    seed_gst_susp = "27AAPCS5678N1Z0"
+    seed_udyam_susp = "UDYAM-MH-12-0056789"
+    susp_name = "Suspended Enterprise Private Limited"
+
+    gst_records[seed_gst_susp] = {
+        "gstin": seed_gst_susp,
+        "legal_name": susp_name,
+        "trade_name": "Suspended Ent",
+        "status": "Suspended",
+        "business_type": "Private Limited",
+        "returns_filed": 11,
+        "registration_date": "2019-05-18"
+    }
+    pan_records[seed_pan_susp] = {
+        "pan": seed_pan_susp,
+        "name": susp_name,
+        "status": "Active",
+        "category": "Company",
+        "date_of_issue": "2019-04-10"
+    }
+    udyam_records[seed_udyam_susp] = {
+        "udyam_number": seed_udyam_susp,
+        "enterprise_name": susp_name,
+        "enterprise_type": "Small",
+        "major_activity": "Manufacturing",
+        "status": "Active",
+        "date_of_registration": "2020-11-20",
+        "state": "Maharashtra",
+        "district": "Pune"
+    }
+    blacklist_records[seed_pan_susp] = {
+        "identifier": seed_pan_susp,
+        "name": susp_name,
+        "blacklisting_status": "Not Blacklisted",
+        "authority": None,
+        "order_number": None,
+        "order_date": None,
+        "valid_until": None
+    }
+    blacklist_records[seed_gst_susp] = blacklist_records[seed_pan_susp].copy()
+    blacklist_records[seed_gst_susp]["identifier"] = seed_gst_susp
     
-    # Seed Global Traders Inc (Suspended/Blacklisted Risk)
+    # Seed 3: Global Traders Inc (Blacklisted, GSTIN is Active)
     seed_pan_global = "AAAAA1111A"
     seed_gst_global = "22AAAAA1111A1Z1"
     seed_udyam_global = "UDYAM-DL-01-0098765"
@@ -93,7 +137,7 @@ def generate_databases(n=60):
         "gstin": seed_gst_global,
         "legal_name": global_name,
         "trade_name": "Global Traders",
-        "status": "Suspended",
+        "status": "Active",
         "business_type": "Proprietorship",
         "returns_filed": 4,
         "registration_date": "2020-09-01"

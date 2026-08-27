@@ -1,0 +1,322 @@
+{
+  "UDYAM-MH-12-0012345": {
+    "udyam_number": "UDYAM-MH-12-0012345",
+    "enterprise_name": "Acme Tech Solutions Private Limited",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2020-07-02",
+    "state": "Maharashtra",
+    "district": "Mumbai City"
+  },
+  "UDYAM-DL-01-0098765": {
+    "udyam_number": "UDYAM-DL-01-0098765",
+    "enterprise_name": "Global Traders Inc",
+    "enterprise_type": "Small",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2021-02-14",
+    "state": "Delhi",
+    "district": "Central Delhi"
+  },
+  "UDYAM-WE-50-6067048": {
+    "udyam_number": "UDYAM-WE-50-6067048",
+    "enterprise_name": "Dugal-Sur",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-08-18",
+    "state": "West Bengal",
+    "district": "West Bengal District 3"
+  },
+  "UDYAM-MA-27-3404320": {
+    "udyam_number": "UDYAM-MA-27-3404320",
+    "enterprise_name": "Tak, Chander and Sehgal",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2023-03-12",
+    "state": "Maharashtra",
+    "district": "Maharashtra District 3"
+  },
+  "UDYAM-KA-39-3829307": {
+    "udyam_number": "UDYAM-KA-39-3829307",
+    "enterprise_name": "Kashyap-Bhavsar",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2022-05-29",
+    "state": "Karnataka",
+    "district": "Karnataka District 2"
+  },
+  "UDYAM-KE-26-5462666": {
+    "udyam_number": "UDYAM-KE-26-5462666",
+    "enterprise_name": "Guha-Handa",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2023-04-03",
+    "state": "Kerala",
+    "district": "Kerala District 2"
+  },
+  "UDYAM-TE-71-3882298": {
+    "udyam_number": "UDYAM-TE-71-3882298",
+    "enterprise_name": "Saraf, Atwal and Seth",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2021-10-06",
+    "state": "Telangana",
+    "district": "Telangana District 3"
+  },
+  "UDYAM-KA-96-1685105": {
+    "udyam_number": "UDYAM-KA-96-1685105",
+    "enterprise_name": "Raval, Buch and Dash",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2024-11-29",
+    "state": "Karnataka",
+    "district": "Karnataka District 3"
+  },
+  "UDYAM-MA-38-6594398": {
+    "udyam_number": "UDYAM-MA-38-6594398",
+    "enterprise_name": "Raman PLC",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2022-06-21",
+    "state": "Maharashtra",
+    "district": "Maharashtra District 3"
+  },
+  "UDYAM-KA-79-3792410": {
+    "udyam_number": "UDYAM-KA-79-3792410",
+    "enterprise_name": "Abram Ganesan",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Inactive",
+    "date_of_registration": "2025-07-02",
+    "state": "Karnataka",
+    "district": "Karnataka District 1"
+  },
+  "UDYAM-UT-35-7537572": {
+    "udyam_number": "UDYAM-UT-35-7537572",
+    "enterprise_name": "Doctor, Mane and Rau",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2024-05-05",
+    "state": "Uttar Pradesh",
+    "district": "Uttar Pradesh District 3"
+  },
+  "UDYAM-TA-99-9407554": {
+    "udyam_number": "UDYAM-TA-99-9407554",
+    "enterprise_name": "Vig Group",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-04-03",
+    "state": "Tamil Nadu",
+    "district": "Tamil Nadu District 3"
+  },
+  "UDYAM-WE-75-6021009": {
+    "udyam_number": "UDYAM-WE-75-6021009",
+    "enterprise_name": "Dixit Ltd",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2025-05-29",
+    "state": "West Bengal",
+    "district": "West Bengal District 3"
+  },
+  "UDYAM-KA-91-5581965": {
+    "udyam_number": "UDYAM-KA-91-5581965",
+    "enterprise_name": "Ahluwalia-Kar",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2025-02-17",
+    "state": "Karnataka",
+    "district": "Karnataka District 1"
+  },
+  "UDYAM-UT-66-3262432": {
+    "udyam_number": "UDYAM-UT-66-3262432",
+    "enterprise_name": "Manda, Lanka and Bhagat",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2024-03-21",
+    "state": "Uttar Pradesh",
+    "district": "Uttar Pradesh District 2"
+  },
+  "UDYAM-TE-70-4597024": {
+    "udyam_number": "UDYAM-TE-70-4597024",
+    "enterprise_name": "Bala Inc",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2023-02-11",
+    "state": "Telangana",
+    "district": "Telangana District 3"
+  },
+  "UDYAM-KA-19-9205843": {
+    "udyam_number": "UDYAM-KA-19-9205843",
+    "enterprise_name": "Saanvi Bedi",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2024-06-15",
+    "state": "Karnataka",
+    "district": "Karnataka District 2"
+  },
+  "UDYAM-KA-65-8782891": {
+    "udyam_number": "UDYAM-KA-65-8782891",
+    "enterprise_name": "Baiju Dubey",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2023-10-08",
+    "state": "Karnataka",
+    "district": "Karnataka District 3"
+  },
+  "UDYAM-MA-93-6214540": {
+    "udyam_number": "UDYAM-MA-93-6214540",
+    "enterprise_name": "Elakshi Krishna",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Inactive",
+    "date_of_registration": "2022-10-10",
+    "state": "Maharashtra",
+    "district": "Maharashtra District 2"
+  },
+  "UDYAM-WE-78-9245920": {
+    "udyam_number": "UDYAM-WE-78-9245920",
+    "enterprise_name": "Tata Group",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2024-11-12",
+    "state": "West Bengal",
+    "district": "West Bengal District 2"
+  },
+  "UDYAM-MA-58-5353198": {
+    "udyam_number": "UDYAM-MA-58-5353198",
+    "enterprise_name": "Krish Inc",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2023-10-13",
+    "state": "Maharashtra",
+    "district": "Maharashtra District 3"
+  },
+  "UDYAM-MA-98-5240553": {
+    "udyam_number": "UDYAM-MA-98-5240553",
+    "enterprise_name": "Chhabra Ltd",
+    "enterprise_type": "Medium",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-05-30",
+    "state": "Maharashtra",
+    "district": "Maharashtra District 2"
+  },
+  "UDYAM-UT-56-9861106": {
+    "udyam_number": "UDYAM-UT-56-9861106",
+    "enterprise_name": "Butala Inc",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2021-10-11",
+    "state": "Uttar Pradesh",
+    "district": "Uttar Pradesh District 3"
+  },
+  "UDYAM-KA-71-4052208": {
+    "udyam_number": "UDYAM-KA-71-4052208",
+    "enterprise_name": "Jiya Kulkarni",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-06-10",
+    "state": "Karnataka",
+    "district": "Karnataka District 1"
+  },
+  "UDYAM-WE-30-9255475": {
+    "udyam_number": "UDYAM-WE-30-9255475",
+    "enterprise_name": "Hansh Manne",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-04-03",
+    "state": "West Bengal",
+    "district": "West Bengal District 3"
+  },
+  "UDYAM-GU-98-6840588": {
+    "udyam_number": "UDYAM-GU-98-6840588",
+    "enterprise_name": "Agrawal, Sule and Jain",
+    "enterprise_type": "Micro",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2022-02-10",
+    "state": "Gujarat",
+    "district": "Gujarat District 3"
+  },
+  "UDYAM-GU-24-6319987": {
+    "udyam_number": "UDYAM-GU-24-6319987",
+    "enterprise_name": "Comar-Aurora",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2023-01-14",
+    "state": "Gujarat",
+    "district": "Gujarat District 1"
+  },
+  "UDYAM-UT-33-8205948": {
+    "udyam_number": "UDYAM-UT-33-8205948",
+    "enterprise_name": "Rege-Vyas",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Inactive",
+    "date_of_registration": "2025-02-06",
+    "state": "Uttar Pradesh",
+    "district": "Uttar Pradesh District 2"
+  },
+  "UDYAM-KE-11-4085718": {
+    "udyam_number": "UDYAM-KE-11-4085718",
+    "enterprise_name": "Ganguly-Kohli",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2024-02-25",
+    "state": "Kerala",
+    "district": "Kerala District 3"
+  },
+  "UDYAM-KE-29-5588361": {
+    "udyam_number": "UDYAM-KE-29-5588361",
+    "enterprise_name": "Boase-Jhaveri",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2021-10-27",
+    "state": "Kerala",
+    "district": "Kerala District 2"
+  },
+  "UDYAM-PU-55-4932229": {
+    "udyam_number": "UDYAM-PU-55-4932229",
+    "enterprise_name": "Shalv Mand",
+    "enterprise_type": "Micro",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2024-08-05",
+    "state": "Punjab",
+    "district": "Punjab District 1"
+  },
+  "UDYAM-TE-27-1621851": {
+    "udyam_number": "UDYAM-TE-27-1621851",
+    "enterprise_name": "Ranganathan-Walla",
+    "enterprise_type": "Small",
+    "major_activity": "Manufacturing",
+    "status": "Active",
+    "date_of_registration": "2023-03-04",
+    "state": "Telangana",
+    "district": "Telangana District 3"
+  }
+}

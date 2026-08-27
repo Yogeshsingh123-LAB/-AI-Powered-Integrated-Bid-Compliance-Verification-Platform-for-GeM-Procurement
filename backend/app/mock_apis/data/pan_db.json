@@ -1,0 +1,436 @@
+{
+  "AAPCS1234M": {
+    "pan": "AAPCS1234M",
+    "name": "Acme Tech Solutions Private Limited",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2018-03-15"
+  },
+  "AAAAA1111A": {
+    "pan": "AAAAA1111A",
+    "name": "Global Traders Inc",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2020-08-10"
+  },
+  "RTRCD3711W": {
+    "pan": "RTRCD3711W",
+    "name": "Dugal-Sur",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-03-11"
+  },
+  "HCWCK8280U": {
+    "pan": "HCWCK8280U",
+    "name": "Khatri, Wali and Sami",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-07-23"
+  },
+  "AMTCT8529F": {
+    "pan": "AMTCT8529F",
+    "name": "Tak, Chander and Sehgal",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-05-25"
+  },
+  "DVJCK5613X": {
+    "pan": "DVJCK5613X",
+    "name": "Kashyap-Bhavsar",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-12-04"
+  },
+  "KEOCG1058U": {
+    "pan": "KEOCG1058U",
+    "name": "Guha-Handa",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2019-04-10"
+  },
+  "YUACK6380C": {
+    "pan": "YUACK6380C",
+    "name": "Kade-Banik",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-05-30"
+  },
+  "IZZCS1168M": {
+    "pan": "IZZCS1168M",
+    "name": "Saraf, Atwal and Seth",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-01-08"
+  },
+  "DAQPR2929N": {
+    "pan": "DAQPR2929N",
+    "name": "Raunak Jhaveri",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2021-03-22"
+  },
+  "XRNPA9023H": {
+    "pan": "XRNPA9023H",
+    "name": "Aarna Chana",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2023-06-05"
+  },
+  "QVXPC5194G": {
+    "pan": "QVXPC5194G",
+    "name": "Chirag Kala",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2021-12-25"
+  },
+  "TIJCS1040G": {
+    "pan": "TIJCS1040G",
+    "name": "Sinha-Yogi",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-08-15"
+  },
+  "ABECR5429G": {
+    "pan": "ABECR5429G",
+    "name": "Raval, Buch and Dash",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-08-15"
+  },
+  "FGHCJ1395V": {
+    "pan": "FGHCJ1395V",
+    "name": "Jani-Luthra",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-12-09"
+  },
+  "HRDCR6602Q": {
+    "pan": "HRDCR6602Q",
+    "name": "Raman PLC",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-02-17"
+  },
+  "KOYCR3193N": {
+    "pan": "KOYCR3193N",
+    "name": "Rastogi-Tara",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-02-07"
+  },
+  "VRZPE4957D": {
+    "pan": "VRZPE4957D",
+    "name": "Ela Karpe",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2019-07-28"
+  },
+  "WWCPA3182J": {
+    "pan": "WWCPA3182J",
+    "name": "Abram Ganesan",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2023-12-29"
+  },
+  "XSYPR5832O": {
+    "pan": "XSYPR5832O",
+    "name": "Raunak Sachdeva",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2020-08-04"
+  },
+  "JQYCD3813N": {
+    "pan": "JQYCD3813N",
+    "name": "Doctor, Mane and Rau",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-07-26"
+  },
+  "WGQPA4563C": {
+    "pan": "WGQPA4563C",
+    "name": "Amani Kumer",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2021-06-25"
+  },
+  "NYACV9984R": {
+    "pan": "NYACV9984R",
+    "name": "Vig Group",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2021-10-05"
+  },
+  "YYHPM2969B": {
+    "pan": "YYHPM2969B",
+    "name": "Miraan Sachar",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-10-15"
+  },
+  "PGGPD3539A": {
+    "pan": "PGGPD3539A",
+    "name": "Dhanuk Verma",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2018-03-25"
+  },
+  "PXXCD2884M": {
+    "pan": "PXXCD2884M",
+    "name": "Dixit Ltd",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-03-16"
+  },
+  "JMVPA4601J": {
+    "pan": "JMVPA4601J",
+    "name": "Ayesha Loyal",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-09-29"
+  },
+  "XRICS5510Q": {
+    "pan": "XRICS5510Q",
+    "name": "Shroff PLC",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-02-28"
+  },
+  "THXCA8793C": {
+    "pan": "THXCA8793C",
+    "name": "Ahluwalia-Kar",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-10-27"
+  },
+  "HZECM3963Y": {
+    "pan": "HZECM3963Y",
+    "name": "Manda, Lanka and Bhagat",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-08-15"
+  },
+  "TMEPJ8583F": {
+    "pan": "TMEPJ8583F",
+    "name": "Jayesh Maharaj",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2021-09-06"
+  },
+  "IUHCB6495O": {
+    "pan": "IUHCB6495O",
+    "name": "Bala Inc",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-04-16"
+  },
+  "CBBCB1585K": {
+    "pan": "CBBCB1585K",
+    "name": "Bansal LLC",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-03-10"
+  },
+  "RHMCW1547F": {
+    "pan": "RHMCW1547F",
+    "name": "Wason Group",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2019-02-04"
+  },
+  "DQBPP7843O": {
+    "pan": "DQBPP7843O",
+    "name": "Pranay Rajagopal",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-05-09"
+  },
+  "TMIPV9371B": {
+    "pan": "TMIPV9371B",
+    "name": "Vidur Tiwari",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2024-06-17"
+  },
+  "WWXPS4456H": {
+    "pan": "WWXPS4456H",
+    "name": "Saanvi Bedi",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2020-01-31"
+  },
+  "ZWPPB8663C": {
+    "pan": "ZWPPB8663C",
+    "name": "Baiju Dubey",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-05-11"
+  },
+  "KLXPE9838C": {
+    "pan": "KLXPE9838C",
+    "name": "Elakshi Krishna",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2018-02-15"
+  },
+  "PTXCM8729Z": {
+    "pan": "PTXCM8729Z",
+    "name": "Mani, Hans and Vala",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-08-13"
+  },
+  "ICOCB4850X": {
+    "pan": "ICOCB4850X",
+    "name": "Boase-Shankar",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-05-04"
+  },
+  "ENOCT3921Y": {
+    "pan": "ENOCT3921Y",
+    "name": "Tata Group",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2023-10-01"
+  },
+  "EYKCL9167M": {
+    "pan": "EYKCL9167M",
+    "name": "Lalla, Kar and Balan",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-07-30"
+  },
+  "ICKCK8888P": {
+    "pan": "ICKCK8888P",
+    "name": "Krish Inc",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-07-10"
+  },
+  "ETJCV8707G": {
+    "pan": "ETJCV8707G",
+    "name": "Venkataraman-Korpal",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-10-21"
+  },
+  "AHSPO7698F": {
+    "pan": "AHSPO7698F",
+    "name": "Oorja Sant",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-03-17"
+  },
+  "TEVPK9107J": {
+    "pan": "TEVPK9107J",
+    "name": "Kavya Deo",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-04-28"
+  },
+  "HDYCC7212E": {
+    "pan": "HDYCC7212E",
+    "name": "Chhabra Ltd",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2022-01-14"
+  },
+  "YQBCB8513D": {
+    "pan": "YQBCB8513D",
+    "name": "Butala Inc",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-12-16"
+  },
+  "GDXPJ2957N": {
+    "pan": "GDXPJ2957N",
+    "name": "Jiya Kulkarni",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2021-08-22"
+  },
+  "GTCCK8388S": {
+    "pan": "GTCCK8388S",
+    "name": "Kannan-Dada",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2020-07-08"
+  },
+  "XIPPH9345F": {
+    "pan": "XIPPH9345F",
+    "name": "Hansh Manne",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2022-07-11"
+  },
+  "SOLCA4570M": {
+    "pan": "SOLCA4570M",
+    "name": "Agrawal, Sule and Jain",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2021-09-17"
+  },
+  "YFGCC2500M": {
+    "pan": "YFGCC2500M",
+    "name": "Comar-Aurora",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-08-25"
+  },
+  "KPJCT7588C": {
+    "pan": "KPJCT7588C",
+    "name": "Trivedi, Krishnamurthy and Badami",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2024-08-06"
+  },
+  "WQKCR3805D": {
+    "pan": "WQKCR3805D",
+    "name": "Rege-Vyas",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2016-10-25"
+  },
+  "QAICG2362M": {
+    "pan": "QAICG2362M",
+    "name": "Ganguly-Kohli",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2020-05-15"
+  },
+  "CAMCC8476R": {
+    "pan": "CAMCC8476R",
+    "name": "Chandra Inc",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2020-06-25"
+  },
+  "LUACB4326H": {
+    "pan": "LUACB4326H",
+    "name": "Boase-Jhaveri",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-10-30"
+  },
+  "WSCPS9497Q": {
+    "pan": "WSCPS9497Q",
+    "name": "Shalv Mand",
+    "status": "Active",
+    "category": "Individual",
+    "date_of_issue": "2019-11-26"
+  },
+  "JKSCR4324B": {
+    "pan": "JKSCR4324B",
+    "name": "Ranganathan-Walla",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-08-17"
+  },
+  "CWPCS1991B": {
+    "pan": "CWPCS1991B",
+    "name": "Sunder and Sons",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2017-08-09"
+  }
+}

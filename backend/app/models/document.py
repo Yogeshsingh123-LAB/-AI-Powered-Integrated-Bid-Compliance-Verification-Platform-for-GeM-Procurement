@@ -25,3 +25,6 @@ class Document(Base):
     bid = relationship("Bid", back_populates="documents")
     requirement = relationship("Requirement", back_populates="documents")
     uploader = relationship("User")
+    ocr_records = relationship("DocumentOCR", back_populates="document", cascade="all, delete-orphan")
+    extractions = relationship("DocumentExtraction", back_populates="document", cascade="all, delete-orphan")
+

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     SUPABASE_SECRET_KEY: str = Field(default="")
     SUPABASE_BUCKET: str = Field(default="bid-documents")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
+    AI_PROVIDER: str = Field(default="gemini")
+    AI_API_KEY: str = Field(default="")
+    AI_MODEL: str = Field(default="gemini-1.5-flash")
+
 
     @property
     def cors_origins_list(self) -> List[str]:

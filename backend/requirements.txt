@@ -17,3 +17,6 @@ pytesseract>=0.3.13
 opencv-python-headless>=4.8.0
 pillow>=10.0.0
 requests>=2.31.0
+pymupdf>=1.22.0
+google-generativeai>=0.3.0
+

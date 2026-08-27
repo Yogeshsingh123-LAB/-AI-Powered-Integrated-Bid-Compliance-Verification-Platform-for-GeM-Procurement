@@ -4,7 +4,7 @@ import uuid
 import hashlib
 import logging
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Request, status
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Request, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,9 @@ from app.models.document import Document
 from app.schemas.document import DocumentResponse
 from app.services.auth_service import get_current_user, require_role, create_audit_record
 from app.services.storage_service import StorageService
+from app.services.document_processing_service import process_document, process_document_background
+from app.models.document_extraction import DocumentExtraction
+
 
 router = APIRouter(prefix="/documents", tags=["Document Storage & Verification"])
 
@@ -71,6 +74,7 @@ def validate_file(file: UploadFile) -> bytes:
 @router.post("/upload", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def upload_document(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     bid_id: uuid.UUID = Form(...),
     requirement_id: uuid.UUID = Form(...),
@@ -195,6 +199,9 @@ def upload_document(
         new_value=f"Uploaded document ID: {new_doc.id}, Storage Path: {storage_path}",
         ip_address=ip_address
     )
+
+    # 13. Queue background processing
+    background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
 
     return {
         "success": True,
@@ -372,6 +379,7 @@ def delete_document(
 def replace_document(
     document_id: uuid.UUID,
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -496,6 +504,9 @@ def replace_document(
         ip_address=ip_address
     )
 
+    # 10. Queue background processing for the new document
+    background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
+
     return {
         "success": True,
         "message": "Document replaced successfully",
@@ -505,3 +516,145 @@ def replace_document(
             "status": new_doc.document_status
         }
     }
+
+
+@router.post("/{document_id}/process", response_model=Dict[str, Any])
+def force_process_document(
+    document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    background: bool = False,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Force processing of a specific document (OFFICER or ADMIN only)."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found."
+        )
+
+    if background:
+        background_tasks.add_task(process_document_background, doc.id, current_user.id)
+        return {
+            "success": True,
+            "message": "Document processing queued in background",
+            "document_id": str(doc.id),
+            "status": "PROCESSING"
+        }
+    
+    try:
+        updated_doc = process_document(db, doc.id, current_user.id)
+        return {
+            "success": True,
+            "message": "Document processed successfully",
+            "document_id": str(updated_doc.id),
+            "status": updated_doc.document_status
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Document processing failed: {str(e)}"
+        )
+
+
+@router.post("/{document_id}/reprocess", response_model=Dict[str, Any])
+def reprocess_document(
+    document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    background: bool = False,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Reprocess a document (OFFICER or ADMIN only)."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found."
+        )
+
+    # Log audit trail for reprocessing
+    create_audit_record(
+        db=db,
+        action="DOCUMENT_REPROCESSED",
+        user_id=current_user.id,
+        entity_type="Document",
+        entity_id=doc.id,
+        bid_id=doc.bid_id,
+        new_value=f"Reprocessing requested by {current_user.email} (Role: {current_user.role})"
+    )
+
+    if background:
+        background_tasks.add_task(process_document_background, doc.id, current_user.id)
+        return {
+            "success": True,
+            "message": "Document reprocessing queued in background",
+            "document_id": str(doc.id),
+            "status": "PROCESSING"
+        }
+    
+    try:
+        updated_doc = process_document(db, doc.id, current_user.id)
+        return {
+            "success": True,
+            "message": "Document reprocessed successfully",
+            "document_id": str(updated_doc.id),
+            "status": updated_doc.document_status
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Reprocessing failed: {str(e)}"
+        )
+
+
+@router.get("/{document_id}/extraction", response_model=Dict[str, Any])
+def get_document_extraction(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve document extraction results.
+    Bidders can only view their own documents. Officers and Admins can view all.
+    """
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found."
+        )
+
+    # Authorization Check
+    if current_user.role.upper() == "BIDDER":
+        bid = db.query(Bid).filter(Bid.id == doc.bid_id).first()
+        if not bid or bid.bidder_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to view this document's extraction."
+            )
+
+    # Get the latest extraction record
+    latest_extraction = db.query(DocumentExtraction).filter(
+        DocumentExtraction.document_id == doc.id
+    ).order_by(DocumentExtraction.processed_at.desc()).first()
+
+    extracted_fields = {}
+    missing_fields = []
+    confidence = 0.0
+    
+    if latest_extraction:
+        extracted_fields = latest_extraction.extracted_data or {}
+        missing_fields = [k for k, v in extracted_fields.items() if v is None]
+        confidence = latest_extraction.confidence_score or 0.0
+
+    return {
+        "document_id": str(doc.id),
+        "document_type": doc.document_type,
+        "confidence": confidence,
+        "extracted_fields": extracted_fields,
+        "missing_fields": missing_fields,
+        "processing_status": doc.document_status
+    }
+

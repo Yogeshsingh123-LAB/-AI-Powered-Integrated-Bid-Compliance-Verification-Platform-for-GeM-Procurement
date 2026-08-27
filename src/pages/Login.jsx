@@ -84,13 +84,12 @@ function Login({ onLogin }) {
         {/* SIGN UP PANEL */}
         <div className="form-container sign-up-container">
           <form onSubmit={handleSignUp}>
-            <h2>Create Account</h2>
-            <p className="form-desc">Register for GeM Procurement Portal</p>
+            <h2>Register</h2>
             
             <div className="input-group">
+              <label>Username</label>
               <input 
                 type="text" 
-                placeholder="Username *" 
                 value={signUpId} 
                 onChange={(e) => setSignUpId(e.target.value)} 
                 required 
@@ -99,9 +98,9 @@ function Login({ onLogin }) {
             </div>
 
             <div className="input-group">
+              <label>Email</label>
               <input 
                 type="email" 
-                placeholder="Email Address *" 
                 value={signUpEmail} 
                 onChange={(e) => setSignUpEmail(e.target.value)} 
                 required 
@@ -110,9 +109,9 @@ function Login({ onLogin }) {
             </div>
 
             <div className="input-group">
+              <label>Password</label>
               <input 
                 type="password" 
-                placeholder="Password *" 
                 value={signUpPassword} 
                 onChange={(e) => setSignUpPassword(e.target.value)} 
                 required 
@@ -121,9 +120,9 @@ function Login({ onLogin }) {
             </div>
 
             <div className="input-group">
+              <label>Organization</label>
               <input 
                 type="text" 
-                placeholder="Organization / Company Name *" 
                 value={organization} 
                 onChange={(e) => setOrganization(e.target.value)} 
                 required 
@@ -132,26 +131,33 @@ function Login({ onLogin }) {
             </div>
 
             <div className="input-group select-group">
+              <label>Role</label>
               <select value={role} onChange={(e) => setRole(e.target.value)}>
                 <option value="Supplier">Supplier / Seller</option>
                 <option value="Buyer">Buyer / Officer</option>
               </select>
             </div>
 
-            <button type="submit" className="neon-button">Sign Up</button>
+            <button type="submit" className="neon-button">Register</button>
+            
+            <span className="toggle-text">
+              Already have an account?{" "}
+              <span className="toggle-link" onClick={() => setIsSignUp(false)}>
+                Sign in
+              </span>
+            </span>
           </form>
         </div>
 
         {/* SIGN IN PANEL */}
         <div className="form-container sign-in-container">
           <form onSubmit={handleLogin}>
-            <h2>Sign In</h2>
-            <p className="form-desc">Enter your credentials to access your portal</p>
+            <h2>Login</h2>
             
             <div className="input-group">
+              <label>Username</label>
               <input 
                 type="text" 
-                placeholder="Login ID *" 
                 value={loginId} 
                 onChange={(e) => setLoginId(e.target.value)} 
                 required 
@@ -160,9 +166,9 @@ function Login({ onLogin }) {
             </div>
 
             <div className="input-group">
+              <label>Password</label>
               <input 
                 type={showPassword ? "text" : "password"} 
-                placeholder="Password *" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
@@ -172,7 +178,7 @@ function Login({ onLogin }) {
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? "🔓" : "🔒"}
               </button>
             </div>
 
@@ -210,9 +216,14 @@ function Login({ onLogin }) {
               </div>
             </div>
 
-            <button type="submit" className="neon-button">Sign In</button>
+            <button type="submit" className="neon-button">Login</button>
             
-            <span className="forgot-link">Forgot Password?</span>
+            <span className="toggle-text">
+              Don't have an account?{" "}
+              <span className="toggle-link" onClick={() => setIsSignUp(true)}>
+                Sign Up
+              </span>
+            </span>
           </form>
         </div>
 
@@ -220,27 +231,11 @@ function Login({ onLogin }) {
         <div className="overlay-container">
           <div className="overlay">
             <div className="overlay-panel overlay-left">
-              <h2>Welcome Back!</h2>
-              <p>To keep connected with us please login with your personal info</p>
-              <button 
-                type="button" 
-                className="ghost-button" 
-                onClick={() => setIsSignUp(false)}
-              >
-                Sign In
-              </button>
+              <h2>WELCOME!</h2>
             </div>
             
             <div className="overlay-panel overlay-right">
-              <h2>GeM Procurement</h2>
-              <p>Enter your details and start your compliance journey with us</p>
-              <button 
-                type="button" 
-                className="ghost-button" 
-                onClick={() => setIsSignUp(true)}
-              >
-                Sign Up
-              </button>
+              <h2>WELCOME BACK!</h2>
             </div>
           </div>
         </div>

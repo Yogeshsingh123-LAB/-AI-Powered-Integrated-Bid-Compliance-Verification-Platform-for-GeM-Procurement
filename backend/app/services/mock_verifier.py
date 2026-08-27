@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,8 @@ MOCK_PAN_DB: Dict[str, Dict[str, Any]] = {
         "date_of_issue": "2020-08-10",
         "is_valid": True
     },
-    "BBPDK5678Q": {
-        "pan": "BBPDK5678Q",
+    "BBPPK5678Q": {
+        "pan": "BBPPK5678Q",
         "name": "John Doe (Director)",
         "status": "Active",
         "category": "Individual",
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     print("Testing MockVerifier:")
     sample_ids = {
         "gstin": ["27AAPCS1234M1Z5", "99ABCDE1234F1Z0"],
-        "pan": ["BBPDK5678Q"],
+        "pan": ["BBPPK5678Q"],
         "udyam": ["UDYAM-MH-12-0012345"]
     }
     results = MockVerifier.verify_all_identifiers(sample_ids)

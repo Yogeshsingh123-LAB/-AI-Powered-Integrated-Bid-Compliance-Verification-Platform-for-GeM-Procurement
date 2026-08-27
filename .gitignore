@@ -30,6 +30,7 @@ share/python-wheels/
 venv/
 .venv/
 env/
+.env
 .env/
 ENV/
 
@@ -61,3 +62,5 @@ lerna-debug.log*
 # Node modules
 node_modules
 *.local
+*.db
+

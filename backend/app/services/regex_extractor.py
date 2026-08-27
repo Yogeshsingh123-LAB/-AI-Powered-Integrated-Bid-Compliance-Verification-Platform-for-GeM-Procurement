@@ -12,7 +12,7 @@ class RegexExtractor:
     
     # Regex Patterns (compiled for performance, case-insensitive)
     # GSTIN: 2 digits, 5 letters, 4 digits, 1 letter, 1 alpha-num, 'Z', 1 alpha-num
-    GSTIN_PATTERN = re.compile(r"\b(\d{2}([A-Z]{5})\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1})\b", re.IGNORECASE)
+    GSTIN_PATTERN = re.compile(r"\b(\d{2}([A-Z]{5}\d{4}[A-Z]{1})[A-Z\d]{1}Z[A-Z\d]{1})\b", re.IGNORECASE)
     
     # PAN: 5 letters, 4 digits, 1 letter
     PAN_PATTERN = re.compile(r"\b([A-Z]{5}\d{4}[A-Z]{1})\b", re.IGNORECASE)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     test_text = """
     Company Profile & Bid Document details:
     GSTIN of bidder: 27AAPCS1234M1Z5 (Maharashtra State GST)
-    Independent PAN: BBPDK5678Q (Director PAN)
+    Independent PAN: BBPPK5678Q (Director PAN)
     Proprietor PAN: AAPCS1234M (Should be filtered out since it belongs to GSTIN above)
     Udyam registration: UDYAM-MH-12-0012345
     Second Udyam Reg (lowercase check): udyam-dl-01-0098765

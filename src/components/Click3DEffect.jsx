@@ -23,8 +23,8 @@ export default function Click3DEffect() {
         const rz = Math.random() * 360;
         const size = 6 + Math.random() * 8;
         
-        // Colors palette (purple, blue, pink, orange, teal) matching dashboard theme
-        const colors = ["#8b5cf6", "#3b82f6", "#ec4899", "#f59e0b", "#10b981", "#a78bfa"];
+        // Colors palette (cyan, teal, green, blue) matching redesigned theme
+        const colors = ["#06b6d4", "#0d9488", "#3b82f6", "#10b981", "#67e8f9", "#2dd4bf"];
         const color = colors[Math.floor(Math.random() * colors.length)];
 
         return {

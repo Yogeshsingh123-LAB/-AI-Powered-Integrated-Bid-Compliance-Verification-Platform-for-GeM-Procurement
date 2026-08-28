@@ -115,6 +115,16 @@ const INITIAL_BIDS = [
   }
 ];
 
+const INITIAL_BIDDERS_LIST = [
+  { id: 1, name: "ABC Engineering Pvt. Ltd.", tender: "GEM-CPCL-001", documents: "10/10", compliance: 92, risk: "Low", verification: "Verified" },
+  { id: 2, name: "XYZ Industries Pvt. Ltd.", tender: "GEM-CPCL-001", documents: "9/10", compliance: 78, risk: "Medium", verification: "Review Required" },
+  { id: 3, name: "PQR Pumps Ltd.", tender: "GEM-CPCL-001", documents: "7/10", compliance: 61, risk: "High", verification: "Issues" },
+  { id: 4, name: "Acme Tech Solutions Private Limited", tender: "GEM-CPCL-002", documents: "10/10", compliance: 95, risk: "Low", verification: "Verified" },
+  { id: 5, name: "Global Traders Inc", tender: "GEM-CPCL-002", documents: "8/10", compliance: 55, risk: "Medium", verification: "Review Required" },
+  { id: 6, name: "Vanguard Systems Ltd", tender: "GEM-CPCL-002", documents: "7/10", compliance: 40, risk: "High", verification: "Issues" }
+];
+
+
 function SectionPlaceholder({ title, description, rows }) {
   return (
     <>
@@ -753,6 +763,111 @@ function Home({ role, user, onLogout }) {
 
   // Modern premium Bidder list view component
   const BiddersView = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [tenderFilter, setTenderFilter] = useState("All");
+    const [complianceFilter, setComplianceFilter] = useState("All");
+    const [riskFilter, setRiskFilter] = useState("All");
+    const [verificationFilter, setVerificationFilter] = useState("All");
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+    // Filter Logic
+    const filteredBidders = INITIAL_BIDDERS_LIST.filter(b => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = b.name.toLowerCase().includes(query) || 
+                            b.tender.toLowerCase().includes(query);
+      
+      const matchesTender = tenderFilter === "All" || b.tender === tenderFilter;
+
+      let matchesCompliance = true;
+      if (complianceFilter === "High") matchesCompliance = b.compliance >= 90;
+      else if (complianceFilter === "Medium") matchesCompliance = b.compliance >= 70 && b.compliance < 90;
+      else if (complianceFilter === "Low") matchesCompliance = b.compliance < 70;
+
+      const matchesRisk = riskFilter === "All" || b.risk.toLowerCase() === riskFilter.toLowerCase();
+      const matchesVerification = verificationFilter === "All" || b.verification.toLowerCase() === verificationFilter.toLowerCase();
+
+      return matchesSearch && matchesTender && matchesCompliance && matchesRisk && matchesVerification;
+    });
+
+    const handleExportCSV = () => {
+      const headers = ["Bidder", "Tender", "Documents", "Compliance", "Risk", "Verification"];
+      const rows = filteredBidders.map(b => [
+        `"${b.name}"`,
+        `"${b.tender}"`,
+        `"${b.documents}"`,
+        `"${b.compliance}%"`,
+        `"${b.risk}"`,
+        `"${b.verification}"`
+      ]);
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Bidder_Applications_Report_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setExportDropdownOpen(false);
+    };
+
+    const handleExportPDF = () => {
+      const printWindow = window.open("", "_blank");
+      const html = `
+        <html>
+          <head>
+            <title>Bidder Applications Registry Report</title>
+            <style>
+              body { font-family: sans-serif; padding: 40px; color: #0f172a; }
+              h1 { margin-bottom: 5px; font-size: 1.8rem; }
+              p.meta { color: #64748b; margin-top: 0; margin-bottom: 30px; font-size: 0.9rem; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              th { background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; padding: 12px; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+              td { border-bottom: 1px solid #e2e8f0; padding: 14px 12px; font-size: 0.85rem; color: #334155; }
+              .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+              .badge.verified { background: #dcfce7; color: #15803d; }
+              .badge.reviewrequired { background: #fef9c3; color: #a16207; }
+              .badge.issues { background: #fee2e2; color: #b91c1c; }
+            </style>
+          </head>
+          <body>
+            <h1>Bidder Applications Registry Report</h1>
+            <p class="meta">Generated on ${new Date().toLocaleString()} | Filtered Records: ${filteredBidders.length}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Bidder</th>
+                  <th>Tender</th>
+                  <th>Documents</th>
+                  <th>Compliance</th>
+                  <th>Risk</th>
+                  <th>Verification</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredBidders.map(b => `
+                  <tr>
+                    <td><strong>${b.name}</strong></td>
+                    <td>${b.tender}</td>
+                    <td>${b.documents}</td>
+                    <td>${b.compliance}%</td>
+                    <td>${b.risk}</td>
+                    <td><span class="badge ${b.verification.toLowerCase().replace(/\s+/g, "")}">${b.verification}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+      printWindow.document.write(html);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      setExportDropdownOpen(false);
+    };
+
     return (
       <div className="bidders-dashboard-content">
         {/* Page Header */}
@@ -761,12 +876,51 @@ function Home({ role, user, onLogout }) {
             <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px 0" }}>Bidder Applications</h1>
             <p className="subtitle" style={{ margin: 0 }}>Review and monitor bidder participation across active tenders.</p>
           </div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button className="secondary-action-btn" style={{ height: "40px", padding: "0 16px" }} onClick={() => alert("Report Export Triggered.")}>
-              Export Report
+          <div style={{ display: "flex", gap: "12px", position: "relative" }}>
+            <button 
+              className="secondary-action-btn" 
+              style={{ height: "40px", padding: "0 16px", display: "flex", alignItems: "center", gap: "8px" }} 
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+            >
+              Export Report <ChevronDown size={14} />
             </button>
-            <button className="primary-action-btn" style={{ height: "40px", padding: "0 16px" }} onClick={() => alert("Filters applied.")}>
-              Filter
+            {exportDropdownOpen && (
+              <div style={{
+                position: "absolute",
+                top: "45px",
+                right: "120px",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                zIndex: 10,
+                width: "150px",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden"
+              }}>
+                <button 
+                  style={{ background: "none", border: "none", padding: "10px 16px", textAlign: "left", fontSize: "0.85rem", cursor: "pointer", color: "#334155" }}
+                  onClick={handleExportCSV}
+                >
+                  Export as CSV
+                </button>
+                <button 
+                  style={{ background: "none", border: "none", padding: "10px 16px", textAlign: "left", fontSize: "0.85rem", cursor: "pointer", color: "#334155", borderTop: "1px solid #f1f5f9" }}
+                  onClick={handleExportPDF}
+                >
+                  Print / Save PDF
+                </button>
+              </div>
+            )}
+            <button className="primary-action-btn" style={{ height: "40px", padding: "0 16px" }} onClick={() => {
+              setSearchQuery("");
+              setTenderFilter("All");
+              setComplianceFilter("All");
+              setRiskFilter("All");
+              setVerificationFilter("All");
+            }}>
+              Clear Filters
             </button>
           </div>
         </div>
@@ -777,32 +931,51 @@ function Home({ role, user, onLogout }) {
             <Search size={18} style={{ position: "absolute", left: "14px", top: "12px", color: "#94a3b8" }} />
             <input
               type="text"
-              placeholder="Search bidder, GSTIN, PAN, Tender ID..."
+              placeholder="Search bidder, Tender ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{ width: "100%", height: "42px", padding: "0 16px 0 42px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.875rem" }}
             />
           </div>
           <div className="filter-selects" style={{ display: "flex", gap: "12px" }}>
-            <select style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}>
-              <option>Tender</option>
-              <option>GEM-CPCL-001</option>
-              <option>GEM-CPCL-002</option>
+            <select 
+              value={tenderFilter}
+              onChange={(e) => setTenderFilter(e.target.value)}
+              style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}
+            >
+              <option value="All">All Tenders</option>
+              <option value="GEM-CPCL-001">GEM-CPCL-001</option>
+              <option value="GEM-CPCL-002">GEM-CPCL-002</option>
             </select>
-            <select style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}>
-              <option>Compliance Status</option>
-              <option>High Compliance</option>
-              <option>Incomplete</option>
+            <select 
+              value={complianceFilter}
+              onChange={(e) => setComplianceFilter(e.target.value)}
+              style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}
+            >
+              <option value="All">Compliance Status</option>
+              <option value="High">High Compliance (≥90%)</option>
+              <option value="Medium">Medium Compliance (70-89%)</option>
+              <option value="Low">Low Compliance (&lt;70%)</option>
             </select>
-            <select style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}>
-              <option>Risk Level</option>
-              <option>Low Risk</option>
-              <option>Medium Risk</option>
-              <option>High Risk</option>
+            <select 
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+              style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}
+            >
+              <option value="All">Risk Level</option>
+              <option value="Low">Low Risk</option>
+              <option value="Medium">Medium Risk</option>
+              <option value="High">High Risk</option>
             </select>
-            <select style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}>
-              <option>Verification Status</option>
-              <option>Verified</option>
-              <option>Review Required</option>
-              <option>Issues</option>
+            <select 
+              value={verificationFilter}
+              onChange={(e) => setVerificationFilter(e.target.value)}
+              style={{ height: "42px", padding: "0 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.85rem", color: "#334155" }}
+            >
+              <option value="All">Verification Status</option>
+              <option value="Verified">Verified</option>
+              <option value="Review Required">Review Required</option>
+              <option value="Issues">Issues</option>
             </select>
           </div>
         </div>
@@ -822,45 +995,56 @@ function Home({ role, user, onLogout }) {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><strong>ABC Engineering Pvt. Ltd.</strong></td>
-                <td>GEM-CPCL-001</td>
-                <td>10/10</td>
-                <td><strong style={{ color: "#10b981" }}>92%</strong></td>
-                <td><span className="risk-badge low">Low</span></td>
-                <td><span className="status-badge verified">Verified</span></td>
-                <td>
-                  <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => alert("Viewing ABC Engineering Details.")}>
-                    View
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>XYZ Industries Pvt. Ltd.</strong></td>
-                <td>GEM-CPCL-001</td>
-                <td>9/10</td>
-                <td><strong style={{ color: "#f59e0b" }}>78%</strong></td>
-                <td><span className="risk-badge medium">Medium</span></td>
-                <td><span className="status-badge review">Review Required</span></td>
-                <td>
-                  <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => alert("Opening XYZ Industries manual audit panel.")}>
-                    Review
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>PQR Pumps Ltd.</strong></td>
-                <td>GEM-CPCL-001</td>
-                <td>7/10</td>
-                <td><strong style={{ color: "#ef4444" }}>61%</strong></td>
-                <td><span className="risk-badge high">High</span></td>
-                <td><span className="status-badge critical">Issues</span></td>
-                <td>
-                  <button className="reject-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto", borderRadius: "8px", border: "none", color: "#ffffff", fontWeight: 700, cursor: "pointer" }} onClick={() => alert("Investigating PQR Pumps integrity warnings.")}>
-                    Investigate
-                  </button>
-                </td>
-              </tr>
+              {filteredBidders.map(b => (
+                <tr key={b.id}>
+                  <td><strong>{b.name}</strong></td>
+                  <td>{b.tender}</td>
+                  <td>{b.documents}</td>
+                  <td>
+                    <strong style={{ color: b.compliance >= 90 ? "#10b981" : b.compliance >= 70 ? "#f59e0b" : "#ef4444" }}>
+                      {b.compliance}%
+                    </strong>
+                  </td>
+                  <td>
+                    <span className={`risk-badge ${b.risk.toLowerCase()}`}>
+                      {b.risk}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${b.verification.toLowerCase().replace(/\s+/g, "")}`}>
+                      {b.verification}
+                    </span>
+                  </td>
+                  <td>
+                    {b.verification === "Verified" ? (
+                      <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => {
+                        setActiveSection("verification");
+                      }}>
+                        View
+                      </button>
+                    ) : b.verification === "Review Required" ? (
+                      <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => {
+                        setActiveSection("verification");
+                      }}>
+                        Review
+                      </button>
+                    ) : (
+                      <button className="reject-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto", borderRadius: "8px", border: "none", color: "#ffffff", fontWeight: 700, cursor: "pointer" }} onClick={() => {
+                        setActiveSection("verification");
+                      }}>
+                        Investigate
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filteredBidders.length === 0 && (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "24px", color: "#64748b" }}>
+                    No bidders found matching active search filters.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -869,19 +1053,25 @@ function Home({ role, user, onLogout }) {
         <div className="summary-cards-row">
           <div className="summary-card">
             <span className="card-label">Total Bidders</span>
-            <h2 className="card-value" style={{ marginTop: "10px" }}>148</h2>
+            <h2 className="card-value" style={{ marginTop: "10px" }}>{filteredBidders.length}</h2>
           </div>
           <div className="summary-card">
             <span className="card-label" style={{ color: "#10b981" }}>Verified</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#10b981" }}>96</h2>
+            <h2 className="card-value" style={{ marginTop: "10px", color: "#10b981" }}>
+              {filteredBidders.filter(b => b.verification === "Verified").length}
+            </h2>
           </div>
           <div className="summary-card">
             <span className="card-label" style={{ color: "#f59e0b" }}>Under Review</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#f59e0b" }}>37</h2>
+            <h2 className="card-value" style={{ marginTop: "10px", color: "#f59e0b" }}>
+              {filteredBidders.filter(b => b.verification === "Review Required").length}
+            </h2>
           </div>
           <div className="summary-card">
             <span className="card-label" style={{ color: "#ef4444" }}>High Risk</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#ef4444" }}>15</h2>
+            <h2 className="card-value" style={{ marginTop: "10px", color: "#ef4444" }}>
+              {filteredBidders.filter(b => b.risk === "High").length}
+            </h2>
           </div>
         </div>
       </div>

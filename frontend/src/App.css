@@ -111,6 +111,41 @@
   letter-spacing: 1px;
 }
 
+.portal-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: 6px;
+  padding: 4px;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.portal-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.portal-tab.active {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  color: #0a0f1e;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+}
+
+.portal-tab:hover:not(.active) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 /* Underline Inputs */
 .underline-input-group {
   display: flex;

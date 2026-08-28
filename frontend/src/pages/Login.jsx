@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { User, Lock, Mail, Terminal, Database, ChevronUp, ChevronDown, RefreshCw, ShieldCheck } from "lucide-react";
 
 function Login({ onLogin }) {
+  const [selectedPortal, setSelectedPortal] = useState("Supplier");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -83,7 +84,17 @@ function Login({ onLogin }) {
       // Access control rule: User do not have admin power
       if (selectedPortal === "Buyer") {
         if (user.role.toUpperCase() !== "OFFICER" && user.role.toUpperCase() !== "ADMIN") {
-          setSecurityWarning("Access Denied: Supplier accounts do not have clearance level permissions for the Audit Console Terminal.");
+          setAuthError("Access Denied: Supplier accounts do not have clearance level permissions for the Audit Console Terminal.");
+          setLoading(false);
+          generateCaptcha();
+          return;
+        }
+      }
+
+      // Access control rule: Admin/Officer do not login to supplier terminal
+      if (selectedPortal === "Supplier") {
+        if (user.role.toUpperCase() !== "BIDDER") {
+          setAuthError("Access Denied: Administrative accounts are not permitted to log in through the Supplier Terminal. Please switch to the Administrative Portal.");
           setLoading(false);
           generateCaptcha();
           return;
@@ -151,6 +162,7 @@ function Login({ onLogin }) {
   const triggerMockCredentials = (email, pwd, portalType) => {
     setLoginEmail(email);
     setPassword(pwd);
+    setSelectedPortal(portalType);
     setCaptcha(captchaText);
     setAuthError("");
     setSuccessMsg("");
@@ -182,6 +194,24 @@ function Login({ onLogin }) {
         <div className="form-side sign-in-side">
           <form onSubmit={handleLogin}>
             <h2>Login</h2>
+
+            {/* Portal Selection Tabs */}
+            <div className="portal-tabs">
+              <button 
+                type="button" 
+                className={`portal-tab ${selectedPortal === "Supplier" ? "active" : ""}`}
+                onClick={() => { setSelectedPortal("Supplier"); setAuthError(""); setSuccessMsg(""); }}
+              >
+                Bidder Portal
+              </button>
+              <button 
+                type="button" 
+                className={`portal-tab ${selectedPortal === "Buyer" ? "active" : ""}`}
+                onClick={() => { setSelectedPortal("Buyer"); setAuthError(""); setSuccessMsg(""); }}
+              >
+                Administrative Console
+              </button>
+            </div>
 
             <div className="underline-input-group">
               <label>Username</label>

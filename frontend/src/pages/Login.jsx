@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Shield, User, CloudUpload, ArrowLeft, Lock, Mail, Terminal, Database, ChevronUp, ChevronDown, RefreshCw } from "lucide-react";
+import { User, Lock, Mail, Terminal, Database, ChevronUp, ChevronDown, RefreshCw, ShieldCheck } from "lucide-react";
 
 function Login({ onLogin }) {
-  // Portal choice: null, 'Supplier' (Bidder Terminal), 'Buyer' (Audit Console)
-  const [selectedPortal, setSelectedPortal] = useState(null);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [securityWarning, setSecurityWarning] = useState("");
-  
-  // Auth loading/error states
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -16,7 +11,6 @@ function Login({ onLogin }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [captchaText, setCaptchaText] = useState("G7K4P");
 
   // Sign Up states
@@ -33,7 +27,7 @@ function Login({ onLogin }) {
 
   useEffect(() => {
     generateCaptcha();
-  }, [selectedPortal]);
+  }, []);
 
   const generateCaptcha = () => {
     const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -48,7 +42,6 @@ function Login({ onLogin }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setAuthError("");
-    setSecurityWarning("");
     setSuccessMsg("");
 
     if (!loginEmail || !password) {
@@ -91,16 +84,6 @@ function Login({ onLogin }) {
       if (selectedPortal === "Buyer") {
         if (user.role.toUpperCase() !== "OFFICER" && user.role.toUpperCase() !== "ADMIN") {
           setSecurityWarning("Access Denied: Supplier accounts do not have clearance level permissions for the Audit Console Terminal.");
-          setLoading(false);
-          generateCaptcha();
-          return;
-        }
-      }
-
-      // Access control rule: Admin/Officer do not login to supplier terminal
-      if (selectedPortal === "Supplier") {
-        if (user.role.toUpperCase() !== "BIDDER") {
-          setSecurityWarning("Access Denied: Administrative accounts are not permitted to log in through the Supplier Terminal. Please use the Administrative Audit Console.");
           setLoading(false);
           generateCaptcha();
           return;
@@ -150,7 +133,7 @@ function Login({ onLogin }) {
         throw new Error(errorData.detail || "Registration failed.");
       }
 
-      setSuccessMsg("Registration successful! Directing to Supplier login.");
+      setSuccessMsg("Registration successful! Directing to login.");
       setTimeout(() => {
         setLoginEmail(signUpEmail);
         setIsSignUp(false); // Switch to sign in view
@@ -166,13 +149,10 @@ function Login({ onLogin }) {
   };
 
   const triggerMockCredentials = (email, pwd, portalType) => {
-    setSelectedPortal(portalType);
     setLoginEmail(email);
     setPassword(pwd);
-    // Autofill Captcha to make testing fast & friendly
     setCaptcha(captchaText);
     setAuthError("");
-    setSecurityWarning("");
     setSuccessMsg("");
   };
 
@@ -194,295 +174,177 @@ function Login({ onLogin }) {
     }
   };
 
-  // 3D Parallax Tilt Logic
-  const handleMouseMove = (e) => {
-    const card = e.currentTarget;
-    const box = card.getBoundingClientRect();
-    const x = e.clientX - box.left - box.width / 2;
-    const y = e.clientY - box.top - box.height / 2;
-    const rx = -(y / (box.height / 2)) * 6; // max 6 deg
-    const ry = (x / (box.width / 2)) * 6; // max 6 deg
-    card.style.setProperty("--rx", `${rx}deg`);
-    card.style.setProperty("--ry", `${ry}deg`);
-  };
-
-  const handleMouseLeave = (e) => {
-    const card = e.currentTarget;
-    card.style.setProperty("--rx", "0deg");
-    card.style.setProperty("--ry", "0deg");
-  };
-
-  // RENDER SELECTOR GATEWAY
-  if (selectedPortal === null) {
-    return (
-      <div className="login-3d-page-wrapper">
-        <div className="gateway-wrapper">
-          <div className="gateway-title-wrapper">
-            <h1>GeM Sovereign Procurement Gateway</h1>
-            <p>Select your authorized entry point below to access the bid compliance platform</p>
-          </div>
-
-          <div className="gateway-cards">
-            {/* Supplier / Bidder Card */}
-            <div className="gateway-card supplier" onClick={() => setSelectedPortal("Supplier")}>
-              <div className="gateway-icon-container">
-                <CloudUpload size={32} />
-              </div>
-              <h2>Bidder / Supplier Terminal</h2>
-              <p>
-                For commercial enterprises and organizations submitting bids.
-                Upload files, execute AI integrity scans, and monitor compliance scores.
-              </p>
-              <button className="gateway-btn">Access Terminal</button>
-            </div>
-
-            {/* Officer / Admin Card */}
-            <div className="gateway-card auditor" onClick={() => setSelectedPortal("Buyer")}>
-              <div className="gateway-icon-container">
-                <Shield size={32} />
-              </div>
-              <h2>Administrative Audit Console</h2>
-              <p>
-                Restricted to procurement officers, government auditors, and system administrators.
-                Perform cross-registry audits, sign-off on bids, and configure system rules.
-              </p>
-              <button className="gateway-btn">Open Console</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Developer Helper Panel */}
-        <DevCredentialsPanel 
-          isCollapsed={isDevCollapsed} 
-          onToggle={() => setIsDevCollapsed(!isDevCollapsed)} 
-          onSelectAcc={triggerMockCredentials}
-          onSeed={handleSeedDatabase}
-          seeding={seeding}
-        />
-      </div>
-    );
-  }
-
-  // RENDER SEPARATE LOGIN INTERFACES
   return (
     <div className="login-3d-page-wrapper">
-      <div 
-        className={`login-container ${isSignUp ? "right-panel-active" : ""} ${selectedPortal === "Buyer" ? "auditor-theme" : "supplier-theme"}`}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        {/* SUPPLIER SIGN UP PANEL (only rendered if selectedPortal is Supplier) */}
-        {selectedPortal === "Supplier" && (
-          <div className="form-container sign-up-container">
-            <form onSubmit={handleSignUp}>
-              <h2>Supplier Registration</h2>
-              
-              <div className="input-group">
-                <label>Full Name</label>
-                <input 
-                  type="text" 
-                  value={signUpName} 
-                  onChange={(e) => setSignUpName(e.target.value)} 
-                  required 
-                />
-                <span className="input-icon-right">👤</span>
-              </div>
+      <div className={`login-card-container ${isSignUp ? "right-panel-active" : ""}`}>
 
-              <div className="input-group">
-                <label>Email Address</label>
-                <input 
-                  type="email" 
-                  value={signUpEmail} 
-                  onChange={(e) => setSignUpEmail(e.target.value)} 
-                  required 
-                />
-                <span className="input-icon-right">✉</span>
-              </div>
-
-              <div className="input-group">
-                <label>Secure Password</label>
-                <input 
-                  type="password" 
-                  value={signUpPassword} 
-                  onChange={(e) => setSignUpPassword(e.target.value)} 
-                  required 
-                />
-                <span className="input-icon-right">🔒</span>
-              </div>
-
-              <div className="input-group">
-                <label>Organization Name</label>
-                <input 
-                  type="text" 
-                  value={organization} 
-                  onChange={(e) => setOrganization(e.target.value)} 
-                  required 
-                />
-                <span className="input-icon-right">🏢</span>
-              </div>
-
-              {authError && <div className="security-warning-banner" style={{ marginTop: '5px', marginBottom: '5px' }}><div className="warning-text">{authError}</div></div>}
-              {successMsg && <div className="milestone-badge ocr" style={{ padding: '8px', fontSize: '0.8rem', textAlign: 'center', display: 'block', width: '100%' }}>{successMsg}</div>}
-
-              <button type="submit" className="neon-button" disabled={loading}>
-                {loading ? "Registering..." : "Register Account"}
-              </button>
-              
-              <span className="toggle-text">
-                Already registered?{" "}
-                <span className="toggle-link" onClick={() => setIsSignUp(false)}>
-                  Sign In
-                </span>
-              </span>
-            </form>
-          </div>
-        )}
-
-        {/* SIGN IN PANEL */}
-        <div className="form-container sign-in-container" style={{ width: selectedPortal === "Buyer" ? "100%" : "50%" }}>
+        {/* SIGN IN CONTAINER */}
+        <div className="form-side sign-in-side">
           <form onSubmit={handleLogin}>
-            <span className="back-to-gateway" onClick={() => {
-              setSelectedPortal(null);
-              setIsSignUp(false);
-              setAuthError("");
-              setSecurityWarning("");
-              setSuccessMsg("");
-            }}>
-              <ArrowLeft size={14} /> Back to Gateway
-            </span>
-            
-            <h2>{selectedPortal === "Buyer" ? "Administrative Sign In" : "Bidder Terminal Sign In"}</h2>
+            <h2>Login</h2>
 
-            {/* Error banners */}
-            {securityWarning && (
-              <div className="security-warning-banner">
-                <Shield size={20} style={{ flexShrink: 0 }} />
-                <div className="warning-text">{securityWarning}</div>
+            <div className="underline-input-group">
+              <label>Username</label>
+              <div className="input-with-icon">
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  placeholder="Enter email"
+                />
+                <User size={18} className="input-icon" />
               </div>
-            )}
-
-            {authError && (
-              <div className="security-warning-banner" style={{ background: 'rgba(239, 68, 68, 0.05)', color: '#fca5a5' }}>
-                <div className="warning-text">{authError}</div>
-              </div>
-            )}
-
-            {successMsg && (
-              <div className="milestone-badge ocr" style={{ padding: '8px', fontSize: '0.8rem', textAlign: 'center', display: 'block', width: '100%' }}>
-                {successMsg}
-              </div>
-            )}
-            
-            <div className="input-group">
-              <label>Email Address</label>
-              <input 
-                type="email" 
-                value={loginEmail} 
-                onChange={(e) => setLoginEmail(e.target.value)} 
-                required 
-                placeholder="Enter email"
-              />
-              <span className="input-icon-right">✉</span>
             </div>
 
-            <div className="input-group">
+            <div className="underline-input-group">
               <label>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
+              <div className="input-with-icon">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   placeholder="Enter password"
                 />
-                <button 
-                  type="button" 
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? "🔓" : "🔒"}
-                </button>
+                <Lock size={18} className="input-icon" />
               </div>
             </div>
 
             {/* Captcha */}
-            <div className="captcha-section">
-              <div className="captcha-header">
-                <span className="captcha-label">Security Verification Code</span>
-                <div className="captcha-box-wrapper">
-                  <div 
-                    className="captcha-box"
-                    onCopy={(e) => e.preventDefault()}
-                    onDragStart={(e) => e.preventDefault()}
-                  >
-                    {captchaText}
-                  </div>
-                  <button 
-                    type="button" 
-                    className="refresh-captcha"
-                    onClick={generateCaptcha}
-                  >
-                    <RefreshCw size={14} />
-                  </button>
+            <div className="captcha-row">
+              <div className="underline-input-group captcha-input-box">
+                <label>Security Code</label>
+                <div className="input-with-icon">
+                  <input
+                    type="text"
+                    placeholder="Enter Captcha *"
+                    value={captcha}
+                    onChange={(e) => setCaptcha(e.target.value)}
+                    required
+                  />
+                  <ShieldCheck size={18} className="input-icon" />
                 </div>
               </div>
-              
-              <div className="input-group">
-                <input 
-                  type="text" 
-                  placeholder="Enter Captcha *" 
-                  value={captcha} 
-                  onChange={(e) => setCaptcha(e.target.value)} 
-                  required 
-                />
-                <span className="input-icon-right">🛡️</span>
+              <div className="captcha-code-container">
+                <div className="captcha-display">{captchaText}</div>
+                <button type="button" className="refresh-btn" onClick={generateCaptcha}>
+                  <RefreshCw size={14} />
+                </button>
               </div>
             </div>
 
-            <button type="submit" className="neon-button" style={{ 
-              backgroundColor: selectedPortal === "Buyer" ? "#ef4444" : "#10b981",
-              boxShadow: selectedPortal === "Buyer" ? "0 0 15px rgba(239, 68, 68, 0.4)" : "0 0 15px rgba(16, 185, 129, 0.4)"
-            }} disabled={loading}>
-              {loading ? "Authenticating..." : "Authenticate Securely"}
+            {authError && <div className="error-message">{authError}</div>}
+            {successMsg && <div className="success-message">{successMsg}</div>}
+
+            <button type="submit" className="capsule-btn" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </button>
-            
-            {selectedPortal === "Supplier" && (
-              <span className="toggle-text">
-                New Supplier?{" "}
-                <span className="toggle-link" onClick={() => setIsSignUp(true)}>
-                  Register Portal Account
-                </span>
+
+            <span className="switch-prompt">
+              Don't have an account?{" "}
+              <span className="switch-link" onClick={() => { setIsSignUp(true); setAuthError(""); setSuccessMsg(""); }}>
+                Sign Up
               </span>
-            )}
+            </span>
           </form>
         </div>
 
-        {/* OVERLAY PANEL (only displayed on Supplier Portal for transition) */}
-        {selectedPortal === "Supplier" && (
-          <div className="overlay-container">
-            <div className="overlay">
-              <div className="overlay-panel overlay-left">
-                <h2>Secure Portal</h2>
-                <p style={{ fontSize: '0.85rem', color: '#a5b4fc', marginTop: '8px' }}>
-                  Register to upload bids and certificates. Integrated AI-Powered compliance verification platform.
-                </p>
-              </div>
-              
-              <div className="overlay-panel overlay-right">
-                <h2>Sovereign GeM</h2>
-                <p style={{ fontSize: '0.85rem', color: '#a5b4fc', marginTop: '8px' }}>
-                  Upload regulatory compliance files. Running automated verification pipeline with speed, safety, and precision.
-                </p>
+        {/* SIGN UP CONTAINER */}
+        <div className="form-side sign-up-side">
+          <form onSubmit={handleSignUp}>
+            <h2>Register</h2>
+
+            <div className="underline-input-group">
+              <label>Username</label>
+              <div className="input-with-icon">
+                <input
+                  type="text"
+                  value={signUpName}
+                  onChange={(e) => setSignUpName(e.target.value)}
+                  required
+                  placeholder="Enter username"
+                />
+                <User size={18} className="input-icon" />
               </div>
             </div>
+
+            <div className="underline-input-group">
+              <label>Email</label>
+              <div className="input-with-icon">
+                <input
+                  type="email"
+                  value={signUpEmail}
+                  onChange={(e) => setSignUpEmail(e.target.value)}
+                  required
+                  placeholder="Enter email"
+                />
+                <Mail size={18} className="input-icon" />
+              </div>
+            </div>
+
+            <div className="underline-input-group">
+              <label>Password</label>
+              <div className="input-with-icon">
+                <input
+                  type="password"
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
+                  required
+                  placeholder="Enter password"
+                />
+                <Lock size={18} className="input-icon" />
+              </div>
+            </div>
+
+            <div className="underline-input-group">
+              <label>Organization</label>
+              <div className="input-with-icon">
+                <input
+                  type="text"
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+                  required
+                  placeholder="Enter organization"
+                />
+                <span className="input-icon" style={{ fontSize: "14px", fontWeight: "bold" }}>🏢</span>
+              </div>
+            </div>
+
+            {authError && <div className="error-message">{authError}</div>}
+            {successMsg && <div className="success-message">{successMsg}</div>}
+
+            <button type="submit" className="capsule-btn" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
+            </button>
+
+            <span className="switch-prompt">
+              Already have an account?{" "}
+              <span className="switch-link" onClick={() => { setIsSignUp(false); setAuthError(""); setSuccessMsg(""); }}>
+                Sign In
+              </span>
+            </span>
+          </form>
+        </div>
+
+        {/* SLIDING OVERLAY CONTAINER */}
+        <div className="split-overlay-container">
+          <div className="split-overlay">
+            <div className="overlay-slide overlay-slide-left">
+              <h2>WELCOME!</h2>
+            </div>
+            <div className="overlay-slide overlay-slide-right">
+              <h2>WELCOME BACK!</h2>
+            </div>
           </div>
-        )}
+        </div>
+
       </div>
 
       {/* Developer Helper Panel */}
-      <DevCredentialsPanel 
-        isCollapsed={isDevCollapsed} 
-        onToggle={() => setIsDevCollapsed(!isDevCollapsed)} 
+      <DevCredentialsPanel
+        isCollapsed={isDevCollapsed}
+        onToggle={() => setIsDevCollapsed(!isDevCollapsed)}
         onSelectAcc={triggerMockCredentials}
         onSeed={handleSeedDatabase}
         seeding={seeding}
@@ -491,7 +353,7 @@ function Login({ onLogin }) {
   );
 }
 
-// Separate Presentational Component for Dev Helpers
+// DevCredentialsPanel Component
 function DevCredentialsPanel({ isCollapsed, onToggle, onSelectAcc, onSeed, seeding }) {
   return (
     <div className={`dev-helper-drawer ${isCollapsed ? "collapsed" : ""}`}>
@@ -508,17 +370,18 @@ function DevCredentialsPanel({ isCollapsed, onToggle, onSelectAcc, onSeed, seedi
           <p style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'left', margin: 0 }}>
             Click on any profile card below to autofill and switch to the correct portal configuration instantly.
           </p>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="dev-helper-seed-button"
-            onClick={onSeed}
+            onMouseDown={(e) => { e.stopPropagation(); }}
+            onClick={(e) => { e.stopPropagation(); onSeed(); }}
             disabled={seeding}
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Database size={12} /> {seeding ? "Seeding..." : "Seed Mock Database Accounts"}
           </button>
         </div>
-        
+
         <div className="dev-helper-grid">
           {/* Supplier Bidder */}
           <div className="dev-account-card" onClick={() => onSelectAcc("bidder@example.com", "BidderPassword123", "Supplier")}>

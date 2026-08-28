@@ -2,35 +2,41 @@ import re
 import logging
 import os
 from typing import Dict, List, Set, Any, Optional
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 
 logger = logging.getLogger(__name__)
 
 # Initialize spaCy model globally
 nlp = None
-try:
-    nlp = spacy.load("en_core_web_sm")
-    logger.info("EntityExtractor: Loaded spaCy model 'en_core_web_sm'.")
-except OSError:
-    logger.warning("EntityExtractor: 'en_core_web_sm' model not found. Attempting to download it via spaCy...")
+if spacy:
     try:
-        import subprocess
-        import sys
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
         nlp = spacy.load("en_core_web_sm")
-        logger.info("EntityExtractor: Downloaded and loaded spaCy model 'en_core_web_sm'.")
-    except Exception as download_err:
-        logger.warning(f"EntityExtractor: 'spacy download' failed: {download_err}. Attempting direct pip install fallback...")
+        logger.info("EntityExtractor: Loaded spaCy model 'en_core_web_sm'.")
+    except OSError:
+        logger.warning("EntityExtractor: 'en_core_web_sm' model not found. Attempting to download it via spaCy...")
         try:
             import subprocess
             import sys
-            model_url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz"
-            subprocess.check_call([sys.executable, "-m", "pip", "install", model_url])
+            subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
             nlp = spacy.load("en_core_web_sm")
-            logger.info("EntityExtractor: Successfully downloaded and loaded model via pip direct URL fallback!")
-        except Exception as pip_err:
-            logger.error(f"EntityExtractor: Direct pip download also failed: {pip_err}. Falling back to blank model.")
-            nlp = spacy.blank("en")
+            logger.info("EntityExtractor: Downloaded and loaded spaCy model 'en_core_web_sm'.")
+        except Exception as download_err:
+            logger.warning(f"EntityExtractor: 'spacy download' failed: {download_err}. Attempting direct pip install fallback...")
+            try:
+                import subprocess
+                import sys
+                model_url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz"
+                subprocess.check_call([sys.executable, "-m", "pip", "install", model_url])
+                nlp = spacy.load("en_core_web_sm")
+                logger.info("EntityExtractor: Successfully downloaded and loaded model via pip direct URL fallback!")
+            except Exception as pip_err:
+                logger.error(f"EntityExtractor: Direct pip download also failed: {pip_err}. Falling back to blank model.")
+                nlp = spacy.blank("en")
+else:
+    logger.warning("EntityExtractor: spaCy is not installed. Named Entity Recognition features will be disabled/mocked.")
 
 class EntityExtractor:
     # Regex Patterns for Indian Govt Identifiers

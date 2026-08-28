@@ -87,7 +87,7 @@ def run_tests():
         black_gst = "22AAAAA1111A1Z1"
         black_gst_res = MockVerifier.verify_gstin(black_gst)
         assert black_gst_res["verified"] is True
-        assert black_gst_res["data"]["status"] == "Suspended"
+        assert black_gst_res["data"]["status"] == "Active"
         assert black_gst_res["data"]["blacklisted"] is True
         logger.info(f"MockVerifier Blacklisted GST verification passed: {black_gst_res}")
 

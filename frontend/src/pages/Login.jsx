@@ -97,6 +97,16 @@ function Login({ onLogin }) {
         }
       }
 
+      // Access control rule: Admin/Officer do not login to supplier terminal
+      if (selectedPortal === "Supplier") {
+        if (user.role.toUpperCase() !== "BIDDER") {
+          setSecurityWarning("Access Denied: Administrative accounts are not permitted to log in through the Supplier Terminal. Please use the Administrative Audit Console.");
+          setLoading(false);
+          generateCaptcha();
+          return;
+        }
+      }
+
       setSuccessMsg(`Welcome, ${user.full_name || 'User'}! Redirecting...`);
       setTimeout(() => {
         onLogin(token, user);

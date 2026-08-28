@@ -125,6 +125,7 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `POST` | `/api/documents/{doc_id}/replace` | Replace an uploaded document | Yes | `BIDDER` (Owner) |
 | `DELETE` | `/api/documents/{doc_id}` | Delete a document from bucket & DB | Yes | `BIDDER` (Owner) |
+| `POST` | `/api/chat` | Ask the GeMmy platform and bid-compliance assistant | No | None |
 
 ---
 

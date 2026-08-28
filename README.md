@@ -84,7 +84,31 @@ To launch the backend API:
 
 ---
 
-## 3. Core Verification Pipelines
+## 3. GeMmy Chat Assistant
+
+The frontend includes a floating **Ask GeMmy** assistant on the login and dashboard screens. It answers questions about portal navigation, PDF uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk levels, bid status, and the buyer audit workflow.
+
+The assistant calls `POST /api/chat` on the FastAPI backend and works without an external service through its built-in platform knowledge base. To enable Groq-generated answers, copy `backend/.env.example` to `backend/.env` and configure:
+
+```env
+AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_WEB_SEARCH_ENABLED=true
+GROQ_WEB_MODEL=groq/compound-mini
+```
+
+Keep the real key only in the ignored `backend/.env` file, never in `.env.example`, and restart
+the backend after changing it. If a response is labelled **Portal knowledge base**, the key is
+missing or the configured AI provider could not be reached; the backend console logs the cause.
+Questions that explicitly ask for current or recent information use Groq Compound Mini's live
+web tools and are labelled **Live web answer via Groq** in the chat window.
+
+The frontend reads `VITE_API_URL` and defaults to `http://127.0.0.1:8000` for chat requests.
+
+---
+
+## 4. Core Verification Pipelines
 
 1. **AI OCR Engine**: Uses Tesseract OCR + OpenCV image preprocessing (binarization, blurring) to parse scanned PDFs/images, alongside PyMuPDF for digital PDFs. Performs Named Entity Recognition (NER) via spaCy and regular expressions to extract identifiers (GSTIN, PAN, Udyam) and organization details.
 2. **Mock Government APIs**: REST API endpoints simulating direct integrations with external GSTIN, PAN, Udyam MSME, and Blacklist registries. Supports REST calls with local JSON fallbacks if the servers are offline.
@@ -93,7 +117,7 @@ To launch the backend API:
 
 ---
 
-## 4. Running Verification Test Suites
+## 5. Running Verification Test Suites
 
 We have built automated verification scripts to validate the integrity of each component. Run them in the `backend/` directory with the virtual environment active:
 
@@ -116,13 +140,13 @@ We have built automated verification scripts to validate the integrity of each c
 
 ---
 
-## 5. Performance Metrics
+## 6. Performance Metrics
 - **Average Document Processing Time**: `< 5 seconds` (including PDF text parsing, image preprocessing/binarization, fallback image OCR, and mock registry queries).
 - **Registry Lookup Latency**: `< 2.0 seconds` per API query (with zero-latency local fallback mechanism).
 
 ---
 
-## 6. Code Quality Assessment
+## 7. Code Quality Assessment
 
 | Aspect | Rating | Details |
 |--------|--------|---------|
@@ -136,7 +160,7 @@ We have built automated verification scripts to validate the integrity of each c
 
 ---
 
-## 7. Final Project Verdict
+## 8. Final Project Verdict
 
 | Component | Status | Progress |
 |-----------|--------|----------|

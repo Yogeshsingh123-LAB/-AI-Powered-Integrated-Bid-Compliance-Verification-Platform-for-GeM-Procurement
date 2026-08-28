@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Click3DEffect from "./components/Click3DEffect";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -93,6 +94,7 @@ function App() {
       ) : (
         <Login onLogin={handleLogin} />
       )}
+      <Chatbot userRole={isLoggedIn ? userRole : "Guest"} />
     </>
   );
 }

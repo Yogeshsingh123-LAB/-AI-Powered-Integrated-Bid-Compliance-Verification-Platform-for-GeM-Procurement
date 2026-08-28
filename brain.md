@@ -137,3 +137,5 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 5: Testing & Validation** ✅ COMPLETE (4 validation test suites, 5 scenario PDF mock documents, TestClient integration tests)
 - **Phase 6: UI/UX & Refactoring** ✅ COMPLETE (Configurable environmental base URL, API request timeout controls, upload dropzone locks, frontend validation, unique ID mappings, and milestone empty states)
 - **Phase 7: Separate Portals & Secure Auth** ✅ COMPLETE (Separated Supplier/Officer login portals, integrated backend JWT sessions, client-side session auto-login check via `/api/auth/me`, and access-denied security blocks)
+- **Phase 8: Premium Dashboards & Compliance Exporters** ✅ COMPLETE (Transitioned layout to full-width horizontal top navigation; implemented Create Tender progress wizard, Bidders Applications registry with real-time filters and CSV/PDF exporters, advanced AI verification compliance matrix, and the Compliance Evidence & Final Decision dashboard)
+

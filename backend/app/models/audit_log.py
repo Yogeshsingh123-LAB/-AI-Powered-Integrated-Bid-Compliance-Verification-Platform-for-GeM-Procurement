@@ -16,6 +16,7 @@ class AuditLog(Base):
     old_value = Column(Text, nullable=True)
     new_value = Column(Text, nullable=True)
     ip_address = Column(String(45), nullable=True)  # Supports both IPv4 and IPv6
+    blockchain_hash = Column(String(64), nullable=True, index=True)  # Cryptographic SHA-256 chain hash
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships

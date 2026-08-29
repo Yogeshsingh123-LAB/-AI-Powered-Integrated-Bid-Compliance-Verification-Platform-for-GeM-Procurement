@@ -1,9 +1,11 @@
 import logging
 import uuid
+import hashlib
 from typing import List, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 from app.db.database import get_db
 from app.core.security import (
@@ -34,8 +36,14 @@ def create_audit_record(
     new_value: Optional[str] = None,
     ip_address: Optional[str] = None
 ) -> AuditLog:
-    """Helper to log security-sensitive events in the database."""
+    """Helper to log security-sensitive events in the database with cryptographic blockchain hashing."""
     try:
+        # Calculate SHA-256 blockchain hash chain
+        last_log = db.query(AuditLog).order_by(desc(AuditLog.created_at)).first()
+        prev_hash = last_log.blockchain_hash if (last_log and last_log.blockchain_hash) else "0" * 64
+        chain_payload = f"{prev_hash}:{action}:{user_id or ''}:{entity_type}:{entity_id or ''}:{bid_id or ''}:{new_value or ''}"
+        block_hash = hashlib.sha256(chain_payload.encode("utf-8")).hexdigest()
+
         log = AuditLog(
             user_id=user_id,
             action=action,
@@ -44,7 +52,8 @@ def create_audit_record(
             bid_id=bid_id,
             old_value=old_value,
             new_value=new_value,
-            ip_address=ip_address
+            ip_address=ip_address,
+            blockchain_hash=block_hash
         )
         db.add(log)
         db.commit()

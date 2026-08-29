@@ -558,9 +558,6 @@ function Home({ role, user, onLogout }) {
             <h2>Available GeM Tenders</h2>
             <p className="hero-subtext">Browse matching government procurements and launch instant compliance pre-audits.</p>
           </div>
-          <button className="hero-cta-btn emerald" onClick={() => setActiveSection("documents")}>
-            + Prepare Direct Bid
-          </button>
         </div>
 
         <div className="section-panel studio-panel">

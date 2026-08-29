@@ -221,16 +221,9 @@ function DocumentUploadPage({ onAddBid }) {
     }
   };
 
-  const handleBrowseClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
 
-  // Mock requirements for active bidder bids
-  const [docFilter, setDocFilter] = useState("all"); // "all", "pending", "completed"
-
-  const mockRequirements = [
+  const [requirementsList, setRequirementsList] = useState([
     {
       bidId: "GEM-CPCL-2026-001",
       bidTitle: "Supply of Industrial Pumps",
@@ -255,10 +248,52 @@ function DocumentUploadPage({ onAddBid }) {
         { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" }
       ]
     }
-  ];
+  ]);
+
+  const [docFilter, setDocFilter] = useState("all");
+
+  const triggerRowUpload = (bidId, docCode) => {
+    setActiveTargetDoc({ bidId, docCode });
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleRowFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const uploadedFile = e.target.files[0];
+      if (activeTargetDoc) {
+        setRequirementsList((prev) =>
+          prev.map((bid) => {
+            if (bid.bidId === activeTargetDoc.bidId) {
+              return {
+                ...bid,
+                documents: bid.documents.map((d) =>
+                  d.code === activeTargetDoc.docCode
+                    ? { ...d, status: "Verified", file: uploadedFile.name, updated: "Just now" }
+                    : d
+                )
+              };
+            }
+            return bid;
+          })
+        );
+      }
+      triggerComplianceAnalysis(uploadedFile);
+    }
+  };
 
   return (
     <>
+      <input 
+        type="file" 
+        ref={fileInputRef}
+        className="file-input" 
+        accept=".pdf"
+        onChange={handleRowFileChange}
+        style={{ display: "none" }}
+      />
+
       <div className="bidder-section-wrapper" style={{ marginBottom: "24px" }}>
         {/* Sapphire Hero Banner for Documents Overview */}
         <div className="section-hero-banner indigo-theme">
@@ -267,9 +302,6 @@ function DocumentUploadPage({ onAddBid }) {
             <h2 style={{ fontSize: "1.6rem" }}>Bids & Document Compliance Matrix</h2>
             <p className="hero-subtext">Review required certificates, pending submissions, and automated OCR verification status per bid.</p>
           </div>
-          <button className="hero-cta-btn emerald" onClick={handleBrowseClick}>
-            + Upload New Document
-          </button>
         </div>
 
         {/* Requirements Status Matrix Panel */}
@@ -299,7 +331,7 @@ function DocumentUploadPage({ onAddBid }) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            {mockRequirements.map((bidGroup) => {
+            {requirementsList.map((bidGroup) => {
               const filteredDocs = bidGroup.documents.filter((doc) => {
                 if (docFilter === "pending") return doc.status === "Pending";
                 if (docFilter === "completed") return doc.status === "Verified";
@@ -345,13 +377,43 @@ function DocumentUploadPage({ onAddBid }) {
                             )}
                           </td>
                           <td>
-                            <button 
-                              className={`table-action-btn ${req.status === "Verified" ? "" : "emerald"}`}
-                              style={{ background: req.status === "Verified" ? "#f1f5f9" : "#0284c7", color: req.status === "Verified" ? "#475569" : "#ffffff" }}
-                              onClick={handleBrowseClick}
-                            >
-                              {req.status === "Verified" ? "Re-upload" : "+ Upload Document"}
-                            </button>
+                            {req.status === "Verified" ? (
+                              <button 
+                                type="button"
+                                style={{
+                                  background: "#e0f2fe",
+                                  color: "#0284c7",
+                                  border: "1px solid #7dd3fc",
+                                  borderRadius: "6px",
+                                  fontWeight: "600",
+                                  padding: "6px 14px",
+                                  fontSize: "0.82rem",
+                                  cursor: "pointer",
+                                  transition: "all 0.2s"
+                                }}
+                                onClick={() => triggerRowUpload(bidGroup.bidId, req.code)}
+                              >
+                                Re-upload 🔄
+                              </button>
+                            ) : (
+                              <button 
+                                type="button"
+                                style={{
+                                  background: "#0284c7",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  fontWeight: "600",
+                                  padding: "6px 16px",
+                                  fontSize: "0.82rem",
+                                  cursor: "pointer",
+                                  boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)"
+                                }}
+                                onClick={() => triggerRowUpload(bidGroup.bidId, req.code)}
+                              >
+                                + Upload Document
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -363,46 +425,6 @@ function DocumentUploadPage({ onAddBid }) {
           </div>
         </div>
       </div>
-
-      <div className="section-panel" style={{ padding: '30px' }}>
-        <div 
-          className={`drop-zone ${dragActive ? "active" : ""} ${uploading ? "disabled" : ""}`}
-          style={{ opacity: uploading ? 0.6 : 1, pointerEvents: uploading ? "none" : "auto" }}
-          onDragEnter={handleDrag}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={uploading ? undefined : handleDrop}
-          onClick={uploading ? undefined : handleBrowseClick}
-        >
-          <input 
-            type="file" 
-            ref={fileInputRef}
-            className="file-input" 
-            accept=".pdf"
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-          {uploading ? (
-            <Loader2 size={44} className="animate-spin" style={{ color: '#0284c7', marginBottom: '12px' }} />
-          ) : (
-            <CloudUpload size={44} style={{ color: '#0284c7', marginBottom: '12px' }} />
-          )}
-          
-          <div style={{ margin: '12px 0' }}>
-            <p style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
-              {uploading ? "Analyzing compliance certificates..." : "Drag and drop your PDF bid document here to run AI OCR audit"}
-            </p>
-            <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0 }}>
-              Only PDF certificates with up to 16MB file sizes are accepted.
-            </p>
-          </div>
-          {!uploading && (
-            <button type="button" style={{ width: 'auto', padding: '10px 28px', marginTop: '12px', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)' }}>
-              Select & Process Document
-            </button>
-          )}
-        </div>
-
         {/* Real-time verification logs */}
         {parsingProgress > 0 && (
           <div className="terminal-window">
@@ -425,7 +447,6 @@ function DocumentUploadPage({ onAddBid }) {
             </div>
           </div>
         )}
-      </div>
 
       {/* COMPLIANCE REPORT CARD DETAILS */}
       {report && report.success && (

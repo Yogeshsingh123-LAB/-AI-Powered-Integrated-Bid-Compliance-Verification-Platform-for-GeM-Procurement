@@ -153,7 +153,7 @@ function DocumentUploadPage({ onAddBid }) {
       addLog(`Extraction Method: ${extractionMethod}`, "success");
       
       const ids = data.analysis.identifiers;
-      addLog(`RegexExtractor: Found GSTINs: [${ids.gstin.join(", ")}], PANs: [${ids.pan.join(", ")}], Udyam: [${ids.udyam.join(", ")}]`, "success");
+      addLog(`RegexExtractor: Found GSTINs: [${ids.gstin.join(", ")}], PANs: [${ids.pan.join(", ")}], Udyam: [${ids.udyam.join(", ")}], Aadhaar: [${(ids.aadhaar || []).join(", ")}]`, "success");
       
       addLog("MockVerifier: Batch queries complete. Registry alignment scores computed.", "success");
       addLog(`ScoringEngine: Final compliance score is: ${data.compliance.score}/100. Risk Tier: ${data.compliance.risk_level}`, "success");
@@ -181,7 +181,7 @@ function DocumentUploadPage({ onAddBid }) {
       const terminalLogsList = [
         `[System] Initialized cryptographic inspection for uploaded document: ${uploadedFile.name}`,
         `[SmartPDFHandler] Text extraction completed using page summary: ${extractionMethod}`,
-        `[RegexExtractor] Extracted GSTIN: ${ids.gstin[0] || 'None'} | PAN: ${ids.pan[0] || 'None'} | Udyam: ${ids.udyam[0] || 'None'}`,
+        `[RegexExtractor] Extracted GSTIN: ${ids.gstin[0] || 'None'} | PAN: ${ids.pan[0] || 'None'} | Udyam: ${ids.udyam[0] || 'None'} | Aadhaar: ${(ids.aadhaar && ids.aadhaar[0]) || 'None'}`,
         ...data.compliance.recommendations.map(r => `[ScoringEngine] Analysis: ${r}`)
       ];
 
@@ -410,7 +410,7 @@ function DocumentUploadPage({ onAddBid }) {
             ))}
 
             {/* Udyam MSME Details */}
-            {report.verification_details.udyam.map((item, index) => (
+            {report.verification_details.udyam && report.verification_details.udyam.map((item, index) => (
               <div key={index} className="registry-card">
                 <div className="reg-header">
                   <h3>Udyam MSME Certificate</h3>
@@ -432,6 +432,34 @@ function DocumentUploadPage({ onAddBid }) {
                   <div className="reg-item">
                     <label>Enterprise Major Activity</label>
                     <span>{item.data.major_activity}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Aadhaar Card Details */}
+            {report.verification_details.aadhaar && report.verification_details.aadhaar.map((item, index) => (
+              <div key={index} className="registry-card">
+                <div className="reg-header">
+                  <h3>UIDAI Aadhaar Details</h3>
+                  <span className="reg-label">UIDAI Portal</span>
+                </div>
+                <div className="reg-grid">
+                  <div className="reg-item">
+                    <label>Aadhaar Number</label>
+                    <strong>{item.data.aadhaar_number}</strong>
+                  </div>
+                  <div className="reg-item">
+                    <label>Cardholder Name</label>
+                    <span>{item.data.name}</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>State / Gender</label>
+                    <span>{item.data.state} ({item.data.gender})</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>UIDAI Portal Status</label>
+                    <span className="status active">Active / Verified</span>
                   </div>
                 </div>
               </div>

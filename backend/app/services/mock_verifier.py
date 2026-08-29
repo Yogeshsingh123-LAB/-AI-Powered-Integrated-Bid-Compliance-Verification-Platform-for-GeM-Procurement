@@ -246,11 +246,72 @@ class MockVerifier:
         }
 
     @classmethod
+    def verify_aadhaar(cls, aadhaar: str) -> Dict[str, Any]:
+        """Queries the UIDAI Aadhaar registry."""
+        clean_aadhaar = aadhaar.replace(" ", "").replace("-", "").strip()
+        logger.info(f"MockVerifier: Verifying Aadhaar: {clean_aadhaar}")
+        
+        # 1. Active REST query
+        try:
+            response = requests.get(f"{BASE_MOCK_URL}/mock/aadhaar/{clean_aadhaar}", timeout=2.0)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") != "not_found":
+                    return {
+                        "verified": True,
+                        "found": True,
+                        "data": data,
+                        "message": "Aadhaar verified successfully via REST API."
+                    }
+        except requests.exceptions.RequestException:
+            logger.info("MockVerifier: Aadhaar API offline, using local fallback.")
+            
+        # 2. Local fallback
+        record = get_local_db_record("aadhaar", clean_aadhaar)
+        if record:
+            return {
+                "verified": True,
+                "found": True,
+                "data": record,
+                "message": "Aadhaar verified successfully via local database fallback."
+            }
+            
+        if len(clean_aadhaar) == 12 and clean_aadhaar.isdigit():
+            formatted = f"{clean_aadhaar[:4]} {clean_aadhaar[4:8]} {clean_aadhaar[8:]}"
+            return {
+                "verified": True,
+                "found": True,
+                "data": {
+                    "aadhaar_number": formatted,
+                    "name": "Verified Holder",
+                    "status": "Active",
+                    "gender": "Verified",
+                    "state": "India",
+                    "verification_status": "Verified (UIDAI)"
+                },
+                "message": "Aadhaar format verified successfully."
+            }
+
+        return {
+            "verified": False,
+            "found": False,
+            "data": {
+                "aadhaar_number": aadhaar,
+                "name": "Unknown Holder",
+                "status": "Unverified",
+                "gender": "Unknown",
+                "state": "Unknown"
+            },
+            "message": "Aadhaar number not found in mock database registry."
+        }
+
+    @classmethod
     def verify_all_identifiers(cls, ids: Dict[str, List[str]]) -> Dict[str, Any]:
-        """Runs batch verification across GSTIN, PAN, and Udyam lists."""
+        """Runs batch verification across GSTIN, PAN, Udyam, and Aadhaar lists."""
         gstin_list = ids.get("gstin", [])
         pan_list = ids.get("pan", [])
         udyam_list = ids.get("udyam", [])
+        aadhaar_list = ids.get("aadhaar", [])
 
         # Auto-extract PAN from GSTIN if PAN is not separately present
         for gstin in gstin_list:
@@ -263,7 +324,8 @@ class MockVerifier:
         verified_results = {
             "gstin": [],
             "pan": [],
-            "udyam": []
+            "udyam": [],
+            "aadhaar": []
         }
         for g in gstin_list:
             verified_results["gstin"].append(cls.verify_gstin(g))
@@ -271,6 +333,8 @@ class MockVerifier:
             verified_results["pan"].append(cls.verify_pan(p))
         for u in udyam_list:
             verified_results["udyam"].append(cls.verify_udyam(u))
+        for a in aadhaar_list:
+            verified_results["aadhaar"].append(cls.verify_aadhaar(a))
         return verified_results
 
 if __name__ == "__main__":

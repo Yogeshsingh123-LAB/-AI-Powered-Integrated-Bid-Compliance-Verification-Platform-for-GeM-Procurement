@@ -84,13 +84,13 @@ class OCRParser:
                     "error": None
                 }
             except Exception as tess_err:
-                logger.warning(f"OCRParser: Tesseract execution failed, using mock/empty text fallback: {tess_err}")
-                # Mock fallback text if Tesseract binary is not installed
+                logger.warning(f"OCRParser: Tesseract execution failed: {tess_err}")
+                # Return empty text if Tesseract binary is not installed or execution fails
                 return {
                     "success": True,
-                    "text": "MOCK IMAGE OCR EXTRACTED TEXT: GSTIN 27AAPCS1234M1Z5, PAN AAPCS1234M, Legal Name: ABC INDUSTRIES, Udyam: UDYAM-MH-12-0012345",
-                    "ocr_engine": "mock_tesseract",
-                    "ocr_confidence": 0.50,
+                    "text": "",
+                    "ocr_engine": "tesseract_unavailable",
+                    "ocr_confidence": 0.0,
                     "page_count": 1,
                     "error": str(tess_err)
                 }

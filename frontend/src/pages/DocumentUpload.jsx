@@ -123,7 +123,7 @@ function DocumentUploadPage({ onAddBid }) {
     });
 
     // Make live FastAPI API call using env configuration
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
     const formData = new FormData();
     formData.append("file", uploadedFile);
 
@@ -187,22 +187,22 @@ function DocumentUploadPage({ onAddBid }) {
 
       // Format a clean object to sync to Home.jsx state array
       const bidId = `GEM-BID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const bidderName = data.verification.gstin[0]?.data.legal_name || data.verification.pan[0]?.data.name || data.verification.udyam[0]?.data.enterprise_name || "Unknown Bidder Org";
+      const bidderName = data.verification?.gstin?.[0]?.data?.legal_name || data.verification?.pan?.[0]?.data?.name || data.verification?.udyam?.[0]?.data?.enterprise_name || "Unknown Bidder Org";
       
       const newBid = {
         id: bidId,
         bidderName: bidderName,
-        gstin: ids.gstin[0] || "",
-        pan: ids.pan[0] || "",
-        udyam: ids.udyam[0] || "",
+        gstin: ids.gstin?.[0] || "",
+        pan: ids.pan?.[0] || "",
+        udyam: ids.udyam?.[0] || "",
         submittedOn: new Date().toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
         status: "Under Review", // Default to Under Review for auditing
-        score: data.compliance.score,
-        risk: data.compliance.risk_level,
-        compliance_record: data.verification.gstin[0]?.data.compliance_record || "Good",
-        taxpayer_type: data.verification.gstin[0]?.data.taxpayer_type || "Regular",
-        enterprise_type: data.verification.udyam[0]?.data.enterprise_type || "N/A",
-        warnings: data.compliance.recommendations,
+        score: data.compliance?.score || 0,
+        risk: data.compliance?.risk_level || "MEDIUM",
+        compliance_record: data.verification?.gstin?.[0]?.data?.compliance_record || "Good",
+        taxpayer_type: data.verification?.gstin?.[0]?.data?.taxpayer_type || "Regular",
+        enterprise_type: data.verification?.udyam?.[0]?.data?.enterprise_type || "N/A",
+        warnings: data.compliance?.recommendations || [],
         logs: terminalLogsList
       };
 

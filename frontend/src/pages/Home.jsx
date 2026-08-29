@@ -183,6 +183,11 @@ function Home({ role, user, onLogout }) {
     setBids((prev) => [newBid, ...prev]);
   };
 
+  const handleSubmitBid = (tenderId) => {
+    const targetBid = bids.find((b) => b.id === tenderId) || bids[0] || INITIAL_BIDS[0];
+    setSelectedBid(targetBid);
+  };
+
   const handleAuditAction = (bidId, newStatus) => {
     setBids((prevBids) =>
       prevBids.map((bid) => {

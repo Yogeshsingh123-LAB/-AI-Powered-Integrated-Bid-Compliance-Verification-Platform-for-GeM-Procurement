@@ -267,3 +267,10 @@ def test_api_reprocess_endpoint(seed_data):
     # Should have 2 records in database (history preserved)
     assert len(extractions) >= 2
     db.close()
+
+def test_storage_service_mock_download():
+    """Verify StorageService.download_file works in mock mode without NameError."""
+    result = StorageService.download_file("test_path.pdf")
+    assert isinstance(result, bytes)
+    assert len(result) > 0
+

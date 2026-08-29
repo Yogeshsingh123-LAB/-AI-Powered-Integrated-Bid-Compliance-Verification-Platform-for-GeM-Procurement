@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Dict, Any, Optional
 from supabase import create_client, Client

@@ -200,13 +200,13 @@ function Home({ role, user, onLogout }) {
       <div className="bidder-dashboard-content">
         {/* Welcome Section */}
         <div className="welcome-banner">
-          <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."} 👋</h1>
+          <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
           <p className="subtitle">Manage your bids, documents and tender submissions from one place.</p>
         </div>
 
         {/* Summary Cards */}
         <div className="summary-cards-row">
-          <div className="summary-card">
+          <div className="summary-card" onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Active Tenders</span>
               <FolderOpen size={20} className="card-icon blue" />
@@ -214,7 +214,7 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">05</h2>
             <span className="card-subtext warning">2 closing soon</span>
           </div>
-          <div className="summary-card">
+          <div className="summary-card" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">My Bids</span>
               <FileCheck2 size={20} className="card-icon purple" />
@@ -222,7 +222,7 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">08</h2>
             <span className="card-subtext info">3 under verification</span>
           </div>
-          <div className="summary-card">
+          <div className="summary-card" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Draft Bids</span>
               <FileText size={20} className="card-icon orange" />
@@ -230,7 +230,7 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">02</h2>
             <span className="card-subtext text-muted">Continue submission</span>
           </div>
-          <div className="summary-card">
+          <div className="summary-card" onClick={() => setActiveSection("documents")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Documents</span>
               <ClipboardList size={20} className="card-icon green" />
@@ -1807,11 +1807,19 @@ function Home({ role, user, onLogout }) {
       <div className="bidder-dashboard-layout">
         <header className="bidder-header">
           <div className="bidder-header-left">
-            <div className="bidder-logo">
-              <Shield size={24} className="accent-icon" />
-              <div>
-                <span className="logo-title">BidSure AI</span>
-                <span className="logo-subtitle">Bid Compliance Platform</span>
+            <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <img
+                src="/logo.png"
+                alt="BidVerify Logo"
+                style={{ height: "72px", objectFit: "contain", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}
+              />
+              <div className="logo-text-block" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <span className="logo-title" style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.5px", background: "linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>
+                  BidVerify
+                </span>
+                <span className="logo-subtitle" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#cbd5e1", letterSpacing: "0.3px", marginTop: "2px", textTransform: "uppercase" }}>
+                  Government e-Auction & Compliance Platform
+                </span>
               </div>
             </div>
           </div>
@@ -1875,6 +1883,16 @@ function Home({ role, user, onLogout }) {
             </div>
           </div>
         </header>
+
+        {/* Government Live Ticker Bar */}
+        <div className="gov-ticker-bar">
+          <span className="ticker-badge">📢 LIVE ANNOUNCEMENTS</span>
+          <div className="ticker-wrapper">
+            <span className="ticker-text">
+              ✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦
+            </span>
+          </div>
+        </div>
 
         <main className="bidder-main">
           <section className="bidder-content">{renderContent()}</section>
@@ -2005,11 +2023,19 @@ function Home({ role, user, onLogout }) {
     <div className="bidder-dashboard-layout">
       <header className="bidder-header">
         <div className="bidder-header-left">
-          <div className="bidder-logo">
-            <Shield size={24} className="accent-icon" />
-            <div>
-              <span className="logo-title">BidSure AI</span>
-              <span className="logo-subtitle">AI Bid Compliance Platform</span>
+          <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <img
+              src="/logo.png"
+              alt="BidVerify Logo"
+              style={{ height: "72px", objectFit: "contain", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}
+            />
+            <div className="logo-text-block" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <span className="logo-title" style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.5px", background: "linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>
+                BidVerify
+              </span>
+              <span className="logo-subtitle" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#cbd5e1", letterSpacing: "0.3px", marginTop: "2px", textTransform: "uppercase" }}>
+                Government e-Auction & Compliance Platform
+              </span>
             </div>
           </div>
         </div>
@@ -2052,6 +2078,16 @@ function Home({ role, user, onLogout }) {
           </div>
         </div>
       </header>
+
+      {/* Government Live Ticker Bar */}
+      <div className="gov-ticker-bar">
+        <span className="ticker-badge">📢 LIVE ANNOUNCEMENTS</span>
+        <div className="ticker-wrapper">
+          <span className="ticker-text">
+            ✦ BidVerify Officer Administrative Console ✦ Automated Cross-Verification with GST, Income Tax, EPFO, & MSME Udyam Registries Active ✦ 12 Integrity Alerts Flagged ✦
+          </span>
+        </div>
+      </div>
 
       <main className="bidder-main">
         <section className="bidder-content">{renderContent()}</section>

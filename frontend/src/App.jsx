@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Click3DEffect from "./components/Click3DEffect";
 import Chatbot from "./components/Chatbot";
 
 function App() {
@@ -88,13 +87,14 @@ function App() {
 
   return (
     <>
-      <Click3DEffect />
       {isLoggedIn ? (
-        <Home role={userRole} user={currentUser} onLogout={handleLogout} />
+        <>
+          <Home role={userRole} user={currentUser} onLogout={handleLogout} />
+          <Chatbot userRole={userRole} />
+        </>
       ) : (
         <Login onLogin={handleLogin} />
       )}
-      <Chatbot userRole={isLoggedIn ? userRole : "Guest"} />
     </>
   );
 }

@@ -396,7 +396,7 @@ function DevCredentialsPanel({ isCollapsed, onToggle, onSelectAcc, onSeed, seedi
         </button>
       </div>
       <div className="dev-helper-content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div className="dev-helper-intro" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <p style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'left', margin: 0 }}>
             Click on any profile card below to autofill and switch to the correct portal configuration instantly.
           </p>

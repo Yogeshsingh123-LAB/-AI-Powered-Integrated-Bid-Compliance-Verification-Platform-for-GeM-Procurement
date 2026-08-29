@@ -509,27 +509,32 @@ function DocumentUploadPage({ onAddBid }) {
         <div className="compliance-grid">
           {/* Score Dial Badge */}
           <div className="score-panel">
-            <div className="dial-wrapper">
-              <svg className="dial-svg" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="dial-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#818cf8" />
-                    <stop offset="100%" stopColor="#4f46e5" />
-                  </linearGradient>
-                </defs>
-                <circle className="dial-track" cx="50" cy="50" r="40" strokeWidth="10" />
+            <div style={{ position: "relative", width: "110px", height: "110px", margin: "0 auto 16px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  strokeWidth="10"
+                />
                 <circle 
-                  className="dial-value" 
                   cx="50" 
                   cy="50" 
                   r="40" 
-                  strokeWidth="10" 
+                  fill="none"
+                  stroke={report.compliance_report.score >= 80 ? "#10b981" : report.compliance_report.score >= 50 ? "#f59e0b" : "#ef4444"}
+                  strokeWidth="10"
+                  strokeLinecap="round"
                   strokeDasharray={`${(report.compliance_report.score / 100) * 251.2} 251.2`}
+                  strokeDashoffset="0"
+                  style={{ transition: "stroke-dasharray 0.6s ease" }}
                 />
               </svg>
-              <div className="dial-text">
-                <span className="dial-score">{report.compliance_report.score}</span>
-                <span className="dial-label">SCORE</span>
+              <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{report.compliance_report.score}%</span>
+                <span style={{ fontSize: "0.65rem", fontWeight: "700", color: report.compliance_report.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
               </div>
             </div>
             

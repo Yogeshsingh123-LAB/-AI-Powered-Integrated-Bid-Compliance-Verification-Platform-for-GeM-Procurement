@@ -146,6 +146,7 @@ function Home({ role, user, onLogout }) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [bids, setBids] = useState(INITIAL_BIDS);
   const [selectedBid, setSelectedBid] = useState(null);
+  const [selectedTender, setSelectedTender] = useState(null);
   const [officerNotes, setOfficerNotes] = useState("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -594,12 +595,20 @@ function Home({ role, user, onLogout }) {
                     <td><strong className="value-highlight">{tender.value}</strong></td>
                     <td><span className="deadline-badge">{tender.deadline}</span></td>
                     <td>
-                      <button
-                        className="table-action-btn emerald"
-                        onClick={() => setActiveSection("documents")}
-                      >
-                        Create Bid →
-                      </button>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <button
+                          className="table-action-btn emerald"
+                          onClick={() => setActiveSection("documents")}
+                        >
+                          Create Bid →
+                        </button>
+                        <button
+                          className="secondary-action-btn"
+                          onClick={() => setSelectedTender(tender)}
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1229,21 +1238,23 @@ function Home({ role, user, onLogout }) {
             <div className="split-left-col" style={{ flexGrow: 1.5 }}>
               {/* Compliance Score Card */}
               <div className="section-panel" style={{ padding: "24px", display: "flex", gap: "24px", alignItems: "center", marginBottom: "20px" }}>
-                <div style={{ position: "relative", width: "110px", height: "110px", flexShrink: 0 }}>
-                  <svg className="dial-svg" viewBox="0 0 100 100">
-                    <circle className="dial-track" cx="50" cy="50" r="40" strokeWidth="8" />
+                <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
                     <circle
-                      className="dial-value"
                       cx="50"
                       cy="50"
                       r="40"
-                      strokeWidth="8"
-                      strokeDasharray={`${(92 / 100) * 251.2} 251.2`}
+                      fill="none"
                       stroke="#10b981"
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(98.4 / 100) * 251.2} 251.2`}
+                      strokeDashoffset="0"
                     />
                   </svg>
-                  <div className="dial-text">
-                    <span className="dial-score" style={{ fontSize: "1.5rem", fontWeight: 800 }}>92</span>
+                  <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    <span style={{ fontSize: "1.45rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>98.4%</span>
                   </div>
                 </div>
                 <div>
@@ -2034,22 +2045,26 @@ function Home({ role, user, onLogout }) {
 
               <div className="drawer-content">
                 {/* Score section inside drawer */}
-                <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-                  <div style={{ position: "relative", width: "90px", height: "90px" }}>
-                    <svg className="dial-svg" viewBox="0 0 100 100">
-                      <circle className="dial-track" cx="50" cy="50" r="40" strokeWidth="8" />
+                <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "#f8fafc", padding: "18px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
                       <circle
-                        className="dial-value"
                         cx="50"
                         cy="50"
                         r="40"
-                        strokeWidth="8"
+                        fill="none"
+                        stroke={selectedBid.score >= 80 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
+                        strokeWidth="10"
+                        strokeLinecap="round"
                         strokeDasharray={`${(selectedBid.score / 100) * 251.2} 251.2`}
-                        stroke={selectedBid.score >= 85 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
+                        strokeDashoffset="0"
+                        style={{ transition: "stroke-dasharray 0.6s ease" }}
                       />
                     </svg>
-                    <div className="dial-text">
-                      <span className="dial-score" style={{ fontSize: "1.25rem" }}>{selectedBid.score}</span>
+                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                      <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{selectedBid.score}%</span>
+                      <span style={{ fontSize: "0.65rem", fontWeight: "700", color: selectedBid.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
                     </div>
                   </div>
                   <div>
@@ -2229,34 +2244,45 @@ function Home({ role, user, onLogout }) {
 
             <div className="drawer-content">
               {/* Score section inside drawer */}
-              <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-                <div style={{ position: "relative", width: "90px", height: "90px" }}>
-                  <svg className="dial-svg" viewBox="0 0 100 100">
-                    <circle className="dial-track" cx="50" cy="50" r="40" strokeWidth="8" />
+              <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "#f8fafc", padding: "18px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
                     <circle
-                      className="dial-value"
                       cx="50"
                       cy="50"
                       r="40"
-                      strokeWidth="8"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="10"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke={selectedBid.score >= 80 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
+                      strokeWidth="10"
+                      strokeLinecap="round"
                       strokeDasharray={`${(selectedBid.score / 100) * 251.2} 251.2`}
-                      stroke={selectedBid.score >= 85 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
+                      strokeDashoffset="0"
+                      style={{ transition: "stroke-dasharray 0.6s ease" }}
                     />
                   </svg>
-                  <div className="dial-text">
-                    <span className="dial-score" style={{ fontSize: "1.25rem" }}>{selectedBid.score}</span>
+                  <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{selectedBid.score}%</span>
+                    <span style={{ fontSize: "0.65rem", fontWeight: "700", color: selectedBid.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
                   </div>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: "1rem", marginBottom: "4px" }}>Compliance Score & Risk</h3>
-                  <p style={{ fontSize: "0.85rem", color: "#64748b", textAlign: "left", marginBottom: "8px" }}>
-                    Weighted registry status and name matching analysis.
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: "700", color: "#0f172a", marginBottom: "4px" }}>Compliance Score & Risk Rating</h3>
+                  <p style={{ fontSize: "0.85rem", color: "#475569", textAlign: "left", marginBottom: "8px" }}>
+                    Weighted registry status, automated OCR verification, and GSTIN/PAN name matching.
                   </p>
                   <span className={`risk-badge ${selectedBid.risk.toLowerCase()}`}>
                     {selectedBid.risk} Risk Rating
                   </span>
                   <span className={`status-badge ${selectedBid.status.toLowerCase().replace(" ", "")}`} style={{ marginLeft: "10px" }}>
-                    {selectedBid.status}
+                    ● {selectedBid.status}
                   </span>
                 </div>
               </div>
@@ -2367,6 +2393,97 @@ function Home({ role, user, onLogout }) {
               </button>
               <button type="button" className="reject-btn" onClick={() => handleAuditAction(selectedBid.id, "Rejected")}>
                 Reject Bid / Request Revision
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selected Tender Details Inspection Modal */}
+      {selectedTender && (
+        <div className="drawer-overlay" onClick={() => setSelectedTender(null)}>
+          <div className="audit-drawer studio-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-header" style={{ background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)", color: "#ffffff", padding: "20px 24px" }}>
+              <div className="drawer-title">
+                <span className="hero-eyebrow" style={{ color: "#e0f2fe" }}>GEM PROCUREMENT OPPORTUNITY</span>
+                <h2 style={{ fontSize: "1.35rem", margin: "4px 0", color: "#ffffff" }}>{selectedTender.title}</h2>
+                <span style={{ fontSize: "0.85rem", opacity: 0.9, color: "#f0f9ff" }}>
+                  Tender Reference: <strong>{selectedTender.id}</strong> | Department: <strong>{selectedTender.department}</strong>
+                </span>
+              </div>
+              <button className="close-btn" style={{ color: "#ffffff", background: "rgba(255, 255, 255, 0.2)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }} onClick={() => setSelectedTender(null)}>✕</button>
+            </div>
+
+            <div className="drawer-content" style={{ padding: "24px" }}>
+              {/* Tender Key Stats Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: "8px" }}>
+                <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700" }}>ESTIMATED VALUE</span>
+                  <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#0f172a", marginTop: "2px" }}>{selectedTender.value}</div>
+                </div>
+                <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700" }}>CLOSING DEADLINE</span>
+                  <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#0284c7", marginTop: "2px" }}>{selectedTender.deadline}</div>
+                </div>
+                <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700" }}>CATEGORY</span>
+                  <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#10b981", marginTop: "2px" }}>{selectedTender.category}</div>
+                </div>
+                <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700" }}>EMD STATUS</span>
+                  <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#b45309", marginTop: "2px" }}>Exempt (MSME)</div>
+                </div>
+              </div>
+
+              {/* Technical Specifications & Requirements */}
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", background: "#ffffff" }}>
+                <h4 style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0f172a", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+                  📋 Technical Scope & Mandatory Criteria
+                </h4>
+                <ul style={{ listStyle: "disc", paddingLeft: "20px", fontSize: "0.88rem", color: "#334155", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <li><strong>Scope of Supply:</strong> Design, testing, supply, and on-site commissioning at {selectedTender.department} premises.</li>
+                  <li><strong>Warranty Terms:</strong> Minimum 36 Months OEM On-Site Comprehensive Warranty from date of final acceptance.</li>
+                  <li><strong>Financial Turnover:</strong> Minimum Average Annual Turnover of ₹25 Lakhs across the last 3 financial years.</li>
+                  <li><strong>Local Content Preference:</strong> Class-1 Local Supplier preference applicable under Public Procurement Order 2017.</li>
+                </ul>
+              </div>
+
+              {/* Required Documents Matrix */}
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", background: "#ffffff" }}>
+                <h4 style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0f172a", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+                  🛡️ Required Mandatory Certificates
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
+                    <strong>GSTIN Certificate</strong> — GSTN Active Verification
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
+                    <strong>PAN Card</strong> — CBDT Name Matching
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
+                    <strong>Udyam MSME</strong> — Purchase Preference Certificate
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
+                    <strong>OEM Authorization</strong> — Valid Manufacturer Authorization Letter
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="drawer-actions" style={{ padding: "16px 24px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+              <button 
+                type="button"
+                style={{ background: "#0284c7", color: "#ffffff", border: "none", borderRadius: "8px", fontWeight: "700", padding: "10px 22px", fontSize: "0.9rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(2, 132, 199, 0.25)" }}
+                onClick={() => { setSelectedTender(null); setActiveSection("documents"); }}
+              >
+                + Prepare Bid & Upload Docs →
+              </button>
+              <button 
+                type="button" 
+                style={{ background: "#ffffff", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", fontWeight: "600", padding: "10px 20px", fontSize: "0.9rem", cursor: "pointer" }}
+                onClick={() => setSelectedTender(null)}
+              >
+                Close
               </button>
             </div>
           </div>

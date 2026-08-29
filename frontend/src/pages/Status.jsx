@@ -90,6 +90,7 @@ function StatusPage({ bids, onSelectBid }) {
                 >
                   {/* Header Row */}
                   <div 
+                    className="status-item-header"
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -121,7 +122,7 @@ function StatusPage({ bids, onSelectBid }) {
                   {/* Expanded Details */}
                   {isExpanded && (
                     <div style={{ marginTop: '24px', paddingLeft: '34px', animation: 'fadeIn 0.2s ease-out' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '24px' }}>
+                      <div className="status-grid" style={{ display: 'grid', gap: '24px' }}>
                         
                         {/* Milestones Map */}
                         <div>

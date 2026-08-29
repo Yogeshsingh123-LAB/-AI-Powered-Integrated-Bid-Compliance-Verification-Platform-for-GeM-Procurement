@@ -63,7 +63,7 @@ def validate_file(file: UploadFile) -> bytes:
 
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail="File size exceeds the maximum limit of 10 MB."
         )
 

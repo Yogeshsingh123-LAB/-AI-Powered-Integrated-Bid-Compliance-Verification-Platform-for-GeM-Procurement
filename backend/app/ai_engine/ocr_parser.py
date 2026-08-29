@@ -85,22 +85,21 @@ class OCRParser:
                 }
             except Exception as tess_err:
                 logger.warning(f"OCRParser: Tesseract execution failed: {tess_err}")
-                # Return empty text if Tesseract binary is not installed or execution fails
                 return {
                     "success": True,
                     "text": "",
                     "ocr_engine": "tesseract_unavailable",
                     "ocr_confidence": 0.0,
                     "page_count": 1,
-                    "error": str(tess_err)
+                    "error": "Tesseract OCR binary not found or execution failed. Install Tesseract-OCR for scanned document support."
                 }
         except Exception as e:
-            logger.exception(f"OCRParser: Image load/process failed: {e}")
+            logger.error(f"OCRParser: Image parsing failed: {e}")
             return {
                 "success": False,
                 "text": "",
-                "ocr_engine": "tesseract",
+                "ocr_engine": "error",
                 "ocr_confidence": 0.0,
                 "page_count": 0,
-                "error": f"Image processing failed: {str(e)}"
+                "error": str(e)
             }

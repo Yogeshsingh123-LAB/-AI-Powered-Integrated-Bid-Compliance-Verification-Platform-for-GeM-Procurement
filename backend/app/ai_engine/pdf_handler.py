@@ -32,9 +32,24 @@ class PDFHandler:
         """
         try:
             # Open PDF stream using fitz (PyMuPDF)
+            MAX_PDF_PAGES = 50
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             total_pages = len(doc)
             logger.info(f"PDFHandler: Opened PDF with PyMuPDF. Total pages: {total_pages}")
+            
+            if total_pages > MAX_PDF_PAGES:
+                logger.warning(f"PDFHandler: PDF has {total_pages} pages, exceeding max limit of {MAX_PDF_PAGES}.")
+                return {
+                    "success": False,
+                    "error": f"PDF exceeds maximum allowed page limit of {MAX_PDF_PAGES} pages.",
+                    "raw_text": "",
+                    "digital_text": "",
+                    "ocr_text": "",
+                    "ocr_used": False,
+                    "average_ocr_confidence": 0.0,
+                    "total_pages": total_pages,
+                    "scanned_pages": 0
+                }
             
             digital_text = ""
             ocr_text = ""

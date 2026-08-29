@@ -1,10 +1,12 @@
-from fastapi import APIRouter
+import re
 import json
 import os
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/mock", tags=["Mock Government APIs"])
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "gst_db.json")
+GSTIN_REGEX = re.compile(r'^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}$')
 
 def load_db():
     if not os.path.exists(DB_PATH):
@@ -15,6 +17,8 @@ def load_db():
 @router.get("/gst/{gstin}")
 def verify_gst(gstin: str):
     gstin = gstin.upper().strip()
+    if not GSTIN_REGEX.match(gstin):
+        raise HTTPException(status_code=400, detail="Invalid GSTIN format. Expected 15-character structure.")
     db = load_db()
     result = db.get(gstin)
     

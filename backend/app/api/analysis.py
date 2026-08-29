@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import logging
 from typing import Dict, Any
@@ -18,6 +19,7 @@ router = APIRouter(tags=["Analysis"])
 # Create path for saving uploads locally
 UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 @router.post("/analyze", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def analyze_document(
@@ -35,16 +37,25 @@ async def analyze_document(
     """
     logger.info(f"Analysis Endpoint: Received file '{file.filename}' for compliance verification.")
     
-    # 1. Read file bytes and save to local uploads directory
+    # 1. Read file bytes, enforce size limit, and save with sanitized filename
     try:
         file_bytes = await file.read()
+        if len(file_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File size exceeds maximum allowed limit of 10 MB."
+            )
         file_id = str(uuid.uuid4())
-        safe_filename = f"{file_id}_{os.path.basename(file.filename)}"
+        raw_basename = os.path.basename(file.filename or "upload.pdf")
+        clean_basename = re.sub(r'[^a-zA-Z0-9._-]', '_', raw_basename).strip("._")
+        safe_filename = f"{file_id}_{clean_basename}"
         file_path = os.path.join(UPLOAD_DIR, safe_filename)
         
         with open(file_path, "wb") as f:
             f.write(file_bytes)
         logger.info(f"Analysis Endpoint: Saved file to {file_path}")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Analysis Endpoint: Failed to save uploaded file: {e}")
         raise HTTPException(

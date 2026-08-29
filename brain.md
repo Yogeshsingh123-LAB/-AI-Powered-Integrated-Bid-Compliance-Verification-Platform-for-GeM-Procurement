@@ -14,7 +14,7 @@ The goal of this platform is to automate compliance checking for bids submitted 
 ```mermaid
 graph TD
     A[React/Vite Frontend] -- HTTP / JSON + JWT Bearer --> B[FastAPI Backend Engine]
-    B -- SQLAlchemy 2.x --> C[(PostgreSQL Database)]
+    B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
     B -- Supabase Storage --> D[Private Storage Bucket]
     B -- External Integration --> E[Govt API Gateways]
     B -- OCR Processing --> F[AI OCR Parser]
@@ -22,24 +22,20 @@ graph TD
 
 ### Frontend (User Interface)
 - **Tech Stack**: React 18, Vite, Custom Vanilla CSS, Lucide Icons.
-- **Design Aesthetic**: Space-themed futuristic dark UI (`#060913`) featuring glassmorphism elements, custom diagonal slide transitions, 3D mouse parallax tilt, and custom theme overrides (neon green/emerald for Supplier Terminal, neon red/crimson for Audit Console).
-- **Separated Login & Selector Gateway**:
-  - **Portal Selection Landing page**: Entry screen featuring interactive cards to select either the Supplier Procurement Terminal or the Administrative Audit Console.
-  - **Supplier Procurement Terminal**: Supports login and self-registration. Submits requests directly to the backend authentication APIs.
-  - **Administrative Audit Console**: Restricted login-only interface for government auditors. Does not allow public signup.
-- **Strict Role Boundaries & Access Checks**:
-  - Enforces client-side role validation against the JWT: `BIDDER` accounts are denied entry to the Administrative Audit Console and display a warning banner.
-  - Restores active sessions automatically on mount by checking the validity of the JWT token via `/api/auth/me`.
-  - Clears browser storage securely upon Sign Out.
-- **Role-Based Views**:
+- **Port Alignment**: Frontend connects to FastAPI backend on port `8000` (`VITE_API_URL` defaults to `http://127.0.0.1:8000`).
+- **Role-Based Portals**:
   - **Procurement Officer / Buyer**: Master Audit Queue, bid details inspection, compliance audit reports, logs console, and compliance sign-off actions.
-  - **Admin**: User credentials management, API gateways connectivity toggles, and dynamic compliance rules weight tuning.
+  - **Admin**: User credentials management, API gateways connectivity toggles, and compliance rules weight tuning.
   - **Bidder / Supplier**: Secure document upload terminal, bid status milestones tracker, and corporate profiles.
 
 ### Backend (Core Engine)
-- **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), Neon PostgreSQL.
-- **Security**: Stateless JWT-based session tokens, password strength verification, and bcrypt password hashing via `passlib`.
-- **CORS Configuration**: Open-access configured to allow seamless communication with dev clients on ports `5173` and `5174`.
+- **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), SQLite/PostgreSQL.
+- **Security & Integrity**:
+  - Stateless JWT-based session tokens and password strength verification.
+  - Constant-time password verification defense against timing side-channel attacks.
+  - Cryptographic SHA-256 blockchain hash chain (`blockchain_hash`) for tamper-evident audit logging.
+  - Upload payload size limits (10 MB max) and regex filename sanitization.
+- **CORS Configuration**: Restricts origins to trusted development origins (`http://localhost:5173`, `http://localhost:5174`, `http://localhost:3000`).
 
 ---
 
@@ -95,12 +91,16 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 
 ### Audit Logs Table
 - `id` (UUID, Primary Key)
-- `timestamp` (DateTime)
 - `user_id` (UUID, Optional, ForeignKey -> Users)
-- `user_role` (String, Optional)
-- `action` (String)
-- `details` (Text, Optional)
+- `action` (String, e.g., "DOCUMENT_UPLOADED")
+- `entity_type` (String, e.g., "Document")
+- `entity_id` (UUID, Optional)
+- `bid_id` (UUID, Optional, ForeignKey -> Bids)
+- `old_value` (Text, Optional)
+- `new_value` (Text, Optional)
 - `ip_address` (String, Optional)
+- `blockchain_hash` (String(64), Cryptographic SHA-256 chain hash linking to prior record)
+- `created_at` (DateTime)
 
 ---
 
@@ -119,24 +119,21 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `PATCH` | `/api/users/profile` | Update current user's profile metadata | Yes | None |
 | `GET` | `/api/admin/users` | List all registered users | Yes | `ADMIN` |
 | `PATCH` | `/api/admin/users/{user_id}/status` | Activate/deactivate user account | Yes | `ADMIN` |
-| `POST` | `/api/analyze` | Main PDF compliance analysis endpoint | No | None |
+| `POST` | `/api/analyze` | Main PDF/image compliance analysis endpoint | No | None |
 | `POST` | `/api/documents/upload` | Upload compliance document for a bid | Yes | `BIDDER` |
 | `GET` | `/api/documents/bid/{bid_id}` | List all uploaded documents for a bid | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `POST` | `/api/documents/{doc_id}/replace` | Replace an uploaded document | Yes | `BIDDER` (Owner) |
 | `DELETE` | `/api/documents/{doc_id}` | Delete a document from bucket & DB | Yes | `BIDDER` (Owner) |
-| `POST` | `/api/chat` | Ask the GeMmy platform and bid-compliance assistant | No | None |
+| `POST` | `/api/chat` | Ask the GeMmy platform assistant | No | None |
 
 ---
 
 ## 5. Development Phases Status
 
-- **Phase 1: AI OCR Integration** ✅ COMPLETE (PyMuPDF, OpenCV preprocessors, and Tesseract OCR document parsing + spaCy NER entity extractors)
-- **Phase 2: Government API Connectors** ✅ COMPLETE (Faker database seeds + GSTIN/PAN/Udyam/Blacklist gateways with REST RESTful lookups & offline JSON fallbacks)
-- **Phase 3: Compliance Scoring Algorithm** ✅ COMPLETE (Completeness/Verification/Integrity weighted scoring engine + name alignment suffix token matcher)
-- **Phase 4: End-to-End Integration** ✅ COMPLETE (Main POST `/api/analyze` endpoint orchestration, upload handling, scoring report formatters, audit trail entries)
-- **Phase 5: Testing & Validation** ✅ COMPLETE (4 validation test suites, 5 scenario PDF mock documents, TestClient integration tests)
-- **Phase 6: UI/UX & Refactoring** ✅ COMPLETE (Configurable environmental base URL, API request timeout controls, upload dropzone locks, frontend validation, unique ID mappings, and milestone empty states)
-- **Phase 7: Separate Portals & Secure Auth** ✅ COMPLETE (Separated Supplier/Officer login portals, integrated backend JWT sessions, client-side session auto-login check via `/api/auth/me`, and access-denied security blocks)
-- **Phase 8: Premium Dashboards & Compliance Exporters** ✅ COMPLETE (Transitioned layout to full-width horizontal top navigation; implemented Create Tender progress wizard, Bidders Applications registry with real-time filters and CSV/PDF exporters, advanced AI verification compliance matrix, and the Compliance Evidence & Final Decision dashboard)
-- **Phase 9: Interactive Procurement Governance & Immutable Auditing** ✅ COMPLETE (Connected KPI cards to filtered data views; implemented Tender Applied Bidders drill-down; integrated AI Recommendation Review panel with confidence metrics; enforced immutable one-time officer decision locking with cryptographic hash & IST timestamp; standardized all UI components with high-contrast Lucide SVG icons).
+- **Phase 1: AI OCR Integration** ✅ COMPLETE (PyMuPDF, OpenCV preprocessors, Tesseract OCR fallback, 50-page max safety check, spaCy NER tokenizers)
+- **Phase 2: Government API Connectors** ✅ COMPLETE (GSTIN/PAN/Udyam/Blacklist gateways with REST lookups, format regex validation, and JSON fallbacks)
+- **Phase 3: Compliance Scoring Algorithm** ✅ COMPLETE (Completeness/Verification/Integrity weighted scoring engine, mandatory ID missing penalties, and name token suffix matchers)
+- **Phase 4: End-to-End Integration** ✅ COMPLETE (Main POST `/api/analyze` endpoint orchestration, upload handling, scoring report formatters, SHA-256 audit chain entries)
+- **Phase 5: Testing & Validation** ✅ COMPLETE (39 automated pytest tests, 4 runner scripts, 5 scenario PDF mock documents)
+- **Phase 6: Cryptographic Blockchain Audit Chain & Security Hardening** ✅ COMPLETE (SHA-256 hash chaining on AuditLog, timing attack mitigation on password verification, 10MB payload size limits, regex filename sanitization, port 8000 alignment).

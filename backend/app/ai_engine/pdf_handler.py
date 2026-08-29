@@ -2,8 +2,6 @@ import os
 import logging
 from typing import Dict, Any, List, Optional
 import fitz  # PyMuPDF
-import pdfplumber
-from pdf2image import convert_from_path
 from .ocr_parser import OCRParser
 
 logger = logging.getLogger(__name__)

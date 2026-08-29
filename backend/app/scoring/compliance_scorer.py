@@ -83,6 +83,11 @@ class ComplianceScorer:
             compliance_issues = []
             has_status_issue = False
             
+            # Heavy penalty if primary mandatory procurement identifiers (GSTIN & PAN) are both missing
+            if not (has_gstin or has_pan):
+                integrity_score = max(0, integrity_score - 15)
+                deductions.append("Missing primary mandatory procurement identifiers (GSTIN/PAN) (-15 pts)")
+
             # Check if blacklisted
             blacklisted = any(
                 item.get("verified") and item.get("data", {}).get("blacklisted", False)

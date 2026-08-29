@@ -48,6 +48,8 @@ ENV/
 *.pdf
 *.png
 *.jpg
+!frontend/public/logo.png
+!frontend/src/assets/*.png
 *.jpeg
 
 # Logs

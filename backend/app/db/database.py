@@ -35,12 +35,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 if is_sqlite:
     try:
         # Import models so they register with Base.metadata
-        from app.models.user import User
-        from app.models.bid import Bid
-        from app.models.requirement import Requirement
-        from app.models.document import Document
-        from app.models.document_extraction import DocumentExtraction
-        from app.models.audit_log import AuditLog
+        import app.models
         
         Base.metadata.create_all(bind=engine)
         logger.info("Auto-created model tables in SQLite database.")

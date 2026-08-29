@@ -62,7 +62,7 @@ class AuthService:
         """Register a new user (public registration allows BIDDER only)."""
         # Validate role
         if req.role.upper() != "BIDDER":
-            create_audit_record(db, "ROLE_CHANGE_ATTEMPT", action="ROLE_CHANGE_ATTEMPT", new_value=req.role, ip_address=ip_address)
+            create_audit_record(db=db, action="ROLE_CHANGE_ATTEMPT", new_value=req.role, ip_address=ip_address)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Public registration is only permitted for the 'BIDDER' role."

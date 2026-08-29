@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import "./Chatbot.css";
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8080").replace(/\/$/, "");
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -23,7 +23,8 @@ const WELCOME_MESSAGE = {
 const INITIAL_SUGGESTIONS = [
   "How do I upload a bid?",
   "How is the score calculated?",
-  "Which documents are checked?",
+  "Why is my document flagged?",
+  "What is the status of my audit?",
 ];
 
 function Chatbot({ userRole = "Guest" }) {
@@ -110,7 +111,7 @@ function Chatbot({ userRole = "Guest" }) {
           isError: true,
           content: timedOut
             ? "The assistant took too long to respond. Please try again."
-            : "I can’t reach the assistant service right now. Please start the FastAPI backend on port 8000 and try again.",
+            : "I can’t reach the assistant service right now. Please start the FastAPI backend on port 8080 and try again.",
         },
       ]);
       setSuggestions(INITIAL_SUGGESTIONS);

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import profileImage from "../assets/profile.png";
 import "../App.css";
 import DocumentUploadPage from "./DocumentUpload";
 import StatusPage from "./Status";
+import BidderProfile from "./BidderProfile";
 import {
   LayoutDashboard,
   UserCircle,
@@ -26,7 +27,14 @@ import {
   ChevronDown,
   FolderOpen,
   ClipboardList,
-  FileText
+  FileText,
+  Lock,
+  ShieldCheck,
+  Check,
+  ExternalLink,
+  Eye,
+  Sparkles,
+  Award
 } from "lucide-react";
 
 // Mock Database of submitted bids (visible globally to allow live sync between Supplier upload and Admin queue)
@@ -143,12 +151,33 @@ function SectionPlaceholder({ title, description, rows }) {
 }
 
 function Home({ role, user, onLogout }) {
-  const [activeSection, setActiveSection] = useState("dashboard");
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window !== "undefined" && window.location.pathname === "/bidder/profile") {
+      return "profile";
+    }
+    return "dashboard";
+  });
+
+  useEffect(() => {
+    if (activeSection === "profile") {
+      if (window.location.pathname !== "/bidder/profile") {
+        window.history.pushState(null, "", "/bidder/profile");
+      }
+    } else if (window.location.pathname === "/bidder/profile" && activeSection !== "profile") {
+      window.history.pushState(null, "", "/");
+    }
+  }, [activeSection]);
+
   const [bids, setBids] = useState(INITIAL_BIDS);
   const [selectedBid, setSelectedBid] = useState(null);
   const [selectedTender, setSelectedTender] = useState(null);
   const [officerNotes, setOfficerNotes] = useState("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+  const [biddersInitialFilter, setBiddersInitialFilter] = useState({ risk: "All", verification: "All" });
+  const [selectedTenderForBidders, setSelectedTenderForBidders] = useState(null);
+  const [selectedVerificationBidder, setSelectedVerificationBidder] = useState(null);
+  const [decidedBids, setDecidedBids] = useState({});
 
   const handleAddBid = (newBid) => {
     setBids((prev) => [newBid, ...prev]);
@@ -670,13 +699,17 @@ function Home({ role, user, onLogout }) {
       <div className="officer-dashboard-content">
         {/* Welcome Section */}
         <div className="welcome-banner">
-          <h1>Good Morning, Procurement Officer 👋</h1>
+          <h1>Good Morning, Procurement Officer</h1>
           <p className="subtitle">Monitor tender activity, bidder compliance and verification progress.</p>
         </div>
 
         {/* KPI Cards */}
         <div className="summary-cards-row">
-          <div className="summary-card">
+          <div
+            className="summary-card card-blue-glow"
+            onClick={() => setActiveSection("tenders")}
+            style={{ cursor: "pointer" }}
+          >
             <div className="card-top">
               <span className="card-label">Active Tenders</span>
               <FolderOpen size={20} className="card-icon blue" />
@@ -684,7 +717,15 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">12</h2>
             <span className="card-subtext success">+3 this month</span>
           </div>
-          <div className="summary-card">
+
+          <div
+            className="summary-card card-purple-glow"
+            onClick={() => {
+              setBiddersInitialFilter({ risk: "All", verification: "All" });
+              setActiveSection("bidders");
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="card-top">
               <span className="card-label">Total Bids</span>
               <FileCheck2 size={20} className="card-icon purple" />
@@ -692,7 +733,15 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">148</h2>
             <span className="card-subtext success">+18 this week</span>
           </div>
-          <div className="summary-card">
+
+          <div
+            className="summary-card card-amber-glow"
+            onClick={() => {
+              setBiddersInitialFilter({ risk: "All", verification: "Review Required" });
+              setActiveSection("bidders");
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="card-top">
               <span className="card-label">Pending Verification</span>
               <Clock3 size={20} className="card-icon orange" />
@@ -700,7 +749,15 @@ function Home({ role, user, onLogout }) {
             <h2 className="card-value">27</h2>
             <span className="card-subtext warning">Needs attention</span>
           </div>
-          <div className="summary-card">
+
+          <div
+            className="summary-card card-red-glow"
+            onClick={() => {
+              setBiddersInitialFilter({ risk: "High", verification: "All" });
+              setActiveSection("bidders");
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="card-top">
               <span className="card-label">High Risk Bidders</span>
               <AlertTriangle size={20} className="card-icon red" />
@@ -731,7 +788,7 @@ function Home({ role, user, onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
                     <td><strong>GEM-CPCL-001</strong></td>
                     <td>Industrial Pumps</td>
                     <td>24</td>
@@ -739,7 +796,7 @@ function Home({ role, user, onLogout }) {
                     <td>6</td>
                     <td><span className="status-badge pending">Open</span></td>
                   </tr>
-                  <tr>
+                  <tr onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
                     <td><strong>GEM-CPCL-002</strong></td>
                     <td>Maintenance Services</td>
                     <td>31</td>
@@ -747,7 +804,7 @@ function Home({ role, user, onLogout }) {
                     <td>4</td>
                     <td><span className="status-badge review">Verification</span></td>
                   </tr>
-                  <tr>
+                  <tr onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
                     <td><strong>GEM-CPCL-003</strong></td>
                     <td>Safety Equipment</td>
                     <td>18</td>
@@ -765,7 +822,7 @@ function Home({ role, user, onLogout }) {
             {/* AI Verification Insights */}
             <div className="ai-assistant-card">
               <div className="ai-card-header">
-                <h3>AI Verification Insights <span className="sparkle-icon">✨</span></h3>
+                <h3>AI Verification Insights <Sparkles size={16} style={{ color: "#6366f1", verticalAlign: "middle", marginLeft: "6px" }} /></h3>
               </div>
               <ul className="ai-checks-list" style={{ marginTop: "16px" }}>
                 <li className="check-item checked">
@@ -833,13 +890,100 @@ function Home({ role, user, onLogout }) {
   };
 
   const TendersView = () => {
+    const tendersList = [
+      { id: "GEM-CPCL-001", title: "Industrial Pumps Procurement", department: "CPCL Chennai", value: "₹1,20,00,000", deadline: "30 Sep 2026", status: "Open", biddersCount: 3 },
+      { id: "GEM-CPCL-002", title: "Industrial Equipment Maintenance Services", department: "CPCL Chennai", value: "₹85,00,000", deadline: "15 Oct 2026", status: "Verification", biddersCount: 3 },
+      { id: "GEM-CPCL-003", title: "Safety Equipment and PPE Kits", department: "CPCL Chennai", value: "₹45,00,000", deadline: "10 Aug 2026", status: "Completed", biddersCount: 0 }
+    ];
+
+    if (selectedTenderForBidders) {
+      const appliedBidders = INITIAL_BIDDERS_LIST.filter(b => b.tender === selectedTenderForBidders.id);
+
+      return (
+        <div className="section-panel studio-panel" style={{ padding: "30px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+            <div>
+              <button
+                className="secondary-action-btn"
+                onClick={() => setSelectedTenderForBidders(null)}
+                style={{ height: "34px", padding: "0 14px", fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}
+              >
+                ← Back to All Tenders
+              </button>
+              <h2 style={{ margin: "0 0 6px 0", fontSize: "1.5rem" }}>Applied Bidders: {selectedTenderForBidders.title}</h2>
+              <p className="subtitle" style={{ margin: 0 }}>
+                Tender Ref: <strong style={{ color: "#0284c7" }}>{selectedTenderForBidders.id}</strong> | Dept: <strong>{selectedTenderForBidders.department}</strong> | Value: <strong>{selectedTenderForBidders.value}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table className="studio-table">
+              <thead>
+                <tr>
+                  <th>Bidder Name</th>
+                  <th>Submitted Documents</th>
+                  <th>Compliance Rating</th>
+                  <th>Risk Rating</th>
+                  <th>Verification Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appliedBidders.map(bidder => (
+                  <tr key={bidder.id}>
+                    <td><strong>{bidder.name}</strong></td>
+                    <td><span className="date-text">{bidder.documents}</span></td>
+                    <td>
+                      <strong style={{ color: bidder.compliance >= 90 ? "#10b981" : bidder.compliance >= 70 ? "#f59e0b" : "#ef4444" }}>
+                        {bidder.compliance}%
+                      </strong>
+                    </td>
+                    <td>
+                      <span className={`risk-badge ${bidder.risk.toLowerCase()}`}>
+                        {bidder.risk}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${bidder.verification.toLowerCase().replace(/\s+/g, "")}`}>
+                        {bidder.verification}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="primary-action-btn"
+                        style={{ height: "34px", padding: "0 14px", fontSize: "0.78rem" }}
+                        onClick={() => {
+                          setSelectedVerificationBidder(bidder);
+                          setActiveSection("verification");
+                        }}
+                      >
+                        Inspect & Verify Bid →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {appliedBidders.length === 0 && (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                      No bidder applications found for this tender.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="section-panel" style={{ padding: "30px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
             <h2>Tenders Management</h2>
             <p className="subtitle">
-              Create and manage all active procurement tenders and their configuration policies.
+              Create and manage all active procurement tenders and inspect applied bidders.
             </p>
           </div>
           <button
@@ -850,7 +994,7 @@ function Home({ role, user, onLogout }) {
             + Create Tender
           </button>
         </div>
-        <table>
+        <table className="studio-table">
           <thead>
             <tr>
               <th>Tender Reference</th>
@@ -859,33 +1003,33 @@ function Home({ role, user, onLogout }) {
               <th>Estimated Value</th>
               <th>Submission Deadline</th>
               <th>Status</th>
+              <th>Applied Bidders</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>GEM-CPCL-001</strong></td>
-              <td>Industrial Pumps Procurement</td>
-              <td>CPCL Chennai</td>
-              <td>₹1,20,00,000</td>
-              <td>30 Sep 2026</td>
-              <td><span className="status-badge pending">Open</span></td>
-            </tr>
-            <tr>
-              <td><strong>GEM-CPCL-002</strong></td>
-              <td>Industrial Equipment Maintenance Services</td>
-              <td>CPCL Chennai</td>
-              <td>₹85,00,000</td>
-              <td>15 Oct 2026</td>
-              <td><span className="status-badge review">Verification</span></td>
-            </tr>
-            <tr>
-              <td><strong>GEM-CPCL-003</strong></td>
-              <td>Safety Equipment and PPE Kits</td>
-              <td>CPCL Chennai</td>
-              <td>₹45,00,000</td>
-              <td>10 Aug 2026</td>
-              <td><span className="status-badge verified">Completed</span></td>
-            </tr>
+            {tendersList.map(tender => (
+              <tr key={tender.id}>
+                <td><strong className="id-badge emerald">{tender.id}</strong></td>
+                <td><strong>{tender.title}</strong></td>
+                <td>{tender.department}</td>
+                <td><strong className="value-highlight">{tender.value}</strong></td>
+                <td><span className="deadline-badge">{tender.deadline}</span></td>
+                <td>
+                  <span className={`status-badge ${tender.status === "Open" ? "pending" : tender.status === "Verification" ? "review" : "verified"}`}>
+                    {tender.status}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    className="action-btn"
+                    style={{ height: "32px", padding: "0 14px", fontSize: "0.78rem", width: "auto" }}
+                    onClick={() => setSelectedTenderForBidders(tender)}
+                  >
+                    View Bidders ({tender.biddersCount}) →
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -1149,18 +1293,21 @@ function Home({ role, user, onLogout }) {
                   <td>
                     {b.verification === "Verified" ? (
                       <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => {
+                        setSelectedVerificationBidder(b);
                         setActiveSection("verification");
                       }}>
                         View
                       </button>
                     ) : b.verification === "Review Required" ? (
                       <button className="action-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }} onClick={() => {
+                        setSelectedVerificationBidder(b);
                         setActiveSection("verification");
                       }}>
                         Review
                       </button>
                     ) : (
                       <button className="reject-btn" style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto", borderRadius: "8px", border: "none", color: "#ffffff", fontWeight: 700, cursor: "pointer" }} onClick={() => {
+                        setSelectedVerificationBidder(b);
                         setActiveSection("verification");
                       }}>
                         Investigate
@@ -1216,6 +1363,14 @@ function Home({ role, user, onLogout }) {
     const [reviewedCheckbox, setReviewedCheckbox] = useState(false);
     const [selectedDecision, setSelectedDecision] = useState(""); // qualify, clarification, disqualify
 
+    const currentBidderName = selectedVerificationBidder ? selectedVerificationBidder.name : "ABC Engineering Pvt. Ltd.";
+    const currentTenderId = selectedVerificationBidder ? selectedVerificationBidder.tender : "GEM-CPCL-001";
+    const currentBidId = selectedVerificationBidder ? selectedVerificationBidder.id : 1;
+    const currentCompliance = selectedVerificationBidder ? selectedVerificationBidder.compliance : 98.4;
+    const currentRisk = selectedVerificationBidder ? selectedVerificationBidder.risk : "LOW";
+
+    const lockedRecord = decidedBids[currentBidId];
+
     if (verificationStep === "decision") {
       return (
         <div className="verification-dashboard-content">
@@ -1224,7 +1379,7 @@ function Home({ role, user, onLogout }) {
             <div>
               <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px 0" }}>Final Compliance Review</h1>
               <p className="subtitle" style={{ margin: "0", fontSize: "0.95rem" }}>
-                Tender: <strong style={{ color: "#0f172a" }}>GEM-CPCL-2026-001</strong> | Bidder: <strong style={{ color: "#0f172a" }}>ABC Engineering Pvt. Ltd.</strong> | Submission ID: <strong style={{ color: "#0f172a" }}>BID-2026-0045</strong>
+                Tender: <strong style={{ color: "#0f172a" }}>{currentTenderId}</strong> | Bidder: <strong style={{ color: "#0f172a" }}>{currentBidderName}</strong> | Submission ID: <strong style={{ color: "#0f172a" }}>BID-2026-0045</strong>
               </p>
             </div>
             <button className="secondary-action-btn" onClick={() => setVerificationStep("matrix")} style={{ height: "36px", padding: "0 12px" }}>
@@ -1246,22 +1401,22 @@ function Home({ role, user, onLogout }) {
                       cy="50"
                       r="40"
                       fill="none"
-                      stroke="#10b981"
+                      stroke={currentCompliance >= 90 ? "#10b981" : currentCompliance >= 70 ? "#f59e0b" : "#ef4444"}
                       strokeWidth="10"
                       strokeLinecap="round"
-                      strokeDasharray={`${(98.4 / 100) * 251.2} 251.2`}
+                      strokeDasharray={`${(currentCompliance / 100) * 251.2} 251.2`}
                       strokeDashoffset="0"
                     />
                   </svg>
                   <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                    <span style={{ fontSize: "1.45rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>98.4%</span>
+                    <span style={{ fontSize: "1.45rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{currentCompliance}%</span>
                   </div>
                 </div>
                 <div>
                   <span className="card-label">Compliance Score</span>
                   <div style={{ marginTop: "6px" }}>
-                    <span className="status-badge verified" style={{ fontSize: "0.75rem", background: "#10b981", color: "#ffffff", padding: "4px 8px" }}>
-                      🟢 LOW RISK
+                    <span className={`risk-badge ${currentRisk.toLowerCase()}`}>
+                      {currentRisk} RISK
                     </span>
                   </div>
                   <div style={{ display: "flex", gap: "24px", marginTop: "12px", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>
@@ -1283,58 +1438,58 @@ function Home({ role, user, onLogout }) {
 
               {/* Evidence-Based Compliance Table */}
               <div className="section-panel" style={{ padding: "20px", overflow: "hidden", marginBottom: "20px" }}>
-                <h2 style={{ fontSize: "1.1rem", marginBottom: "16px" }}>Evidence-Based Compliance</h2>
+                <h2 style={{ fontSize: "1.1rem", marginBottom: "16px" }}>Evidence-Based Compliance Matrix</h2>
                 <table style={{ margin: "0" }}>
                   <thead>
                     <tr>
                       <th>Requirement</th>
                       <th>Result</th>
-                      <th>Evidence</th>
-                      <th>Verification</th>
+                      <th>Evidence Document</th>
+                      <th>Verification Source</th>
                       <th>Confidence</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><strong>PAN</strong></td>
+                      <td><strong>PAN Verification</strong></td>
                       <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>PAN.pdf</td>
-                      <td>Verified</td>
+                      <td>PAN_Certificate.pdf</td>
+                      <td>CBDT API</td>
                       <td><strong>99%</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>GST</strong></td>
+                      <td><strong>GST Registration</strong></td>
                       <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>GST Certificate</td>
-                      <td>Verified</td>
+                      <td>GST_Certificate.pdf</td>
+                      <td>GSTN Portal</td>
                       <td><strong>98%</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Udyam</strong></td>
+                      <td><strong>Udyam MSME</strong></td>
                       <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>Udyam Certificate</td>
-                      <td>Verified</td>
+                      <td>Udyam_Registration.pdf</td>
+                      <td>MSME Portal</td>
                       <td><strong>97%</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Income Tax</strong></td>
+                      <td><strong>Income Tax Returns</strong></td>
                       <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>ITR Document</td>
-                      <td>Verified</td>
+                      <td>ITR_3Years.pdf</td>
+                      <td>IT Portal</td>
                       <td><strong>94%</strong></td>
                     </tr>
                     <tr>
                       <td><strong>OEM Authorization</strong></td>
                       <td><span style={{ color: "#f59e0b", fontWeight: 600 }}>REVIEW</span></td>
-                      <td>OEM Authorization.pdf</td>
+                      <td>OEM_Authorization.pdf</td>
                       <td style={{ color: "#ef4444", fontWeight: 500 }}>Mismatch detected</td>
                       <td><strong style={{ color: "#f59e0b" }}>82%</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Make in India</strong></td>
+                      <td><strong>Make in India Declaration</strong></td>
                       <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>Declaration.pdf</td>
-                      <td>Verified</td>
+                      <td>MII_Declaration.pdf</td>
+                      <td>Self Declaration</td>
                       <td><strong>96%</strong></td>
                     </tr>
                   </tbody>
@@ -1344,18 +1499,21 @@ function Home({ role, user, onLogout }) {
               {/* AI Recommendation Card */}
               <div className="ai-assistant-card" style={{ background: "#ffffff", border: "1px solid #e2e8f0", color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", paddingBottom: "12px", marginBottom: "12px" }}>
-                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>AI Recommendation</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Sparkles size={18} style={{ color: "#6366f1" }} />
+                    <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>AI Recommendation Panel</h3>
+                  </div>
                   <span className="status-badge review" style={{ fontSize: "0.8rem", background: "#fef3c7", color: "#b45309", border: "1px solid #fde68a" }}>
-                    MANUAL REVIEW
+                    RECOMMENDS CONDITIONAL APPROVAL
                   </span>
                 </div>
                 <p style={{ fontSize: "0.9rem", color: "#334155", lineHeight: "1.5", margin: "0 0 12px 0" }}>
-                  "Most mandatory requirements are satisfied. One OEM authorization inconsistency requires officer confirmation."
+                  "Evaluation Summary: Bidder has verified financial and statutory filings. The OEM authorization letter has an entity name spelling variation that requires Officer confirmation."
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f8fafc", padding: "8px 12px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
-                  <LifeBuoy size={14} style={{ color: "#4f46e5" }} />
-                  <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#4f46e5" }}>
-                    AI recommendation is decision support only.
+                  <ShieldCheck size={14} style={{ color: "#0284c7" }} />
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0284c7" }}>
+                    AI recommendation is decision support only. Final decision rests solely with the Procurement Officer.
                   </span>
                 </div>
               </div>
@@ -1366,7 +1524,7 @@ function Home({ role, user, onLogout }) {
               <div className="recent-activity-card" style={{ background: "#ffffff", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", height: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <h3 style={{ fontSize: "1.05rem", margin: 0, fontWeight: 800 }}>OEM_Authorization.pdf</h3>
-                  <span className="status-badge review" style={{ fontSize: "0.75rem" }}>Evidence Preview</span>
+                  <span className="status-badge review" style={{ fontSize: "0.75rem" }}>Evidence Inspection</span>
                 </div>
 
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "16px", flexGrow: 1 }}>
@@ -1377,16 +1535,16 @@ function Home({ role, user, onLogout }) {
                     </div>
                     <div>
                       <small style={{ color: "#64748b", display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Bidder</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>ABC Engineering Pvt. Ltd.</strong>
+                      <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>{currentBidderName}</strong>
                     </div>
                     <div style={{ borderTop: "1px solid #cbd5e1", paddingTop: "12px" }}>
                       <small style={{ color: "#e11d48", display: "block", fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase" }}>AI Finding</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#e11d48" }}>Potential entity-name mismatch</strong>
+                      <strong style={{ fontSize: "0.9rem", color: "#e11d48" }}>Minor entity-name variant detected</strong>
                     </div>
                     <div>
                       <small style={{ color: "#64748b", display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>AI Explanation</small>
                       <p style={{ margin: "4px 0 0 0", fontSize: "0.8rem", color: "#475569", lineHeight: "1.5" }}>
-                        "The document appears to authorize ABC Engineering Pvt. Ltd., but the manufacturer information requires manual confirmation."
+                        "Document authorizes {currentBidderName}. Verification confirmed with manufacturer registration database."
                       </p>
                     </div>
                   </div>
@@ -1404,78 +1562,128 @@ function Home({ role, user, onLogout }) {
             </div>
           </div>
 
-          {/* Bottom Final Decision Section */}
-          <div className="section-panel" style={{ padding: "24px", marginTop: "24px", border: "1px solid #cbd5e1" }}>
-            <h2 style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#0f172a" }}>Procurement Officer Decision</h2>
-            
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+          {/* Bottom Final Decision Section (One-time Entry Rule) */}
+          {lockedRecord ? (
+            <div className={`locked-decision-card ${lockedRecord.decision}`}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Lock size={22} style={{ color: lockedRecord.decision === "qualify" ? "#15803d" : lockedRecord.decision === "clarify" ? "#b45309" : "#b91c1c" }} />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "1.15rem", color: "#0f172a", fontWeight: 800 }}>
+                      Officer Decision Finalized: {lockedRecord.decision.toUpperCase()}
+                    </h3>
+                    <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                      Authorized by <strong>{lockedRecord.officerId}</strong> on {lockedRecord.timestamp}
+                    </span>
+                  </div>
+                </div>
+                <span className={`decision-badge ${lockedRecord.decision}`}>
+                  IMMUTABLE RECORD
+                </span>
+              </div>
+
+              <div style={{ background: "#ffffff", padding: "14px 16px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
+                <small style={{ color: "#64748b", display: "block", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase" }}>Officer Justification Remarks</small>
+                <p style={{ margin: "4px 0 0 0", fontSize: "0.92rem", color: "#1e293b", fontWeight: 500 }}>"{lockedRecord.remarks}"</p>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#64748b", borderTop: "1px dashed #cbd5e1", paddingTop: "10px" }}>
+                <span>Audit Lock Hash: <strong style={{ fontFamily: "monospace", color: "#0284c7" }}>{lockedRecord.lockHash}</strong></span>
+                <span style={{ color: "#10b981", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
+                  <CheckCircle2 size={14} /> Decision Locked — Cannot Be Modified (One-Time Rule Enforced)
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="section-panel" style={{ padding: "24px", marginTop: "24px", border: "1px solid #cbd5e1" }}>
+              <h2 style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#0f172a" }}>Officer Procurement Decision</h2>
+              <p className="subtitle" style={{ marginTop: "-10px", marginBottom: "16px", fontSize: "0.85rem" }}>
+                Note: Once finalized, your decision will be locked immutably into the procurement audit trail.
+              </p>
+              
+              <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+                <button
+                  className={`secondary-action-btn ${selectedDecision === "qualify" ? "active-decision qualify" : ""}`}
+                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #10b981", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "qualify" ? "#dcfce7" : "#ffffff" }}
+                  onClick={() => setSelectedDecision("qualify")}
+                >
+                  <ShieldCheck size={18} /> QUALIFY BID
+                </button>
+                <button
+                  className={`secondary-action-btn ${selectedDecision === "clarify" ? "active-decision clarify" : ""}`}
+                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #f59e0b", color: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "clarify" ? "#fef3c7" : "#ffffff" }}
+                  onClick={() => setSelectedDecision("clarify")}
+                >
+                  <HelpCircle size={18} /> REQUEST CLARIFICATION
+                </button>
+                <button
+                  className={`secondary-action-btn ${selectedDecision === "disqualify" ? "active-decision disqualify" : ""}`}
+                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #ef4444", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "disqualify" ? "#fee2e2" : "#ffffff" }}
+                  onClick={() => setSelectedDecision("disqualify")}
+                >
+                  <XCircle size={18} /> DISQUALIFY BID
+                </button>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: "16px" }}>
+                <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Decision Justification & Remarks</label>
+                <textarea
+                  value={decisionRemarks}
+                  onChange={(e) => setDecisionRemarks(e.target.value)}
+                  placeholder="Enter final decision justification, compliance findings, or clarification details..."
+                  style={{ width: "100%", height: "90px", borderRadius: "8px", border: "1px solid #cbd5e1", padding: "12px", fontSize: "0.9rem", color: "#0f172a", fontFamily: "inherit" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
+                <input
+                  type="checkbox"
+                  id="review-check"
+                  checked={reviewedCheckbox}
+                  onChange={(e) => setReviewedCheckbox(e.target.checked)}
+                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
+                />
+                <label htmlFor="review-check" style={{ fontSize: "0.85rem", color: "#334155", cursor: "pointer", fontWeight: 500 }}>
+                  I confirm I have thoroughly reviewed the compliance matrix, AI findings, and submitted evidence documents.
+                </label>
+              </div>
+
               <button
-                className={`secondary-action-btn ${selectedDecision === "qualify" ? "active-decision qualify" : ""}`}
-                style={{ flexGrow: 1, height: "46px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #10b981", color: "#10b981" }}
-                onClick={() => setSelectedDecision("qualify")}
+                className="primary-action-btn"
+                disabled={!reviewedCheckbox || !selectedDecision}
+                onClick={() => {
+                  const bidKey = currentBidId;
+                  const timestamp = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+                  const randomHash = "0x" + Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase();
+
+                  const decisionRecord = {
+                    decision: selectedDecision,
+                    remarks: decisionRemarks || "Compliance evaluation verified & approved by Procurement Officer.",
+                    timestamp,
+                    officerId: user?.full_name || "Procurement Officer #OFF-9821",
+                    lockHash: randomHash
+                  };
+
+                  setDecidedBids((prev) => ({
+                    ...prev,
+                    [bidKey]: decisionRecord
+                  }));
+                }}
+                style={{ height: "46px", padding: "0 24px", borderRadius: "8px", display: "inline-flex", alignItems: "center", gap: "8px" }}
               >
-                🟢 QUALIFY BID
-              </button>
-              <button
-                className={`secondary-action-btn ${selectedDecision === "clarify" ? "active-decision clarify" : ""}`}
-                style={{ flexGrow: 1, height: "46px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #f59e0b", color: "#f59e0b" }}
-                onClick={() => setSelectedDecision("clarify")}
-              >
-                🟡 REQUEST CLARIFICATION
-              </button>
-              <button
-                className={`secondary-action-btn ${selectedDecision === "disqualify" ? "active-decision disqualify" : ""}`}
-                style={{ flexGrow: 1, height: "46px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #ef4444", color: "#ef4444" }}
-                onClick={() => setSelectedDecision("disqualify")}
-              >
-                🔴 DISQUALIFY BID
+                <Lock size={16} /> Confirm & Lock Decision →
               </button>
             </div>
-
-            <div className="form-group" style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Decision Remarks</label>
-              <textarea
-                value={decisionRemarks}
-                onChange={(e) => setDecisionRemarks(e.target.value)}
-                placeholder="Enter final decision remarks, compliance evaluation summaries, or reasonings..."
-                style={{ width: "100%", height: "90px", borderRadius: "8px", border: "1px solid #cbd5e1", padding: "12px", fontSize: "0.9rem", color: "#0f172a", fontFamily: "inherit" }}
-              />
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
-              <input
-                type="checkbox"
-                id="review-check"
-                checked={reviewedCheckbox}
-                onChange={(e) => setReviewedCheckbox(e.target.checked)}
-                style={{ width: "16px", height: "16px", cursor: "pointer" }}
-              />
-              <label htmlFor="review-check" style={{ fontSize: "0.85rem", color: "#334155", cursor: "pointer", fontWeight: 500 }}>
-                I have reviewed the supporting evidence and verification results.
-              </label>
-            </div>
-
-            <button
-              className="primary-action-btn"
-              disabled={!reviewedCheckbox || !selectedDecision}
-              onClick={() => {
-                alert(`Decision Confirmed: Bid marked as ${selectedDecision.toUpperCase()}. Remarks saved.`);
-                setVerificationStep("matrix");
-              }}
-              style={{ height: "44px", padding: "0 24px", borderRadius: "8px" }}
-            >
-              Confirm Decision
-            </button>
-          </div>
+          )}
 
           {/* Audit Information Footer */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
             <div style={{ display: "flex", gap: "24px" }}>
               <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                Officer: <strong>Procurement Officer</strong>
+                Officer: <strong>{user?.full_name || "Procurement Officer #OFF-9821"}</strong>
               </span>
               <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                Verification completed: <strong>28 Aug 2026, 12:24 PM</strong>
+                Verification Status: <strong>{lockedRecord ? "FINALIZED & LOCKED" : "IN PROGRESS"}</strong>
               </span>
             </div>
             <button className="secondary-action-btn" style={{ height: "30px", fontSize: "0.75rem", border: "none" }} onClick={() => setActiveSection("auditTrail")}>
@@ -1876,26 +2084,19 @@ function Home({ role, user, onLogout }) {
   const renderContent = () => {
     switch (activeSection) {
       case "profile":
-        return (
+        return role === "Buyer" ? (
           <SectionPlaceholder
-            title={role === "Buyer" ? "Officer Profile" : "Supplier Profile"}
+            title="Officer Profile"
             description="Review details relating to your security clearances and portal role."
-            rows={
-              role === "Buyer"
-                ? [
-                    { label: "Officer Name", value: user ? user.full_name : "Dr. Shashi Kumar (Auditor)" },
-                    { label: "Clearance Authority", value: "GeM Audit Division" },
-                    { label: "Clearance Level", value: user?.role === "ADMIN" ? "Super Administrator" : "Level-3 Compliance Officer" },
-                    { label: "Officer Email", value: user ? user.email : "officer@gem.gov.in" }
-                  ]
-                : [
-                    { label: "Full Name", value: user ? user.full_name : "ABC Engineering Pvt. Ltd." },
-                    { label: "Supplier Email", value: user ? user.email : "supplier@gem.gov.in" },
-                    { label: "Sovereign Clearing ID", value: user ? user.id : "N/A" },
-                    { label: "Verified Role", value: user ? user.role : "BIDDER" }
-                  ]
-            }
+            rows={[
+              { label: "Officer Name", value: user ? user.full_name : "Dr. Shashi Kumar (Auditor)" },
+              { label: "Clearance Authority", value: "GeM Audit Division" },
+              { label: "Clearance Level", value: user?.role === "ADMIN" ? "Super Administrator" : "Level-3 Compliance Officer" },
+              { label: "Officer Email", value: user ? user.email : "officer@gem.gov.in" }
+            ]}
           />
+        ) : (
+          <BidderProfile />
         );
       case "documents":
         return <DocumentUploadPage onAddBid={handleAddBid} />;
@@ -2489,6 +2690,7 @@ function Home({ role, user, onLogout }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }

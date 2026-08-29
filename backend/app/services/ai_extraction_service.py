@@ -182,21 +182,27 @@ class AIExtractionService:
 
         text_upper = text.upper()
 
+        # Helper regex to scan text for company entity patterns
+        company_scan = re.search(r'([A-Z0-9\s&.-]+(?:\b(?:PRIVATE|PVT|LIMITED|LTD|CORP|SOLUTIONS|TRADERS|ENTERPRISES|INDUSTRIES|ENGINEERING|SYSTEMS)\b))', text, re.IGNORECASE)
+        scanned_name = company_scan.group(1).strip() if company_scan else None
+
         if document_type == "GST_CERTIFICATE":
             if extracted_ids["gstin"]:
                 fields["gstin"] = extracted_ids["gstin"][0]
             # Try parsing Name
-            name_match = re.search(r"LEGAL\s+NAME[:\s]+([A-Z\s0-9]+)", text, re.IGNORECASE)
+            name_match = re.search(r"LEGAL\s+NAME[:\s]+([A-Z\s0-9&.-]+)", text, re.IGNORECASE)
             if name_match:
                 fields["legal_name"] = name_match.group(1).strip()
+            elif scanned_name:
+                fields["legal_name"] = scanned_name
             else:
                 fields["legal_name"] = "ABC INDUSTRIES"
                 
-            trade_match = re.search(r"TRADE\s+NAME[:\s]+([A-Z\s0-9]+)", text, re.IGNORECASE)
+            trade_match = re.search(r"TRADE\s+NAME[:\s]+([A-Z\s0-9&.-]+)", text, re.IGNORECASE)
             if trade_match:
                 fields["trade_name"] = trade_match.group(1).strip()
             else:
-                fields["trade_name"] = "ABC"
+                fields["trade_name"] = scanned_name or "ABC"
 
             fields["registration_date"] = "2024-01-15"
             fields["status"] = "ACTIVE"
@@ -211,9 +217,11 @@ class AIExtractionService:
             else:
                 fields["pan_number"] = "AAPCS1234M"
                 
-            name_match = re.search(r"NAME[:\s]+([A-Z\s]+)", text, re.IGNORECASE)
+            name_match = re.search(r"NAME[:\s]+([A-Z\s&.-]+)", text, re.IGNORECASE)
             if name_match:
                 fields["name"] = name_match.group(1).strip()
+            elif scanned_name:
+                fields["name"] = scanned_name
             else:
                 fields["name"] = "ABC INDUSTRIES OWNER"
             fields["date_of_birth_or_incorporation"] = "2015-05-20"
@@ -223,7 +231,7 @@ class AIExtractionService:
                 fields["udyam_number"] = extracted_ids["udyam"][0]
             else:
                 fields["udyam_number"] = "UDYAM-GJ-01-0012345"
-            fields["enterprise_name"] = "ABC INDUSTRIES"
+            fields["enterprise_name"] = scanned_name or "ABC INDUSTRIES"
             fields["enterprise_type"] = "MICRO"
             fields["major_activity"] = "MANUFACTURING"
             fields["state"] = "GUJARAT"
@@ -232,7 +240,7 @@ class AIExtractionService:
         elif document_type == "EPFO":
             est_match = re.search(r"ESTABLISHMENT\s+ID[:\s]+([A-Z0-9]+)", text, re.IGNORECASE)
             fields["establishment_id"] = est_match.group(1).strip() if est_match else "DLCPM0012345000"
-            fields["establishment_name"] = "ABC INDUSTRIES"
+            fields["establishment_name"] = scanned_name or "ABC INDUSTRIES"
             fields["registration_status"] = "ACTIVE"
 
         elif document_type == "ESIC":

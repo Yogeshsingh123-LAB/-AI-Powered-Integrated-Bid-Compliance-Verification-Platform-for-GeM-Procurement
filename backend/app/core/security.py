@@ -8,10 +8,12 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify plain password against hashed password."""
+    """Verify plain password against hashed password with timing attack mitigation."""
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except Exception:
+        # Perform dummy hash operation to prevent timing side-channel leaks
+        pwd_context.hash("dummy_password_for_timing_mitigation")
         return False
 
 def get_password_hash(password: str) -> str:

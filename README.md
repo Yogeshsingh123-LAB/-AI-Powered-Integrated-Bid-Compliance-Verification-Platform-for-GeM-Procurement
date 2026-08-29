@@ -23,7 +23,7 @@ SIH_TRAILS/
 │   │   
 │   ├── scenarios/          # Pre-built realistic PDF bid scenarios for testing
 │   ├── requirements.txt
-│   └── .env
+│   └── .env.example
 ├── brain.md                # System Architecture & API Blueprint
 └── README.md               # Main instructions (this file)
 ```
@@ -72,13 +72,13 @@ To launch the backend API:
    ```bash
    python generate_mock_data.py
    ```
-5. Generate the 5 sample scenario PDFs:
+5. Generate sample scenario PDFs:
    ```bash
    python generate_sample_pdfs.py
    ```
-6. Start the FastAPI application:
+6. Start the FastAPI application via Uvicorn:
    ```bash
-   uvicorn app.main:app --reload
+   uvicorn app.main:app --reload --port 8000
    ```
    *The Swagger interactive API docs will be at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)*
 
@@ -86,9 +86,9 @@ To launch the backend API:
 
 ## 3. GeMmy Chat Assistant
 
-The frontend includes a floating **Ask GeMmy** assistant on the login and dashboard screens. It answers questions about portal navigation, PDF uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk levels, bid status, and the buyer audit workflow.
+The frontend includes a floating **Ask GeMmy** assistant on the login and dashboard screens. It answers questions about portal navigation, PDF/image uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk levels, bid status, and the buyer audit workflow.
 
-The assistant calls `POST /api/chat` on the FastAPI backend and works without an external service through its built-in platform knowledge base. To enable Groq-generated answers, copy `backend/.env.example` to `backend/.env` and configure:
+The assistant calls `POST /api/chat` on the FastAPI backend on port 8000 and works without an external service through its built-in platform knowledge base. To enable Groq-generated answers, copy `backend/.env.example` to `backend/.env` and configure:
 
 ```env
 AI_PROVIDER=groq
@@ -98,45 +98,34 @@ GROQ_WEB_SEARCH_ENABLED=true
 GROQ_WEB_MODEL=groq/compound-mini
 ```
 
-Keep the real key only in the ignored `backend/.env` file, never in `.env.example`, and restart
-the backend after changing it. If a response is labelled **Portal knowledge base**, the key is
-missing or the configured AI provider could not be reached; the backend console logs the cause.
-Questions that explicitly ask for current or recent information use Groq Compound Mini's live
-web tools and are labelled **Live web answer via Groq** in the chat window.
-
 The frontend reads `VITE_API_URL` and defaults to `http://127.0.0.1:8000` for chat requests.
 
 ---
 
-## 4. Core Verification Pipelines
+## 4. Core Verification & Security Architecture
 
-1. **AI OCR Engine**: Uses Tesseract OCR + OpenCV image preprocessing (binarization, blurring) to parse scanned PDFs/images, alongside PyMuPDF for digital PDFs. Performs Named Entity Recognition (NER) via spaCy and regular expressions to extract identifiers (GSTIN, PAN, Udyam) and organization details.
-2. **Mock Government APIs**: REST API endpoints simulating direct integrations with external GSTIN, PAN, Udyam MSME, and Blacklist registries. Supports REST calls with local JSON fallbacks if the servers are offline.
-3. **Compliance Scoring**: Assesses weighted scores (Presence: 30%, Verification: 40%, Integrity/Risk: 30%), verifies registry name alignments (excluding corporate suffix tokens like "Pvt Ltd"), flags risk categories, and provides actionable recommendation alerts.
-4. **Endpoint `/api/analyze`**: Exposes a POST endpoint that takes an uploaded bid file, processes it through OCR, executes verification requests, calculates scores, writes entries to audit trails, and returns a unified JSON compliance report.
+1. **AI OCR Engine**: Uses Tesseract OCR + OpenCV image preprocessing (binarization, Otsu thresholding, blurring) to parse scanned PDFs/images, alongside PyMuPDF for digital PDFs with a 50-page limit. Extracts identifiers (GSTIN, PAN, Udyam) and organization names via regex and spaCy NER.
+2. **Mock Government APIs**: REST API endpoints simulating direct integrations with external GSTIN, PAN, Udyam MSME, and Blacklist registries with input format regex validation and local JSON fallbacks.
+3. **Compliance Scoring**: Assesses weighted scores (Presence: 30%, Verification: 40%, Integrity/Risk: 30%), verifies registry name alignments, deducts points for missing primary mandatory IDs (GSTIN/PAN), flags risk categories, and provides actionable recommendation alerts.
+4. **Cryptographic Audit Chain**: Uses SHA-256 block hashing to chain every audit log entry to the previous record (`blockchain_hash`), establishing an immutable audit log.
+5. **Endpoint `/api/analyze`**: Exposes a POST endpoint taking uploaded bid documents (PDF, JPG, PNG up to 10 MB), processing through OCR and verification, writing SHA-256 audit entries, and returning a unified JSON compliance report.
 
 ---
 
 ## 5. Running Verification Test Suites
 
-We have built automated verification scripts to validate the integrity of each component. Run them in the `backend/` directory with the virtual environment active:
+Automated verification test suites are located in the `backend/` directory. Run them with the virtual environment active:
 
-1. **AI OCR Pipeline Test**:
-   ```bash
-   python run_ai_engine_test.py
-   ```
-2. **Mock APIs Registry Test**:
-   ```bash
-   python run_mock_apis_test.py
-   ```
-3. **Scoring & Risk Engine Test**:
-   ```bash
-   python run_scoring_test.py
-   ```
-4. **Final Analysis REST Integration Test**:
-   ```bash
-   python run_final_integration_test.py
-   ```
+```bash
+# Run pytest test suite
+pytest
+```
+
+Individual test scripts:
+1. **AI OCR Pipeline Test**: `python run_ai_engine_test.py`
+2. **Mock APIs Registry Test**: `python run_mock_apis_test.py`
+3. **Scoring & Risk Engine Test**: `python run_scoring_test.py`
+4. **Final Analysis REST Integration Test**: `python run_final_integration_test.py`
 
 ---
 
@@ -146,39 +135,13 @@ We have built automated verification scripts to validate the integrity of each c
 
 ---
 
-## 7. Code Quality Assessment
+## 7. Platform Capability Overview
 
-| Aspect | Rating | Details |
-|--------|--------|---------|
-| **Architecture** | ⭐⭐⭐⭐⭐ | Clean monorepo, separation of concerns, dependency injection |
-| **AI/ML Engine** | ⭐⭐⭐⭐⭐ | Multi-engine OCR, preprocessors, deskew, regex + spaCy hybrid, checksum validation |
-| **Mock APIs** | ⭐⭐⭐⭐⭐ | 4 portals, realistic data, proper error handling, name scanning fallback |
-| **Scoring Engine** | ⭐⭐⭐⭐⭐ | 3-tier weighted scoring, name mismatch detection, context-aware recommendations |
-| **Testing** | ⭐⭐⭐⭐⭐ | 4 test suites, 5 scenarios, automated data generation, sample document generation |
-| **Documentation** | ⭐⭐⭐⭐⭐ | brain.md, README.md, comprehensive docstrings, type hints, logging |
-| **Production Readiness** | ⭐⭐⭐⭐⭐ | UUID file tracking, audit logs, CORS, health checks, async/await |
-
----
-
-## 8. Final Project Verdict
-
-| Component | Status | Progress |
-|-----------|--------|----------|
-| **Architecture & Planning** | ✅ COMPLETE | 100% |
-| **Database Design** | ✅ COMPLETE | 100% |
-| **Auth System** | ✅ COMPLETE | 100% |
-| **Frontend Structure** | ✅ COMPLETE | 100% |
-| **AI OCR Engine** | ✅ COMPLETE | 100% |
-| **Mock Government APIs** | ✅ COMPLETE | 100% |
-| **Compliance Scoring** | ✅ COMPLETE | 100% |
-| **Risk Classification** | ✅ COMPLETE | 100% |
-| **AI Recommendations** | ✅ COMPLETE | 100% |
-| **Main Analyze Endpoint** | ✅ COMPLETE | 100% |
-| **Mock Data Generation** | ✅ COMPLETE | 100% |
-| **Sample Test Documents** | ✅ COMPLETE | 100% |
-| **Test Scripts (4 suites)** | ✅ COMPLETE | 100% |
-| **Router Integration** | ✅ COMPLETE | 100% |
-| **Premium Dashboard & Exporters** | ✅ COMPLETE | 100% |
-| **Interactive Governance & Immutable Audit Workflow** | ✅ COMPLETE | 100% |
-| **Demo Video** | ⏳ IN PROGRESS | 0% |
-| **PPT Presentation** | ⏳ IN PROGRESS | 0% |
+| Aspect | Implementation Summary |
+|--------|------------------------|
+| **Architecture** | Monorepo structure, FastAPI backend, React Vite SPA frontend |
+| **AI/ML Engine** | PyMuPDF + Tesseract OCR + OpenCV preprocessors + spaCy NER |
+| **Mock APIs** | GSTIN, PAN, Udyam MSME, Blacklist REST lookups with format validation |
+| **Scoring Engine** | 3-tier weighted scoring, mandatory ID penalty, name token alignment |
+| **Security & Auditing** | SHA-256 blockchain hash chain audit logs, timing attack defense, 10MB limit |
+| **Testing** | 39 pytest automated tests, 4 runner scripts, 5 sample PDF scenarios |

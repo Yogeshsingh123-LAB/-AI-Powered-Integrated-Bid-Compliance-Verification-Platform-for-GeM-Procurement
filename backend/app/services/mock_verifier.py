@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 logger = logging.getLogger(__name__)
 
 # Base Mock API endpoint URL
-BASE_MOCK_URL = "http://127.0.0.1:8000"
+BASE_MOCK_URL = os.getenv("MOCK_API_BASE_URL", "http://127.0.0.1:8000")
 
 # Local JSON folder for offline fallback
 MOCK_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mock_apis", "data")

@@ -81,8 +81,8 @@ def run_tests():
         response = client.post("/api/analyze", files={"file": (os.path.basename(s5_path), f, "application/pdf")})
     assert response.status_code == 200
     res = response.json()
-    # Presence: 0. Verification: 0. Integrity baseline: 30, no deductions. Total score: 30. Risk: HIGH (score < 50).
-    assert res["compliance"]["score"] == 30, f"Expected 30, got {res['compliance']['score']}"
+    # Presence: 0. Verification: 0. Integrity baseline: 0 (no IDs). Total score: 0. Risk: HIGH (score < 50).
+    assert res["compliance"]["score"] == 0, f"Expected 0, got {res['compliance']['score']}"
     assert res["compliance"]["risk_level"] == "HIGH"
     logger.info(f"Scenario 5 Passed! Score: {res['compliance']['score']}, Risk: {res['compliance']['risk_level']}")
 

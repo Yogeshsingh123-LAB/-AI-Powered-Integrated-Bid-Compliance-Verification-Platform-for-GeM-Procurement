@@ -43,12 +43,13 @@ class EntityExtractor:
     GSTIN_PATTERN = re.compile(r"\b(\d{2}([A-Z]{5}\d{4}[A-Z]{1})[A-Z\d]{1}Z[A-Z\d]{1})\b", re.IGNORECASE)
     PAN_PATTERN = re.compile(r"\b([A-Z]{5}\d{4}[A-Z]{1})\b", re.IGNORECASE)
     UDYAM_PATTERN = re.compile(r"\b(UDYAM-[A-Z]{2}-\d{2}-\d{7})\b", re.IGNORECASE)
+    AADHAAR_PATTERN = re.compile(r"\b([2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4})\b")
 
     @classmethod
     def extract_identifiers(cls, text: str) -> Dict[str, List[str]]:
-        """Extracts GSTIN, PAN, and Udyam registration numbers using Regex."""
+        """Extracts GSTIN, PAN, Udyam, and Aadhaar registration numbers using Regex."""
         if not text:
-            return {"gstin": [], "pan": [], "udyam": []}
+            return {"gstin": [], "pan": [], "udyam": [], "aadhaar": []}
             
         # 1. GSTIN
         gstin_matches = cls.GSTIN_PATTERN.findall(text)
@@ -69,10 +70,21 @@ class EntityExtractor:
         udyam_matches = cls.UDYAM_PATTERN.findall(text)
         udyam_numbers = {udyam.upper() for udyam in udyam_matches}
         
+        # 4. Aadhaar
+        aadhaar_matches = cls.AADHAAR_PATTERN.findall(text)
+        aadhaar_numbers = set()
+        for match in aadhaar_matches:
+            clean_aadhaar = re.sub(r"[\s-]", "", match)
+            if len(clean_aadhaar) == 12:
+                # Format as XXXX XXXX XXXX
+                formatted = f"{clean_aadhaar[:4]} {clean_aadhaar[4:8]} {clean_aadhaar[8:]}"
+                aadhaar_numbers.add(formatted)
+        
         return {
             "gstin": sorted(list(gstins)),
             "pan": sorted(list(standalone_pans)),
-            "udyam": sorted(list(udyam_numbers))
+            "udyam": sorted(list(udyam_numbers)),
+            "aadhaar": sorted(list(aadhaar_numbers))
         }
 
     @classmethod

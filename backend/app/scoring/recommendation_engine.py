@@ -14,9 +14,11 @@ class RecommendationEngine:
         has_gstin: bool,
         has_pan: bool,
         has_udyam: bool,
+        has_aadhaar: bool,
         gstin_verified: bool,
         pan_verified: bool,
         udyam_verified: bool,
+        aadhaar_verified: bool,
         is_blacklisted: bool,
         status_issues: List[str],
         compliance_issues: List[str],
@@ -49,17 +51,25 @@ class RecommendationEngine:
             recommendations.append("WARNING: Extracted PAN is invalid or not found in registry database.")
         if has_udyam and not udyam_verified:
             recommendations.append("WARNING: Extracted Udyam Number is unverified or not found in mock database.")
+        if has_aadhaar and not aadhaar_verified:
+            recommendations.append("WARNING: Extracted Aadhaar number is unverified or not found in UIDAI database.")
 
         # 6. Missing Documents Warnings
-        if not has_gstin:
-            recommendations.append("NOTICE: GSTIN is missing. Confirm if the bidder is exempt from GST registration.")
-        if not has_pan:
-            recommendations.append("CRITICAL: PAN details are missing. A PAN is mandatory for all bidding entities.")
-        if not has_udyam:
+        if not (has_gstin or has_pan or has_udyam or has_aadhaar):
             recommendations.append(
-                "NOTICE: Udyam MSME Registration is missing. The bidder will not be eligible for MSME exemptions "
-                "(e.g., Earnest Money Deposit / EMD waiver, purchase preferences)."
+                "CRITICAL: Uploaded document contains no valid government compliance identifiers (GSTIN, PAN, Udyam, Aadhaar). "
+                "The file appears to be an invalid or unrelated document (e.g. class notes). Score: 0/100 (HIGH RISK / REJECTED)."
             )
+        else:
+            if not has_gstin:
+                recommendations.append("NOTICE: GSTIN is missing. Confirm if the bidder is exempt from GST registration.")
+            if not has_pan:
+                recommendations.append("CRITICAL: PAN details are missing. A PAN is mandatory for all bidding entities.")
+            if not has_udyam:
+                recommendations.append(
+                    "NOTICE: Udyam MSME Registration is missing. The bidder will not be eligible for MSME exemptions "
+                    "(e.g., Earnest Money Deposit / EMD waiver, purchase preferences)."
+                )
             
         if not recommendations:
             recommendations.append("All parameters are highly compliant. No risks identified.")

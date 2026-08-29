@@ -1,0 +1,26 @@
+{
+  "999988887777": {
+    "aadhaar_number": "9999 8888 7777",
+    "name": "Acme Tech Solutions Private Limited",
+    "status": "Active",
+    "gender": "N/A (Authorized Representative)",
+    "state": "Maharashtra",
+    "verification_status": "Verified (UIDAI)"
+  },
+  "234567890123": {
+    "aadhaar_number": "2345 6789 0123",
+    "name": "Global Traders Inc",
+    "status": "Active",
+    "gender": "Male",
+    "state": "Delhi",
+    "verification_status": "Verified (UIDAI)"
+  },
+  "555566667777": {
+    "aadhaar_number": "5555 6666 7777",
+    "name": "Rajesh Kumar Sharma",
+    "status": "Active",
+    "gender": "Male",
+    "state": "Karnataka",
+    "verification_status": "Verified (UIDAI)"
+  }
+}

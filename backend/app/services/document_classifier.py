@@ -33,6 +33,14 @@ class DocumentClassifier:
             r"enterprise\s+registration", 
             r"udyam\s+registration\s+certificate"
         ],
+        "AADHAAR": [
+            r"aadhaar",
+            r"uidai",
+            r"unique\s+identification\s+authority\s+of\s+india",
+            r"aadhaar\s+card",
+            r"aadhaar\s+number",
+            r"\b[2-9]\d{3}\s?\d{4}\s?\d{4}\b"
+        ],
         "INCOME_TAX": [
             r"income\s+tax\s+return", 
             r"itr-v", 

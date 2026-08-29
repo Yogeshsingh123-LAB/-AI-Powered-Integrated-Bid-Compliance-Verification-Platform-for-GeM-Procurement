@@ -383,19 +383,21 @@ function DocumentUploadPage({ onAddBid }) {
             disabled={uploading}
           />
           {uploading ? (
-            <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent)' }} />
+            <Loader2 size={44} className="animate-spin" style={{ color: '#0284c7', marginBottom: '12px' }} />
           ) : (
-            <CloudUpload size={40} />
+            <CloudUpload size={44} style={{ color: '#0284c7', marginBottom: '12px' }} />
           )}
           
-          <div>
-            <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)', marginBottom: '4px' }}>
+          <div style={{ margin: '12px 0' }}>
+            <p style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
               {uploading ? "Analyzing compliance certificates..." : "Drag and drop your PDF bid document here to run AI OCR audit"}
             </p>
-            <p>Only PDF certificates with up to 16MB file sizes are accepted.</p>
+            <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0 }}>
+              Only PDF certificates with up to 16MB file sizes are accepted.
+            </p>
           </div>
           {!uploading && (
-            <button type="button" className="neon-button" style={{ width: 'auto', padding: '10px 24px' }}>
+            <button type="button" style={{ width: 'auto', padding: '10px 28px', marginTop: '12px', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)' }}>
               Select & Process Document
             </button>
           )}

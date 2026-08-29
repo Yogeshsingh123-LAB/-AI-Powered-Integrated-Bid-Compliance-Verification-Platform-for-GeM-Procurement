@@ -198,22 +198,21 @@ function Home({ role, user, onLogout }) {
   const BidderDashboardView = () => {
     return (
       <div className="bidder-dashboard-content">
-        {/* Sovereign Hero Banner */}
-        <div className="welcome-banner studio-hero">
-          <div className="hero-content">
-            <span className="hero-badge">GE-PROCUREMENT PORTAL</span>
-            <h1>Bidder Sovereign Portal</h1>
-            <p className="subtitle">Real-time compliance monitoring, automated OCR certificate checks, and instant bid submission.</p>
-          </div>
-          <div className="hero-quick-stats">
-            <div className="stat-box">
-              <span className="stat-num">02</span>
-              <span className="stat-lbl">Active Bids</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-box">
-              <span className="stat-num">98.4%</span>
-              <span className="stat-lbl">Portal Compliance Rate</span>
+        {/* Welcome Section */}
+        <div className="bidder-hero-banner">
+          <div className="hero-left-content">
+            <span className="hero-eyebrow">BIDDER PORTAL</span>
+            <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
+            <p className="hero-subtitle">
+              Automated AI compliance verification active across GSTIN, PAN, Udyam MSME, and OEM credentials.
+            </p>
+            <div className="hero-action-pills">
+              <button className="hero-pill-btn active" onClick={() => setActiveSection("tenders")}>
+                + Explore New Tenders
+              </button>
+              <button className="hero-pill-btn" onClick={() => setActiveSection("documents")}>
+                Upload Documents
+              </button>
             </div>
           </div>
         </div>

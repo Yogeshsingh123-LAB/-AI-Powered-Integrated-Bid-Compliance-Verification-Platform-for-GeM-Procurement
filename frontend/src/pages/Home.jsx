@@ -198,25 +198,20 @@ function Home({ role, user, onLogout }) {
   const BidderDashboardView = () => {
     return (
       <div className="bidder-dashboard-content">
-        {/* Colorful Hero Welcome Banner */}
-        <div className="bidder-hero-banner">
-          <div className="hero-left-content">
-            <span className="hero-eyebrow">BIDDER SOVEREIGN PORTAL</span>
-            <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
-            <p className="hero-subtitle">
-              Automated AI compliance verification active across GSTIN, PAN, Udyam MSME, and OEM credentials.
-            </p>
-            <div className="hero-action-pills">
-              <button className="hero-pill-btn active" onClick={() => setActiveSection("tenders")}>
-                + Explore New Tenders
-              </button>
-              <button className="hero-pill-btn" onClick={() => setActiveSection("documents")}>
-                Upload Documents
-              </button>
-            </div>
+        {/* Sovereign Hero Banner */}
+        <div className="welcome-banner studio-hero">
+          <div className="hero-content">
+            <span className="hero-badge">GE-PROCUREMENT PORTAL</span>
+            <h1>Bidder Sovereign Portal</h1>
+            <p className="subtitle">Real-time compliance monitoring, automated OCR certificate checks, and instant bid submission.</p>
           </div>
-          <div className="hero-right-badge">
-            <div className="badge-stat-box">
+          <div className="hero-quick-stats">
+            <div className="stat-box">
+              <span className="stat-num">02</span>
+              <span className="stat-lbl">Active Bids</span>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat-box">
               <span className="stat-num">98.4%</span>
               <span className="stat-lbl">Portal Compliance Rate</span>
             </div>
@@ -281,7 +276,7 @@ function Home({ role, user, onLogout }) {
 
             <div className="bids-list">
               {/* Card 1 */}
-              <div className="bid-item-card accent-left-amber">
+              <div className="bid-item-card accent-left-amber" onClick={() => setSelectedBid(bids[0] || INITIAL_BIDS[0])} style={{ cursor: "pointer" }}>
                 <div className="bid-card-header">
                   <div>
                     <span className="bid-id">GEM-CPCL-2026-001</span>
@@ -311,10 +306,12 @@ function Home({ role, user, onLogout }) {
 
                 <div className="bid-card-footer">
                   <div className="bid-actions">
-                    <button className="primary-action-btn vibrant-blue" onClick={() => setActiveSection("documents")}>
+                    <button className="primary-action-btn vibrant-blue" onClick={(e) => { e.stopPropagation(); setActiveSection("documents"); }}>
                       Continue Bid Submission
                     </button>
-                    <button className="secondary-action-btn">View Details</button>
+                    <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bids[0] || INITIAL_BIDS[0]); }}>
+                      View Details
+                    </button>
                   </div>
                   <div className="bid-warning-msg">
                     <AlertTriangle size={14} className="warning-icon" />
@@ -324,7 +321,7 @@ function Home({ role, user, onLogout }) {
               </div>
 
               {/* Card 2 */}
-              <div className="bid-item-card accent-left-emerald">
+              <div className="bid-item-card accent-left-emerald" onClick={() => setSelectedBid(bids[1] || INITIAL_BIDS[1])} style={{ cursor: "pointer" }}>
                 <div className="bid-card-header">
                   <div>
                     <span className="bid-id">GEM-CPCL-2026-002</span>
@@ -354,7 +351,12 @@ function Home({ role, user, onLogout }) {
 
                 <div className="bid-card-footer">
                   <div className="bid-actions">
-                    <button className="submit-action-btn vibrant-emerald">Review & Submit Bid</button>
+                    <button className="submit-action-btn vibrant-emerald" onClick={(e) => { e.stopPropagation(); handleSubmitBid("GEM-CPCL-2026-002"); }}>
+                      Review & Submit Bid
+                    </button>
+                    <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bids[1] || INITIAL_BIDS[1]); }} style={{ marginLeft: "10px" }}>
+                      View Details
+                    </button>
                   </div>
                   <div className="bid-verified-msg">
                     <CheckCircle2 size={14} className="success-icon" style={{ color: "#10b981" }} />
@@ -380,19 +382,15 @@ function Home({ role, user, onLogout }) {
                 </li>
                 <li className="check-item checked">
                   <CheckCircle2 size={16} className="status-icon success" />
-                  <span>Udyam MSME Exemption Applied</span>
+                  <span>MSME Exemption Certificate Valid</span>
                 </li>
                 <li className="check-item warn">
                   <AlertTriangle size={16} className="status-icon warning" />
-                  <span>1 Document requiring officer review</span>
-                </li>
-                <li className="check-item err">
-                  <XCircle size={16} className="status-icon danger" />
-                  <span>2 Missing required certificates</span>
+                  <span>2 Financial Statements Pending</span>
                 </li>
               </ul>
-              <button className="assistant-action-btn glow-btn" onClick={() => setActiveSection("documents")}>
-                Fix Issues with AI Assistant →
+              <button className="assistant-action-btn" onClick={() => setActiveSection("documents")}>
+                Upload Pending Docs
               </button>
             </div>
 
@@ -439,6 +437,28 @@ function Home({ role, user, onLogout }) {
   };
 
   const MyBidsSection = () => {
+    const [myBidsFilter, setMyBidsFilter] = useState("all");
+
+    const filteredBids = bids.filter((bid) => {
+      if (myBidsFilter === "verification") {
+        return (
+          bid.status.toLowerCase().includes("under") ||
+          bid.status.toLowerCase().includes("pending") ||
+          bid.status.toLowerCase().includes("review") ||
+          bid.status.toLowerCase().includes("draft")
+        );
+      }
+      if (myBidsFilter === "completed") {
+        return (
+          bid.status.toLowerCase().includes("verified") ||
+          bid.status.toLowerCase().includes("completed") ||
+          bid.status.toLowerCase().includes("submitted") ||
+          bid.status.toLowerCase().includes("approved")
+        );
+      }
+      return true;
+    });
+
     return (
       <div className="bidder-section-wrapper">
         {/* Unique Teal Hero Banner for My Bids */}
@@ -458,9 +478,24 @@ function Home({ role, user, onLogout }) {
           <div className="panel-table-header">
             <h3>Registered Bid Records</h3>
             <div className="panel-actions">
-              <span className="filter-pill active">All Bids</span>
-              <span className="filter-pill">Under Verification</span>
-              <span className="filter-pill">Completed</span>
+              <span 
+                className={`filter-pill ${myBidsFilter === "all" ? "active" : ""}`}
+                onClick={() => setMyBidsFilter("all")}
+              >
+                All Bids
+              </span>
+              <span 
+                className={`filter-pill ${myBidsFilter === "verification" ? "active" : ""}`}
+                onClick={() => setMyBidsFilter("verification")}
+              >
+                Under Verification
+              </span>
+              <span 
+                className={`filter-pill ${myBidsFilter === "completed" ? "active" : ""}`}
+                onClick={() => setMyBidsFilter("completed")}
+              >
+                Completed
+              </span>
             </div>
           </div>
 
@@ -477,7 +512,7 @@ function Home({ role, user, onLogout }) {
                 </tr>
               </thead>
               <tbody>
-                {bids.map((bid) => (
+                {filteredBids.map((bid) => (
                   <tr key={bid.id} onClick={() => setSelectedBid(bid)} className="clickable-row">
                     <td><strong className="id-badge">{bid.id}</strong></td>
                     <td><span className="org-title">{bid.bidderName}</span></td>

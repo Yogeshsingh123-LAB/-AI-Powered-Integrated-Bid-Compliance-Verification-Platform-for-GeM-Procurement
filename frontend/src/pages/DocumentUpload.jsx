@@ -227,12 +227,142 @@ function DocumentUploadPage({ onAddBid }) {
     }
   };
 
+  // Mock requirements for active bidder bids
+  const [docFilter, setDocFilter] = useState("all"); // "all", "pending", "completed"
+
+  const mockRequirements = [
+    {
+      bidId: "GEM-CPCL-2026-001",
+      bidTitle: "Supply of Industrial Pumps",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" },
+        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Verified", file: "EPFO_ECR_2026.pdf", updated: "25 Aug 2026" }
+      ]
+    },
+    {
+      bidId: "GEM-CPCL-2026-002",
+      bidTitle: "Industrial Equipment Maintenance Services",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "PAN", name: "PAN Card Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "OEM", name: "OEM Maintenance Authorization", status: "Verified", file: "OEM_Auth_Letter.pdf", updated: "26 Aug 2026" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" }
+      ]
+    }
+  ];
+
   return (
     <>
-      <h1>Automated Bid Document Verification</h1>
-      <p className="subtitle">
-        Upload PDF bid proposal packets. The platform runs automated OCR, pulls GST/PAN/MSME registration certificates, matches entity names, and returns risk compliance indexes.
-      </p>
+      <div className="bidder-section-wrapper" style={{ marginBottom: "24px" }}>
+        {/* Sapphire Hero Banner for Documents Overview */}
+        <div className="section-hero-banner indigo-theme">
+          <div>
+            <span className="hero-eyebrow">COMPLIANCE VAULT</span>
+            <h2 style={{ fontSize: "1.6rem" }}>Bids & Document Compliance Matrix</h2>
+            <p className="hero-subtext">Review required certificates, pending submissions, and automated OCR verification status per bid.</p>
+          </div>
+          <button className="hero-cta-btn emerald" onClick={handleBrowseClick}>
+            + Upload New Document
+          </button>
+        </div>
+
+        {/* Requirements Status Matrix Panel */}
+        <div className="section-panel studio-panel">
+          <div className="panel-table-header">
+            <h3>Required Documents Checklist</h3>
+            <div className="panel-actions">
+              <button 
+                className={`filter-pill ${docFilter === "all" ? "active" : ""}`}
+                onClick={() => setDocFilter("all")}
+              >
+                All Documents
+              </button>
+              <button 
+                className={`filter-pill ${docFilter === "pending" ? "active" : ""}`}
+                onClick={() => setDocFilter("pending")}
+              >
+                Pending for Submission ⏳
+              </button>
+              <button 
+                className={`filter-pill ${docFilter === "completed" ? "active" : ""}`}
+                onClick={() => setDocFilter("completed")}
+              >
+                Completed / Verified ✓
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {mockRequirements.map((bidGroup) => {
+              const filteredDocs = bidGroup.documents.filter((doc) => {
+                if (docFilter === "pending") return doc.status === "Pending";
+                if (docFilter === "completed") return doc.status === "Verified";
+                return true;
+              });
+
+              if (filteredDocs.length === 0) return null;
+
+              return (
+                <div key={bidGroup.bidId} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", background: "#f8fafc" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", borderBottom: "1px solid #cbd5e1", paddingBottom: "10px" }}>
+                    <div>
+                      <span className="id-badge" style={{ marginRight: "10px" }}>{bidGroup.bidId}</span>
+                      <strong style={{ fontSize: "1.05rem", color: "#0f172a" }}>{bidGroup.bidTitle}</strong>
+                      <span style={{ fontSize: "0.8rem", color: "#64748b", marginLeft: "10px" }}>({bidGroup.org})</span>
+                    </div>
+                    <span style={{ fontSize: "0.8rem", fontWeight: "700", color: "#0284c7" }}>
+                      {bidGroup.documents.filter(d => d.status === "Verified").length} / {bidGroup.documents.length} Completed
+                    </span>
+                  </div>
+
+                  <table className="studio-table">
+                    <thead>
+                      <tr>
+                        <th>Requirement Name</th>
+                        <th>Document Code</th>
+                        <th>File Name</th>
+                        <th>Submission Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredDocs.map((req, idx) => (
+                        <tr key={idx}>
+                          <td><strong>{req.name}</strong></td>
+                          <td><span className="cat-tag">{req.code}</span></td>
+                          <td>{req.file ? <span className="date-text" style={{ fontWeight: 600, color: "#0f172a" }}>📄 {req.file}</span> : <em style={{ color: "#94a3b8" }}>No file uploaded</em>}</td>
+                          <td>
+                            {req.status === "Verified" ? (
+                              <span className="status-badge verified">● Completed & Verified</span>
+                            ) : (
+                              <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309" }}>⏳ Pending Upload</span>
+                            )}
+                          </td>
+                          <td>
+                            <button 
+                              className={`table-action-btn ${req.status === "Verified" ? "" : "emerald"}`}
+                              style={{ background: req.status === "Verified" ? "#f1f5f9" : "#0284c7", color: req.status === "Verified" ? "#475569" : "#ffffff" }}
+                              onClick={handleBrowseClick}
+                            >
+                              {req.status === "Verified" ? "Re-upload" : "+ Upload Document"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       <div className="section-panel" style={{ padding: '30px' }}>
         <div 
@@ -260,13 +390,13 @@ function DocumentUploadPage({ onAddBid }) {
           
           <div>
             <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)', marginBottom: '4px' }}>
-              {uploading ? "Analyzing compliance certificates..." : "Drag and drop your PDF bid document here"}
+              {uploading ? "Analyzing compliance certificates..." : "Drag and drop your PDF bid document here to run AI OCR audit"}
             </p>
             <p>Only PDF certificates with up to 16MB file sizes are accepted.</p>
           </div>
           {!uploading && (
             <button type="button" className="neon-button" style={{ width: 'auto', padding: '10px 24px' }}>
-              Select Bid File
+              Select & Process Document
             </button>
           )}
         </div>

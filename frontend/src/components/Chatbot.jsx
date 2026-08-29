@@ -27,7 +27,7 @@ const INITIAL_SUGGESTIONS = [
 ];
 
 function Chatbot({ userRole = "Guest" }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
   const [input, setInput] = useState("");

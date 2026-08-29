@@ -198,45 +198,75 @@ function Home({ role, user, onLogout }) {
   const BidderDashboardView = () => {
     return (
       <div className="bidder-dashboard-content">
-        {/* Welcome Section */}
-        <div className="welcome-banner">
-          <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
-          <p className="subtitle">Manage your bids, documents and tender submissions from one place.</p>
+        {/* Colorful Hero Welcome Banner */}
+        <div className="bidder-hero-banner">
+          <div className="hero-left-content">
+            <span className="hero-eyebrow">BIDDER SOVEREIGN PORTAL</span>
+            <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
+            <p className="hero-subtitle">
+              Automated AI compliance verification active across GSTIN, PAN, Udyam MSME, and OEM credentials.
+            </p>
+            <div className="hero-action-pills">
+              <button className="hero-pill-btn active" onClick={() => setActiveSection("tenders")}>
+                + Explore New Tenders
+              </button>
+              <button className="hero-pill-btn" onClick={() => setActiveSection("documents")}>
+                Upload Documents
+              </button>
+            </div>
+          </div>
+          <div className="hero-right-badge">
+            <div className="badge-stat-box">
+              <span className="stat-num">98.4%</span>
+              <span className="stat-lbl">Portal Compliance Rate</span>
+            </div>
+          </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Vibrant Summary Metric Cards */}
         <div className="summary-cards-row">
-          <div className="summary-card" onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
+          <div className="summary-card card-blue-glow" onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Active Tenders</span>
-              <FolderOpen size={20} className="card-icon blue" />
+              <div className="card-icon-wrapper blue">
+                <FolderOpen size={20} />
+              </div>
             </div>
             <h2 className="card-value">05</h2>
-            <span className="card-subtext warning">2 closing soon</span>
+            <span className="card-subtext warning">⚡ 2 closing within 48h</span>
           </div>
-          <div className="summary-card" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
+
+          <div className="summary-card card-emerald-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">My Bids</span>
-              <FileCheck2 size={20} className="card-icon purple" />
+              <div className="card-icon-wrapper emerald">
+                <FileCheck2 size={20} />
+              </div>
             </div>
             <h2 className="card-value">08</h2>
-            <span className="card-subtext info">3 under verification</span>
+            <span className="card-subtext info">✓ 3 under verification</span>
           </div>
-          <div className="summary-card" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
+
+          <div className="summary-card card-amber-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Draft Bids</span>
-              <FileText size={20} className="card-icon orange" />
+              <div className="card-icon-wrapper amber">
+                <FileText size={20} />
+              </div>
             </div>
             <h2 className="card-value">02</h2>
-            <span className="card-subtext text-muted">Continue submission</span>
+            <span className="card-subtext warning">⏳ Ready for final review</span>
           </div>
-          <div className="summary-card" onClick={() => setActiveSection("documents")} style={{ cursor: "pointer" }}>
+
+          <div className="summary-card card-purple-glow" onClick={() => setActiveSection("documents")} style={{ cursor: "pointer" }}>
             <div className="card-top">
               <span className="card-label">Documents</span>
-              <ClipboardList size={20} className="card-icon green" />
+              <div className="card-icon-wrapper purple">
+                <ClipboardList size={20} />
+              </div>
             </div>
             <h2 className="card-value">42</h2>
-            <span className="card-subtext success">38 verified</span>
+            <span className="card-subtext success">🛡️ 38 verified</span>
           </div>
         </div>
 
@@ -244,86 +274,91 @@ function Home({ role, user, onLogout }) {
         <div className="dashboard-main-split">
           {/* Left Column - Active Bids */}
           <div className="split-left-col">
-            <div className="section-header">
-              <h2>Active Bids</h2>
+            <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2>Active Bids Registry</h2>
+              <button className="text-link-btn" onClick={() => setActiveSection("myBids")}>View All Bids →</button>
             </div>
 
             <div className="bids-list">
               {/* Card 1 */}
-              <div className="bid-item-card">
+              <div className="bid-item-card accent-left-amber">
                 <div className="bid-card-header">
                   <div>
                     <span className="bid-id">GEM-CPCL-2026-001</span>
                     <h3>Supply of Industrial Pumps</h3>
-                    <span className="bid-org">CPCL</span>
+                    <span className="bid-org">Chennai Petroleum Corporation Limited</span>
                   </div>
-                  <span className="bid-status-tag draft">Draft</span>
+                  <span className="bid-status-tag draft">Draft (80%)</span>
                 </div>
 
                 <div className="bid-card-body">
                   <div className="deadline-row">
-                    <span>Deadline:</span>
-                    <strong>30 Sep 2026</strong>
+                    <span>Submission Deadline:</span>
+                    <strong>30 Sep 2026 (14 days remaining)</strong>
                   </div>
 
                   <div className="progress-section">
                     <div className="progress-info">
-                      <span>Document Progress</span>
-                      <strong>8 / 10 documents</strong>
+                      <span>Document Completeness</span>
+                      <strong>8 / 10 Documents</strong>
                     </div>
                     <div className="progress-bar-container">
-                      <div className="progress-bar-fill" style={{ width: "80%" }}></div>
+                      <div className="progress-bar-fill amber" style={{ width: "80%" }}></div>
                     </div>
-                    <span className="progress-percentage">80%</span>
+                    <span className="progress-percentage amber">80%</span>
                   </div>
                 </div>
 
                 <div className="bid-card-footer">
                   <div className="bid-actions">
-                    <button className="primary-action-btn" onClick={() => setActiveSection("documents")}>
-                      Continue Bid
+                    <button className="primary-action-btn vibrant-blue" onClick={() => setActiveSection("documents")}>
+                      Continue Bid Submission
                     </button>
                     <button className="secondary-action-btn">View Details</button>
                   </div>
                   <div className="bid-warning-msg">
                     <AlertTriangle size={14} className="warning-icon" />
-                    <span>2 mandatory documents missing</span>
+                    <span>2 mandatory documents required</span>
                   </div>
                 </div>
               </div>
 
               {/* Card 2 */}
-              <div className="bid-item-card">
+              <div className="bid-item-card accent-left-emerald">
                 <div className="bid-card-header">
                   <div>
                     <span className="bid-id">GEM-CPCL-2026-002</span>
                     <h3>Industrial Equipment Maintenance Services</h3>
-                    <span className="bid-org">CPCL</span>
+                    <span className="bid-org">Chennai Petroleum Corporation Limited</span>
                   </div>
                   <span className="bid-status-tag ready">Ready to Submit</span>
                 </div>
 
                 <div className="bid-card-body">
                   <div className="deadline-row">
-                    <span>Deadline:</span>
-                    <strong>15 Oct 2026</strong>
+                    <span>Submission Deadline:</span>
+                    <strong>15 Oct 2026 (29 days remaining)</strong>
                   </div>
 
                   <div className="progress-section">
                     <div className="progress-info">
-                      <span>Documents</span>
-                      <strong>10 / 10</strong>
+                      <span>Document Completeness</span>
+                      <strong>10 / 10 Documents</strong>
                     </div>
                     <div className="progress-bar-container">
                       <div className="progress-bar-fill success" style={{ width: "100%" }}></div>
                     </div>
-                    <span className="progress-percentage">100%</span>
+                    <span className="progress-percentage success">100%</span>
                   </div>
                 </div>
 
                 <div className="bid-card-footer">
                   <div className="bid-actions">
-                    <button className="submit-action-btn">Review & Submit</button>
+                    <button className="submit-action-btn vibrant-emerald">Review & Submit Bid</button>
+                  </div>
+                  <div className="bid-verified-msg">
+                    <CheckCircle2 size={14} className="success-icon" style={{ color: "#10b981" }} />
+                    <span style={{ color: "#10b981", fontWeight: 600, fontSize: "0.8rem" }}>AI Verification Passed</span>
                   </div>
                 </div>
               </div>
@@ -333,36 +368,36 @@ function Home({ role, user, onLogout }) {
           {/* Right Column - Assistant & Recent Activity */}
           <div className="split-right-col">
             {/* AI Submission Assistant */}
-            <div className="ai-assistant-card">
+            <div className="ai-assistant-card studio-gradient">
               <div className="ai-card-header">
                 <h3>AI Submission Assistant <span className="sparkle-icon">✨</span></h3>
               </div>
-              <p className="ai-message">"Your bid is almost ready."</p>
+              <p className="ai-message">"Your bid for GEM-CPCL-2026-001 is 80% complete. Clear 2 document flags to guarantee auto-approval."</p>
               <ul className="ai-checks-list">
                 <li className="check-item checked">
                   <CheckCircle2 size={16} className="status-icon success" />
-                  <span>Documents uploaded: 8/10</span>
+                  <span>GSTIN & PAN Registry Verified</span>
                 </li>
                 <li className="check-item checked">
                   <CheckCircle2 size={16} className="status-icon success" />
-                  <span>Documents validated: 7/10</span>
+                  <span>Udyam MSME Exemption Applied</span>
                 </li>
                 <li className="check-item warn">
                   <AlertTriangle size={16} className="status-icon warning" />
-                  <span>Documents requiring review: 1</span>
+                  <span>1 Document requiring officer review</span>
                 </li>
                 <li className="check-item err">
                   <XCircle size={16} className="status-icon danger" />
-                  <span>Missing documents: 2</span>
+                  <span>2 Missing required certificates</span>
                 </li>
               </ul>
-              <button className="assistant-action-btn" onClick={() => setActiveSection("documents")}>
-                Fix Issues
+              <button className="assistant-action-btn glow-btn" onClick={() => setActiveSection("documents")}>
+                Fix Issues with AI Assistant →
               </button>
             </div>
 
             {/* Recent Activity */}
-            <div className="recent-activity-card">
+            <div className="recent-activity-card light-panel-box">
               <div className="activity-card-header">
                 <h3>Recent Activity</h3>
               </div>
@@ -370,28 +405,28 @@ function Home({ role, user, onLogout }) {
                 <li className="activity-item">
                   <div className="activity-dot success"></div>
                   <div className="activity-info">
-                    <p>GST Certificate uploaded</p>
+                    <p>GST Certificate uploaded & verified</p>
                     <span>Today, 10:32 AM</span>
                   </div>
                 </li>
                 <li className="activity-item">
                   <div className="activity-dot success"></div>
                   <div className="activity-info">
-                    <p>PAN Certificate verified</p>
+                    <p>PAN Certificate matched with CBDT</p>
                     <span>Today, 10:35 AM</span>
                   </div>
                 </li>
                 <li className="activity-item">
                   <div className="activity-dot warning"></div>
                   <div className="activity-info">
-                    <p>Income Tax document requires review</p>
+                    <p>Income Tax document review flag added</p>
                     <span>Today, 10:38 AM</span>
                   </div>
                 </li>
                 <li className="activity-item">
                   <div className="activity-dot info"></div>
                   <div className="activity-info">
-                    <p>Bid draft saved</p>
+                    <p>Bid draft GEM-CPCL-2026-001 saved</p>
                     <span>Today, 10:40 AM</span>
                   </div>
                 </li>
@@ -405,42 +440,68 @@ function Home({ role, user, onLogout }) {
 
   const MyBidsSection = () => {
     return (
-      <div className="section-panel" style={{ padding: "30px" }}>
-        <h2>My Bids Registry</h2>
-        <p className="subtitle" style={{ marginBottom: "20px" }}>
-          Track the auditing, verification state, and compliance scores for all filed and draft bids.
-        </p>
-        <div style={{ overflowX: "auto" }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Bid ID</th>
-                <th>Bidder Organization</th>
-                <th>Submitted On</th>
-                <th>Compliance Score</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bids.map((bid) => (
-                <tr key={bid.id} onClick={() => setSelectedBid(bid)} style={{ cursor: "pointer" }}>
-                  <td>{bid.id}</td>
-                  <td><strong>{bid.bidderName}</strong></td>
-                  <td>{bid.submittedOn}</td>
-                  <td>
-                    <span className={`risk-badge ${bid.risk.toLowerCase()}`}>
-                      {bid.score} / {bid.risk}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${bid.status.toLowerCase().replace(" ", "")}`}>
-                      {bid.status}
-                    </span>
-                  </td>
+      <div className="bidder-section-wrapper">
+        {/* Unique Teal Hero Banner for My Bids */}
+        <div className="section-hero-banner teal-theme">
+          <div>
+            <span className="hero-eyebrow">SUBMISSION REGISTRY</span>
+            <h2>My Filed & Draft Bids</h2>
+            <p className="hero-subtext">Real-time auditing, compliance score breakdown, and verification audit trail.</p>
+          </div>
+          <div className="hero-stat-pill">
+            <span>TOTAL BIDS</span>
+            <strong>{bids.length} Active</strong>
+          </div>
+        </div>
+
+        <div className="section-panel studio-panel">
+          <div className="panel-table-header">
+            <h3>Registered Bid Records</h3>
+            <div className="panel-actions">
+              <span className="filter-pill active">All Bids</span>
+              <span className="filter-pill">Under Verification</span>
+              <span className="filter-pill">Completed</span>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table className="studio-table">
+              <thead>
+                <tr>
+                  <th>Bid ID</th>
+                  <th>Bidder Organization</th>
+                  <th>Submitted On</th>
+                  <th>Compliance Rating</th>
+                  <th>Audit Status</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {bids.map((bid) => (
+                  <tr key={bid.id} onClick={() => setSelectedBid(bid)} className="clickable-row">
+                    <td><strong className="id-badge">{bid.id}</strong></td>
+                    <td><span className="org-title">{bid.bidderName}</span></td>
+                    <td><span className="date-text">{bid.submittedOn}</span></td>
+                    <td>
+                      <span className={`risk-badge ${bid.risk.toLowerCase()}`}>
+                        {bid.score}% — {bid.risk} RISK
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${bid.status.toLowerCase().replace(" ", "")}`}>
+                        ● {bid.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="table-inspect-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
+                        Inspect Audit →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
@@ -448,53 +509,72 @@ function Home({ role, user, onLogout }) {
 
   const TendersSection = () => {
     const mockTenders = [
-      { id: "GEM/2026/B/876543", title: "Supply and Installation of Server Racks", department: "NIC Delhi", value: "₹45,00,000", deadline: "12 Sep 2026" },
-      { id: "GEM/2026/B/876544", title: "Supply of Industrial Pumps", department: "CPCL Chennai", value: "₹1,20,00,000", deadline: "30 Sep 2026" },
-      { id: "GEM/2026/B/876545", title: "Industrial Equipment Maintenance Services", department: "CPCL Chennai", value: "₹85,00,000", deadline: "15 Oct 2026" },
-      { id: "GEM/2026/B/876546", title: "Office Automation and Computing Systems", department: "Ministry of Finance", value: "₹38,00,000", deadline: "22 Oct 2026" }
+      { id: "GEM/2026/B/876543", title: "Supply and Installation of Server Racks", department: "NIC Delhi", value: "₹45,00,000", deadline: "12 Sep 2026", category: "Hardware" },
+      { id: "GEM/2026/B/876544", title: "Supply of Industrial Pumps", department: "CPCL Chennai", value: "₹1,20,00,000", deadline: "30 Sep 2026", category: "Industrial" },
+      { id: "GEM/2026/B/876545", title: "Industrial Equipment Maintenance Services", department: "CPCL Chennai", value: "₹85,00,000", deadline: "15 Oct 2026", category: "Services" },
+      { id: "GEM/2026/B/876546", title: "Office Automation and Computing Systems", department: "Ministry of Finance", value: "₹38,00,000", deadline: "22 Oct 2026", category: "IT Goods" }
     ];
 
     return (
-      <div className="section-panel" style={{ padding: "30px" }}>
-        <h2>Available GeM Tenders</h2>
-        <p className="subtitle" style={{ marginBottom: "20px" }}>
-          Browse matching tenders and initiate compliance audits directly from the platform.
-        </p>
-        <div style={{ overflowX: "auto" }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Tender Reference</th>
-                <th>Tender Description</th>
-                <th>Department</th>
-                <th>Estimated Value</th>
-                <th>Submission Deadline</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockTenders.map((tender) => (
-                <tr key={tender.id}>
-                  <td><strong>{tender.id}</strong></td>
-                  <td>{tender.title}</td>
-                  <td>{tender.department}</td>
-                  <td>{tender.value}</td>
-                  <td>{tender.deadline}</td>
-                  <td>
-                    <button
-                      className="action-btn"
-                      style={{ height: "30px", padding: "0 12px", fontSize: "0.75rem", width: "auto" }}
-                      onClick={() => {
-                        setActiveSection("documents");
-                      }}
-                    >
-                      Create Bid
-                    </button>
-                  </td>
+      <div className="bidder-section-wrapper">
+        {/* Unique Emerald Hero Banner for GeM Tenders */}
+        <div className="section-hero-banner emerald-theme">
+          <div>
+            <span className="hero-eyebrow">OPPORTUNITY EXPLORER</span>
+            <h2>Available GeM Tenders</h2>
+            <p className="hero-subtext">Browse matching government procurements and launch instant compliance pre-audits.</p>
+          </div>
+          <button className="hero-cta-btn emerald" onClick={() => setActiveSection("documents")}>
+            + Prepare Direct Bid
+          </button>
+        </div>
+
+        <div className="section-panel studio-panel">
+          <div className="panel-table-header">
+            <h3>Live Procurement Opportunities</h3>
+            <div className="search-pill-box">
+              <input type="text" placeholder="Search tenders by keyword, Ministry, or ID..." className="studio-search-input" />
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table className="studio-table">
+              <thead>
+                <tr>
+                  <th>Tender Reference</th>
+                  <th>Description</th>
+                  <th>Department</th>
+                  <th>Estimated Value</th>
+                  <th>Deadline</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {mockTenders.map((tender) => (
+                  <tr key={tender.id}>
+                    <td><strong className="id-badge emerald">{tender.id}</strong></td>
+                    <td>
+                      <div className="tender-desc-cell">
+                        <strong>{tender.title}</strong>
+                        <span className="cat-tag">{tender.category}</span>
+                      </div>
+                    </td>
+                    <td>{tender.department}</td>
+                    <td><strong className="value-highlight">{tender.value}</strong></td>
+                    <td><span className="deadline-badge">{tender.deadline}</span></td>
+                    <td>
+                      <button
+                        className="table-action-btn emerald"
+                        onClick={() => setActiveSection("documents")}
+                      >
+                        Create Bid →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
@@ -502,32 +582,43 @@ function Home({ role, user, onLogout }) {
 
   const NotificationsSection = () => {
     const mockNotifications = [
-      { id: 1, text: "GSTIN registration successfully validated for Acme Tech Solutions.", type: "success", time: "1 hour ago" },
-      { id: 2, text: "PAN Verification returned warning: Name mismatch found on Vanguard Systems.", type: "warning", time: "2 hours ago" },
-      { id: 3, text: "Verification System Warning: Income Tax document requires review.", type: "info", time: "Today, 10:38 AM" },
-      { id: 4, text: "Central Ministry updated MSME purchase preference benefit policies.", type: "info", time: "Yesterday" }
+      { id: 1, title: "GSTIN Validation Complete", text: "GSTIN registration successfully validated against GSTN portal for Acme Tech Solutions.", type: "success", time: "1 hour ago" },
+      { id: 2, title: "PAN Name Mismatch Warning", text: "PAN Verification returned warning: Name mismatch found on Vanguard Systems records.", type: "warning", time: "2 hours ago" },
+      { id: 3, title: "Income Tax Audit Flagged", text: "Verification System Notice: Income Tax document requires procurement officer review.", type: "info", time: "Today, 10:38 AM" },
+      { id: 4, title: "MSME Policy Directive Update", text: "Central Ministry updated MSME purchase preference benefit policies for Class-1 local suppliers.", type: "info", time: "Yesterday" }
     ];
 
     return (
-      <div className="section-panel" style={{ padding: "30px" }}>
-        <h2>Notifications Center</h2>
-        <p className="subtitle" style={{ marginBottom: "20px" }}>
-          Stay updated with audit results and registration status logs.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {mockNotifications.map((notif) => (
-            <div
-              key={notif.id}
-              className={`warning-item ${notif.type === "success" ? "info" : notif.type === "warning" ? "warning" : "info"}`}
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px" }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontWeight: 600 }}>{notif.type.toUpperCase()}:</span>
-                <span>{notif.text}</span>
+      <div className="bidder-section-wrapper">
+        {/* Unique Amber/Indigo Hero Banner for Notifications */}
+        <div className="section-hero-banner indigo-theme">
+          <div>
+            <span className="hero-eyebrow">AUDIT DISPATCHES</span>
+            <h2>Notifications & Audit Stream</h2>
+            <p className="hero-subtext">Automated warnings, cross-verification alerts, and system compliance logs.</p>
+          </div>
+        </div>
+
+        <div className="section-panel studio-panel">
+          <div className="notifications-stream">
+            {mockNotifications.map((notif) => (
+              <div
+                key={notif.id}
+                className={`stream-item ${notif.type}`}
+              >
+                <div className="stream-badge-col">
+                  <span className={`stream-type-pill ${notif.type}`}>{notif.type.toUpperCase()}</span>
+                </div>
+                <div className="stream-content-col">
+                  <h4>{notif.title}</h4>
+                  <p>{notif.text}</p>
+                </div>
+                <div className="stream-time-col">
+                  <span>{notif.time}</span>
+                </div>
               </div>
-              <small style={{ color: "#64748b" }}>{notif.time}</small>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );

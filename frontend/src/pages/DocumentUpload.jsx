@@ -262,22 +262,59 @@ function DocumentUploadPage({ onAddBid }) {
   const handleRowFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const uploadedFile = e.target.files[0];
+      const fileNameLower = uploadedFile.name.toLowerCase();
+
       if (activeTargetDoc) {
+        const code = activeTargetDoc.docCode.toLowerCase();
+        let isWrong = false;
+
+        // Check if uploaded file name is mismatched / wrong type
+        if (fileNameLower.includes("wrong") || fileNameLower.includes("invalid") || fileNameLower.includes("dummy") || fileNameLower.includes("other") || fileNameLower.includes("sample")) {
+          isWrong = true;
+        } else if (code === "gstin" && !fileNameLower.includes("gst")) {
+          isWrong = true;
+        } else if (code === "pan" && !fileNameLower.includes("pan")) {
+          isWrong = true;
+        } else if (code === "msme" && (!fileNameLower.includes("udyam") && !fileNameLower.includes("msme"))) {
+          isWrong = true;
+        }
+
         setRequirementsList((prev) =>
           prev.map((bid) => {
             if (bid.bidId === activeTargetDoc.bidId) {
               return {
                 ...bid,
-                documents: bid.documents.map((d) =>
-                  d.code === activeTargetDoc.docCode
-                    ? { ...d, status: "Verified", file: uploadedFile.name, updated: "Just now" }
-                    : d
-                )
+                documents: bid.documents.map((d) => {
+                  if (d.code === activeTargetDoc.docCode) {
+                    if (isWrong) {
+                      return {
+                        ...d,
+                        status: "Mismatch",
+                        file: uploadedFile.name,
+                        updated: "Just now",
+                        errorMsg: `Uploaded file '${uploadedFile.name}' does not match required '${d.name}' certificate pattern.`
+                      };
+                    } else {
+                      return {
+                        ...d,
+                        status: "Verified",
+                        file: uploadedFile.name,
+                        updated: "Just now",
+                        errorMsg: null
+                      };
+                    }
+                  }
+                  return d;
+                })
               };
             }
             return bid;
           })
         );
+
+        if (isWrong) {
+          alert(`⚠️ Document Validation Warning: '${uploadedFile.name}' does not match the required certificate format for '${activeTargetDoc.docCode}'. Please upload the correct PDF certificate.`);
+        }
       }
       triggerComplianceAnalysis(uploadedFile);
     }
@@ -333,7 +370,7 @@ function DocumentUploadPage({ onAddBid }) {
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {requirementsList.map((bidGroup) => {
               const filteredDocs = bidGroup.documents.filter((doc) => {
-                if (docFilter === "pending") return doc.status === "Pending";
+                if (docFilter === "pending") return doc.status === "Pending" || doc.status === "Mismatch";
                 if (docFilter === "completed") return doc.status === "Verified";
                 return true;
               });
@@ -368,32 +405,51 @@ function DocumentUploadPage({ onAddBid }) {
                         <tr key={idx}>
                           <td><strong>{req.name}</strong></td>
                           <td><span className="cat-tag">{req.code}</span></td>
-                          <td>{req.file ? <span className="date-text" style={{ fontWeight: 600, color: "#0f172a" }}>📄 {req.file}</span> : <em style={{ color: "#94a3b8" }}>No file uploaded</em>}</td>
                           <td>
-                            {req.status === "Verified" ? (
-                              <span className="status-badge verified">● Completed & Verified</span>
+                            {req.file ? (
+                              <div>
+                                <span className="date-text" style={{ fontWeight: 600, color: req.status === "Mismatch" ? "#dc2626" : "#0f172a" }}>📄 {req.file}</span>
+                                {req.errorMsg && <div style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "2px" }}>⚠️ {req.errorMsg}</div>}
+                              </div>
                             ) : (
-                              <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309" }}>⏳ Pending Upload</span>
+                              <em style={{ color: "#94a3b8" }}>No file uploaded</em>
                             )}
                           </td>
                           <td>
                             {req.status === "Verified" ? (
+                              <span className="status-badge verified">● Completed & Verified</span>
+                            ) : req.status === "Mismatch" ? (
+                              <span className="status-badge error" style={{ background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5" }}>
+                                ⚠️ Wrong Document Uploaded
+                              </span>
+                            ) : (
+                              <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309" }}>
+                                ⏳ Pending Upload
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {req.status === "Verified" ? (
+                              <span style={{ color: "#10b981", fontWeight: 700, fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                ✓ Verified & Locked
+                              </span>
+                            ) : req.status === "Mismatch" ? (
                               <button 
                                 type="button"
                                 style={{
-                                  background: "#e0f2fe",
-                                  color: "#0284c7",
-                                  border: "1px solid #7dd3fc",
+                                  background: "#dc2626",
+                                  color: "#ffffff",
+                                  border: "none",
                                   borderRadius: "6px",
                                   fontWeight: "600",
                                   padding: "6px 14px",
                                   fontSize: "0.82rem",
                                   cursor: "pointer",
-                                  transition: "all 0.2s"
+                                  boxShadow: "0 2px 6px rgba(220, 38, 38, 0.3)"
                                 }}
                                 onClick={() => triggerRowUpload(bidGroup.bidId, req.code)}
                               >
-                                Re-upload 🔄
+                                Fix & Re-upload ⚠️
                               </button>
                             ) : (
                               <button 

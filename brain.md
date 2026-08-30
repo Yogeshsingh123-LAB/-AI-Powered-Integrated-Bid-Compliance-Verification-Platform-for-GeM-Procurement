@@ -5,7 +5,7 @@ This document serves as the central brain, architecture guide, and design reposi
 ---
 
 ## 1. System Overview & Objectives
-The goal of this platform is to automate compliance checking for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing and verification against official government registry APIs, the platform prevents bid rigging, simplifies verification, and guarantees transparent auditing.
+The goal of this platform is to automate compliance checking for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing, structural document forgery detection, multi-bidder collusion risk analysis, and verification against official government registry APIs (CBIC GSTN Sandbox v2.0, NSDL PAN, UIDAI e-KYC Vault, MSME Udyam), the platform prevents bid rigging, simplifies verification, and guarantees transparent, tamper-evident auditing.
 
 ---
 
@@ -15,9 +15,10 @@ The goal of this platform is to automate compliance checking for bids submitted 
 graph TD
     A[React/Vite Frontend] -- HTTP / JSON + JWT Bearer --> B[FastAPI Backend Engine]
     B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
-    B -- External Integration --> E[Govt API Gateways & CBIC GSTN v2.0 Sandbox]
-    B -- OCR & Forgery Engine --> F[AI Parser & ELA Forgery Detector]
-    B -- Fraud Engine --> G[Cross-Bidder Collusion & Risk Detector]
+    B -- External Gateways --> E[CBIC GSTN v2.0 HMAC & UIDAI Sandbox Gateways]
+    B -- AI Engine --> F[PyMuPDF Parser & Forgery Detector]
+    B -- Risk & Fraud Engine --> G[Multi-Bidder Collusion & Fuzzy Name Matcher]
+    B -- Audit Trail --> H[SHA-256 Blockchain Hash Chain]
 ```
 
 ### Frontend (User Interface)
@@ -26,7 +27,7 @@ graph TD
 - **Role-Based Portals**:
   - **Procurement Officer / Buyer**: Master Audit Queue, bid details inspection, compliance audit reports, logs console, and compliance sign-off actions.
   - **Admin**: User credentials management, API gateways connectivity toggles, and compliance rules weight tuning.
-  - **Bidder / Supplier**: Secure document upload terminal, bid status milestones tracker, and corporate profiles.
+  - **Bidder / Supplier**: Secure document upload terminal, Bidder Document Vault, bid status milestones tracker, and corporate profiles.
 
 ### Backend (Core Engine)
 - **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), SQLite/PostgreSQL.
@@ -129,7 +130,45 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 
 ---
 
-## 5. Development Phases Status
+## 5. AI Document Forgery Detection Architecture
+
+Located in `backend/app/ai_engine/forgery_detector.py`, the `ForgeryDetector` inspects PDF byte streams for structural, font, and metadata tampering:
+
+1. **Editing Software Fingerprint Analysis**: Scans `/Creator` and `/Producer` metadata for unauthorized graphics manipulation tools (Photoshop, Canva, GIMP, MS Word, Illustrator, Foxit Phantom, Sejda, PDFEscape, etc.). Government certificates issued by portals use automated PDF generators. (Deduction: -30 pts).
+2. **Creation vs. Modification Timestamp Discrepancy**: Compares `creationDate` against `modDate`. Post-issuance modifications indicate alteration after initial download from official portals. (Deduction: -15 pts).
+3. **Font Clutter & Diversity Inspection**: Analyzes font objects per page. Certificates with >6 distinct font families on a single page trigger font consistency alerts for manual text insertion. (Deduction: -15 pts).
+4. **Patch Overlay Detection**: Flagged when image objects exist alongside minimal extractable text layers (<50 characters), indicating scanned image patches pasted over text. (Deduction: -20 pts).
+5. **PKCS#7 Digital Signature Check**: Inspects `/ByteRange` and `/Contents` markers or PyMuPDF signature flags (`get_sig_flags()`). Boosts authenticity score when official digital signatures are verified.
+
+---
+
+## 6. Multi-Bidder Procurement Fraud & Collusion Architecture
+
+Located in `backend/app/scoring/fraud_detector.py`, the `ProcurementFraudDetector` identifies collusion networks and shell companies across bids in a tender:
+
+1. **Database Extraction Cross-Matching**: When a DB session is provided, queries `DocumentExtraction` across historical and competing bids for a tender. If a GSTIN or PAN submitted by Bidder A is found attached to Bidder B, a **CRITICAL FRAUD / COLLUSION ALERT** is raised (Collusion penalty: -40 to -50 pts).
+2. **Fuzzy String Similarity Alignment**: Computes normalized Levenshtein-like string similarity (`fuzzy_string_similarity` / `SequenceMatcher`) across entity names:
+   - **GST Legal Title vs PAN Tax Record**: Penalized if similarity ratio is <60% (-20 pts).
+   - **Submitted Bidder Org Name vs GST Legal Title**: Penalized if similarity ratio is <50% (-15 pts).
+3. **Integrated Integrity Deductions**: Penalties feed directly into `ComplianceScorer.calculate_compliance_score()`, deducting from the 30-point Registry Integrity component and generating mandatory recommendations and alerts for procurement officers.
+
+---
+
+## 7. CBIC GSTN v2.0 & UIDAI Sandbox Gateway Architecture
+
+Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_GSTN_SANDBOX_INTEGRATION.md`:
+
+1. **GSTNSandboxGateway (CBIC GSTN v2.0)**:
+   - **HMAC-SHA256 Request Signing**: Computes `X-HMAC-Signature` over `Client_ID:Timestamp:Payload` using `GSTN_CLIENT_SECRET`.
+   - **OAuth2 Token Rotation**: Simulates/caches bearer tokens with a 1-hour expiration cycle.
+   - **Resilient Fallback Design**: Queries `https://sandbox.gstn.gov.in/api/v2.0/search/gstin` with a 2.0s connection timeout. If external sandbox servers are unreachable or offline, gracefully falls back to structured offline mock schemas (`GSTMock`) without breaking verification.
+2. **UIDAISandboxGateway (Aadhaar Vault)**:
+   - Enforces Section 29 data privacy compliance by processing salted SHA-256 Aadhaar hashes.
+   - Simulates UIDAI e-KYC vault response.
+
+---
+
+## 8. Development Phases Status
 
 - **Phase 1: AI OCR Integration** ✅ COMPLETE (PyMuPDF, OpenCV preprocessors, Tesseract OCR fallback, 50-page max safety check, spaCy NER tokenizers)
 - **Phase 2: Government API Connectors** ✅ COMPLETE (GSTIN/PAN/Udyam/Blacklist gateways with REST lookups, format regex validation, and JSON fallbacks)
@@ -137,4 +176,6 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 4: End-to-End Integration** ✅ COMPLETE (Main POST `/api/analyze` endpoint orchestration, upload handling, scoring report formatters, SHA-256 audit chain entries)
 - **Phase 5: Testing & Validation** ✅ COMPLETE (Automated pytest test suites, runner scripts, scenario PDF mock documents)
 - **Phase 6: Cryptographic Blockchain Audit Chain & Security Hardening** ✅ COMPLETE (SHA-256 hash chaining on AuditLog, timing attack mitigation on password verification, 10MB payload size limits, regex filename sanitization, port 8000 alignment).
-- **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
+- **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & structural PDF analysis, editing software fingerprints, font & timestamp anomaly checks, multi-bidder collusion risk detection, shell company flags, fuzzy Levenshtein name alignment, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
+- **Phase 8: Platform Controls Finalization, Brand Identity & Codebase Cleanup** ✅ COMPLETE (Role-Based Access Control enforcement, Bidder Portal vs Administrative Audit Console clearance checks, transparent logo integration `/logo.png` with drop-shadow aesthetics, clean mono-repo code structure, and 43 passing automated test suites).
+

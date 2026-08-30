@@ -52,7 +52,12 @@ import {
   ChevronLeft,
   ChevronsLeft,
   ChevronsRight,
-  Plus
+  Plus,
+  Download,
+  ArrowLeft,
+  Info,
+  Clock,
+  Maximize2
 } from "lucide-react";
 
 // Mock Database of submitted bids (visible globally to allow live sync between Supplier upload and Admin queue)
@@ -245,7 +250,12 @@ function Home({ role, user, onLogout }) {
     { id: "auditTrail", label: "Audit Trail" }
   ];
 
-  const navigationItems = role === "Buyer" ? buyerNav : supplierNav;
+  // Admin role check (Integrations tab is exclusive to Super Admin)
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+
+  const navigationItems = role === "Buyer"
+    ? (isAdmin ? [...buyerNav.slice(0, 5), { id: "integrations", label: "Integrations" }, ...buyerNav.slice(5)] : buyerNav)
+    : supplierNav;
 
   // New Bidder (Supplier) Dashboard View Component
   const BidderDashboardView = () => {
@@ -530,19 +540,19 @@ function Home({ role, user, onLogout }) {
           <div className="panel-table-header">
             <h3>Registered Bid Records</h3>
             <div className="panel-actions">
-              <span 
+              <span
                 className={`filter-pill ${myBidsFilter === "all" ? "active" : ""}`}
                 onClick={() => setMyBidsFilter("all")}
               >
                 All Bids
               </span>
-              <span 
+              <span
                 className={`filter-pill ${myBidsFilter === "verification" ? "active" : ""}`}
                 onClick={() => setMyBidsFilter("verification")}
               >
                 Under Verification
               </span>
-              <span 
+              <span
                 className={`filter-pill ${myBidsFilter === "completed" ? "active" : ""}`}
                 onClick={() => setMyBidsFilter("completed")}
               >
@@ -720,11 +730,11 @@ function Home({ role, user, onLogout }) {
   const BuyerDashboardView = () => {
     return (
       <div className="officer-dashboard-main-wrapper" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        
+
         {/* ROW 1: TOP 5 SUMMARY KPI CARDS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
           {/* Card 1: Active Tenders */}
-          <div 
+          <div
             className="kpi-card-box"
             onClick={() => setActiveSection("tenders")}
             style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -745,7 +755,7 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 2: Total Bids */}
-          <div 
+          <div
             className="kpi-card-box"
             onClick={() => setActiveSection("bidders")}
             style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -766,7 +776,7 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 3: Pending Verification */}
-          <div 
+          <div
             className="kpi-card-box"
             onClick={() => setActiveSection("bidders")}
             style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -787,7 +797,7 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 4: High Risk */}
-          <div 
+          <div
             className="kpi-card-box"
             onClick={() => setActiveSection("bidders")}
             style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -808,7 +818,7 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 5: Completed */}
-          <div 
+          <div
             className="kpi-card-box"
             onClick={() => setActiveSection("bidders")}
             style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -831,24 +841,24 @@ function Home({ role, user, onLogout }) {
 
         {/* ROW 2: COMPLIANCE HEALTH & ACTION REQUIRED */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-          
+
           {/* COMPLIANCE HEALTH */}
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "22px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: "0 0 18px 0", letterSpacing: "0.02em" }}>COMPLIANCE HEALTH</h3>
-            
+
             <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
               {/* Circular Gauge */}
               <div style={{ position: "relative", width: "175px", height: "175px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="175" height="175" viewBox="0 0 140 140" style={{ transform: "rotate(-90deg)", width: "175px", height: "175px" }}>
                   <circle cx="70" cy="70" r="56" fill="none" stroke="#e2e8f0" strokeWidth="12" />
-                  <circle 
-                    cx="70" 
-                    cy="70" 
-                    r="56" 
-                    fill="none" 
-                    stroke="#0b3b8c" 
-                    strokeWidth="12" 
-                    strokeLinecap="round" 
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r="56"
+                    fill="none"
+                    stroke="#0b3b8c"
+                    strokeWidth="12"
+                    strokeLinecap="round"
                     strokeDasharray={`${(82 / 100) * 351.85} 351.85`}
                   />
                 </svg>
@@ -862,7 +872,7 @@ function Home({ role, user, onLogout }) {
               {/* Progress Breakdown */}
               <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
                 <h4 style={{ fontSize: "0.82rem", fontWeight: 700, color: "#334155", margin: "0 0 4px 0" }}>Compliance Breakdown</h4>
-                
+
                 {/* Verified */}
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
@@ -925,7 +935,7 @@ function Home({ role, user, onLogout }) {
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "22px", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "0.02em" }}>ACTION REQUIRED</h3>
-              <button 
+              <button
                 onClick={() => setActiveSection("bidders")}
                 style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}
               >
@@ -945,7 +955,7 @@ function Home({ role, user, onLogout }) {
                   <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>OEM Authorization appears expired</strong></div>
                   <div style={{ fontSize: "0.76rem", color: "#dc2626", fontWeight: 700, marginBottom: "8px" }}>Risk: High</div>
                 </div>
-                <button 
+                <button
                   onClick={() => setActiveSection("verification")}
                   style={{ background: "#ffffff", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                 >
@@ -964,7 +974,7 @@ function Home({ role, user, onLogout }) {
                   <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>GST return verification pending</strong></div>
                   <div style={{ fontSize: "0.76rem", color: "#d97706", fontWeight: 700, marginBottom: "8px" }}>Risk: Medium</div>
                 </div>
-                <button 
+                <button
                   onClick={() => setActiveSection("verification")}
                   style={{ background: "#ffffff", border: "1px solid #fde68a", color: "#d97706", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                 >
@@ -983,7 +993,7 @@ function Home({ role, user, onLogout }) {
                   <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>2 documents pending verification</strong></div>
                   <div style={{ fontSize: "0.76rem", color: "#64748b", fontWeight: 700, marginBottom: "8px" }}>Risk: —</div>
                 </div>
-                <button 
+                <button
                   onClick={() => setActiveSection("verification")}
                   style={{ background: "#ffffff", border: "1px solid #93c5fd", color: "#2563eb", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                 >
@@ -996,12 +1006,12 @@ function Home({ role, user, onLogout }) {
 
         {/* ROW 3: ACTIVE TENDERS TABLE & (CLOSING SOON + RISK DISTRIBUTION) */}
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
-          
+
           {/* ACTIVE TENDERS TABLE */}
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "0.02em" }}>ACTIVE TENDERS</h3>
-              <button 
+              <button
                 onClick={() => setActiveSection("tenders")}
                 style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}
               >
@@ -1088,7 +1098,7 @@ function Home({ role, user, onLogout }) {
 
           {/* RIGHT COLUMN SPLIT: TENDERS CLOSING SOON & BID RISK DISTRIBUTION */}
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            
+
             {/* TENDERS CLOSING SOON */}
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -1138,7 +1148,7 @@ function Home({ role, user, onLogout }) {
             {/* BID RISK DISTRIBUTION */}
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "18px" }}>
               <h3 style={{ fontSize: "0.85rem", fontWeight: 800, color: "#0f172a", margin: "0 0 14px 0", letterSpacing: "0.02em" }}>BID RISK DISTRIBUTION</h3>
-              
+
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 {/* Donut Chart */}
                 <div style={{ position: "relative", width: "100px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1193,7 +1203,7 @@ function Home({ role, user, onLogout }) {
 
         {/* ROW 4: RECENT VERIFICATION ACTIVITY & QUICK ACTIONS */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-          
+
           {/* RECENT VERIFICATION ACTIVITY */}
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1251,10 +1261,10 @@ function Home({ role, user, onLogout }) {
           {/* QUICK ACTIONS */}
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
             <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: "0 0 16px 0", letterSpacing: "0.02em" }}>QUICK ACTIONS</h3>
-            
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               {/* Tile 1: Create Tender */}
-              <button 
+              <button
                 onClick={() => setActiveSection("createTender")}
                 style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
@@ -1263,7 +1273,7 @@ function Home({ role, user, onLogout }) {
               </button>
 
               {/* Tile 2: Review Pending Bids */}
-              <button 
+              <button
                 onClick={() => setActiveSection("bidders")}
                 style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
@@ -1272,7 +1282,7 @@ function Home({ role, user, onLogout }) {
               </button>
 
               {/* Tile 3: View High Risk Bids */}
-              <button 
+              <button
                 onClick={() => setActiveSection("bidders")}
                 style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
@@ -1281,7 +1291,7 @@ function Home({ role, user, onLogout }) {
               </button>
 
               {/* Tile 4: View Active Tenders */}
-              <button 
+              <button
                 onClick={() => setActiveSection("tenders")}
                 style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
@@ -1479,7 +1489,7 @@ function Home({ role, user, onLogout }) {
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        
+
         {/* PAGE HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
@@ -1497,15 +1507,15 @@ function Home({ role, user, onLogout }) {
         {/* ROW 1: TOP 5 SUMMARY KPI CARDS (CLICKABLE FILTERS) */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px" }}>
           {/* Card 1: Total Tenders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("ALL")}
-            style={{ 
-              background: activeKpi === "ALL" ? "#f8fafc" : "#ffffff", 
-              border: activeKpi === "ALL" ? "2px solid #2563eb" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "18px 20px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "ALL" ? "#f8fafc" : "#ffffff",
+              border: activeKpi === "ALL" ? "2px solid #2563eb" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "ALL" ? "0 4px 12px rgba(37,99,235,0.12)" : "none",
@@ -1523,15 +1533,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 2: Active Tenders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("ACTIVE")}
-            style={{ 
-              background: activeKpi === "ACTIVE" ? "#f0fdf4" : "#ffffff", 
-              border: activeKpi === "ACTIVE" ? "2px solid #16a34a" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "18px 20px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "ACTIVE" ? "#f0fdf4" : "#ffffff",
+              border: activeKpi === "ACTIVE" ? "2px solid #16a34a" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "ACTIVE" ? "0 4px 12px rgba(22,163,74,0.12)" : "none",
@@ -1549,15 +1559,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 3: Closing Soon */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("CLOSING_SOON")}
-            style={{ 
-              background: activeKpi === "CLOSING_SOON" ? "#fff7ed" : "#ffffff", 
-              border: activeKpi === "CLOSING_SOON" ? "2px solid #ea580c" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "18px 20px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "CLOSING_SOON" ? "#fff7ed" : "#ffffff",
+              border: activeKpi === "CLOSING_SOON" ? "2px solid #ea580c" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "CLOSING_SOON" ? "0 4px 12px rgba(234,88,12,0.12)" : "none",
@@ -1575,15 +1585,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 4: Closed Tenders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("CLOSED")}
-            style={{ 
-              background: activeKpi === "CLOSED" ? "#faf5ff" : "#ffffff", 
-              border: activeKpi === "CLOSED" ? "2px solid #9333ea" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "18px 20px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "CLOSED" ? "#faf5ff" : "#ffffff",
+              border: activeKpi === "CLOSED" ? "2px solid #9333ea" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "CLOSED" ? "0 4px 12px rgba(147,51,234,0.12)" : "none",
@@ -1601,15 +1611,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 5: Cancelled Tenders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("CANCELLED")}
-            style={{ 
-              background: activeKpi === "CANCELLED" ? "#fef2f2" : "#ffffff", 
-              border: activeKpi === "CANCELLED" ? "2px solid #dc2626" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "18px 20px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "CANCELLED" ? "#fef2f2" : "#ffffff",
+              border: activeKpi === "CANCELLED" ? "2px solid #dc2626" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "CANCELLED" ? "0 4px 12px rgba(220,38,38,0.12)" : "none",
@@ -1629,7 +1639,7 @@ function Home({ role, user, onLogout }) {
 
         {/* ROW 2: SEARCH & FILTERS TOOLBAR */}
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "14px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          
+
           {/* Search Box */}
           <div style={{ flexGrow: 2, minWidth: "220px" }}>
             <div style={{ position: "relative" }}>
@@ -2150,11 +2160,11 @@ function Home({ role, user, onLogout }) {
     // Filter Logic
     const filteredBidders = ALL_BIDDERS.filter(b => {
       const q = searchQuery.toLowerCase();
-      const matchesSearch = b.name.toLowerCase().includes(q) || 
-                            b.id.toLowerCase().includes(q) || 
-                            b.pan.toLowerCase().includes(q) || 
-                            b.gstin.toLowerCase().includes(q);
-      
+      const matchesSearch = b.name.toLowerCase().includes(q) ||
+        b.id.toLowerCase().includes(q) ||
+        b.pan.toLowerCase().includes(q) ||
+        b.gstin.toLowerCase().includes(q);
+
       const matchesStatus = statusFilter === "All" || b.status.toLowerCase() === statusFilter.toLowerCase();
       const matchesRisk = riskFilter === "All" || b.riskLevel.toLowerCase() === riskFilter.toLowerCase();
       const matchesType = typeFilter === "All" || b.type.toLowerCase() === typeFilter.toLowerCase();
@@ -2175,7 +2185,7 @@ function Home({ role, user, onLogout }) {
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        
+
         {/* PAGE HEADER */}
         <div>
           <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0" }}>Bidders</h1>
@@ -2185,15 +2195,15 @@ function Home({ role, user, onLogout }) {
         {/* ROW 1: TOP 6 SUMMARY KPI CARDS (CLICKABLE FILTERS) */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "14px" }}>
           {/* Card 1: Total Bidders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("ALL")}
-            style={{ 
-              background: activeKpi === "ALL" ? "#f8fafc" : "#ffffff", 
-              border: activeKpi === "ALL" ? "2px solid #2563eb" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "ALL" ? "#f8fafc" : "#ffffff",
+              border: activeKpi === "ALL" ? "2px solid #2563eb" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "ALL" ? "0 4px 12px rgba(37,99,235,0.12)" : "none",
@@ -2211,15 +2221,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 2: Active Bidders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("ACTIVE")}
-            style={{ 
-              background: activeKpi === "ACTIVE" ? "#f0fdf4" : "#ffffff", 
-              border: activeKpi === "ACTIVE" ? "2px solid #16a34a" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "ACTIVE" ? "#f0fdf4" : "#ffffff",
+              border: activeKpi === "ACTIVE" ? "2px solid #16a34a" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "ACTIVE" ? "0 4px 12px rgba(22,163,74,0.12)" : "none",
@@ -2237,15 +2247,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 3: New This Month */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("NEW")}
-            style={{ 
-              background: activeKpi === "NEW" ? "#faf5ff" : "#ffffff", 
-              border: activeKpi === "NEW" ? "2px solid #9333ea" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "NEW" ? "#faf5ff" : "#ffffff",
+              border: activeKpi === "NEW" ? "2px solid #9333ea" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "NEW" ? "0 4px 12px rgba(147,51,234,0.12)" : "none",
@@ -2263,15 +2273,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 4: High Risk Bidders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("HIGH_RISK")}
-            style={{ 
-              background: activeKpi === "HIGH_RISK" ? "#fef2f2" : "#ffffff", 
-              border: activeKpi === "HIGH_RISK" ? "2px solid #dc2626" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "HIGH_RISK" ? "#fef2f2" : "#ffffff",
+              border: activeKpi === "HIGH_RISK" ? "2px solid #dc2626" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "HIGH_RISK" ? "0 4px 12px rgba(220,38,38,0.12)" : "none",
@@ -2289,15 +2299,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 5: Verified Bidders */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("VERIFIED")}
-            style={{ 
-              background: activeKpi === "VERIFIED" ? "#f0fdf4" : "#ffffff", 
-              border: activeKpi === "VERIFIED" ? "2px solid #16a34a" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "VERIFIED" ? "#f0fdf4" : "#ffffff",
+              border: activeKpi === "VERIFIED" ? "2px solid #16a34a" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "VERIFIED" ? "0 4px 12px rgba(22,163,74,0.12)" : "none",
@@ -2315,15 +2325,15 @@ function Home({ role, user, onLogout }) {
           </div>
 
           {/* Card 6: Blacklisted / Debarred */}
-          <div 
+          <div
             onClick={() => handleKpiFilter("BLACKLISTED")}
-            style={{ 
-              background: activeKpi === "BLACKLISTED" ? "#f8fafc" : "#ffffff", 
-              border: activeKpi === "BLACKLISTED" ? "2px solid #475569" : "1px solid #e2e8f0", 
-              borderRadius: "12px", 
-              padding: "16px 18px", 
-              display: "flex", 
-              justify: "space-between", 
+            style={{
+              background: activeKpi === "BLACKLISTED" ? "#f8fafc" : "#ffffff",
+              border: activeKpi === "BLACKLISTED" ? "2px solid #475569" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "BLACKLISTED" ? "0 4px 12px rgba(71,85,105,0.12)" : "none",
@@ -2343,7 +2353,7 @@ function Home({ role, user, onLogout }) {
 
         {/* ROW 2: SEARCH & FILTERS TOOLBAR */}
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "14px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          
+
           {/* Search Input */}
           <div style={{ flexGrow: 2, minWidth: "220px" }}>
             <div style={{ position: "relative" }}>
@@ -2459,7 +2469,7 @@ function Home({ role, user, onLogout }) {
               <tbody>
                 {filteredBidders.map((b) => (
                   <tr key={b.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    
+
                     {/* Column 1: Bidder Details */}
                     <td style={{ padding: "14px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -2619,602 +2629,1484 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Advanced AI Bid Verification Dashboard View component
+  // Advanced AI Bid Verification Dashboard View component - Fully interactive matching user specs
   const VerificationView = () => {
-    const [verificationStep, setVerificationStep] = useState("matrix");
-    const [decisionRemarks, setDecisionRemarks] = useState("");
-    const [reviewedCheckbox, setReviewedCheckbox] = useState(false);
-    const [selectedDecision, setSelectedDecision] = useState(""); // qualify, clarification, disqualify
+    const [activeTab, setActiveTab] = useState("documents");
+    const [officerDecision, setOfficerDecision] = useState("qualified");
 
-    const currentBidderName = selectedVerificationBidder ? selectedVerificationBidder.name : "ABC Engineering Pvt. Ltd.";
-    const currentTenderId = selectedVerificationBidder ? selectedVerificationBidder.tender : "GEM-CPCL-001";
-    const currentBidId = selectedVerificationBidder ? selectedVerificationBidder.id : 1;
-    const currentCompliance = selectedVerificationBidder ? selectedVerificationBidder.compliance : 98.4;
-    const currentRisk = selectedVerificationBidder ? selectedVerificationBidder.risk : "LOW";
+    // Auth Modal state
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [officerPassword, setOfficerPassword] = useState("");
+    const [authError, setAuthError] = useState("");
+    const [isDecisionLocked, setIsDecisionLocked] = useState(false);
+    const [lockedRecordInfo, setLockedRecordInfo] = useState(null);
 
-    const lockedRecord = decidedBids[currentBidId];
+    // Dynamic document verification map state
+    const [verifiedDocMap, setVerifiedDocMap] = useState({});
 
-    if (verificationStep === "decision") {
-      return (
-        <div className="verification-dashboard-content">
-          {/* Bid Information Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div>
-              <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px 0" }}>Final Compliance Review</h1>
-              <p className="subtitle" style={{ margin: "0", fontSize: "0.95rem" }}>
-                Tender: <strong style={{ color: "#0f172a" }}>{currentTenderId}</strong> | Bidder: <strong style={{ color: "#0f172a" }}>{currentBidderName}</strong> | Submission ID: <strong style={{ color: "#0f172a" }}>BID-2026-0045</strong>
-              </p>
-            </div>
-            <button className="secondary-action-btn" onClick={() => setVerificationStep("matrix")} style={{ height: "36px", padding: "0 12px" }}>
-              ← Back
-            </button>
+    // Document preview modal state
+    const [previewDocument, setPreviewDocument] = useState(null);
+
+    // Dynamic Bidder data fallback from selectedVerificationBidder or default reference data
+    const bidderName = selectedVerificationBidder?.name || "ABC Industries Pvt Ltd";
+    const bidderLocation = selectedVerificationBidder?.location || "Ahmedabad, Gujarat";
+    const bidderStatus = selectedVerificationBidder?.verificationStatus || "Verified";
+    const bidderPan = selectedVerificationBidder?.pan || "AABCA1234A";
+    const bidderGstin = selectedVerificationBidder?.gstin || "24AABCA1234A1Z5";
+    const bidderType = selectedVerificationBidder?.type || "Private Limited";
+    const bidderPhone = selectedVerificationBidder?.phone || "+91 98765 43210";
+    const bidderEmail = selectedVerificationBidder?.email || "info@abcindustries.com";
+    const bidderScore = selectedVerificationBidder?.complianceScore !== undefined && selectedVerificationBidder?.complianceScore !== null ? selectedVerificationBidder.complianceScore : 82;
+    const bidderRisk = selectedVerificationBidder?.riskLevel || "Medium Risk";
+
+    const initialSubmittedDocuments = [
+      { id: 1, type: "PAN Card", number: bidderPan, issuedBy: "Income Tax Dept.", issueDate: "12 May 2010", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 2, type: "GST Registration", number: bidderGstin, issuedBy: "GST Dept.", issueDate: "18 Jun 2018", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 3, type: "GST Return (Latest)", number: "GSTR3B-042025", issuedBy: "GST Portal", issueDate: "20 Apr 2025", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 4, type: "Udyam / MSME", number: "UDYAM-GJ-01-1234567", issuedBy: "MSME", issueDate: "25 Jan 2024", expiryDate: "24 Jan 2027", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 5, type: "Income Tax Return", number: "ITR-AY2425-98AB", issuedBy: "Income Tax Dept.", issueDate: "30 Jul 2024", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 6, type: "EPFO Compliance", number: "GJ/AHM/1234567", issuedBy: "EPFO", issueDate: "—", expiryDate: "—", status: "Pending", statusBg: "#fff7ed", statusColor: "#ea580c" },
+      { id: 7, type: "ESIC Compliance", number: "11/11/123456/000", issuedBy: "ESIC", issueDate: "—", expiryDate: "—", status: "Pending", statusBg: "#fff7ed", statusColor: "#ea580c" },
+      { id: 8, type: "Bank Solvency Certificate", number: "BSC/AXIS/0425/001", issuedBy: "Axis Bank", issueDate: "28 Apr 2025", expiryDate: "27 Jul 2025", status: "Issues Found", statusBg: "#fef2f2", statusColor: "#dc2626" },
+      { id: 9, type: "OEM Authorization", number: "OEM/2025/0987", issuedBy: "ABC Manufacturing", issueDate: "01 Jan 2025", expiryDate: "31 Dec 2025", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
+      { id: 10, type: "Bid Security / EMD", number: "EMD-9876543210", issuedBy: "ICICI Bank", issueDate: "15 May 2025", expiryDate: "15 Aug 2025", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" }
+    ];
+
+    const submittedDocuments = initialSubmittedDocuments.map((doc) => {
+      if (verifiedDocMap[doc.id]) {
+        return { ...doc, status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" };
+      }
+      return doc;
+    });
+
+    const verifiedCount = submittedDocuments.filter(d => d.status === "Verified").length;
+    const pendingCount = submittedDocuments.filter(d => d.status === "Pending").length;
+    const issuesCount = submittedDocuments.filter(d => d.status === "Issues Found").length;
+
+    const handleVerifySingleDoc = (docId) => {
+      setVerifiedDocMap(prev => ({ ...prev, [docId]: true }));
+    };
+
+    const handleVerifyAllDocs = () => {
+      const allVerified = {};
+      initialSubmittedDocuments.forEach(doc => {
+        allVerified[doc.id] = true;
+      });
+      setVerifiedDocMap(allVerified);
+    };
+
+    const complianceChecks = [
+      { id: "CHK-01", name: "PAN Verification & Income Tax API Check", category: "Statutory", status: "Passed", confidence: "99%", source: "CBDT Direct API" },
+      { id: "CHK-02", name: "GST Active Status & Return Filing History", category: "Statutory", status: "Passed", confidence: "98%", source: "GSTN Portal API" },
+      { id: "CHK-03", name: "MSME Udyam Micro/Small Unit Validation", category: "Statutory", status: "Passed", confidence: "97%", source: "Udyam Portal" },
+      { id: "CHK-04", name: "OEM Authorization Letter Entity Name Matching", category: "Technical", status: "Warning", confidence: "82%", source: "AI OCR NLP Match" },
+      { id: "CHK-05", name: "Bank Solvency & Financial Credit Worthiness", category: "Financial", status: "Failed", confidence: "68%", source: "Axis Bank Verification" },
+      { id: "CHK-06", name: "EPFO Employee Strength & Filing Verification", category: "Statutory", status: "Pending", confidence: "—", source: "EPFO Portal Queue" },
+      { id: "CHK-07", name: "ESIC Contribution Regularity Verification", category: "Statutory", status: "Pending", confidence: "—", source: "ESIC Portal Queue" }
+    ];
+
+    const handleAuthenticateAndSubmit = (e) => {
+      e.preventDefault();
+      if (!officerPassword || officerPassword.length < 3) {
+        setAuthError("Please enter your Procurement Officer password to authenticate.");
+        return;
+      }
+
+      const randomHash = "0x" + Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase();
+      const timestamp = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+
+      const record = {
+        decision: officerDecision,
+        officer: user?.full_name || "Procurement Officer #OFF-9821",
+        timestamp: timestamp,
+        hash: randomHash
+      };
+
+      setLockedRecordInfo(record);
+      setIsDecisionLocked(true);
+      setShowAuthModal(false);
+      setOfficerPassword("");
+      setAuthError("");
+    };
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", background: "#f8fafc", padding: "4px" }}>
+
+        {/* BREADCRUMB & HEADER TOP BAR */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", color: "#64748b", marginBottom: "8px" }}>
+            <span
+              onClick={() => setActiveSection("bidders")}
+              style={{ cursor: "pointer", color: "#2563eb", fontWeight: 600 }}
+            >
+              Dashboard
+            </span>
+            <span>›</span>
+            <span
+              onClick={() => setActiveSection("bidders")}
+              style={{ cursor: "pointer", color: "#2563eb", fontWeight: 600 }}
+            >
+              Tender Management
+            </span>
+            <span>›</span>
+            <span
+              onClick={() => setActiveSection("bidders")}
+              style={{ cursor: "pointer", color: "#2563eb", fontWeight: 600 }}
+            >
+              CPCL/2026/001
+            </span>
+            <span>›</span>
+            <strong style={{ color: "#0f172a" }}>Bid Verification</strong>
           </div>
 
-          {/* Main Decision Split Grid */}
-          <div className="dashboard-main-split">
-            {/* Left Column */}
-            <div className="split-left-col" style={{ flexGrow: 1.5 }}>
-              {/* Compliance Score Card */}
-              <div className="section-panel" style={{ padding: "24px", display: "flex", gap: "24px", alignItems: "center", marginBottom: "20px" }}>
-                <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke={currentCompliance >= 90 ? "#10b981" : currentCompliance >= 70 ? "#f59e0b" : "#ef4444"}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={`${(currentCompliance / 100) * 251.2} 251.2`}
-                      strokeDashoffset="0"
-                    />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0" }}>Bid Verification</h1>
+              <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>Review bidder compliance, documents, and AI analysis before making decision</p>
+            </div>
+            <button
+              onClick={() => setActiveSection("bidders")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "#ffffff",
+                border: "1px solid #cbd5e1",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                color: "#334155",
+                cursor: "pointer",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+              }}
+            >
+              <ArrowLeft size={14} /> Back to Bidders
+            </button>
+          </div>
+        </div>
+
+        {/* TOP SUMMARY CARDS (6 SUMMARY TILES IN SINGLE ROW) */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px", alignItems: "center" }}>
+
+          {/* Tile 1: Tender Details */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Tender Details</span>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>CPCL/2026/001</h3>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Industrial Equipment Supply</span>
+          </div>
+
+          {/* Tile 2: Bid Details */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bid Details</span>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>BIDDER-0001</h3>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Submitted on 15 May 2025, 11:24 AM</span>
+          </div>
+
+          {/* Tile 3: Bidder */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bidder</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>{bidderName}</h3>
+              <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.68rem", fontWeight: 700, background: "#dcfce7", color: "#15803d" }}>● {bidderStatus}</span>
+            </div>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{bidderLocation}</span>
+          </div>
+
+          {/* Tile 4: Bid Value */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bid Value</span>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>₹ 2,48,75,000</h3>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>(Inclusive of GST)</span>
+          </div>
+
+          {/* Tile 5: Compliance Score */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Compliance Score</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ position: "relative", width: "42px", height: "42px" }}>
+                <svg width="42" height="42" viewBox="0 0 36 36">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" strokeWidth="3.5" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="3.5" strokeDasharray={`${bidderScore}, 100`} />
+                </svg>
+              </div>
+              <div>
+                <strong style={{ fontSize: "1.1rem", fontWeight: 800, color: "#16a34a", display: "block", lineHeight: 1 }}>{bidderScore}%</strong>
+                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#16a34a" }}>Good</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tile 6: Risk Level */}
+          <div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Risk Level</span>
+            <span style={{ padding: "4px 10px", borderRadius: "10px", fontSize: "0.75rem", fontWeight: 700, background: "#fff7ed", color: "#ea580c", display: "inline-block" }}>
+              ◆ {bidderRisk}
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "#64748b", display: "block", marginTop: "2px" }}>Requires Review</span>
+          </div>
+
+        </div>
+
+        {/* MAIN 3-COLUMN LAYOUT */}
+        <div style={{ display: "grid", gridTemplateColumns: "250px 1fr 310px", gap: "16px", alignItems: "start" }}>
+
+          {/* LEFT COLUMN: VERIFICATION PROGRESS & BIDDER INFO */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+            {/* Card 1: Verification Progress */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", margin: "0 0 14px 0" }}>Verification Progress</h3>
+
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "14px" }}>
+                <div style={{ position: "relative", width: "100px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="100" height="100" viewBox="0 0 36 36">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="3" strokeDasharray={`${verifiedCount * 10}, 100`} />
                   </svg>
-                  <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                    <span style={{ fontSize: "1.45rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{currentCompliance}%</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="card-label">Compliance Score</span>
-                  <div style={{ marginTop: "6px" }}>
-                    <span className={`risk-badge ${currentRisk.toLowerCase()}`}>
-                      {currentRisk} RISK
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", gap: "24px", marginTop: "12px", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block" }}>Mandatory Requirements</small>
-                      <strong style={{ fontSize: "0.9rem" }}>9 / 10 Passed</strong>
-                    </div>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block" }}>Documents</small>
-                      <strong style={{ fontSize: "0.9rem" }}>10 / 10</strong>
-                    </div>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block" }}>Issues</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#f59e0b" }}>1 Review Required</strong>
-                    </div>
+                  <div style={{ position: "absolute", textAlign: "center" }}>
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", display: "block", lineHeight: 1 }}>{verifiedCount}/10</span>
+                    <span style={{ fontSize: "0.62rem", color: "#64748b", lineHeight: 1.1, display: "block" }}>Documents<br />Verified</span>
                   </div>
                 </div>
               </div>
 
-              {/* Evidence-Based Compliance Table */}
-              <div className="section-panel" style={{ padding: "20px", overflow: "hidden", marginBottom: "20px" }}>
-                <h2 style={{ fontSize: "1.1rem", marginBottom: "16px" }}>Evidence-Based Compliance Matrix</h2>
-                <table style={{ margin: "0" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.78rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#334155" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#16a34a" }}></span> Verified
+                  </span>
+                  <strong style={{ color: "#0f172a" }}>{verifiedCount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#334155" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#ea580c" }}></span> Pending
+                  </span>
+                  <strong style={{ color: "#0f172a" }}>{pendingCount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#334155" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#dc2626" }}></span> Issues Found
+                  </span>
+                  <strong style={{ color: "#0f172a" }}>{issuesCount}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Bidder Information */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", margin: "0 0 12px 0" }}>Bidder Information</h3>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.75rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>PAN</span>
+                  <strong style={{ color: "#0f172a" }}>{bidderPan}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>GSTIN</span>
+                  <strong style={{ color: "#0f172a" }}>{bidderGstin}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Udyam</span>
+                  <strong style={{ color: "#0f172a" }}>UDYAM-GJ-01-1234567</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Constitution</span>
+                  <strong style={{ color: "#0f172a" }}>{bidderType}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Incorporation</span>
+                  <strong style={{ color: "#0f172a" }}>12 May 2010</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Email</span>
+                  <strong style={{ color: "#0f172a" }}>{bidderEmail}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Mobile</span>
+                  <strong style={{ color: "#0f172a" }}>{bidderPhone}</strong>
+                </div>
+              </div>
+
+              {/* Registered Address */}
+              <div style={{ paddingTop: "12px" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a", display: "block", marginBottom: "6px" }}>Registered Address</span>
+                <div style={{ display: "flex", gap: "6px", fontSize: "0.72rem", color: "#475569", lineHeight: 1.4 }}>
+                  <MapPin size={14} style={{ color: "#64748b", flexShrink: 0, marginTop: "2px" }} />
+                  <span>123, Industrial Area, Phase - IV, GIDC Vatva, Ahmedabad - 382445, Gujarat, India</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* MIDDLE COLUMN: TABS & DYNAMIC TAB CONTENT */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+            {/* TABS BAR (Updated tabs list per user request) */}
+            <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#ffffff", padding: "0 16px", borderRadius: "12px 12px 0 0" }}>
+              <button
+                onClick={() => setActiveTab("documents")}
+                style={{
+                  padding: "12px 18px",
+                  fontSize: "0.82rem",
+                  fontWeight: activeTab === "documents" ? 700 : 600,
+                  color: activeTab === "documents" ? "#2563eb" : "#64748b",
+                  borderBottom: activeTab === "documents" ? "2px solid #2563eb" : "2px solid transparent",
+                  background: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderTop: "none",
+                  cursor: "pointer"
+                }}
+              >
+                Documents
+              </button>
+              <button
+                onClick={() => setActiveTab("checks")}
+                style={{
+                  padding: "12px 18px",
+                  fontSize: "0.82rem",
+                  fontWeight: activeTab === "checks" ? 700 : 600,
+                  color: activeTab === "checks" ? "#2563eb" : "#64748b",
+                  borderBottom: activeTab === "checks" ? "2px solid #2563eb" : "2px solid transparent",
+                  background: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderTop: "none",
+                  cursor: "pointer"
+                }}
+              >
+                Compliance Checks
+              </button>
+              <button
+                onClick={() => setActiveTab("analysis")}
+                style={{
+                  padding: "12px 18px",
+                  fontSize: "0.82rem",
+                  fontWeight: activeTab === "analysis" ? 700 : 600,
+                  color: activeTab === "analysis" ? "#2563eb" : "#64748b",
+                  borderBottom: activeTab === "analysis" ? "2px solid #2563eb" : "2px solid transparent",
+                  background: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderTop: "none",
+                  cursor: "pointer"
+                }}
+              >
+                AI Analysis
+              </button>
+              <button
+                onClick={() => setActiveTab("audit")}
+                style={{
+                  padding: "12px 18px",
+                  fontSize: "0.82rem",
+                  fontWeight: activeTab === "audit" ? 700 : 600,
+                  color: activeTab === "audit" ? "#2563eb" : "#64748b",
+                  borderBottom: activeTab === "audit" ? "2px solid #2563eb" : "2px solid transparent",
+                  background: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderTop: "none",
+                  cursor: "pointer"
+                }}
+              >
+                Audit Trail
+              </button>
+              <button
+                onClick={() => setActiveTab("document_verification")}
+                style={{
+                  padding: "12px 18px",
+                  fontSize: "0.82rem",
+                  fontWeight: activeTab === "document_verification" ? 700 : 600,
+                  color: activeTab === "document_verification" ? "#2563eb" : "#64748b",
+                  borderBottom: activeTab === "document_verification" ? "2px solid #2563eb" : "2px solid transparent",
+                  background: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderTop: "none",
+                  cursor: "pointer"
+                }}
+              >
+                Document Verification
+              </button>
+            </div>
+
+            {/* TAB CONTENT 1: DOCUMENTS */}
+            {activeTab === "documents" && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>Submitted Documents</h3>
+                  <button style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Maximize2 size={12} /> Expand All
+                  </button>
+                </div>
+
+                {/* TABLE */}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #e2e8f0", color: "#64748b", background: "#f8fafc" }}>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Document Type</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Document Number</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Issued By</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Issue Date</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Expiry Date</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700 }}>Status</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700, textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submittedDocuments.map((doc) => (
+                        <tr key={doc.id} style={{ borderBottom: "1px solid #f1f5f9", background: doc.status === "Issues Found" ? "#fff5f5" : "transparent" }}>
+                          <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 600 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <FileText size={14} style={{ color: "#2563eb" }} />
+                              <span>{doc.type}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: "10px 12px", color: "#334155", fontFamily: "monospace" }}>{doc.number}</td>
+                          <td style={{ padding: "10px 12px", color: "#64748b" }}>{doc.issuedBy}</td>
+                          <td style={{ padding: "10px 12px", color: "#64748b" }}>{doc.issueDate}</td>
+                          <td style={{ padding: "10px 12px", color: "#64748b" }}>{doc.expiryDate}</td>
+                          <td style={{ padding: "10px 12px" }}>
+                            <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 700, background: doc.statusBg, color: doc.statusColor, display: "inline-block" }}>
+                              {doc.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: "10px 12px", textAlign: "right" }}>
+                            <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                              <button
+                                onClick={() => setPreviewDocument(doc)}
+                                title="View Document Inspection"
+                                style={{ border: "none", background: "none", color: "#2563eb", cursor: "pointer" }}
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button title="Download File Payload" style={{ border: "none", background: "none", color: "#2563eb", cursor: "pointer" }}>
+                                <Download size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* STATUS ALERT AT BOTTOM OF TABLE */}
+                {issuesCount > 0 || pendingCount > 0 ? (
+                  <div style={{ marginTop: "14px", background: "#fffbe6", border: "1px solid #ffe58f", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.76rem", color: "#d97706" }}>
+                    <AlertTriangle size={16} style={{ color: "#d97706", flexShrink: 0 }} />
+                    <span>{issuesCount > 0 ? `${issuesCount} document(s) have issues requiring officer review.` : `${pendingCount} document(s) are pending verification.`}</span>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: "14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.76rem", color: "#15803d" }}>
+                    <CheckCircle2 size={16} style={{ color: "#15803d", flexShrink: 0 }} />
+                    <span>All 10 documents are fully verified and approved by Procurement Officer!</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB CONTENT 2: COMPLIANCE CHECKS */}
+            {activeTab === "checks" && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: "0 0 14px 0" }}>Compliance Verification Checks Breakdown</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {complianceChecks.map((chk) => (
+                    <div key={chk.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <div>
+                        <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>{chk.id} • {chk.category}</span>
+                        <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", margin: "2px 0 0 0" }}>{chk.name}</h4>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Source: {chk.source}</span>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{
+                          padding: "3px 10px",
+                          borderRadius: "12px",
+                          fontSize: "0.72rem",
+                          fontWeight: 700,
+                          background: chk.status === "Passed" ? "#dcfce7" : chk.status === "Warning" ? "#fff7ed" : chk.status === "Failed" ? "#fef2f2" : "#eff6ff",
+                          color: chk.status === "Passed" ? "#15803d" : chk.status === "Warning" ? "#c2410c" : chk.status === "Failed" ? "#b91c1c" : "#1d4ed8",
+                          display: "inline-block"
+                        }}>
+                          {chk.status}
+                        </span>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginTop: "4px" }}>Confidence: {chk.confidence}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT 3: AI ANALYSIS */}
+            {activeTab === "analysis" && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                  <Sparkles size={18} style={{ color: "#4f46e5" }} />
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>AI Extraction & Verification Insights</h3>
+                </div>
+
+                <div style={{ background: "#eff6ff", border: "1px solid #dbeafe", borderRadius: "8px", padding: "14px", marginBottom: "14px", fontSize: "0.82rem", color: "#1e40af" }}>
+                  <strong>Automated Neural NLP Findings:</strong> AI scanned 10 uploaded PDF artifacts against Government Database Endpoints (GSTN, CBDT, MSME, EPFO). Financial standing score is 82%.
+                </div>
+
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
                   <thead>
-                    <tr>
-                      <th>Requirement</th>
-                      <th>Result</th>
-                      <th>Evidence Document</th>
-                      <th>Verification Source</th>
-                      <th>Confidence</th>
+                    <tr style={{ borderBottom: "1px solid #cbd5e1", background: "#f8fafc", color: "#475569" }}>
+                      <th style={{ padding: "8px 10px", textAlign: "left" }}>Field Parameter</th>
+                      <th style={{ padding: "8px 10px", textAlign: "left" }}>Extracted Document Value</th>
+                      <th style={{ padding: "8px 10px", textAlign: "left" }}>Government Portal Record</th>
+                      <th style={{ padding: "8px 10px", textAlign: "left" }}>Match Result</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><strong>PAN Verification</strong></td>
-                      <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>PAN_Certificate.pdf</td>
-                      <td>CBDT API</td>
-                      <td><strong>99%</strong></td>
+                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>Legal Entity Name</td>
+                      <td style={{ padding: "8px 10px" }}>{bidderName}</td>
+                      <td style={{ padding: "8px 10px" }}>{bidderName}</td>
+                      <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: 700 }}>100% Match</td>
                     </tr>
-                    <tr>
-                      <td><strong>GST Registration</strong></td>
-                      <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>GST_Certificate.pdf</td>
-                      <td>GSTN Portal</td>
-                      <td><strong>98%</strong></td>
+                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>GSTIN Status</td>
+                      <td style={{ padding: "8px 10px" }}>{bidderGstin} (Active)</td>
+                      <td style={{ padding: "8px 10px" }}>{bidderGstin} (Active)</td>
+                      <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: 700 }}>VERIFIED</td>
                     </tr>
-                    <tr>
-                      <td><strong>Udyam MSME</strong></td>
-                      <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>Udyam_Registration.pdf</td>
-                      <td>MSME Portal</td>
-                      <td><strong>97%</strong></td>
-                    </tr>
-                    <tr>
-                      <td><strong>Income Tax Returns</strong></td>
-                      <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>ITR_3Years.pdf</td>
-                      <td>IT Portal</td>
-                      <td><strong>94%</strong></td>
-                    </tr>
-                    <tr>
-                      <td><strong>OEM Authorization</strong></td>
-                      <td><span style={{ color: "#f59e0b", fontWeight: 600 }}>REVIEW</span></td>
-                      <td>OEM_Authorization.pdf</td>
-                      <td style={{ color: "#ef4444", fontWeight: 500 }}>Mismatch detected</td>
-                      <td><strong style={{ color: "#f59e0b" }}>82%</strong></td>
-                    </tr>
-                    <tr>
-                      <td><strong>Make in India Declaration</strong></td>
-                      <td><span style={{ color: "#10b981", fontWeight: 600 }}>PASS</span></td>
-                      <td>MII_Declaration.pdf</td>
-                      <td>Self Declaration</td>
-                      <td><strong>96%</strong></td>
+                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>OEM Auth Entity</td>
+                      <td style={{ padding: "8px 10px", background: "#fff7ed", color: "#c2410c" }}>ABC Manufacturing Corp</td>
+                      <td style={{ padding: "8px 10px" }}>ABC Manufacturing Pvt. Ltd.</td>
+                      <td style={{ padding: "8px 10px", color: "#ea580c", fontWeight: 700 }}>Spelling Variation (Review Needed)</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+            )}
 
-              {/* AI Recommendation Card */}
-              <div className="ai-assistant-card" style={{ background: "#ffffff", border: "1px solid #e2e8f0", color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", paddingBottom: "12px", marginBottom: "12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Sparkles size={18} style={{ color: "#6366f1" }} />
-                    <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>AI Recommendation Panel</h3>
+            {/* TAB CONTENT 4: AUDIT TRAIL */}
+            {activeTab === "audit" && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: "0 0 14px 0" }}>Procurement Officer Immutable Audit Trail</h3>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.78rem" }}>
+                  <div style={{ borderLeft: "3px solid #2563eb", paddingLeft: "10px" }}>
+                    <strong style={{ color: "#0f172a" }}>Bid Submission Received</strong>
+                    <span style={{ color: "#64748b", display: "block" }}>15 May 2025, 11:24 AM • Hash: 0x98F4A10B...</span>
                   </div>
-                  <span className="status-badge review" style={{ fontSize: "0.8rem", background: "#fef3c7", color: "#b45309", border: "1px solid #fde68a" }}>
-                    RECOMMENDS CONDITIONAL APPROVAL
-                  </span>
-                </div>
-                <p style={{ fontSize: "0.9rem", color: "#334155", lineHeight: "1.5", margin: "0 0 12px 0" }}>
-                  "Evaluation Summary: Bidder has verified financial and statutory filings. The OEM authorization letter has an entity name spelling variation that requires Officer confirmation."
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f8fafc", padding: "8px 12px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
-                  <ShieldCheck size={14} style={{ color: "#0284c7" }} />
-                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0284c7" }}>
-                    AI recommendation is decision support only. Final decision rests solely with the Procurement Officer.
-                  </span>
+                  <div style={{ borderLeft: "3px solid #16a34a", paddingLeft: "10px" }}>
+                    <strong style={{ color: "#0f172a" }}>AI Verification Pipeline Execution Completed</strong>
+                    <span style={{ color: "#64748b", display: "block" }}>15 May 2025, 11:26 AM • Confidence Index: 82%</span>
+                  </div>
+                  {isDecisionLocked && (
+                    <div style={{ borderLeft: "3px solid #dc2626", paddingLeft: "10px" }}>
+                      <strong style={{ color: "#b91c1c" }}>Officer Decision Immutable Lock Executed ({lockedRecordInfo?.decision?.toUpperCase()})</strong>
+                      <span style={{ color: "#64748b", display: "block" }}>{lockedRecordInfo?.timestamp} • Officer: {lockedRecordInfo?.officer}</span>
+                      <span style={{ color: "#2563eb", fontFamily: "monospace", display: "block", fontSize: "0.72rem" }}>Lock Hash: {lockedRecordInfo?.hash}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Right Column - Evidence Viewer */}
-            <div className="split-right-col" style={{ flexGrow: 1 }}>
-              <div className="recent-activity-card" style={{ background: "#ffffff", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", height: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                  <h3 style={{ fontSize: "1.05rem", margin: 0, fontWeight: 800 }}>OEM_Authorization.pdf</h3>
-                  <span className="status-badge review" style={{ fontSize: "0.75rem" }}>Evidence Inspection</span>
-                </div>
-
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "16px", flexGrow: 1 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Manufacturer</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>XYZ Pumps Ltd</strong>
-                    </div>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Bidder</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>{currentBidderName}</strong>
-                    </div>
-                    <div style={{ borderTop: "1px solid #cbd5e1", paddingTop: "12px" }}>
-                      <small style={{ color: "#e11d48", display: "block", fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase" }}>AI Finding</small>
-                      <strong style={{ fontSize: "0.9rem", color: "#e11d48" }}>Minor entity-name variant detected</strong>
-                    </div>
-                    <div>
-                      <small style={{ color: "#64748b", display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>AI Explanation</small>
-                      <p style={{ margin: "4px 0 0 0", fontSize: "0.8rem", color: "#475569", lineHeight: "1.5" }}>
-                        "Document authorizes {currentBidderName}. Verification confirmed with manufacturer registration database."
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
-                  <button className="secondary-action-btn" style={{ flexGrow: 1, height: "38px" }} onClick={() => alert("Opening OEM_Authorization.pdf document payload.")}>
-                    Open Document
-                  </button>
-                  <button className="action-btn" style={{ flexGrow: 1, height: "38px", width: "auto" }} onClick={() => alert("Displaying raw JSON AI output token stream.")}>
-                    View Extraction
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Final Decision Section (One-time Entry Rule) */}
-          {lockedRecord ? (
-            <div className={`locked-decision-card ${lockedRecord.decision}`}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Lock size={22} style={{ color: lockedRecord.decision === "qualify" ? "#15803d" : lockedRecord.decision === "clarify" ? "#b45309" : "#b91c1c" }} />
+            {/* TAB CONTENT 5: DOCUMENT VERIFICATION */}
+            {activeTab === "document_verification" && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: "1.15rem", color: "#0f172a", fontWeight: 800 }}>
-                      Officer Decision Finalized: {lockedRecord.decision.toUpperCase()}
-                    </h3>
-                    <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                      Authorized by <strong>{lockedRecord.officerId}</strong> on {lockedRecord.timestamp}
-                    </span>
+                    <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>Interactive Document Verification Workbench</h3>
+                    <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "2px 0 0 0" }}>Perform individual document inspections and click to verify submitted bidder credentials.</p>
+                  </div>
+                  <button
+                    onClick={handleVerifyAllDocs}
+                    style={{
+                      background: "#16a34a",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "8px 14px",
+                      borderRadius: "8px",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      boxShadow: "0 1px 3px rgba(22,163,74,0.2)"
+                    }}
+                  >
+                    <CheckCircle2 size={14} /> Verify All Documents
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {submittedDocuments.map((doc) => {
+                    const isDocVerified = doc.status === "Verified" || verifiedDocMap[doc.id];
+                    return (
+                      <div
+                        key={doc.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "12px 16px",
+                          borderRadius: "10px",
+                          border: isDocVerified ? "1px solid #cbd5e1" : doc.status === "Issues Found" ? "1px solid #fca5a5" : "1px solid #fed7aa",
+                          background: isDocVerified ? "#f8fafc" : doc.status === "Issues Found" ? "#fff5f5" : "#fff7ed"
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "8px",
+                            background: isDocVerified ? "#dcfce7" : "#fee2e2",
+                            color: isDocVerified ? "#15803d" : "#dc2626",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}>
+                            <FileText size={18} />
+                          </div>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <h4 style={{ margin: 0, fontSize: "0.85rem", fontWeight: 700, color: "#0f172a" }}>{doc.type}</h4>
+                              <span style={{
+                                padding: "2px 8px",
+                                borderRadius: "8px",
+                                fontSize: "0.68rem",
+                                fontWeight: 700,
+                                background: isDocVerified ? "#dcfce7" : doc.statusBg,
+                                color: isDocVerified ? "#15803d" : doc.statusColor
+                              }}>
+                                {isDocVerified ? "Verified" : doc.status}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginTop: "2px" }}>
+                              No: <strong style={{ fontFamily: "monospace", color: "#334155" }}>{doc.number}</strong> • Issued By: {doc.issuedBy} ({doc.issueDate})
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          {isDocVerified ? (
+                            <button
+                              disabled
+                              style={{
+                                background: "#f0fdf4",
+                                color: "#15803d",
+                                border: "1px solid #bbf7d0",
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              <CheckCircle2 size={14} /> Document Verified
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleVerifySingleDoc(doc.id)}
+                              style={{
+                                background: "#2563eb",
+                                color: "#ffffff",
+                                border: "none",
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                boxShadow: "0 2px 4px rgba(37,99,235,0.2)"
+                              }}
+                            >
+                              <CheckCircle2 size={14} /> Verify Document
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* COMPLIANCE CHECKS OVERVIEW CARD */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>Compliance Checks Overview</h3>
+                <button
+                  onClick={() => setActiveTab("checks")}
+                  style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
+                >
+                  View All Checks
+                </button>
+              </div>
+
+              {/* 5 MINI STAT CARDS */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
+
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", color: "#64748b" }}>
+                    <Info size={14} style={{ color: "#2563eb" }} />
+                    <span>Total Checks</span>
+                  </div>
+                  <strong style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a" }}>{submittedDocuments.length}</strong>
+                </div>
+
+                <div style={{ background: "#f0fdf4", border: "1px solid #dcfce7", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", color: "#16a34a" }}>
+                    <Check size={14} style={{ color: "#16a34a" }} />
+                    <span>Passed</span>
+                  </div>
+                  <strong style={{ fontSize: "1.3rem", fontWeight: 800, color: "#15803d" }}>{verifiedCount}</strong>
+                </div>
+
+                <div style={{ background: issuesCount === 0 ? "#f8fafc" : "#fef2f2", border: issuesCount === 0 ? "1px solid #e2e8f0" : "1px solid #fee2e2", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", color: issuesCount === 0 ? "#64748b" : "#dc2626" }}>
+                    <XCircle size={14} style={{ color: issuesCount === 0 ? "#64748b" : "#dc2626" }} />
+                    <span>Failed</span>
+                  </div>
+                  <strong style={{ fontSize: "1.3rem", fontWeight: 800, color: issuesCount === 0 ? "#64748b" : "#b91c1c" }}>{issuesCount}</strong>
+                </div>
+
+                <div style={{ background: issuesCount === 0 ? "#f8fafc" : "#fff7ed", border: issuesCount === 0 ? "1px solid #e2e8f0" : "1px solid #ffedd5", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", color: issuesCount === 0 ? "#64748b" : "#ea580c" }}>
+                    <AlertTriangle size={14} style={{ color: issuesCount === 0 ? "#64748b" : "#ea580c" }} />
+                    <span>Warnings</span>
+                  </div>
+                  <strong style={{ fontSize: "1.3rem", fontWeight: 800, color: issuesCount === 0 ? "#64748b" : "#c2410c" }}>{issuesCount}</strong>
+                </div>
+
+                <div style={{ background: pendingCount === 0 ? "#f0fdf4" : "#eff6ff", border: pendingCount === 0 ? "1px solid #dcfce7" : "1px solid #dbeafe", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", color: pendingCount === 0 ? "#16a34a" : "#2563eb" }}>
+                    <Clock size={14} style={{ color: pendingCount === 0 ? "#16a34a" : "#2563eb" }} />
+                    <span>Pending</span>
+                  </div>
+                  <strong style={{ fontSize: "1.3rem", fontWeight: 800, color: pendingCount === 0 ? "#15803d" : "#1d4ed8" }}>{pendingCount}</strong>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: AI RECOMMENDATION & OFFICER DECISION */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+            {/* CARD 1: AI RECOMMENDATION */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", margin: "0 0 2px 0" }}>AI Recommendation</h3>
+              <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginBottom: "12px" }}>Automated synthesis based on real-time document verification</span>
+
+              {/* TINTED RECOMMENDATION BOX */}
+              {verifiedCount === submittedDocuments.length ? (
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>RECOMMENDATION</span>
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#15803d", margin: "2px 0 8px 0", display: "flex", alignItems: "center", gap: "4px" }}>
+                    QUALIFIED FOR APPROVAL <CheckCircle2 size={16} />
+                  </h4>
+
+                  <div style={{ fontSize: "0.75rem", color: "#334155", lineHeight: 1.5, marginBottom: "12px" }}>
+                    <p style={{ margin: "0 0 4px 0" }}>✓ <strong>10/10 Documents Verified:</strong> All statutory credentials confirmed.</p>
+                    <p style={{ margin: "0 0 4px 0" }}>✓ <strong>0 Pending Issues:</strong> Solvency and EPFO clearances satisfied.</p>
+                    <p style={{ margin: "0 0 8px 0" }}>✓ <strong>100% Score:</strong> Bidder meets all eligibility criteria for tender award.</p>
+                  </div>
+
+                  <button
+                    onClick={() => setActiveTab("analysis")}
+                    style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", padding: 0 }}
+                  >
+                    View AI Analysis Details →
+                  </button>
+                </div>
+              ) : (
+                <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#ea580c", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>RECOMMENDATION</span>
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#c2410c", margin: "2px 0 8px 0", display: "flex", alignItems: "center", gap: "4px" }}>
+                    REVIEW REQUIRED <span style={{ fontSize: "0.9rem" }}>ⓘ</span>
+                  </h4>
+
+                  <div style={{ fontSize: "0.75rem", color: "#475569", lineHeight: 1.5, marginBottom: "12px" }}>
+                    <p style={{ margin: "0 0 4px 0" }}>• <strong>{verifiedCount} of {submittedDocuments.length}</strong> documents verified.</p>
+                    {issuesCount > 0 && <p style={{ margin: "0 0 4px 0" }}>• <strong>{issuesCount}</strong> document(s) require verification review.</p>}
+                    {pendingCount > 0 && <p style={{ margin: "0 0 4px 0" }}>• <strong>{pendingCount}</strong> document(s) pending verification.</p>}
+                    <p style={{ margin: "0 0 8px 0" }}>• Click "Verify Document" to confirm bidder credentials.</p>
+                  </div>
+
+                  <button
+                    onClick={() => setActiveTab("analysis")}
+                    style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", padding: 0 }}
+                  >
+                    View AI Analysis Details →
+                  </button>
+                </div>
+              )}
+
+              {/* COMPLIANCE BREAKDOWN PROGRESS BARS */}
+              <h4 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", margin: "0 0 10px 0" }}>Compliance Breakdown</h4>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.73rem" }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                    <span style={{ color: "#334155" }}>Statutory Compliance</span>
+                    <strong style={{ color: "#0f172a" }}>100%</strong>
+                  </div>
+                  <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
+                    <div style={{ width: "100%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
                   </div>
                 </div>
-                <span className={`decision-badge ${lockedRecord.decision}`}>
-                  IMMUTABLE RECORD
-                </span>
+
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                    <span style={{ color: "#334155" }}>Financial Compliance</span>
+                    <strong style={{ color: "#0f172a" }}>{verifiedDocMap[8] ? "100%" : "80%"}</strong>
+                  </div>
+                  <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
+                    <div style={{ width: verifiedDocMap[8] ? "100%" : "80%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                    <span style={{ color: "#334155" }}>Technical Compliance</span>
+                    <strong style={{ color: "#0f172a" }}>{verifiedDocMap[9] ? "100%" : "85%"}</strong>
+                  </div>
+                  <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
+                    <div style={{ width: verifiedDocMap[9] ? "100%" : "85%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                    <span style={{ color: "#334155" }}>Document Compliance</span>
+                    <strong style={{ color: verifiedCount === 10 ? "#16a34a" : "#ea580c" }}>{Math.round((verifiedCount / 10) * 100)}%</strong>
+                  </div>
+                  <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
+                    <div style={{ width: `${Math.round((verifiedCount / 10) * 100)}%`, height: "100%", background: verifiedCount === 10 ? "#16a34a" : "#ea580c", borderRadius: "3px" }}></div>
+                  </div>
+                </div>
               </div>
 
-              <div style={{ background: "#ffffff", padding: "14px 16px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
-                <small style={{ color: "#64748b", display: "block", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase" }}>Officer Justification Remarks</small>
-                <p style={{ margin: "4px 0 0 0", fontSize: "0.92rem", color: "#1e293b", fontWeight: 500 }}>"{lockedRecord.remarks}"</p>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#64748b", borderTop: "1px dashed #cbd5e1", paddingTop: "10px" }}>
-                <span>Audit Lock Hash: <strong style={{ fontFamily: "monospace", color: "#0284c7" }}>{lockedRecord.lockHash}</strong></span>
-                <span style={{ color: "#10b981", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
-                  <CheckCircle2 size={14} /> Decision Locked — Cannot Be Modified (One-Time Rule Enforced)
-                </span>
-              </div>
             </div>
-          ) : (
-            <div className="section-panel" style={{ padding: "24px", marginTop: "24px", border: "1px solid #cbd5e1" }}>
-              <h2 style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#0f172a" }}>Officer Procurement Decision</h2>
-              <p className="subtitle" style={{ marginTop: "-10px", marginBottom: "16px", fontSize: "0.85rem" }}>
-                Note: Once finalized, your decision will be locked immutably into the procurement audit trail.
-              </p>
-              
-              <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-                <button
-                  className={`secondary-action-btn ${selectedDecision === "qualify" ? "active-decision qualify" : ""}`}
-                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #10b981", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "qualify" ? "#dcfce7" : "#ffffff" }}
-                  onClick={() => setSelectedDecision("qualify")}
-                >
-                  <ShieldCheck size={18} /> QUALIFY BID
-                </button>
-                <button
-                  className={`secondary-action-btn ${selectedDecision === "clarify" ? "active-decision clarify" : ""}`}
-                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #f59e0b", color: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "clarify" ? "#fef3c7" : "#ffffff" }}
-                  onClick={() => setSelectedDecision("clarify")}
-                >
-                  <HelpCircle size={18} /> REQUEST CLARIFICATION
-                </button>
-                <button
-                  className={`secondary-action-btn ${selectedDecision === "disqualify" ? "active-decision disqualify" : ""}`}
-                  style={{ flexGrow: 1, height: "48px", borderRadius: "10px", fontWeight: "bold", border: "2px solid #ef4444", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: selectedDecision === "disqualify" ? "#fee2e2" : "#ffffff" }}
-                  onClick={() => setSelectedDecision("disqualify")}
-                >
-                  <XCircle size={18} /> DISQUALIFY BID
-                </button>
-              </div>
 
-              <div className="form-group" style={{ marginBottom: "16px" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Decision Justification & Remarks</label>
-                <textarea
-                  value={decisionRemarks}
-                  onChange={(e) => setDecisionRemarks(e.target.value)}
-                  placeholder="Enter final decision justification, compliance findings, or clarification details..."
-                  style={{ width: "100%", height: "90px", borderRadius: "8px", border: "1px solid #cbd5e1", padding: "12px", fontSize: "0.9rem", color: "#0f172a", fontFamily: "inherit" }}
-                />
-              </div>
+            {/* CARD 2: OFFICER DECISION */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", margin: "0 0 2px 0" }}>Officer Decision</h3>
+              <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "12px" }}>Select your decision</span>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
-                <input
-                  type="checkbox"
-                  id="review-check"
-                  checked={reviewedCheckbox}
-                  onChange={(e) => setReviewedCheckbox(e.target.checked)}
-                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
-                />
-                <label htmlFor="review-check" style={{ fontSize: "0.85rem", color: "#334155", cursor: "pointer", fontWeight: 500 }}>
-                  I confirm I have thoroughly reviewed the compliance matrix, AI findings, and submitted evidence documents.
-                </label>
-              </div>
+              {isDecisionLocked ? (
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px", fontSize: "0.78rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#15803d", fontWeight: 700, marginBottom: "4px" }}>
+                    <CheckCircle2 size={16} /> Decision Finalized: {lockedRecordInfo?.decision?.toUpperCase()}
+                  </div>
+                  <p style={{ margin: "0 0 4px 0", color: "#334155", fontSize: "0.72rem" }}>Locked by {lockedRecordInfo?.officer} on {lockedRecordInfo?.timestamp}</p>
+                  <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "#2563eb" }}>Hash: {lockedRecordInfo?.hash}</span>
+                </div>
+              ) : (
+                <>
+                  {/* RADIO OPTIONS */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
 
-              <button
-                className="primary-action-btn"
-                disabled={!reviewedCheckbox || !selectedDecision}
-                onClick={() => {
-                  const bidKey = currentBidId;
-                  const timestamp = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
-                  const randomHash = "0x" + Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase();
+                    <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="decision"
+                        value="qualified"
+                        checked={officerDecision === "qualified"}
+                        onChange={() => setOfficerDecision("qualified")}
+                        style={{ marginTop: "3px" }}
+                      />
+                      <div>
+                        <strong style={{ fontSize: "0.8rem", color: "#0f172a", display: "block" }}>Qualified</strong>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Bidder is compliant and eligible</span>
+                      </div>
+                    </label>
 
-                  const decisionRecord = {
-                    decision: selectedDecision,
-                    remarks: decisionRemarks || "Compliance evaluation verified & approved by Procurement Officer.",
-                    timestamp,
-                    officerId: user?.full_name || "Procurement Officer #OFF-9821",
-                    lockHash: randomHash
-                  };
+                    <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="decision"
+                        value="disqualified"
+                        checked={officerDecision === "disqualified"}
+                        onChange={() => setOfficerDecision("disqualified")}
+                        style={{ marginTop: "3px" }}
+                      />
+                      <div>
+                        <strong style={{ fontSize: "0.8rem", color: "#0f172a", display: "block" }}>Disqualified</strong>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Bidder is not compliant</span>
+                      </div>
+                    </label>
 
-                  setDecidedBids((prev) => ({
-                    ...prev,
-                    [bidKey]: decisionRecord
-                  }));
-                }}
-                style={{ height: "46px", padding: "0 24px", borderRadius: "8px", display: "inline-flex", alignItems: "center", gap: "8px" }}
-              >
-                <Lock size={16} /> Confirm & Lock Decision →
-              </button>
+                    <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="decision"
+                        value="seek_clarification"
+                        checked={officerDecision === "seek_clarification"}
+                        onChange={() => setOfficerDecision("seek_clarification")}
+                        style={{ marginTop: "3px" }}
+                      />
+                      <div>
+                        <strong style={{ fontSize: "0.8rem", color: "#0f172a", display: "block" }}>Seek Clarification</strong>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>More information required</span>
+                      </div>
+                    </label>
+
+                  </div>
+
+                  {/* PROCEED TO DECISION BUTTON - OPENS AUTHENTICATION MODAL */}
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    style={{
+                      width: "100%",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "#2563eb",
+                      color: "#ffffff",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      boxShadow: "0 2px 4px rgba(37,99,235,0.2)"
+                    }}
+                  >
+                    <Lock size={14} /> Proceed to Decision
+                  </button>
+
+                  <span style={{ fontSize: "0.68rem", color: "#94a3b8", textAlign: "center", display: "block", marginTop: "10px", lineHeight: 1.3 }}>
+                    You will be required to verify using your officer password.
+                  </span>
+                </>
+              )}
             </div>
-          )}
 
-          {/* Audit Information Footer */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
-            <div style={{ display: "flex", gap: "24px" }}>
-              <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                Officer: <strong>{user?.full_name || "Procurement Officer #OFF-9821"}</strong>
-              </span>
-              <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                Verification Status: <strong>{lockedRecord ? "FINALIZED & LOCKED" : "IN PROGRESS"}</strong>
-              </span>
-            </div>
-            <button className="secondary-action-btn" style={{ height: "30px", fontSize: "0.75rem", border: "none" }} onClick={() => setActiveSection("auditTrail")}>
-              View Audit Trail
-            </button>
           </div>
+
         </div>
+
+        {/* OFFICER DECISION PASSWORD AUTHENTICATION MODAL */}
+        {showAuthModal && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999
+          }}>
+            <div style={{
+              background: "#ffffff",
+              borderRadius: "14px",
+              padding: "24px 28px",
+              width: "100%",
+              maxWidth: "440px",
+              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1)",
+              border: "1px solid #cbd5e1"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Lock size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>Officer Identity Verification</h3>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Decision Lock Authentication</span>
+                </div>
+              </div>
+
+              <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "16px", fontSize: "0.78rem" }}>
+                <div>Selected Decision: <strong style={{ color: "#2563eb" }}>{officerDecision.toUpperCase()}</strong></div>
+                <div>Bidder: <strong style={{ color: "#0f172a" }}>{bidderName}</strong></div>
+              </div>
+
+              {authError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fee2e2", color: "#b91c1c", padding: "8px 12px", borderRadius: "6px", fontSize: "0.75rem", marginBottom: "14px" }}>
+                  {authError}
+                </div>
+              )}
+
+              <form onSubmit={handleAuthenticateAndSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>
+                    Procurement Officer Password <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={officerPassword}
+                    onChange={(e) => setOfficerPassword(e.target.value)}
+                    placeholder="Enter your officer account password"
+                    required
+                    style={{
+                      width: "100%",
+                      height: "38px",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e1",
+                      padding: "0 12px",
+                      fontSize: "0.85rem",
+                      color: "#0f172a"
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAuthModal(false);
+                      setAuthError("");
+                    }}
+                    style={{
+                      flex: 1,
+                      height: "38px",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e1",
+                      background: "#ffffff",
+                      color: "#475569",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      flex: 1.5,
+                      height: "38px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "#2563eb",
+                      color: "#ffffff",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px"
+                    }}
+                  >
+                    <Lock size={14} /> Confirm & Lock Decision
+                  </button>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
+
+  // Government Portal Integrations View for Procurement Admin
+  const IntegrationsView = () => {
+    const initialIntegrations = [
+      { id: 1, name: "Udyam / MSME", key: "udyam", category: "Statutory", status: "Connected", lastSync: "2 mins ago", requests: "42,850", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.udyamregistration.gov.in/v1/verify", icon: "🏢" },
+      { id: 2, name: "GSTN", key: "gstn", category: "Taxation", status: "Connected", lastSync: "5 mins ago", requests: "128,420", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://api.gst.gov.in/taxpayer/v1/search", icon: "🏛️" },
+      { id: 3, name: "PAN / Income Tax", key: "pan", category: "Taxation", status: "Connected", lastSync: "12 mins ago", requests: "96,110", apiStatus: "Healthy (100% Uptime)", endpoint: "https://incometaxindia.gov.in/api/v2/pan-val", icon: "💳" },
+      { id: 4, name: "MCA21", key: "mca21", category: "Corporate", status: "Connected", lastSync: "18 mins ago", requests: "34,500", apiStatus: "Healthy (99.7% Uptime)", endpoint: "https://mca.gov.in/mcafoportal/api/company", icon: "📜" },
+      { id: 5, name: "Startup India", key: "startup_india", category: "Incentives", status: "Connected", lastSync: "25 mins ago", requests: "18,290", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.startupindia.gov.in/v1/dpiit-val", icon: "🚀" },
+      { id: 6, name: "NSIC", key: "nsic", category: "MSME", status: "Connected", lastSync: "32 mins ago", requests: "12,400", apiStatus: "Healthy (99.5% Uptime)", endpoint: "https://nsic.co.in/api/v1/single-point-reg", icon: "🏭" },
+      { id: 7, name: "EPFO", key: "epfo", category: "Labor", status: "Needs Attention", lastSync: "45 mins ago", requests: "52,100", apiStatus: "Latency Warning (450ms)", endpoint: "https://unifiedportal-epfo.gov.in/api/v1/est-search", icon: "👥" },
+      { id: 8, name: "ESIC", key: "esic", category: "Labor", status: "Disconnected", lastSync: "2 days ago", requests: "8,920", apiStatus: "Endpoint Timeout (504 Error)", endpoint: "https://esic.gov.in/api/v1/employer-status", icon: "🏥" },
+      { id: 9, name: "DigiLocker", key: "digilocker", category: "Identity", status: "Connected", lastSync: "8 mins ago", requests: "88,640", apiStatus: "Healthy (100% Uptime)", endpoint: "https://api.digilocker.gov.in/v2/oauth", icon: "🔐" },
+      { id: 10, name: "Make in India", key: "make_in_india", category: "Procurement", status: "Connected", lastSync: "14 mins ago", requests: "29,780", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://makeinindia.gov.in/api/v1/class1-cert", icon: "🇮🇳" },
+      { id: 11, name: "BIS / DPIIT", key: "bis_dpiit", category: "Quality & Standards", status: "Needs Attention", lastSync: "1 hour ago", requests: "15,310", apiStatus: "Certificate Renewal Due", endpoint: "https://bis.gov.in/api/v1/crs-search", icon: "🏅" },
+      { id: 12, name: "GeM", key: "gem", category: "Procurement Portal", status: "Connected", lastSync: "Just now", requests: "210,500", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.gem.gov.in/v3/bid-verification", icon: "🛒" }
+    ];
+
+    const [integrationsList, setIntegrationsList] = useState(initialIntegrations);
+    const [testingId, setTestingId] = useState(null);
+    const [configModalItem, setConfigModalItem] = useState(null);
+    const [configEndpoint, setConfigEndpoint] = useState("");
+    const [configTimeout, setConfigTimeout] = useState("3000ms");
+
+    const connectedCount = integrationsList.filter((i) => i.status === "Connected").length;
+    const attentionCount = integrationsList.filter((i) => i.status === "Needs Attention").length;
+    const disconnectedCount = integrationsList.filter((i) => i.status === "Disconnected").length;
+    const totalCount = integrationsList.length;
+
+    const handleTestConnection = (id) => {
+      setTestingId(id);
+      setTimeout(() => {
+        setIntegrationsList((prev) =>
+          prev.map((item) => {
+            if (item.id === id) {
+              return {
+                ...item,
+                status: "Connected",
+                lastSync: "Just now",
+                apiStatus: "Healthy (18ms Latency)"
+              };
+            }
+            return item;
+          })
+        );
+        setTestingId(null);
+      }, 800);
+    };
+
+    const handleSaveConfig = (e) => {
+      e.preventDefault();
+      if (!configModalItem) return;
+      setIntegrationsList((prev) =>
+        prev.map((item) => {
+          if (item.id === configModalItem.id) {
+            return {
+              ...item,
+              endpoint: configEndpoint
+            };
+          }
+          return item;
+        })
       );
-    }
+      setConfigModalItem(null);
+      alert(`Integration configuration saved for ${configModalItem.name}`);
+    };
+
+    const activities = [
+      { id: "REQ-9012", timestamp: "12:52:10 PM", portal: "GSTN", query: "POST /taxpayer/v1/search (GSTIN: 27AAPCS1234M1Z5)", status: "200 OK", latency: "18ms", result: "Verified Active" },
+      { id: "REQ-9011", timestamp: "12:51:45 PM", portal: "Udyam / MSME", query: "GET /v1/verify?id=UDYAM-MH-12-0012345", status: "200 OK", latency: "24ms", result: "Verified Micro" },
+      { id: "REQ-9010", timestamp: "12:50:02 PM", portal: "PAN / Income Tax", query: "POST /v2/pan-val (PAN: AAPCS1234M)", status: "200 OK", latency: "31ms", result: "PAN Active Match" },
+      { id: "REQ-9009", timestamp: "12:48:15 PM", portal: "EPFO", query: "GET /api/v1/est-search?reg=GJ/AHM/1234567", status: "200 OK", latency: "420ms", result: "Verification Delayed" },
+      { id: "REQ-9008", timestamp: "12:45:00 PM", portal: "ESIC", query: "POST /api/v1/employer-status", status: "504 Timeout", latency: "5000ms", result: "Retry Scheduled" },
+      { id: "REQ-9007", timestamp: "12:40:33 PM", portal: "DigiLocker", query: "GET /v2/oauth/doc-hash?id=EMD-98765", status: "200 OK", latency: "12ms", result: "Token Confirmed" },
+      { id: "REQ-9006", timestamp: "12:35:19 PM", portal: "Make in India", query: "POST /v1/class1-cert/validate", status: "200 OK", latency: "28ms", result: "Class 1 Valid" }
+    ];
 
     return (
-      <div className="verification-dashboard-content">
-        {/* Bid Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div>
-            <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px 0" }}>Bid Verification</h1>
-            <p className="subtitle" style={{ margin: "0", fontSize: "0.95rem" }}>
-              Tender: <strong style={{ color: "#0f172a" }}>GEM-CPCL-2026-001 — Supply of Industrial Pumps</strong>
-            </p>
-            <p className="subtitle" style={{ margin: "4px 0 0 0", fontSize: "0.95rem" }}>
-              Bidder: <strong style={{ color: "#0f172a" }}>ABC Engineering Pvt. Ltd.</strong>
-            </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px", padding: "4px" }}>
+
+        {/* PROTOTYPE SANDBOX BANNER */}
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#f8fafc", padding: "14px 20px", borderRadius: "12px", border: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "1.4rem" }}>🎓</span>
+            <div>
+              <strong style={{ fontSize: "0.88rem", color: "#38bdf8" }}>Demonstration Mode Notice</strong>
+              <p style={{ margin: 0, fontSize: "0.76rem", color: "#cbd5e1" }}>
+                For academic/prototype evaluation purposes, simulated mock integration data and sandbox API gateways are active across all 12 government portals.
+              </p>
+            </div>
           </div>
-          <span className="status-badge review" style={{ fontSize: "0.85rem", padding: "8px 16px", borderRadius: "10px" }}>
-            Under Verification
+          <span style={{ fontSize: "0.68rem", fontWeight: 800, background: "#0284c7", color: "#ffffff", padding: "4px 10px", borderRadius: "20px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            SANDBOX ACTIVE
           </span>
         </div>
 
-        {/* Top Summary Cards */}
-        <div className="summary-cards-row" style={{ marginBottom: "24px" }}>
-          <div className="summary-card">
-            <span className="card-label">Compliance Score</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#10b981" }}>92 / 100</h2>
-          </div>
-          <div className="summary-card">
-            <span className="card-label">Risk Level</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#3b82f6" }}>LOW</h2>
-          </div>
-          <div className="summary-card">
-            <span className="card-label">Documents</span>
-            <h2 className="card-value" style={{ marginTop: "10px" }}>10 / 10</h2>
-          </div>
-          <div className="summary-card">
-            <span className="card-label" style={{ color: "#ef4444" }}>Issues Detected</span>
-            <h2 className="card-value" style={{ marginTop: "10px", color: "#ef4444" }}>2</h2>
-          </div>
+        {/* MAIN HEADER */}
+        <div>
+          <h1 style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.5px" }}>
+            GOVERNMENT PORTAL INTEGRATIONS
+          </h1>
+          <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "4px 0 0 0" }}>
+            Manage connections with government portals and verification data sources.
+          </p>
         </div>
 
-        {/* Verification Progress indicator */}
-        <div className="tender-steps-indicator" style={{ marginBottom: "24px" }}>
-          <div className="step active" style={{ color: "#10b981" }}>Document Processing ✓</div>
-          <div className="step-line active" style={{ background: "#10b981" }}></div>
-          <div className="step active" style={{ color: "#10b981" }}>AI Extraction ✓</div>
-          <div className="step-line active" style={{ background: "#10b981" }}></div>
-          <div className="step active" style={{ color: "#10b981" }}>Cross Verification ✓</div>
-          <div className="step-line active" style={{ background: "#10b981" }}></div>
-          <div className="step active" style={{ color: "#10b981" }}>Government Verification ✓</div>
-          <div className="step-line active"></div>
-          <div className="step active" style={{ color: "#4f46e5" }}>Compliance Engine ⏳</div>
-        </div>
+        {/* TOP SUMMARY KPI ROW */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
 
-        {/* Main Split Layout */}
-        <div className="dashboard-main-split">
-          {/* Left Pane - Main Compliance Matrix */}
-          <div className="split-left-col" style={{ flexGrow: 1.5 }}>
-            <div className="section-panel" style={{ padding: "20px", overflow: "hidden" }}>
-              <h2 style={{ fontSize: "1.1rem", marginBottom: "16px" }}>Main Compliance Matrix</h2>
-              <table style={{ margin: "0" }}>
-                <thead>
-                  <tr>
-                    <th>Requirement</th>
-                    <th>Status</th>
-                    <th>Source</th>
-                    <th>Confidence</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>PAN</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>PAN.pdf</td>
-                    <td><strong>99%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>GST</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>GST.pdf + GST API</td>
-                    <td><strong>98%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Udyam</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>Udyam.pdf</td>
-                    <td><strong>97%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Income Tax</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>ITR.pdf</td>
-                    <td><strong>94%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>OEM Authorization</strong></td>
-                    <td><span style={{ color: "#f59e0b", fontWeight: 600 }}>⚠ Review</span></td>
-                    <td>OEM.pdf</td>
-                    <td><strong style={{ color: "#f59e0b" }}>82%</strong></td>
-                    <td>
-                      <button className="primary-action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }} onClick={() => setVerificationStep("decision")}>
-                        Review
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Make in India</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>Declaration.pdf</td>
-                    <td><strong>96%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>EPFO</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>EPFO data</td>
-                    <td><strong>95%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>ESIC</strong></td>
-                    <td><span style={{ color: "#10b981", fontWeight: 600 }}>✓ Verified</span></td>
-                    <td>ESIC data</td>
-                    <td><strong>93%</strong></td>
-                    <td>
-                      <button className="action-btn" style={{ height: "28px", padding: "0 10px", fontSize: "0.75rem", width: "auto" }}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div style={{ background: "#ffffff", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#15803d", textTransform: "uppercase" }}>Connected</span>
+              <span style={{ fontSize: "1rem" }}>🟢</span>
             </div>
+            <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#15803d" }}>{connectedCount}</strong>
+            <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Active API Sync</span>
           </div>
 
-          {/* Right Pane - AI Findings and Document Evidence Preview */}
-          <div className="split-right-col" style={{ flexGrow: 1 }}>
-            {/* AI Findings Card */}
-            <div className="ai-assistant-card" style={{ background: "#ffffff", color: "#0f172a", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-              <div className="ai-card-header">
-                <h3 style={{ color: "#0f172a" }}>AI Findings <span className="sparkle-icon">✨</span></h3>
-              </div>
-              <ul className="ai-checks-list" style={{ marginTop: "16px", gap: "10px" }}>
-                <li className="check-item warn" style={{ color: "#f59e0b" }}>
-                  <AlertTriangle size={16} />
-                  <span>OEM authorization contains a possible name mismatch.</span>
-                </li>
-                <li className="check-item warn" style={{ color: "#f59e0b" }}>
-                  <AlertTriangle size={16} />
-                  <span>Income-tax document date requires officer review.</span>
-                </li>
-                <li className="check-item checked" style={{ color: "#10b981" }}>
-                  <CheckCircle2 size={16} />
-                  <span>All other mandatory requirements appear compliant.</span>
-                </li>
-              </ul>
-              <button className="assistant-action-btn" style={{ background: "#4f46e5", color: "#ffffff" }} onClick={() => setVerificationStep("decision")}>
-                Review Issues
-              </button>
+          <div style={{ background: "#ffffff", border: "1px solid #fef08a", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#b45309", textTransform: "uppercase" }}>Needs Attention</span>
+              <span style={{ fontSize: "1rem" }}>🟡</span>
             </div>
+            <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b45309" }}>{attentionCount}</strong>
+            <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Latency / Cert Renewal</span>
+          </div>
 
-            {/* Evidence Preview Card */}
-            <div className="recent-activity-card" style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                <h3 style={{ fontSize: "1rem", margin: 0, fontWeight: 800 }}>OEM_Authorization.pdf</h3>
-                <span className="status-badge review" style={{ fontSize: "0.75rem" }}>Preview</span>
-              </div>
-              
-              {/* Fake PDF container rendering with name mismatches highlighted */}
-              <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "16px", fontSize: "0.8rem", fontFamily: "var(--mono)", color: "#334155", textAlign: "left", lineHeight: "1.6" }}>
-                <div style={{ borderBottom: "1px solid #cbd5e1", paddingBottom: "6px", marginBottom: "8px", color: "#64748b", fontWeight: "bold" }}>
-                  MANUFACTURER CERTIFICATION MATRIX
+          <div style={{ background: "#ffffff", border: "1px solid #fca5a5", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#b91c1c", textTransform: "uppercase" }}>Disconnected</span>
+              <span style={{ fontSize: "1rem" }}>🔴</span>
+            </div>
+            <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b91c1c" }}>{disconnectedCount}</strong>
+            <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Offline / Endpoint 504</span>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#1d4ed8", textTransform: "uppercase" }}>Total Integrations</span>
+              <span style={{ fontSize: "1rem" }}>🏛️</span>
+            </div>
+            <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#1e40af" }}>{totalCount}</strong>
+            <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Registry Data Sources</span>
+          </div>
+
+        </div>
+
+        {/* 12 INTEGRATION CARDS GRID */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px" }}>
+          {integrationsList.map((portal) => {
+            const isConnected = portal.status === "Connected";
+            const isAttention = portal.status === "Needs Attention";
+
+            return (
+              <div
+                key={portal.id}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  padding: "18px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <div>
+                  {/* Card Header: Icon, Name & Status Badge */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "1.6rem" }}>{portal.icon}</span>
+                      <div>
+                        <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>{portal.name}</h3>
+                        <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Category: {portal.category}</span>
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 800,
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        background: isConnected ? "#dcfce7" : isAttention ? "#fef9c3" : "#fee2e2",
+                        color: isConnected ? "#15803d" : isAttention ? "#a16207" : "#b91c1c"
+                      }}
+                    >
+                      {isConnected ? "🟢 Connected" : isAttention ? "🟡 Needs Attention" : "🔴 Disconnected"}
+                    </span>
+                  </div>
+
+                  {/* Card Meta Stats Table */}
+                  <div style={{ background: "#f8fafc", borderRadius: "8px", padding: "10px 12px", display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px", border: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem" }}>
+                      <span style={{ color: "#64748b" }}>Last Synchronization</span>
+                      <strong style={{ color: "#0f172a" }}>{portal.lastSync}</strong>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem" }}>
+                      <span style={{ color: "#64748b" }}>Verification Requests</span>
+                      <strong style={{ color: "#0f172a" }}>{portal.requests}</strong>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem" }}>
+                      <span style={{ color: "#64748b" }}>API Status</span>
+                      <strong style={{ color: isConnected ? "#15803d" : isAttention ? "#b45309" : "#b91c1c" }}>{portal.apiStatus}</strong>
+                    </div>
+                  </div>
                 </div>
-                <p>Date: 12 July 2026</p>
-                <p>We, <strong>Industrial Pumps Ltd (OEM)</strong> hereby authorize:</p>
-                <p style={{ background: "#fef3c7", borderLeft: "4px solid #f59e0b", padding: "6px", fontWeight: "bold", color: "#b45309" }}>
-                  ABC Engineering Corp
-                </p>
-                <p>to bid, negotiate, and conclude contracts for Tender ID GEM-CPCL-2026-001.</p>
-                <div style={{ marginTop: "12px", borderTop: "1px dashed #cbd5e1", paddingTop: "6px", color: "#f43f5e", fontSize: "0.75rem", fontWeight: "bold" }}>
-                  * OCR mismatch warning: Extracted name 'ABC Engineering Corp' does not align with Registry registered legal name 'ABC Engineering Pvt. Ltd.'.
+
+                {/* Card Action Buttons */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => {
+                      setConfigModalItem(portal);
+                      setConfigEndpoint(portal.endpoint);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "8px 10px",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e1",
+                      background: "#ffffff",
+                      color: "#334155",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    ⚙ Configure
+                  </button>
+
+                  <button
+                    onClick={() => handleTestConnection(portal.id)}
+                    disabled={testingId === portal.id}
+                    style={{
+                      flex: 1.2,
+                      padding: "8px 10px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "#2563eb",
+                      color: "#ffffff",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "4px",
+                      boxShadow: "0 1px 3px rgba(37,99,235,0.2)"
+                    }}
+                  >
+                    {testingId === portal.id ? "Testing..." : "⚡ Test Connection"}
+                  </button>
                 </div>
               </div>
-            </div>
+            );
+          })}
+        </div>
+
+        {/* INTEGRATION ACTIVITY SECTION */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+          <div style={{ marginBottom: "14px" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>INTEGRATION ACTIVITY</h2>
+            <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "2px 0 0 0" }}>
+              Real-time stream of government registry API queries and response logs.
+            </p>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
+              <thead>
+                <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", textAlign: "left" }}>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Request ID</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Timestamp</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Government Portal</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>API Query / Endpoint</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Status</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Latency</th>
+                  <th style={{ padding: "10px 14px", color: "#475569" }}>Verification Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((act) => (
+                  <tr key={act.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "10px 14px", fontFamily: "monospace", fontWeight: 700, color: "#0f172a" }}>{act.id}</td>
+                    <td style={{ padding: "10px 14px", color: "#64748b" }}>{act.timestamp}</td>
+                    <td style={{ padding: "10px 14px", fontWeight: 700, color: "#334155" }}>{act.portal}</td>
+                    <td style={{ padding: "10px 14px", fontFamily: "monospace", color: "#2563eb" }}>{act.query}</td>
+                    <td style={{ padding: "10px 14px" }}>
+                      <span
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: "8px",
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          background: act.status.includes("200") ? "#dcfce7" : "#fee2e2",
+                          color: act.status.includes("200") ? "#15803d" : "#b91c1c"
+                        }}
+                      >
+                        {act.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px 14px", color: "#64748b" }}>{act.latency}</td>
+                    <td style={{ padding: "10px 14px", fontWeight: 600, color: "#0f172a" }}>{act.result}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Bottom Actions */}
-        <div className="bottom-actions-row">
-          <button className="secondary-action-btn" style={{ borderColor: "#ef4444", color: "#ef4444" }} onClick={() => alert("Clarification request compiled. Email queued to bidder admin.")}>
-            Request Clarification
-          </button>
-          <button className="primary-action-btn" onClick={() => setVerificationStep("decision")}>
-            Continue Review
-          </button>
-        </div>
+        {/* CONFIGURATION MODAL */}
+        {configModalItem && (
+          <div className="drawer-overlay" onClick={() => setConfigModalItem(null)}>
+            <div className="audit-drawer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
+              <div className="drawer-header" style={{ background: "#0f172a", color: "#ffffff", padding: "16px 20px" }}>
+                <div className="drawer-title">
+                  <h2 style={{ fontSize: "1.1rem", margin: 0, color: "#ffffff" }}>{configModalItem.name} Integration Gateway</h2>
+                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Configure Sandbox/Production API parameters</span>
+                </div>
+                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setConfigModalItem(null)}>✕</button>
+              </div>
+
+              <form onSubmit={handleSaveConfig} className="drawer-content" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", display: "block", marginBottom: "4px" }}>
+                    API Endpoint URL
+                  </label>
+                  <input
+                    type="text"
+                    value={configEndpoint}
+                    onChange={(e) => setConfigEndpoint(e.target.value)}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem", fontFamily: "monospace" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", display: "block", marginBottom: "4px" }}>
+                    Environment
+                  </label>
+                  <select style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem" }}>
+                    <option value="sandbox">Sandbox / Mock Gateway (College Prototype)</option>
+                    <option value="production">Production Gateway (OAuth2 / SSL Mutual Auth)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", display: "block", marginBottom: "4px" }}>
+                    API Request Timeout
+                  </label>
+                  <input
+                    type="text"
+                    value={configTimeout}
+                    onChange={(e) => setConfigTimeout(e.target.value)}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setConfigModalItem(null)}
+                    style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 600, fontSize: "0.82rem", cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ flex: 1.5, padding: "8px", borderRadius: "8px", border: "none", background: "#2563eb", color: "#ffffff", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer" }}
+                  >
+                    Save Configuration
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     );
   };
 
-  const ReportsView = () => {
-    return (
-      <div className="section-panel" style={{ padding: "30px" }}>
-        <h2>AI Insights & Platform Reports</h2>
-        <p className="subtitle" style={{ marginBottom: "20px" }}>
-          Statistical reports regarding automated bid verification parameters, confidence ratings, and anomaly detections.
-        </p>
-        <div className="stats-grid" style={{ marginBottom: "30px" }}>
-          <div className="stat-card purple">
-            <p>AUTOMATIC VERIFIED</p>
-            <h2>86%</h2>
-            <span className="stat-icon"><CheckCircle2 size={20} /></span>
-          </div>
-          <div className="stat-card green">
-            <p>CONFIDENCE INDEX</p>
-            <h2>91%</h2>
-            <span className="stat-icon"><TrendingUp size={20} /></span>
-          </div>
-          <div className="stat-card orange">
-            <p>TOTAL ANOMALIES</p>
-            <h2>12</h2>
-            <span className="stat-icon"><AlertTriangle size={20} /></span>
-          </div>
-          <div className="stat-card blue">
-            <p>MANUAL AUDIT REQ</p>
-            <h2>07</h2>
-            <span className="stat-icon"><Sliders size={20} /></span>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const AuditTrailView = () => {
     const allLogs = bids.flatMap((b) => b.logs.map((log) => ({ bidId: b.id, log })));
@@ -3273,7 +4165,7 @@ function Home({ role, user, onLogout }) {
           <div className="split-left-col">
             <div className="section-panel" style={{ padding: "30px" }}>
               <h2 style={{ marginBottom: "20px" }}>Basic Tender Information</h2>
-              
+
               <div className="form-grid">
                 <div className="form-group">
                   <label>Tender ID</label>
@@ -3316,7 +4208,7 @@ function Home({ role, user, onLogout }) {
               <p className="ai-message" style={{ margin: "10px 0 20px 0", fontSize: "0.85rem", color: "#c7d2fe" }}>
                 "Upload the tender document and AI will automatically identify eligibility and compliance requirements."
               </p>
-              
+
               {/* Dropzone Upload */}
               <div className="tender-dropzone">
                 <CloudUpload size={32} style={{ color: "#c7d2fe", marginBottom: "10px" }} />
@@ -3340,6 +4232,554 @@ function Home({ role, user, onLogout }) {
             Next: Requirements →
           </button>
         </div>
+      </div>
+    );
+  };
+
+  // Reports & Analysis View for Procurement Admin
+  const ReportsView = () => {
+    const [selectedDateRange, setSelectedDateRange] = useState("01 May 2026 – 31 May 2026");
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleExportPDF = () => {
+      alert("Generating Official GeM Governance PDF Report for period: " + selectedDateRange + "\n\nDownloading 'GeM_Bid_Compliance_Report_May2026.pdf'...");
+    };
+
+    const handleExportExcel = () => {
+      alert("Exporting Data Matrix to Excel (.xlsx)...\n\nDownloading 'GeM_Compliance_Data_May2026.xlsx' (1,248 Records).");
+    };
+
+    const handleGenerateReport = () => {
+      setIsGenerating(true);
+      setTimeout(() => {
+        setIsGenerating(false);
+        alert("Report refreshed successfully! 1,248 bids synchronized with live database records.");
+      }, 1000);
+    };
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", background: "#f8fafc", padding: "4px" }}>
+
+        {/* BREADCRUMB & HEADER TOP BAR */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", color: "#64748b", marginBottom: "8px" }}>
+            <span onClick={() => setActiveSection("dashboard")} style={{ cursor: "pointer", color: "#2563eb", fontWeight: 600 }}>
+              Dashboard
+            </span>
+            <span>›</span>
+            <span style={{ color: "#64748b", fontWeight: 600 }}>Governance & Audit</span>
+            <span>›</span>
+            <strong style={{ color: "#0f172a" }}>Reports & Analysis</strong>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+            <div>
+              <h1 style={{ fontSize: "1.75rem", fontWeight: 900, color: "#0f172a", margin: "0 0 4px 0", letterSpacing: "-0.5px" }}>
+                REPORT & ANALYSIS
+              </h1>
+              <p style={{ fontSize: "0.88rem", color: "#64748b", margin: 0 }}>
+                Comprehensive overview of bidder compliance, verification performance and AI insights.
+              </p>
+            </div>
+
+            {/* ACTION BUTTONS & DATE FILTER CONTAINER */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+
+              {/* DATE RANGE FILTER */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "6px 12px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                <Calendar size={15} style={{ color: "#2563eb" }} />
+                <select
+                  value={selectedDateRange}
+                  onChange={(e) => setSelectedDateRange(e.target.value)}
+                  style={{ border: "none", background: "none", fontSize: "0.82rem", fontWeight: 700, color: "#0f172a", cursor: "pointer", outline: "none" }}
+                >
+                  <option value="01 May 2026 – 31 May 2026">01 May 2026 – 31 May 2026</option>
+                  <option value="01 Apr 2026 – 30 Apr 2026">01 Apr 2026 – 30 Apr 2026</option>
+                  <option value="01 Jan 2026 – 31 Mar 2026">Q1 2026 (Jan – Mar)</option>
+                  <option value="Year-to-Date 2026">Year-to-Date (2026)</option>
+                </select>
+              </div>
+
+              {/* EXPORT PDF BUTTON */}
+              <button
+                onClick={handleExportPDF}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  padding: "8px 14px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "#1e293b",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                }}
+              >
+                <Download size={14} style={{ color: "#dc2626" }} /> Export PDF
+              </button>
+
+              {/* EXPORT EXCEL BUTTON */}
+              <button
+                onClick={handleExportExcel}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  padding: "8px 14px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "#1e293b",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                }}
+              >
+                <Download size={14} style={{ color: "#16a34a" }} /> Export Excel
+              </button>
+
+              {/* GENERATE REPORT BUTTON */}
+              <button
+                onClick={handleGenerateReport}
+                disabled={isGenerating}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "#2563eb",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(37,99,235,0.2)"
+                }}
+              >
+                <Sparkles size={14} className={isGenerating ? "animate-spin" : ""} />
+                {isGenerating ? "Generating..." : "Generate Report"}
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* 5 KPI CARDS ROW */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
+
+          {/* Card 1: Total Bids Analyzed */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748b" }}>Total Bids Analyzed</span>
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FileText size={16} />
+              </div>
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>1,248</div>
+            <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700, display: "flex", alignItems: "center", gap: "3px" }}>
+              <TrendingUp size={12} /> +14.2% vs previous period
+            </span>
+          </div>
+
+          {/* Card 2: Average Compliance Score */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748b" }}>Average Compliance Score</span>
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#f0fdf4", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Award size={16} />
+              </div>
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#15803d", lineHeight: 1.1 }}>92.4%</div>
+            <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700, display: "flex", alignItems: "center", gap: "3px" }}>
+              <TrendingUp size={12} /> ↑ 4.8% increase this month
+            </span>
+          </div>
+
+          {/* Card 3: Issues Detected */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748b" }}>Issues Detected</span>
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#fff7ed", color: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AlertTriangle size={16} />
+              </div>
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#c2410c", lineHeight: 1.1 }}>156</div>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>
+              12.5% of total bids flagged for review
+            </span>
+          </div>
+
+          {/* Card 4: Verification Time Saved */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748b" }}>Verification Time Saved</span>
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#faf5ff", color: "#9333ea", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Clock size={16} />
+              </div>
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#7e22ce", lineHeight: 1.1 }}>34.7 hrs</div>
+            <span style={{ fontSize: "0.72rem", color: "#7e22ce", fontWeight: 700 }}>
+              ⚡ 3.2 min avg AI processing speed
+            </span>
+          </div>
+
+          {/* Card 5: Approved Bids */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", flexDirection: "column", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748b" }}>Approved Bids</span>
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#f0fdf4", color: "#15803d", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <CheckCircle2 size={16} />
+              </div>
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>1,102</div>
+            <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700 }}>
+              88.3% final approval rating
+            </span>
+          </div>
+
+        </div>
+
+        {/* 5 CHARTS GRID SECTION */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+
+          {/* Chart 1: Compliance Score Over Time (Line / Area Chart) */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <div>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>1. Compliance Score Over Time</h3>
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Weekly progression during May 2026</span>
+              </div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#16a34a", background: "#f0fdf4", padding: "3px 8px", borderRadius: "6px" }}>
+                Current: 92.4%
+              </span>
+            </div>
+
+            {/* SVG LINE & AREA CHART */}
+            <div style={{ height: "190px", width: "100%", position: "relative" }}>
+              <svg width="100%" height="100%" viewBox="0 0 500 170" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+                {/* Grid Lines */}
+                <line x1="0" y1="20" x2="500" y2="20" stroke="#f1f5f9" strokeDasharray="4 4" />
+                <line x1="0" y1="60" x2="500" y2="60" stroke="#f1f5f9" strokeDasharray="4 4" />
+                <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" strokeDasharray="4 4" />
+                <line x1="0" y1="140" x2="500" y2="140" stroke="#f1f5f9" strokeDasharray="4 4" />
+
+                {/* Area Fill */}
+                <path d="M 0,110 L 100,90 L 200,65 L 300,50 L 400,40 L 500,28 L 500,160 L 0,160 Z" fill="url(#scoreGrad)" />
+
+                {/* Stroke Line */}
+                <path d="M 0,110 L 100,90 L 200,65 L 300,50 L 400,40 L 500,28" fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+
+                {/* Data Points */}
+                <circle cx="0" cy="110" r="4" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="100" cy="90" r="4" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="200" cy="65" r="4" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="300" cy="50" r="4" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="400" cy="40" r="4" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="500" cy="28" r="5" fill="#16a34a" stroke="#ffffff" strokeWidth="2" />
+              </svg>
+            </div>
+
+            {/* X-AXIS DATES */}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#64748b", marginTop: "4px", borderTop: "1px solid #f1f5f9", paddingTop: "6px" }}>
+              <span>May 01 (87.2%)</span>
+              <span>May 07 (88.6%)</span>
+              <span>May 14 (90.1%)</span>
+              <span>May 21 (91.3%)</span>
+              <span>May 28 (92.0%)</span>
+              <strong style={{ color: "#16a34a" }}>May 31 (92.4%)</strong>
+            </div>
+          </div>
+
+          {/* Chart 2: Compliant vs Non-Compliant Bids (Donut Progress Chart) */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <div>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>2. Compliant vs Non-Compliant Bids</h3>
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Ratio of bids meeting statutory rules</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", height: "190px" }}>
+
+              {/* DONUT SVG */}
+              <div style={{ position: "relative", width: "140px", height: "140px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="140" height="140" viewBox="0 0 36 36">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#fee2e2" strokeWidth="4" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="4" strokeDasharray="88.3, 100" />
+                </svg>
+                <div style={{ position: "absolute", textAlign: "center" }}>
+                  <span style={{ fontSize: "1.3rem", fontWeight: 900, color: "#0f172a", display: "block", lineHeight: 1 }}>88.3%</span>
+                  <span style={{ fontSize: "0.65rem", color: "#16a34a", fontWeight: 700 }}>Compliant</span>
+                </div>
+              </div>
+
+              {/* LEGEND BADGES */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "0.8rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf4", padding: "8px 12px", borderRadius: "8px", border: "1px solid #dcfce7" }}>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#16a34a" }}></div>
+                  <div>
+                    <strong style={{ color: "#0f172a", display: "block" }}>1,102 Compliant Bids</strong>
+                    <span style={{ fontSize: "0.7rem", color: "#16a34a" }}>88.3% Total Rate</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fef2f2", padding: "8px 12px", borderRadius: "8px", border: "1px solid #fee2e2" }}>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#dc2626" }}></div>
+                  <div>
+                    <strong style={{ color: "#0f172a", display: "block" }}>146 Non-Compliant Bids</strong>
+                    <span style={{ fontSize: "0.7rem", color: "#dc2626" }}>11.7% Flagged Rate</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Chart 3: Issues by Category (Bar Breakdown) */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <div>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>3. Issues by Category</h3>
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Distribution across 156 total flagged issues</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "0.78rem" }}>
+
+              {/* Category 1: Statutory */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontWeight: 700, color: "#334155" }}>Statutory & Tax Verification (GSTN, PAN, EPFO)</span>
+                  <strong style={{ color: "#2563eb" }}>58 Issues (37.2%)</strong>
+                </div>
+                <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
+                  <div style={{ width: "37.2%", height: "100%", background: "#2563eb", borderRadius: "4px" }}></div>
+                </div>
+              </div>
+
+              {/* Category 2: Financial */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontWeight: 700, color: "#334155" }}>Financial Solvency & Turnover Certificates</span>
+                  <strong style={{ color: "#ea580c" }}>42 Issues (26.9%)</strong>
+                </div>
+                <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
+                  <div style={{ width: "26.9%", height: "100%", background: "#ea580c", borderRadius: "4px" }}></div>
+                </div>
+              </div>
+
+              {/* Category 3: Technical */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontWeight: 700, color: "#334155" }}>Technical OEM Authorization & Specs</span>
+                  <strong style={{ color: "#9333ea" }}>34 Issues (21.8%)</strong>
+                </div>
+                <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
+                  <div style={{ width: "21.8%", height: "100%", background: "#9333ea", borderRadius: "4px" }}></div>
+                </div>
+              </div>
+
+              {/* Category 4: Document */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontWeight: 700, color: "#334155" }}>Document Format & Expiry Date Mismatches</span>
+                  <strong style={{ color: "#dc2626" }}>22 Issues (14.1%)</strong>
+                </div>
+                <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
+                  <div style={{ width: "14.1%", height: "100%", background: "#dc2626", borderRadius: "4px" }}></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Chart 4: Risk Distribution & Chart 5: Verification Status */}
+          <div style={{ display: "grid", gridTemplateRows: "1fr 1fr", gap: "16px" }}>
+
+            {/* Chart 4: Risk Distribution */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#0f172a", margin: "0 0 10px 0" }}>4. Risk Distribution</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", textAlign: "center" }}>
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 6px", borderRadius: "8px" }}>
+                  <span style={{ fontSize: "0.68rem", color: "#16a34a", fontWeight: 700, display: "block" }}>LOW RISK</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#15803d" }}>898</strong>
+                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>72.0%</span>
+                </div>
+                <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", padding: "10px 6px", borderRadius: "8px" }}>
+                  <span style={{ fontSize: "0.68rem", color: "#ea580c", fontWeight: 700, display: "block" }}>MEDIUM</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#c2410c" }}>250</strong>
+                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>20.0%</span>
+                </div>
+                <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", padding: "10px 6px", borderRadius: "8px" }}>
+                  <span style={{ fontSize: "0.68rem", color: "#dc2626", fontWeight: 700, display: "block" }}>HIGH RISK</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#b91c1c" }}>75</strong>
+                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>6.0%</span>
+                </div>
+                <div style={{ background: "#450a0a", border: "1px solid #7f1d1d", padding: "10px 6px", borderRadius: "8px", color: "#ffffff" }}>
+                  <span style={{ fontSize: "0.68rem", color: "#fca5a5", fontWeight: 700, display: "block" }}>CRITICAL</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#ffffff" }}>25</strong>
+                  <span style={{ fontSize: "0.65rem", color: "#fecaca", display: "block" }}>2.0%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Chart 5: Verification Status */}
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px" }}>
+              <h3 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#0f172a", margin: "0 0 10px 0" }}>5. Verification Status</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.75rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>● Approved & Qualified</span>
+                  <strong style={{ color: "#16a34a" }}>1,102 (88.3%)</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>● Pending Officer Review</span>
+                  <strong style={{ color: "#2563eb" }}>84 (6.7%)</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>● Clarification Requested</span>
+                  <strong style={{ color: "#ea580c" }}>42 (3.4%)</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>● Disqualified / Rejected</span>
+                  <strong style={{ color: "#dc2626" }}>20 (1.6%)</strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* KEY FINDINGS PANEL */}
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: "14px", padding: "22px 26px", color: "#ffffff", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "12px" }}>
+            <Sparkles size={20} style={{ color: "#38bdf8" }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#ffffff" }}>Key Verification Findings</h3>
+              <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Automated synthesis of bidder compliance anomalies & highlights</span>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
+
+            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span style={{ fontSize: "0.72rem", color: "#38bdf8", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>MOST COMMON ISSUES</span>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
+                • <strong>GSTIN Return Delays:</strong> 38% of flagged bids<br />
+                • <strong>OEM Letter Name Mismatch:</strong> 27%<br />
+                • <strong>Bank Solvency Expiry:</strong> 21%
+              </p>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span style={{ fontSize: "0.72rem", color: "#f59e0b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>FREQUENTLY MISSING DOCS</span>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
+                • <strong>Latest GSTR-3B Receipts:</strong> 45% missing<br />
+                • <strong>EPFO Compliance Clearance:</strong> 32% missing<br />
+                • <strong>Udyam MSME Annexure:</strong> 23% missing
+              </p>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span style={{ fontSize: "0.72rem", color: "#4ade80", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>AVERAGE VERIFICATION TIME</span>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
+                • <strong>AI Processing Speed:</strong> 3.2 minutes / bid<br />
+                • <strong>Manual Time Saved:</strong> 34.7 total hours<br />
+                • <strong>Turnaround Improvement:</strong> 94% faster
+              </p>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span style={{ fontSize: "0.72rem", color: "#f43f5e", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>HIGHEST-RISK CATEGORY</span>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
+                • <strong>Financial Solvency & Turnover</strong><br />
+                • Accounts for 42% of high-risk score deductions due to expired certificate dates.
+              </p>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span style={{ fontSize: "0.72rem", color: "#c084fc", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>COMPLIANCE IMPROVEMENT</span>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
+                • <strong>Overall Score Growth:</strong> +6.8% MoM<br />
+                • Vendor alignment score increased from 85.6% to 92.4% within 30 days.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        {/* FOUR REQUIRED NARRATIVE SECTIONS */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+
+          {/* SECTION 1: ANALYSIS */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+              <FileText size={18} style={{ color: "#2563eb" }} />
+              <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>ANALYSIS</h3>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+              The <strong>AI-Powered Integrated Bid Compliance Verification Platform</strong> analyzed <strong>1,248 procurement bids</strong> during May 2026. Automated OCR parsing coupled with direct Government REST API webhooks (CBDT, GSTN, MSME Udyam, EPFO) achieved a <strong>98.6% automatic extraction fidelity rate</strong>.
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
+              Throughput efficiency improved dramatically, reducing average verification latency down to <strong>3.2 minutes per submission</strong> compared to historical manual benchmarks of 4.5 hours per tender file.
+            </p>
+          </div>
+
+          {/* SECTION 2: INSIGHTS */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+              <Sparkles size={18} style={{ color: "#9333ea" }} />
+              <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>INSIGHTS</h3>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+              Deep pattern recognition across 156 flagged items revealed that <strong>37.2% of non-compliance issues</strong> stem from minor entity naming variations between GSTIN Registrant records and original OEM Authorization letters (e.g. "Pvt. Ltd." vs "Private Limited").
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
+              Furthermore, MSME bidders demonstrated a <strong>97% compliance score when Udyam validation was active</strong>, confirming the efficacy of automated EMD waiver verification pipelines.
+            </p>
+          </div>
+
+          {/* SECTION 3: CONCLUSIONS */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+              <CheckCircle2 size={18} style={{ color: "#16a34a" }} />
+              <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>CONCLUSIONS</h3>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+              Overall bidder compliance on GeM procurement has reached an all-time high of <strong>92.4% average score</strong>. The introduction of immutable cryptographic audit hashing has eliminated post-decision tampering risks, ensuring 100% legal enforceability across all 1,102 approved bids.
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
+              Procurement Officer manual review backlog was reduced by <strong>84%</strong>, allowing officers to focus exclusively on flagged high-risk edge cases.
+            </p>
+          </div>
+
+          {/* SECTION 4: RECOMMENDATIONS */}
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+              <ShieldCheck size={18} style={{ color: "#ea580c" }} />
+              <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>RECOMMENDATIONS</h3>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+              1. <strong>Pre-Submission Sanity Widget:</strong> Deploy an automated real-time pre-check widget in the bidder upload portal to notify suppliers of expired Bank Solvency certificates prior to final bid submission.
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "8px 0 0 0" }}>
+              2. <strong>Fuzzy Entity Name Matching:</strong> Enhance the AI NLP matching model threshold to automatically resolve standard legal entity abbreviations without flagging unnecessary manual officer reviews.
+            </p>
+          </div>
+
+        </div>
+
       </div>
     );
   };
@@ -3375,6 +4815,8 @@ function Home({ role, user, onLogout }) {
         return <VerificationView />;
       case "reports":
         return <ReportsView />;
+      case "integrations":
+        return isAdmin ? <IntegrationsView /> : <BuyerDashboardView />;
       case "auditTrail":
         return <AuditTrailView />;
       case "notifications":
@@ -3935,15 +5377,15 @@ function Home({ role, user, onLogout }) {
             </div>
 
             <div className="drawer-actions" style={{ padding: "16px 24px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-              <button 
+              <button
                 type="button"
                 style={{ background: "#0284c7", color: "#ffffff", border: "none", borderRadius: "8px", fontWeight: "700", padding: "10px 22px", fontSize: "0.9rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(2, 132, 199, 0.25)" }}
                 onClick={() => { setSelectedTender(null); setActiveSection("documents"); }}
               >
                 + Prepare Bid & Upload Docs →
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 style={{ background: "#ffffff", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", fontWeight: "600", padding: "10px 20px", fontSize: "0.9rem", cursor: "pointer" }}
                 onClick={() => setSelectedTender(null)}
               >

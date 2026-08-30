@@ -2027,8 +2027,96 @@ function Home({ role, user, onLogout }) {
         verificationDate: "10 May 2025",
         activeTenders: 0,
         isNew: false
+      },
+      {
+        id: "BIDDER-0008",
+        initials: "TS",
+        name: "TechVision Solutions Ltd",
+        status: "Verified",
+        statusBadgeBg: "#dcfce7",
+        statusBadgeColor: "#15803d",
+        pan: "AABCT8901H",
+        gstin: "27AABCT8901H1Z2",
+        type: "Public Limited",
+        phone: "+91 98111 22334",
+        email: "contact@techvision.in",
+        location: "Bengaluru, Karnataka",
+        complianceScore: 95,
+        ratingText: "Excellent",
+        scoreColor: "#16a34a",
+        riskLevel: "Low Risk",
+        riskBg: "#f0fdf4",
+        riskColor: "#15803d",
+        verificationStatus: "Verified",
+        verificationBg: "#dcfce7",
+        verificationColor: "#15803d",
+        verificationDate: "22 May 2025",
+        activeTenders: 6,
+        isNew: false
+      },
+      {
+        id: "BIDDER-0009",
+        initials: "AI",
+        name: "Apex Infrastructure Corp",
+        status: "Active",
+        statusBadgeBg: "#eff6ff",
+        statusBadgeColor: "#2563eb",
+        pan: "AAACA9012I",
+        gstin: "07AAACA9012I1Z4",
+        type: "Private Limited",
+        phone: "+91 98333 44556",
+        email: "info@apexinfra.com",
+        location: "Gurugram, Haryana",
+        complianceScore: 72,
+        ratingText: "Good",
+        scoreColor: "#2563eb",
+        riskLevel: "Medium Risk",
+        riskBg: "#fff7ed",
+        riskColor: "#ea580c",
+        verificationStatus: "Under Review",
+        verificationBg: "#eff6ff",
+        verificationColor: "#2563eb",
+        verificationDate: "21 May 2025",
+        activeTenders: 2,
+        isNew: true
+      },
+      {
+        id: "BIDDER-0010",
+        initials: "RT",
+        name: "Royal Trading Co",
+        status: "Blacklisted",
+        statusBadgeBg: "#fee2e2",
+        statusBadgeColor: "#dc2626",
+        pan: "AAACR0123J",
+        gstin: "19AAACR0123J1Z8",
+        type: "Partnership",
+        phone: "+91 98444 55667",
+        email: "sales@royaltrading.co.in",
+        location: "Kolkata, West Bengal",
+        complianceScore: 18,
+        ratingText: "Very Poor",
+        scoreColor: "#dc2626",
+        riskLevel: "High Risk",
+        riskBg: "#fef2f2",
+        riskColor: "#dc2626",
+        verificationStatus: "Blacklisted",
+        verificationBg: "#fee2e2",
+        verificationColor: "#dc2626",
+        verificationDate: "05 May 2025",
+        activeTenders: 0,
+        isNew: false
       }
     ];
+
+    // Dynamic KPI Calculations
+    const totalCount = ALL_BIDDERS.length;
+    const activeCount = ALL_BIDDERS.filter(b => b.status === "Active" || b.status === "Verified").length;
+    const newCount = ALL_BIDDERS.filter(b => b.isNew).length;
+    const highRiskCount = ALL_BIDDERS.filter(b => b.riskLevel === "High Risk").length;
+    const verifiedCount = ALL_BIDDERS.filter(b => b.verificationStatus === "Verified").length;
+    const blacklistedCount = ALL_BIDDERS.filter(b => b.status === "Blacklisted" || b.verificationStatus === "Blacklisted").length;
+
+    const formatNum = (n) => (n < 10 ? `0${n}` : `${n}`);
 
     const handleKpiFilter = (type) => {
       setActiveKpi(type);
@@ -2105,7 +2193,7 @@ function Home({ role, user, onLogout }) {
               borderRadius: "12px", 
               padding: "16px 18px", 
               display: "flex", 
-              justifyContent: "space-between", 
+              justify: "space-between", 
               alignItems: "center",
               cursor: "pointer",
               boxShadow: activeKpi === "ALL" ? "0 4px 12px rgba(37,99,235,0.12)" : "none",
@@ -2114,7 +2202,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "ALL" ? "#2563eb" : "#64748b", display: "block" }}>Total Bidders</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>248</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(totalCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>All time registered</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb" }}>
@@ -2140,7 +2228,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "ACTIVE" ? "#16a34a" : "#64748b", display: "block" }}>Active Bidders</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>142</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(activeCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Participating in active tenders</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}>
@@ -2166,7 +2254,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "NEW" ? "#9333ea" : "#64748b", display: "block" }}>New This Month</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>18</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(newCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Newly registered bidders</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#faf5ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333ea" }}>
@@ -2192,7 +2280,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "HIGH_RISK" ? "#dc2626" : "#64748b", display: "block" }}>High Risk Bidders</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>17</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(highRiskCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Requires attention</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626" }}>
@@ -2218,7 +2306,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "VERIFIED" ? "#16a34a" : "#64748b", display: "block" }}>Verified Bidders</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>128</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(verifiedCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Successfully verified</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}>
@@ -2244,7 +2332,7 @@ function Home({ role, user, onLogout }) {
           >
             <div>
               <span style={{ fontSize: "0.73rem", fontWeight: 700, color: activeKpi === "BLACKLISTED" ? "#475569" : "#64748b", display: "block" }}>Blacklisted/ Debarred</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>06</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{formatNum(blacklistedCount)}</h2>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Not eligible to participate</span>
             </div>
             <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#475569" }}>
@@ -2496,7 +2584,7 @@ function Home({ role, user, onLogout }) {
 
           {/* ROW 4: PAGINATION FOOTER */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #e2e8f0", background: "#ffffff", fontSize: "0.8rem", color: "#64748b" }}>
-            <span>Showing 1 to {filteredBidders.length} of 248 bidders</span>
+            <span>Showing {filteredBidders.length > 0 ? 1 : 0} to {filteredBidders.length} of {ALL_BIDDERS.length} bidders</span>
 
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

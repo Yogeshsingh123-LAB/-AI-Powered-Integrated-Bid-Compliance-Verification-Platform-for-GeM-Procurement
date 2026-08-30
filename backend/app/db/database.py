@@ -31,7 +31,7 @@ except Exception as e:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# If we are using SQLite, auto-create tables so it works out-of-the-box
+# If we are using SQLite, auto-create tables and apply missing columns so it works out-of-the-box
 if is_sqlite:
     try:
         # Import models so they register with Base.metadata
@@ -39,6 +39,15 @@ if is_sqlite:
         
         Base.metadata.create_all(bind=engine)
         logger.info("Auto-created model tables in SQLite database.")
+        
+        # Self-healing migration for SQLite fallback DB schema updates
+        with engine.connect() as conn:
+            from sqlalchemy import text
+            try:
+                conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
+                conn.commit()
+            except Exception:
+                pass
     except Exception as create_err:
         logger.error(f"Failed to auto-create tables in SQLite: {create_err}")
 

@@ -18,7 +18,13 @@ graph TD
     B -- External Integration --> E[Govt API Gateways & CBIC GSTN v2.0 Sandbox]
     B -- OCR & Forgery Engine --> F[AI Parser & ELA Forgery Detector]
     B -- Fraud Engine --> G[Cross-Bidder Collusion & Risk Detector]
+    B -- Blockchain Audit --> H[SHA-256 Tamper-Evident Chain & Audit API]
 ```
+
+### Containerized Infrastructure (Docker Orchestration)
+- **`db` Service**: PostgreSQL 15 container with persistent volume storage (`postgres_data`).
+- **`backend` Service**: Python 3.11 container with Tesseract OCR engine, Poppler PDF rendering tools, FastAPI API server on port `8000`.
+- **`frontend` Service**: Multi-stage Node 20 build + Nginx static web server on port `3000` (mapped to container port `80`).
 
 ### Frontend (User Interface)
 - **Tech Stack**: React 18, Vite, Custom Vanilla CSS, Lucide Icons.
@@ -35,6 +41,7 @@ graph TD
   - Constant-time password verification defense against timing side-channel attacks.
   - Cryptographic SHA-256 blockchain hash chain (`blockchain_hash`) for tamper-evident audit logging.
   - Upload payload size limits (10 MB max) and regex filename sanitization.
+  - Self-healing database schema migrations for SQLite fallback instances.
 - **CORS Configuration**: Restricts origins to trusted development origins (`http://localhost:5173`, `http://localhost:5174`, `http://localhost:3000`).
 
 ---
@@ -125,6 +132,9 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `POST` | `/api/documents/{doc_id}/replace` | Replace an uploaded document | Yes | `BIDDER` (Owner) |
 | `DELETE` | `/api/documents/{doc_id}` | Delete a document from bucket & DB | Yes | `BIDDER` (Owner) |
+| `GET` | `/api/audit/logs` | Retrieve paginated immutable audit log entries | Yes | `OFFICER`, `ADMIN` |
+| `GET` | `/api/audit/verify/{log_id}` | Cryptographically verify SHA-256 hash of an audit record | No | None |
+| `GET` | `/api/audit/bids/{bid_id}/verify` | Cryptographically verify full audit chain for a bid | No | None |
 | `POST` | `/api/chat` | Ask the GeMmy platform assistant | No | None |
 
 ---
@@ -138,3 +148,4 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 5: Testing & Validation** ✅ COMPLETE (Automated pytest test suites, runner scripts, scenario PDF mock documents)
 - **Phase 6: Cryptographic Blockchain Audit Chain & Security Hardening** ✅ COMPLETE (SHA-256 hash chaining on AuditLog, timing attack mitigation on password verification, 10MB payload size limits, regex filename sanitization, port 8000 alignment).
 - **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
+- **Phase 8: One-Command Docker Setup, Audit Verification API & Self-Healing Migration** ✅ COMPLETE (Added `docker-compose.yml`, multi-stage Dockerfiles for backend & frontend, `/api/audit/verify` verification endpoints, `backend/scenarios/README.md` documentation, and automatic SQLite column schema migration).

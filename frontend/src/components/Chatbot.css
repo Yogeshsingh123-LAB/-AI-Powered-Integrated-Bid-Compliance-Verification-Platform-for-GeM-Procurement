@@ -9,10 +9,10 @@
 .gemmy-widget {
   position: fixed;
   right: 24px;
-  bottom: 24px;
-  z-index: 1800;
+  bottom: 20px;
+  z-index: 9999;
   width: min(390px, calc(100vw - 32px));
-  height: min(610px, calc(100vh - 48px));
+  height: min(580px, calc(100vh - 40px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -310,21 +310,22 @@
 .gemmy-launcher {
   position: fixed;
   right: 24px;
-  bottom: 24px;
-  z-index: 1800;
-  height: 56px;
-  padding: 0 19px;
+  bottom: 20px;
+  z-index: 9999;
+  height: 46px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   color: #fff;
   background: linear-gradient(110deg, #4f46e5, #8b5cf6 62%, #fb8b63);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 18px;
-  box-shadow: 0 14px 35px rgba(67, 56, 202, 0.42);
-  font-size: 0.9rem;
-  font-weight: 750;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(67, 56, 202, 0.35);
+  font-size: 0.84rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .gemmy-launcher:hover,

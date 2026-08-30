@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   UserCircle,
   CloudUpload,
+  Clock,
   Clock3,
   Bell,
   LifeBuoy,
@@ -56,8 +57,16 @@ import {
   Download,
   ArrowLeft,
   Info,
-  Clock,
-  Maximize2
+  Maximize2,
+  Trash2,
+  Key,
+  Settings,
+  Cpu,
+  Database,
+  RotateCcw,
+  Save,
+  Megaphone,
+  Radio
 } from "lucide-react";
 
 // Mock Database of submitted bids (visible globally to allow live sync between Supplier upload and Admin queue)
@@ -194,8 +203,20 @@ function Home({ role, user, onLogout }) {
   const [bids, setBids] = useState(INITIAL_BIDS);
   const [selectedBid, setSelectedBid] = useState(null);
   const [selectedTender, setSelectedTender] = useState(null);
-  const [officerNotes, setOfficerNotes] = useState("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+  const [announcementConfig, setAnnouncementConfig] = useState(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("gem_announcement_config") : null;
+    return saved
+      ? JSON.parse(saved)
+      : {
+        enabled: true,
+        badgeText: "📢 LIVE ANNOUNCEMENTS",
+        text: "✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦",
+        type: "NOTICE",
+        speed: "NORMAL"
+      };
+  });
 
   const [biddersInitialFilter, setBiddersInitialFilter] = useState({ risk: "All", verification: "All" });
   const [selectedTenderForBidders, setSelectedTenderForBidders] = useState(null);
@@ -246,16 +267,20 @@ function Home({ role, user, onLogout }) {
     { id: "tenders", label: "Tenders" },
     { id: "bidders", label: "Bidders" },
     { id: "verification", label: "Verification" },
-    { id: "reports", label: "Reports" },
-    { id: "auditTrail", label: "Audit Trail" }
+    { id: "reports", label: "Reports" }
   ];
 
-  // Admin role check (Integrations tab is exclusive to Super Admin)
-  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+  // Admin role check (User Management & Integrations tabs are accessible via Profile Menu)
+  const isAdmin =
+    role === "ADMIN" ||
+    role === "Admin" ||
+    role === "Super Admin" ||
+    user?.role?.toUpperCase() === "ADMIN" ||
+    user?.role?.toUpperCase() === "SUPER ADMIN" ||
+    user?.role?.toUpperCase()?.includes("ADMIN") ||
+    user?.email === "admin@gem.gov.in";
 
-  const navigationItems = role === "Buyer"
-    ? (isAdmin ? [...buyerNav.slice(0, 5), { id: "integrations", label: "Integrations" }, ...buyerNav.slice(5)] : buyerNav)
-    : supplierNav;
+  const navigationItems = role === "Supplier" ? supplierNav : buyerNav;
 
   // New Bidder (Supplier) Dashboard View Component
   const BidderDashboardView = () => {
@@ -4107,31 +4132,1921 @@ function Home({ role, user, onLogout }) {
     );
   };
 
+  // Admin "User Management" View Component
+  const UserManagementView = () => {
+    const initialUsers = [
+      {
+        id: "USR-1001",
+        name: "Admin SuperUser",
+        email: "admin@gem.gov.in",
+        phone: "+91 98765 43210",
+        role: "Super Admin",
+        department: "System Administration",
+        status: "Active",
+        lastLogin: "30 Aug 2026, 14:52 IST",
+        permissions: [
+          "Manage Users",
+          "Manage Tenders",
+          "Verify Documents",
+          "View Reports",
+          "Approve Bids",
+          "Manage Rules",
+          "View Audit Trail",
+          "Manage Integrations"
+        ]
+      },
+      {
+        id: "USR-1002",
+        name: "Procurement Officer Rajesh Kumar",
+        email: "rajesh.kumar@gem.gov.in",
+        phone: "+91 98123 45678",
+        role: "Procurement Officer",
+        department: "Procurement",
+        status: "Active",
+        lastLogin: "30 Aug 2026, 13:10 IST",
+        permissions: [
+          "Manage Tenders",
+          "Verify Documents",
+          "View Reports",
+          "Approve Bids",
+          "View Audit Trail"
+        ]
+      },
+      {
+        id: "USR-1003",
+        name: "Priya Sharma",
+        email: "priya.sharma@gem.gov.in",
+        phone: "+91 97654 32109",
+        role: "Verification Officer",
+        department: "Verification & Audit",
+        status: "Active",
+        lastLogin: "30 Aug 2026, 11:24 IST",
+        permissions: [
+          "Verify Documents",
+          "View Reports",
+          "View Audit Trail"
+        ]
+      },
+      {
+        id: "USR-1004",
+        name: "Dr. Shashi Kumar",
+        email: "shashi.kumar@gem.gov.in",
+        phone: "+91 96543 21098",
+        role: "Auditor",
+        department: "Legal & Compliance",
+        status: "Active",
+        lastLogin: "29 Aug 2026, 16:40 IST",
+        permissions: [
+          "View Reports",
+          "View Audit Trail"
+        ]
+      },
+      {
+        id: "USR-1005",
+        name: "Vikram Singh",
+        email: "vikram.singh@gem.gov.in",
+        phone: "+91 95432 10987",
+        role: "Procurement Officer",
+        department: "Procurement",
+        status: "Pending",
+        lastLogin: "Never logged in",
+        permissions: [
+          "Manage Tenders",
+          "Verify Documents",
+          "View Reports"
+        ]
+      },
+      {
+        id: "USR-1006",
+        name: "Ananya Roy",
+        email: "ananya.roy@gem.gov.in",
+        phone: "+91 94321 09876",
+        role: "Verification Officer",
+        department: "Verification & Audit",
+        status: "Suspended",
+        lastLogin: "15 Aug 2026, 09:15 IST",
+        permissions: [
+          "Verify Documents",
+          "View Reports"
+        ]
+      }
+    ];
 
-  const AuditTrailView = () => {
-    const allLogs = bids.flatMap((b) => b.logs.map((log) => ({ bidId: b.id, log })));
+    const allAvailablePermissions = [
+      "Manage Users",
+      "Manage Tenders",
+      "Verify Documents",
+      "View Reports",
+      "Approve Bids",
+      "Manage Rules",
+      "View Audit Trail",
+      "Manage Integrations"
+    ];
+
+    const [usersList, setUsersList] = useState(initialUsers);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [roleFilter, setRoleFilter] = useState("All");
+    const [deptFilter, setDeptFilter] = useState("All");
+    const [statusFilter, setStatusFilter] = useState("All");
+
+    // Modal & Dialog States
+    const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [viewingUser, setViewingUser] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({
+      isOpen: false,
+      title: "",
+      message: "",
+      actionType: "",
+      targetUser: null
+    });
+
+    const [userForm, setUserForm] = useState({
+      name: "",
+      email: "",
+      phone: "",
+      department: "Procurement",
+      role: "Procurement Officer",
+      status: "Active",
+      permissions: ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"]
+    });
+
+    // Reset filters
+    const handleResetFilters = () => {
+      setSearchQuery("");
+      setRoleFilter("All");
+      setDeptFilter("All");
+      setStatusFilter("All");
+    };
+
+    // Open Modal for Add User
+    const handleOpenAddModal = () => {
+      setEditingUser(null);
+      setUserForm({
+        name: "",
+        email: "",
+        phone: "",
+        department: "Procurement",
+        role: "Procurement Officer",
+        status: "Active",
+        permissions: ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"]
+      });
+      setIsAddEditModalOpen(true);
+    };
+
+    // Open Modal for Edit User
+    const handleOpenEditModal = (u) => {
+      setEditingUser(u);
+      setUserForm({
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        department: u.department,
+        role: u.role,
+        status: u.status,
+        permissions: [...(u.permissions || [])]
+      });
+      setIsAddEditModalOpen(true);
+    };
+
+    // Auto-update permissions when role changes in form
+    const handleRoleChangeInForm = (newRole) => {
+      let defaultPerms = [];
+      if (newRole === "Super Admin") {
+        defaultPerms = [...allAvailablePermissions];
+      } else if (newRole === "Procurement Officer") {
+        defaultPerms = ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"];
+      } else if (newRole === "Verification Officer") {
+        defaultPerms = ["Verify Documents", "View Reports", "View Audit Trail"];
+      } else if (newRole === "Auditor") {
+        defaultPerms = ["View Reports", "View Audit Trail"];
+      }
+      setUserForm((prev) => ({ ...prev, role: newRole, permissions: defaultPerms }));
+    };
+
+    // Toggle Permission Checkbox
+    const handlePermissionToggle = (perm) => {
+      setUserForm((prev) => {
+        const has = prev.permissions.includes(perm);
+        const updated = has
+          ? prev.permissions.filter((p) => p !== perm)
+          : [...prev.permissions, perm];
+        return { ...prev, permissions: updated };
+      });
+    };
+
+    // Save Add/Edit User Form
+    const handleSaveUser = (e) => {
+      e.preventDefault();
+      if (!userForm.name || !userForm.email) {
+        alert("Please provide Full Name and Email Address.");
+        return;
+      }
+
+      if (editingUser) {
+        setUsersList((prev) =>
+          prev.map((u) => (u.id === editingUser.id ? { ...u, ...userForm } : u))
+        );
+        alert(`User '${userForm.name}' updated successfully!`);
+      } else {
+        const newUserObj = {
+          id: `USR-${1000 + usersList.length + 1}`,
+          ...userForm,
+          lastLogin: "Never logged in"
+        };
+        setUsersList((prev) => [newUserObj, ...prev]);
+        alert(`User '${userForm.name}' created and added to user directory!`);
+      }
+      setIsAddEditModalOpen(false);
+    };
+
+    // Action Triggers for Confirmation Dialogs
+    const triggerConfirmDialog = (type, u) => {
+      if (type === "SUSPEND") {
+        const isCurrentlySuspended = u.status === "Suspended";
+        setConfirmDialog({
+          isOpen: true,
+          title: isCurrentlySuspended ? "Reactivate User Account" : "Suspend User Account",
+          message: isCurrentlySuspended
+            ? `Are you sure you want to reactivate access for ${u.name} (${u.email})?`
+            : `Are you sure you want to suspend user account for ${u.name} (${u.email})? They will lose access to the portal immediately.`,
+          actionType: type,
+          targetUser: u
+        });
+      } else if (type === "RESET_PASSWORD") {
+        setConfirmDialog({
+          isOpen: true,
+          title: "Reset User Password",
+          message: `Send an official secure password reset link to ${u.name} at '${u.email}'?`,
+          actionType: type,
+          targetUser: u
+        });
+      } else if (type === "DELETE") {
+        setConfirmDialog({
+          isOpen: true,
+          title: "Delete User Account",
+          message: `Are you sure you want to permanently delete user ${u.name} (${u.id})? This action cannot be undone.`,
+          actionType: type,
+          targetUser: u
+        });
+      }
+    };
+
+    // Confirm Dialog Action Handler
+    const handleConfirmAction = () => {
+      const { actionType, targetUser } = confirmDialog;
+      if (!targetUser) return;
+
+      if (actionType === "SUSPEND") {
+        const newStatus = targetUser.status === "Suspended" ? "Active" : "Suspended";
+        setUsersList((prev) =>
+          prev.map((u) => (u.id === targetUser.id ? { ...u, status: newStatus } : u))
+        );
+        alert(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`);
+      } else if (actionType === "RESET_PASSWORD") {
+        alert(`Password reset link successfully dispatched to ${targetUser.email}.`);
+      } else if (actionType === "DELETE") {
+        setUsersList((prev) => prev.filter((u) => u.id !== targetUser.id));
+        alert(`User account ${targetUser.name} deleted permanently.`);
+      }
+
+      setConfirmDialog({ isOpen: false, title: "", message: "", actionType: "", targetUser: null });
+    };
+
+    // Filter Logic
+    const filteredUsers = usersList.filter((u) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        u.department.toLowerCase().includes(q) ||
+        u.id.toLowerCase().includes(q);
+
+      const matchesRole = roleFilter === "All" || u.role === roleFilter;
+      const matchesDept = deptFilter === "All" || u.department === deptFilter;
+      const matchesStatus = statusFilter === "All" || u.status === statusFilter;
+
+      return matchesSearch && matchesRole && matchesDept && matchesStatus;
+    });
+
+    // KPI Metrics
+    const totalUsersCount = usersList.length;
+    const activeUsersCount = usersList.filter((u) => u.status === "Active").length;
+    const pendingUsersCount = usersList.filter((u) => u.status === "Pending").length;
+    const adminUsersCount = usersList.filter((u) => u.role === "Super Admin").length;
+
+    // Helper for Status Badges
+    const getStatusBadge = (st) => {
+      switch (st) {
+        case "Active":
+          return <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🟢 Active</span>;
+        case "Pending":
+          return <span style={{ background: "#fef9c3", color: "#a16207", border: "1px solid #fef08a", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🟡 Pending</span>;
+        case "Suspended":
+          return <span style={{ background: "#fee2e2", color: "#b91c1c", border: "1px solid #fca5a5", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🔴 Suspended</span>;
+        default:
+          return <span style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 600 }}>{st}</span>;
+      }
+    };
+
+    // Helper for Role Badges
+    const getRoleBadge = (r) => {
+      switch (r) {
+        case "Super Admin":
+          return <span style={{ background: "#faf5ff", color: "#9333ea", border: "1px solid #e9d5ff", padding: "4px 10px", borderRadius: "6px", fontSize: "0.78rem", fontWeight: 700 }}>Super Admin</span>;
+        case "Procurement Officer":
+          return <span style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "4px 10px", borderRadius: "6px", fontSize: "0.78rem", fontWeight: 700 }}>Procurement Officer</span>;
+        case "Verification Officer":
+          return <span style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", padding: "4px 10px", borderRadius: "6px", fontSize: "0.78rem", fontWeight: 700 }}>Verification Officer</span>;
+        case "Auditor":
+          return <span style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", padding: "4px 10px", borderRadius: "6px", fontSize: "0.78rem", fontWeight: 700 }}>Auditor</span>;
+        default:
+          return <span style={{ background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0", padding: "4px 10px", borderRadius: "6px", fontSize: "0.78rem" }}>{r}</span>;
+      }
+    };
+
+    const matrixRoles = ["Super Admin", "Procurement Officer", "Verification Officer", "Auditor"];
+    const checkMatrixPermission = (roleName, perm) => {
+      if (roleName === "Super Admin") return true;
+      if (roleName === "Procurement Officer") {
+        return ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"].includes(perm);
+      }
+      if (roleName === "Verification Officer") {
+        return ["Verify Documents", "View Reports", "View Audit Trail"].includes(perm);
+      }
+      if (roleName === "Auditor") {
+        return ["View Reports", "View Audit Trail"].includes(perm);
+      }
+      return false;
+    };
 
     return (
-      <div className="section-panel" style={{ padding: "30px" }}>
-        <h2>Cryptographic Audit Trail Console</h2>
-        <p className="subtitle" style={{ marginBottom: "20px" }}>
-          Consolidated platform verification traces and security event logs.
-        </p>
-        <div className="terminal-window" style={{ marginTop: "0" }}>
-          <div className="terminal-body" style={{ height: "400px" }}>
-            {allLogs.map((item, idx) => {
-              let typeClass = "info";
-              if (item.log.includes("WARNING") || item.log.includes("Penalty")) typeClass = "warning";
-              if (item.log.includes("CRITICAL") || item.log.includes("mismatch")) typeClass = "danger";
-              if (item.log.includes("completed") || item.log.includes("Verified") || item.log.includes("confirmed")) typeClass = "success";
-              return (
-                <div key={idx} className={`term-line ${typeClass}`}>
-                  <strong>[{item.bidId}]</strong> {item.log}
-                </div>
-              );
-            })}
+      <div className="reports-view-container" style={{ padding: "24px 32px", background: "#f8fafc", minHeight: "100vh" }}>
+
+        {/* MAIN HEADER */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <Users size={28} style={{ color: "#1e3a8a" }} />
+              <h1 style={{ fontSize: "1.75rem", fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+                USER MANAGEMENT
+              </h1>
+            </div>
+            <p style={{ fontSize: "0.9rem", color: "#64748b", margin: "4px 0 0 0" }}>
+              Manage administrators, procurement officers, verification officers and auditors.
+            </p>
+          </div>
+
+          <button
+            onClick={handleOpenAddModal}
+            style={{
+              background: "#1e3a8a",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 18px",
+              fontSize: "0.88rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 4px 12px rgba(30, 58, 138, 0.25)"
+            }}
+          >
+            <Plus size={18} /> + Add User
+          </button>
+        </div>
+
+        {/* TOP KPI CARDS */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Total Users</span>
+              <Users size={20} style={{ color: "#2563eb" }} />
+            </div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a", marginTop: "8px" }}>{totalUsersCount}</div>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>All managed platform accounts</span>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Active Users</span>
+              <UserCheck size={20} style={{ color: "#16a34a" }} />
+            </div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#15803d", marginTop: "8px" }}>{activeUsersCount}</div>
+            <span style={{ fontSize: "0.75rem", color: "#16a34a" }}>🟢 Active system credentials</span>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Pending Invitations</span>
+              <Clock size={20} style={{ color: "#d97706" }} />
+            </div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b45309", marginTop: "8px" }}>{pendingUsersCount}</div>
+            <span style={{ fontSize: "0.75rem", color: "#b45309" }}>🟡 Awaiting onboarding response</span>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Administrators</span>
+              <Shield size={20} style={{ color: "#9333ea" }} />
+            </div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#7e22ce", marginTop: "8px" }}>{adminUsersCount}</div>
+            <span style={{ fontSize: "0.75rem", color: "#7e22ce" }}>Super Admin root privilege</span>
           </div>
         </div>
+
+        {/* SEARCH & FILTERS TOOLBAR */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", marginBottom: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: "12px", alignItems: "center" }}>
+
+            {/* Search Input */}
+            <div style={{ position: "relative" }}>
+              <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+              <input
+                type="text"
+                placeholder="Search user by name, email, department or ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px 9px 36px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "0.85rem",
+                  color: "#0f172a",
+                  background: "#ffffff",
+                  outline: "none"
+                }}
+              />
+            </div>
+
+            {/* Role Filter */}
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              style={{ padding: "9px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+            >
+              <option value="All" style={{ background: "#ffffff", color: "#0f172a" }}>All Roles</option>
+              <option value="Super Admin" style={{ background: "#ffffff", color: "#0f172a" }}>Super Admin</option>
+              <option value="Procurement Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Procurement Officer</option>
+              <option value="Verification Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Verification Officer</option>
+              <option value="Auditor" style={{ background: "#ffffff", color: "#0f172a" }}>Auditor</option>
+            </select>
+
+            {/* Department Filter */}
+            <select
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+              style={{ padding: "9px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+            >
+              <option value="All" style={{ background: "#ffffff", color: "#0f172a" }}>All Departments</option>
+              <option value="System Administration" style={{ background: "#ffffff", color: "#0f172a" }}>System Administration</option>
+              <option value="Procurement" style={{ background: "#ffffff", color: "#0f172a" }}>Procurement</option>
+              <option value="Verification & Audit" style={{ background: "#ffffff", color: "#0f172a" }}>Verification & Audit</option>
+              <option value="Legal & Compliance" style={{ background: "#ffffff", color: "#0f172a" }}>Legal & Compliance</option>
+              <option value="Finance" style={{ background: "#ffffff", color: "#0f172a" }}>Finance</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ padding: "9px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+            >
+              <option value="All" style={{ background: "#ffffff", color: "#0f172a" }}>All Statuses</option>
+              <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}>🟢 Active</option>
+              <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}>🟡 Pending</option>
+              <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}>🔴 Suspended</option>
+            </select>
+
+            {/* Reset Button */}
+            <button
+              onClick={handleResetFilters}
+              style={{
+                padding: "9px 14px",
+                borderRadius: "6px",
+                border: "1px solid #cbd5e1",
+                background: "#f1f5f9",
+                color: "#475569",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        {/* DETAILED USER TABLE */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden", marginBottom: "32px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#475569", fontWeight: 700 }}>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Name & ID</th>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Email</th>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Role</th>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Department</th>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Status</th>
+                <th style={{ padding: "14px 18px", color: "#475569" }}>Last Login</th>
+                <th style={{ padding: "14px 18px", textAlign: "right", color: "#475569" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: "32px", textAlign: "center", color: "#64748b", background: "#ffffff" }}>
+                    No user accounts match the selected filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((u) => (
+                  <tr key={u.id} style={{ borderBottom: "1px solid #f1f5f9", background: "#ffffff" }}>
+
+                    {/* Name & Avatar */}
+                    <td style={{ padding: "14px 18px", color: "#0f172a" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: u.role === "Super Admin" ? "#9333ea" : u.role === "Procurement Officer" ? "#2563eb" : "#16a34a",
+                          color: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 800,
+                          fontSize: "0.82rem"
+                        }}>
+                          {u.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: "#0f172a" }}>{u.name}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{u.id}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Email */}
+                    <td style={{ padding: "14px 18px", color: "#334155" }}>
+                      {u.email}
+                    </td>
+
+                    {/* Role */}
+                    <td style={{ padding: "14px 18px", color: "#0f172a" }}>
+                      {getRoleBadge(u.role)}
+                    </td>
+
+                    {/* Department */}
+                    <td style={{ padding: "14px 18px", color: "#475569", fontWeight: 600 }}>
+                      {u.department}
+                    </td>
+
+                    {/* Status */}
+                    <td style={{ padding: "14px 18px" }}>
+                      {getStatusBadge(u.status)}
+                    </td>
+
+                    {/* Last Login */}
+                    <td style={{ padding: "14px 18px", color: "#64748b", fontSize: "0.8rem" }}>
+                      {u.lastLogin}
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: "14px 18px", textAlign: "right" }}>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
+
+                        {/* View Button */}
+                        <button
+                          onClick={() => setViewingUser(u)}
+                          title="View User Details"
+                          style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 9px", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}
+                        >
+                          <Eye size={14} /> View
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => handleOpenEditModal(u)}
+                          title="Edit User"
+                          style={{ background: "#f8fafc", color: "#475569", border: "1px solid #cbd5e1", padding: "6px 9px", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}
+                        >
+                          <Pencil size={14} /> Edit
+                        </button>
+
+                        {/* Suspend / Reactivate Button */}
+                        <button
+                          onClick={() => triggerConfirmDialog("SUSPEND", u)}
+                          title={u.status === "Suspended" ? "Reactivate User" : "Suspend User"}
+                          style={{
+                            background: u.status === "Suspended" ? "#dcfce7" : "#fef2f2",
+                            color: u.status === "Suspended" ? "#16a34a" : "#dc2626",
+                            border: u.status === "Suspended" ? "1px solid #bbf7d0" : "1px solid #fecaca",
+                            padding: "6px 9px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            fontWeight: 700
+                          }}
+                        >
+                          {u.status === "Suspended" ? "Reactivate" : "Suspend"}
+                        </button>
+
+                        {/* Reset Password Button */}
+                        <button
+                          onClick={() => triggerConfirmDialog("RESET_PASSWORD", u)}
+                          title="Reset Password"
+                          style={{ background: "#fff7ed", color: "#c2410c", border: "1px solid #ffedd5", padding: "6px 9px", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}
+                        >
+                          <Key size={14} />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => triggerConfirmDialog("DELETE", u)}
+                          title="Delete User Account"
+                          style={{ background: "#fee2e2", color: "#991b1b", border: "1px solid #fca5a5", padding: "6px 9px", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+
+                      </div>
+                    </td>
+
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ROLE & PERMISSIONS MATRIX SECTION */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+              ROLE & PERMISSIONS MATRIX
+            </h3>
+            <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "4px 0 0 0" }}>
+              Standard feature access rules automatically configured for each administrative role level.
+            </p>
+          </div>
+
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#475569", fontWeight: 700 }}>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>Feature / Permission</th>
+                {matrixRoles.map((r) => (
+                  <th key={r} style={{ padding: "12px 16px", textAlign: "center" }}>{r}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {allAvailablePermissions.map((perm) => (
+                <tr key={perm} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "#1e293b" }}>
+                    {perm}
+                  </td>
+                  {matrixRoles.map((roleName) => {
+                    const isAllowed = checkMatrixPermission(roleName, perm);
+                    return (
+                      <td key={roleName} style={{ padding: "12px 16px", textAlign: "center" }}>
+                        {isAllowed ? (
+                          <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 12px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 800 }}>
+                            ✓ Allowed
+                          </span>
+                        ) : (
+                          <span style={{ background: "#f1f5f9", color: "#94a3b8", padding: "4px 12px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 600 }}>
+                            ✕ Restricted
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ADD / EDIT USER MODAL */}
+        {isAddEditModalOpen && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "620px", maxWidth: "90%", padding: "28px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)" }}>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #e2e8f0", paddingBottom: "12px" }}>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                  {editingUser ? `Edit User: ${editingUser.name}` : "Add New User Account"}
+                </h3>
+                <button onClick={() => setIsAddEditModalOpen(false)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}>✕</button>
+              </div>
+
+              <form onSubmit={handleSaveUser}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rajesh Kumar"
+                      value={userForm.name}
+                      onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="user@gem.gov.in"
+                      value={userForm.email}
+                      onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Phone Number</label>
+                    <input
+                      type="text"
+                      placeholder="+91 98765 43210"
+                      value={userForm.phone}
+                      onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Department</label>
+                    <select
+                      value={userForm.department}
+                      onChange={(e) => setUserForm({ ...userForm, department: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    >
+                      <option value="Procurement" style={{ background: "#ffffff", color: "#0f172a" }}>Procurement</option>
+                      <option value="Verification & Audit" style={{ background: "#ffffff", color: "#0f172a" }}>Verification & Audit</option>
+                      <option value="Legal & Compliance" style={{ background: "#ffffff", color: "#0f172a" }}>Legal & Compliance</option>
+                      <option value="System Administration" style={{ background: "#ffffff", color: "#0f172a" }}>System Administration</option>
+                      <option value="Finance" style={{ background: "#ffffff", color: "#0f172a" }}>Finance</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>User Role</label>
+                    <select
+                      value={userForm.role}
+                      onChange={(e) => handleRoleChangeInForm(e.target.value)}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    >
+                      <option value="Super Admin" style={{ background: "#ffffff", color: "#0f172a" }}>Super Admin</option>
+                      <option value="Procurement Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Procurement Officer</option>
+                      <option value="Verification Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Verification Officer</option>
+                      <option value="Auditor" style={{ background: "#ffffff", color: "#0f172a" }}>Auditor</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Account Status</label>
+                    <select
+                      value={userForm.status}
+                      onChange={(e) => setUserForm({ ...userForm, status: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    >
+                      <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}>🟢 Active</option>
+                      <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}>🟡 Pending</option>
+                      <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}>🔴 Suspended</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Permissions Checklist */}
+                <div style={{ marginBottom: "24px" }}>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 800, color: "#0f172a", marginBottom: "8px" }}>
+                    Assigned System Permissions
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                    {allAvailablePermissions.map((perm) => (
+                      <label key={perm} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#334155", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={userForm.permissions.includes(perm)}
+                          onChange={() => handlePermissionToggle(perm)}
+                        />
+                        {perm}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddEditModalOpen(false)}
+                    style={{ padding: "9px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ padding: "9px 20px", borderRadius: "6px", border: "none", background: "#1e3a8a", color: "#ffffff", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    {editingUser ? "Save Changes" : "Create Account"}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW USER DETAILS MODAL */}
+        {viewingUser && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "520px", maxWidth: "90%", padding: "28px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #e2e8f0", paddingBottom: "12px" }}>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                  User Account Inspector
+                </h3>
+                <button onClick={() => setViewingUser(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}>✕</button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px", background: "#f8fafc", padding: "16px", borderRadius: "10px" }}>
+                <div style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "50%",
+                  background: viewingUser.role === "Super Admin" ? "#9333ea" : "#2563eb",
+                  color: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 900,
+                  fontSize: "1.1rem"
+                }}>
+                  {viewingUser.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>{viewingUser.name}</h4>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "0.8rem", color: "#64748b" }}>{viewingUser.email} • {viewingUser.phone}</p>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px", fontSize: "0.83rem" }}>
+                <div><strong>User ID:</strong> {viewingUser.id}</div>
+                <div><strong>Role:</strong> {viewingUser.role}</div>
+                <div><strong>Department:</strong> {viewingUser.department}</div>
+                <div><strong>Status:</strong> {viewingUser.status}</div>
+                <div><strong>Last Login:</strong> {viewingUser.lastLogin}</div>
+              </div>
+
+              <div style={{ marginBottom: "20px" }}>
+                <strong style={{ display: "block", fontSize: "0.82rem", color: "#0f172a", marginBottom: "8px" }}>Granted Permissions:</strong>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {(viewingUser.permissions || []).map((p) => (
+                    <span key={p} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "4px 8px", borderRadius: "6px", fontSize: "0.75rem", fontWeight: 600 }}>
+                      ✓ {p}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <button
+                  onClick={() => setViewingUser(null)}
+                  style={{ padding: "8px 16px", borderRadius: "6px", background: "#0f172a", color: "#ffffff", border: "none", fontWeight: 700, cursor: "pointer" }}
+                >
+                  Close Inspection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONFIRMATION DIALOG MODAL */}
+        {confirmDialog.isOpen && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "450px", maxWidth: "90%", padding: "24px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25)", borderTop: "4px solid #dc2626" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <AlertTriangle size={24} style={{ color: "#dc2626" }} />
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                  {confirmDialog.title}
+                </h3>
+              </div>
+              <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.5, marginBottom: "20px" }}>
+                {confirmDialog.message}
+              </p>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+                <button
+                  onClick={() => setConfirmDialog({ isOpen: false, title: "", message: "", actionType: "", targetUser: null })}
+                  style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmAction}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: "6px",
+                    border: "none",
+                    background: confirmDialog.actionType === "DELETE" ? "#dc2626" : confirmDialog.actionType === "SUSPEND" ? "#b91c1c" : "#2563eb",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  Confirm Action
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
+
+  const AuditTrailView = () => {
+    const initialAuditLogs = [
+      {
+        id: "AUD-2026-90412",
+        timestamp: "30 Aug 2026, 14:32:10 IST",
+        date: "2026-08-30",
+        user: "Procurement Officer Rajesh Kumar",
+        userId: "OFF-8821",
+        role: "OFFICER",
+        action: "Procurement Officer approved bid",
+        actionType: "Procurement Officer approved bid",
+        bidder: "Acme Tech Solutions Private Limited",
+        tender: "GEM-CPCL-2026-001",
+        status: "Success",
+        details: "Bid GEM-CPCL-2026-001 officially approved and marked as Qualified after compliance review.",
+        previousValue: "STATUS: UNDER_REVIEW | SCORE: 55% | RISK: MEDIUM",
+        newValue: "STATUS: QUALIFIED / APPROVED | SCORE: 95% | RISK: LOW",
+        source: "GeM Officer Console v3.4",
+        evidence: "GSTIN Active (27AAPCS1234M1Z5), CBDT PAN Match 100%, Udyam MSME valid through 2028.",
+        ipDevice: "192.168.1.104 | Chrome 128.0 (Win 11) | New Delhi HQ Admin Terminal"
+      },
+      {
+        id: "AUD-2026-90411",
+        timestamp: "30 Aug 2026, 14:15:04 IST",
+        date: "2026-08-30",
+        user: "AI Verification Engine",
+        userId: "AI-SYS-01",
+        role: "AI_ENGINE",
+        action: "Compliance score generated",
+        actionType: "Compliance score generated",
+        bidder: "Acme Tech Solutions Private Limited",
+        tender: "GEM-CPCL-2026-001",
+        status: "Success",
+        details: "Final compliance score computed at 95/100 based on zero registry mismatches.",
+        previousValue: "SCORE: COMPUTING...",
+        newValue: "SCORE: 95/100 | RATING: EXCELLENT",
+        source: "GeM Scoring Engine v2.1",
+        evidence: "Automated scoring rules evaluated: GST +30, PAN +30, MSME +20, OEM +15.",
+        ipDevice: "10.0.4.12 | Microservice Worker Node #4 | MeitY Cloud Sandbox"
+      },
+      {
+        id: "AUD-2026-90410",
+        timestamp: "30 Aug 2026, 14:14:48 IST",
+        date: "2026-08-30",
+        user: "AI Verification Engine",
+        userId: "AI-SYS-01",
+        role: "AI_ENGINE",
+        action: "AI risk calculated",
+        actionType: "AI risk calculated",
+        bidder: "Global Traders Inc",
+        tender: "GEM-CPCL-2026-002",
+        status: "Flagged",
+        details: "Risk rating calculated as MEDIUM (55/100) due to suspended GSTIN status penalty.",
+        previousValue: "RISK: UNASSESSED",
+        newValue: "RISK: MEDIUM (-10 pts penalty for GSTIN suspension)",
+        source: "AI Risk Assessment Neural Model",
+        evidence: "GSTN API returned status 'Suspended' for GSTIN 22AAAAA1111A1Z1.",
+        ipDevice: "10.0.4.15 | AI Risk Calculation Cluster | MeitY Cloud"
+      },
+      {
+        id: "AUD-2026-90409",
+        timestamp: "30 Aug 2026, 13:58:22 IST",
+        date: "2026-08-30",
+        user: "Procurement Officer Rajesh Kumar",
+        userId: "OFF-8821",
+        role: "OFFICER",
+        action: "Bid sent for manual review",
+        actionType: "Bid sent for manual review",
+        bidder: "Vanguard Systems Ltd",
+        tender: "GEM-CPCL-2026-003",
+        status: "Review",
+        details: "Bid flagged and escalated to senior auditor due to standalone PAN owner name mismatch.",
+        previousValue: "STATUS: PENDING_AI_CHECK",
+        newValue: "STATUS: ESCALATED_TO_AUDITOR",
+        source: "GeM Audit Workflow Dispatcher",
+        evidence: "GSTIN registrant ('Vanguard Systems Ltd') differs from PAN owner ('Vanguard Director').",
+        ipDevice: "192.168.1.104 | Firefox 129.0 (Win 11) | New Delhi HQ"
+      },
+      {
+        id: "AUD-2026-90408",
+        timestamp: "30 Aug 2026, 13:42:15 IST",
+        date: "2026-08-30",
+        user: "System Security Service",
+        userId: "SYS-SEC-09",
+        role: "SYSTEM",
+        action: "GST checked",
+        actionType: "GST checked",
+        bidder: "Acme Tech Solutions Private Limited",
+        tender: "GEM-CPCL-2026-001",
+        status: "Success",
+        details: "GSTN API query returned 200 OK. Status: Active. Taxpayer Type: Regular.",
+        previousValue: "GSTIN: UNVERIFIED",
+        newValue: "GSTIN: 27AAPCS1234M1Z5 (ACTIVE - Regular)",
+        source: "Government GSTN Integration Gateway",
+        evidence: "https://api.gst.gov.in/taxpayer/v1/search endpoint payload token response #88921",
+        ipDevice: "10.0.12.8 | Integration Gateway Server #1"
+      },
+      {
+        id: "AUD-2026-90407",
+        timestamp: "30 Aug 2026, 13:40:02 IST",
+        date: "2026-08-30",
+        user: "System Security Service",
+        userId: "SYS-SEC-09",
+        role: "SYSTEM",
+        action: "PAN checked",
+        actionType: "PAN checked",
+        bidder: "Acme Tech Solutions Private Limited",
+        tender: "GEM-CPCL-2026-001",
+        status: "Success",
+        details: "CBDT PAN verification succeeded. PAN AAPCS1234M matched legal entity name.",
+        previousValue: "PAN: UNVERIFIED",
+        newValue: "PAN: AAPCS1234M (MATCHED 100%)",
+        source: "CBDT Income Tax PAN Validation Service",
+        evidence: "https://incometaxindia.gov.in/api/v2/pan-val 200 OK payload digest",
+        ipDevice: "10.0.12.8 | Integration Gateway Server #1"
+      },
+      {
+        id: "AUD-2026-90406",
+        timestamp: "30 Aug 2026, 13:30:19 IST",
+        date: "2026-08-30",
+        user: "AI Verification Engine",
+        userId: "AI-SYS-01",
+        role: "AI_ENGINE",
+        action: "Document verified",
+        actionType: "Document verified",
+        bidder: "Global Traders Inc",
+        tender: "GEM-CPCL-2026-002",
+        status: "Success",
+        details: "Smart PDF OCR parsed MSME Certificate UDYAM-DL-01-0098765. Digital signature valid.",
+        previousValue: "DOCUMENT_STATUS: UNPARSED",
+        newValue: "DOCUMENT_STATUS: PARSED_AND_VERIFIED",
+        source: "SmartPDF OCR & Vision Parser",
+        evidence: "Signature SHA256 matches MSME Root CA public certificate.",
+        ipDevice: "10.0.4.14 | Document Parser Service Worker"
+      },
+      {
+        id: "AUD-2026-90405",
+        timestamp: "30 Aug 2026, 13:10:00 IST",
+        date: "2026-08-30",
+        user: "Admin SuperUser",
+        userId: "ADM-0001",
+        role: "ADMIN",
+        action: "Rule updated",
+        actionType: "Rule updated",
+        bidder: "N/A (Global System Rule)",
+        tender: "N/A (All Tenders)",
+        status: "Success",
+        details: "Updated mandatory threshold rule: MSME Turnover exemption buffer set to 15%.",
+        previousValue: "RULE_PARAM: turnover_buffer = 10%",
+        newValue: "RULE_PARAM: turnover_buffer = 15%",
+        source: "Admin Compliance Policy Configurator",
+        evidence: "Signed with Admin Cryptographic Security Token #ADM-771",
+        ipDevice: "192.168.1.100 | Admin Workstation | Secunderabad HQ"
+      },
+      {
+        id: "AUD-2026-90404",
+        timestamp: "30 Aug 2026, 12:45:11 IST",
+        date: "2026-08-30",
+        user: "Supplier Account User",
+        userId: "SUP-4019",
+        role: "BIDDER",
+        action: "Bid uploaded",
+        actionType: "Bid uploaded",
+        bidder: "Acme Tech Solutions Private Limited",
+        tender: "GEM-CPCL-2026-001",
+        status: "Success",
+        details: "Bid packet uploaded containing 10 compliance PDF documents (Total size: 14.2 MB).",
+        previousValue: "N/A (New Submission)",
+        newValue: "PACKET_HASH: 9a8f27b4e13c85d6 (Uploaded)",
+        source: "GeM Supplier Portal Upload Gateway",
+        evidence: "Multi-part upload complete. Encrypted payload stored in Secure Vault S3.",
+        ipDevice: "49.207.142.18 | Chrome 127.0 (Win 11) | Mumbai Regional Office"
+      },
+      {
+        id: "AUD-2026-90403",
+        timestamp: "30 Aug 2026, 11:20:00 IST",
+        date: "2026-08-30",
+        user: "Admin SuperUser",
+        userId: "ADM-0001",
+        role: "ADMIN",
+        action: "User account created",
+        actionType: "User account created",
+        bidder: "TechVision Solutions Ltd",
+        tender: "N/A",
+        status: "Success",
+        details: "Created new verified bidder account for TechVision Solutions Ltd (AABCT8901H).",
+        previousValue: "USER_ACCOUNT: NON_EXISTENT",
+        newValue: "USER_ACCOUNT: CREATED (ROLE: BIDDER)",
+        source: "User Provisioning System",
+        evidence: "OTP & Email verification completed. Mandatory KYC documents attached.",
+        ipDevice: "192.168.1.100 | Admin Console | Secunderabad HQ"
+      },
+      {
+        id: "AUD-2026-90402",
+        timestamp: "29 Aug 2026, 16:04:12 IST",
+        date: "2026-08-29",
+        user: "AI Verification Engine",
+        userId: "AI-SYS-01",
+        role: "AI_ENGINE",
+        action: "Document verified",
+        actionType: "Document verified",
+        bidder: "ABC Engineering Pvt. Ltd.",
+        tender: "GEM-CPCL-001",
+        status: "Success",
+        details: "Verified ISO 9001:2015 Quality Certificate authenticity via NABCB directory.",
+        previousValue: "CERTIFICATE_STATUS: PENDING",
+        newValue: "CERTIFICATE_STATUS: VERIFIED_VALID",
+        source: "Automated Certificate Authenticator",
+        evidence: "NABCB Accreditation Registry Match ID #ISO-9901-2026",
+        ipDevice: "10.0.4.12 | Cloud Worker Node #2"
+      },
+      {
+        id: "AUD-2026-90401",
+        timestamp: "29 Aug 2026, 15:10:44 IST",
+        date: "2026-08-29",
+        user: "System Security Service",
+        userId: "SYS-SEC-09",
+        role: "SYSTEM",
+        action: "GST checked",
+        actionType: "GST checked",
+        bidder: "XYZ Industries Pvt. Ltd.",
+        tender: "GEM-CPCL-001",
+        status: "Failed",
+        details: "GSTN API returned 504 Gateway Timeout during automated taxpayer query.",
+        previousValue: "QUERY_STATUS: IN_PROGRESS",
+        newValue: "QUERY_STATUS: FAILED_504_TIMEOUT (Retry scheduled)",
+        source: "GSTN Gateway Proxy Engine",
+        evidence: "HTTP 504 Gateway Timeout from GSTN Portal IP 164.100.x.x",
+        ipDevice: "10.0.12.8 | Gateway Node #1"
+      }
+    ];
+
+    // Generate dynamic audit logs from bids state in real-time
+    const dynamicBidLogs = bids.flatMap((b) =>
+      (b.logs || []).map((logText, idx) => {
+        let status = "Success";
+        if (logText.toLowerCase().includes("warning") || logText.toLowerCase().includes("penalty") || logText.toLowerCase().includes("mismatch") || logText.toLowerCase().includes("disqualified")) status = "Flagged";
+        if (logText.toLowerCase().includes("failed") || logText.toLowerCase().includes("timeout") || logText.toLowerCase().includes("rejected")) status = "Failed";
+        if (logText.toLowerCase().includes("review") || logText.toLowerCase().includes("escalat") || logText.toLowerCase().includes("pending")) status = "Review";
+
+        let role = "SYSTEM";
+        if (logText.toLowerCase().includes("officer") || logText.toLowerCase().includes("approved") || logText.toLowerCase().includes("marked")) role = "OFFICER";
+        else if (logText.toLowerCase().includes("ai") || logText.toLowerCase().includes("ocr") || logText.toLowerCase().includes("scoring") || logText.toLowerCase().includes("parsed")) role = "AI_ENGINE";
+        else if (logText.toLowerCase().includes("admin") || logText.toLowerCase().includes("rule")) role = "ADMIN";
+        else if (logText.toLowerCase().includes("bidder") || logText.toLowerCase().includes("upload")) role = "BIDDER";
+
+        const cleanAction = logText.includes(":") ? logText.split(":")[0].replace(/\[.*?\]\s*/, "") : logText.replace(/\[.*?\]\s*/, "");
+
+        return {
+          id: `AUD-2026-${String(90420 + Number(b.id) * 5 + idx).padStart(5, "0")}`,
+          timestamp: b.date || "30 Aug 2026, 14:45:00 IST",
+          date: "2026-08-30",
+          user: role === "OFFICER" ? "Procurement Officer Rajesh Kumar" : role === "AI_ENGINE" ? "AI Verification Engine" : role === "ADMIN" ? "Admin SuperUser" : b.bidderName,
+          userId: role === "OFFICER" ? "OFF-8821" : role === "AI_ENGINE" ? "AI-SYS-01" : role === "ADMIN" ? "ADM-0001" : `BID-${b.id}`,
+          role: role,
+          action: cleanAction.length > 40 ? cleanAction.substring(0, 40) + "..." : cleanAction,
+          actionType: logText.includes("approved") ? "Procurement Officer approved bid" : logText.includes("score") ? "Compliance score generated" : "Document verified",
+          bidder: b.bidderName,
+          tender: b.tenderId,
+          status: status,
+          details: logText,
+          previousValue: `STATUS: UNDER_REVIEW | SCORE: ${b.score}%`,
+          newValue: `STATUS: ${(b.status || "UNDER_REVIEW").toUpperCase()} | SCORE: ${b.score}%`,
+          source: "GeM Audit Workflow Dispatcher",
+          evidence: b.anomalies && b.anomalies.length > 0 ? b.anomalies.join("; ") : "All statutory documents verified against official government registries.",
+          ipDevice: "192.168.1.104 | Chrome 128.0 (Win 11) | New Delhi HQ"
+        };
+      })
+    );
+
+    // Merge dynamic active events with seed audit logs
+    const logsList = [...dynamicBidLogs, ...initialAuditLogs];
+    const [selectedEvent, setSelectedEvent] = useState(null);
+
+    // Filter States
+    const [dateFilter, setDateFilter] = useState("All");
+    const [userFilter, setUserFilter] = useState("All");
+    const [actionTypeFilter, setActionTypeFilter] = useState("All");
+    const [bidderFilter, setBidderFilter] = useState("All");
+    const [tenderFilter, setTenderFilter] = useState("All");
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeKpi, setActiveKpi] = useState("ALL");
+
+    // KPI Metrics
+    const totalActivities = logsList.length;
+    const aiEvents = logsList.filter(l => l.role === "AI_ENGINE" || l.action.toLowerCase().includes("ai") || l.action.toLowerCase().includes("document") || l.action.toLowerCase().includes("gst") || l.action.toLowerCase().includes("pan")).length;
+    const adminActions = logsList.filter(l => l.role === "ADMIN" || l.role === "OFFICER" || l.action.toLowerCase().includes("rule") || l.action.toLowerCase().includes("approved") || l.action.toLowerCase().includes("created")).length;
+    const manualReviews = logsList.filter(l => l.status === "Review" || l.action.toLowerCase().includes("manual review")).length;
+    const failedActions = logsList.filter(l => l.status === "Failed" || l.status === "Flagged").length;
+
+    // Filter Logic
+    const filteredLogs = logsList.filter((l) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        l.id.toLowerCase().includes(q) ||
+        l.user.toLowerCase().includes(q) ||
+        l.action.toLowerCase().includes(q) ||
+        l.bidder.toLowerCase().includes(q) ||
+        l.tender.toLowerCase().includes(q) ||
+        l.details.toLowerCase().includes(q);
+
+      const matchesDate = dateFilter === "All" || (dateFilter === "Today" && l.date === "2026-08-30") || (dateFilter === "Yesterday" && l.date === "2026-08-29");
+      const matchesUser = userFilter === "All" || l.user.toLowerCase().includes(userFilter.toLowerCase());
+      const matchesAction = actionTypeFilter === "All" || l.actionType.toLowerCase() === actionTypeFilter.toLowerCase();
+      const matchesBidder = bidderFilter === "All" || l.bidder.toLowerCase().includes(bidderFilter.toLowerCase());
+      const matchesTender = tenderFilter === "All" || l.tender.toLowerCase().includes(tenderFilter.toLowerCase());
+      const matchesStatus = statusFilter === "All" || l.status.toLowerCase() === statusFilter.toLowerCase();
+
+      const matchesKpi =
+        activeKpi === "ALL" ||
+        (activeKpi === "AI" && (l.role === "AI_ENGINE" || l.action.toLowerCase().includes("ai") || l.action.toLowerCase().includes("document") || l.action.toLowerCase().includes("gst") || l.action.toLowerCase().includes("pan"))) ||
+        (activeKpi === "ADMIN" && (l.role === "ADMIN" || l.role === "OFFICER" || l.action.toLowerCase().includes("rule") || l.action.toLowerCase().includes("approved") || l.action.toLowerCase().includes("created"))) ||
+        (activeKpi === "REVIEW" && (l.status === "Review" || l.action.toLowerCase().includes("manual review"))) ||
+        (activeKpi === "FAILED" && (l.status === "Failed" || l.status === "Flagged"));
+
+      return matchesSearch && matchesDate && matchesUser && matchesAction && matchesBidder && matchesTender && matchesStatus && matchesKpi;
+    });
+
+    const resetFilters = () => {
+      setDateFilter("All");
+      setUserFilter("All");
+      setActionTypeFilter("All");
+      setBidderFilter("All");
+      setTenderFilter("All");
+      setStatusFilter("All");
+      setSearchQuery("");
+      setActiveKpi("ALL");
+    };
+
+    // Export Handlers
+    const handleExportCSV = () => {
+      const headers = ["Event ID", "Timestamp", "User", "Role", "Action", "Bidder", "Tender", "Status", "Details", "Previous Value", "New Value", "Source", "Evidence", "IP/Device"];
+      const rows = filteredLogs.map((l) => [
+        l.id,
+        `"${l.timestamp}"`,
+        `"${l.user}"`,
+        l.role,
+        `"${l.action}"`,
+        `"${l.bidder}"`,
+        `"${l.tender}"`,
+        l.status,
+        `"${l.details.replace(/"/g, '""')}"`,
+        `"${l.previousValue.replace(/"/g, '""')}"`,
+        `"${l.newValue.replace(/"/g, '""')}"`,
+        `"${l.source}"`,
+        `"${l.evidence.replace(/"/g, '""')}"`,
+        `"${l.ipDevice}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `BidVerify_Audit_Trail_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    const handleDownloadReport = () => {
+      alert(`Generating Official Audit Trail Executive Compliance Report...\n\nTotal Records Exported: ${filteredLogs.length}\nFormat: PDF Audit Ledger`);
+    };
+
+    // UI Helpers
+    const getActionIcon = (act) => {
+      const a = act.toLowerCase();
+      if (a.includes("uploaded")) return <CloudUpload size={15} style={{ color: "#2563eb" }} />;
+      if (a.includes("document verified")) return <ShieldCheck size={15} style={{ color: "#16a34a" }} />;
+      if (a.includes("gst")) return <CheckCircle2 size={15} style={{ color: "#0284c7" }} />;
+      if (a.includes("pan")) return <FileCheck2 size={15} style={{ color: "#0284c7" }} />;
+      if (a.includes("risk")) return <AlertTriangle size={15} style={{ color: "#ea580c" }} />;
+      if (a.includes("score")) return <Sparkles size={15} style={{ color: "#9333ea" }} />;
+      if (a.includes("rule")) return <Sliders size={15} style={{ color: "#d97706" }} />;
+      if (a.includes("manual review")) return <Clock size={15} style={{ color: "#2563eb" }} />;
+      if (a.includes("approved")) return <Award size={15} style={{ color: "#16a34a" }} />;
+      if (a.includes("account created")) return <UserPlus size={15} style={{ color: "#2563eb" }} />;
+      return <Info size={15} style={{ color: "#64748b" }} />;
+    };
+
+    const getStatusBadgeStyle = (st) => {
+      switch (st) {
+        case "Success":
+          return { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", icon: "✓" };
+        case "Failed":
+          return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5", icon: "✕" };
+        case "Flagged":
+          return { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa", icon: "⚠" };
+        case "Review":
+          return { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", icon: "🔍" };
+        default:
+          return { bg: "#f1f5f9", color: "#475569", border: "#cbd5e1", icon: "●" };
+      }
+    };
+
+    const getRoleBadgeStyle = (r) => {
+      switch (r) {
+        case "ADMIN":
+          return { bg: "#faf5ff", color: "#9333ea", border: "#e9d5ff" };
+        case "OFFICER":
+          return { bg: "#f0f9ff", color: "#0284c7", border: "#bae6fd" };
+        case "AI_ENGINE":
+          return { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" };
+        case "BIDDER":
+          return { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" };
+        default:
+          return { bg: "#f8fafc", color: "#64748b", border: "#e2e8f0" };
+      }
+    };
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "4px" }}>
+
+        {/* MAIN HEADER */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "14px" }}>
+          <div>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.5px" }}>
+              AUDIT TRAIL
+            </h1>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "4px 0 0 0" }}>
+              Track every verification, administrative action and compliance decision.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              onClick={handleExportCSV}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "#ffffff",
+                border: "1px solid #cbd5e1",
+                borderRadius: "8px",
+                padding: "9px 16px",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                color: "#1e293b",
+                cursor: "pointer",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                transition: "all 0.2s ease"
+              }}
+            >
+              <Download size={15} style={{ color: "#2563eb" }} /> Export Audit Log
+            </button>
+
+            <button
+              onClick={handleDownloadReport}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "#2563eb",
+                border: "none",
+                borderRadius: "8px",
+                padding: "9px 18px",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                color: "#ffffff",
+                cursor: "pointer",
+                boxShadow: "0 2px 4px rgba(37,99,235,0.2)",
+                transition: "all 0.2s ease"
+              }}
+            >
+              <FileText size={15} /> Download Report
+            </button>
+          </div>
+        </div>
+
+        {/* TOP STATISTICS (5 KPI CARDS ROW) */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px" }}>
+
+          {/* Card 1: Total Activities */}
+          <div
+            onClick={() => setActiveKpi("ALL")}
+            style={{
+              background: activeKpi === "ALL" ? "#f8fafc" : "#ffffff",
+              border: activeKpi === "ALL" ? "2px solid #2563eb" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: activeKpi === "ALL" ? "#2563eb" : "#64748b", textTransform: "uppercase" }}>TOTAL ACTIVITIES</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 900, color: "#0f172a", margin: "4px 0 2px 0", lineHeight: 1 }}>{totalActivities}</h2>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>All recorded logs</span>
+            </div>
+            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb" }}>
+              <ClipboardList size={18} />
+            </div>
+          </div>
+
+          {/* Card 2: AI Verification Events */}
+          <div
+            onClick={() => setActiveKpi("AI")}
+            style={{
+              background: activeKpi === "AI" ? "#eff6ff" : "#ffffff",
+              border: activeKpi === "AI" ? "2px solid #2563eb" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: activeKpi === "AI" ? "#2563eb" : "#64748b", textTransform: "uppercase" }}>AI VERIFICATION EVENTS</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 900, color: "#2563eb", margin: "4px 0 2px 0", lineHeight: 1 }}>{aiEvents}</h2>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>OCR & API checks</span>
+            </div>
+            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb" }}>
+              <Sparkles size={18} />
+            </div>
+          </div>
+
+          {/* Card 3: Admin Actions */}
+          <div
+            onClick={() => setActiveKpi("ADMIN")}
+            style={{
+              background: activeKpi === "ADMIN" ? "#faf5ff" : "#ffffff",
+              border: activeKpi === "ADMIN" ? "2px solid #9333ea" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: activeKpi === "ADMIN" ? "#9333ea" : "#64748b", textTransform: "uppercase" }}>ADMIN ACTIONS</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 900, color: "#9333ea", margin: "4px 0 2px 0", lineHeight: 1 }}>{adminActions}</h2>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Rules & Approvals</span>
+            </div>
+            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#faf5ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333ea" }}>
+              <ShieldCheck size={18} />
+            </div>
+          </div>
+
+          {/* Card 4: Manual Reviews */}
+          <div
+            onClick={() => setActiveKpi("REVIEW")}
+            style={{
+              background: activeKpi === "REVIEW" ? "#fff7ed" : "#ffffff",
+              border: activeKpi === "REVIEW" ? "2px solid #ea580c" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: activeKpi === "REVIEW" ? "#ea580c" : "#64748b", textTransform: "uppercase" }}>MANUAL REVIEWS</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 900, color: "#ea580c", margin: "4px 0 2px 0", lineHeight: 1 }}>{manualReviews}</h2>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Officer Escalate</span>
+            </div>
+            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", color: "#ea580c" }}>
+              <Clock3 size={18} />
+            </div>
+          </div>
+
+          {/* Card 5: Failed Actions */}
+          <div
+            onClick={() => setActiveKpi("FAILED")}
+            style={{
+              background: activeKpi === "FAILED" ? "#fef2f2" : "#ffffff",
+              border: activeKpi === "FAILED" ? "2px solid #dc2626" : "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "16px 18px",
+              display: "flex",
+              justify: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: activeKpi === "FAILED" ? "#dc2626" : "#64748b", textTransform: "uppercase" }}>FAILED ACTIONS</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 900, color: "#dc2626", margin: "4px 0 2px 0", lineHeight: 1 }}>{failedActions}</h2>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Timeouts & Flags</span>
+            </div>
+            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626" }}>
+              <AlertTriangle size={18} />
+            </div>
+          </div>
+
+        </div>
+
+        {/* FILTERS TOOLBAR */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+
+          {/* Top Search Line */}
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <div style={{ position: "relative", flexGrow: 1 }}>
+              <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+              <input
+                type="text"
+                placeholder="Search audit trail by Event ID, User, Action, Bidder, Tender, or Details..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: "100%", padding: "9px 12px 9px 36px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem", color: "#0f172a", outline: "none" }}
+              />
+            </div>
+            <button
+              onClick={resetFilters}
+              style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              Reset Filters
+            </button>
+          </div>
+
+          {/* Grid of 6 Dropdown Filters */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "12px" }}>
+
+            {/* 1. Date */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Date</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Dates</option>
+                <option value="Today">Today (30 Aug)</option>
+                <option value="Yesterday">Yesterday (29 Aug)</option>
+              </select>
+            </div>
+
+            {/* 2. User */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>User</label>
+              <select
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Users</option>
+                <option value="AI Verification Engine">AI Verification Engine</option>
+                <option value="Rajesh Kumar">Officer Rajesh Kumar</option>
+                <option value="Admin SuperUser">Admin SuperUser</option>
+                <option value="System Security Service">System Security Service</option>
+                <option value="Supplier Account User">Supplier Account User</option>
+              </select>
+            </div>
+
+            {/* 3. Action Type */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Action Type</label>
+              <select
+                value={actionTypeFilter}
+                onChange={(e) => setActionTypeFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Actions</option>
+                <option value="Bid uploaded">Bid uploaded</option>
+                <option value="Document verified">Document verified</option>
+                <option value="GST checked">GST checked</option>
+                <option value="PAN checked">PAN checked</option>
+                <option value="AI risk calculated">AI risk calculated</option>
+                <option value="Compliance score generated">Compliance score generated</option>
+                <option value="Rule updated">Rule updated</option>
+                <option value="Bid sent for manual review">Bid sent for manual review</option>
+                <option value="Procurement Officer approved bid">Procurement Officer approved bid</option>
+                <option value="User account created">User account created</option>
+              </select>
+            </div>
+
+            {/* 4. Bidder */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Bidder</label>
+              <select
+                value={bidderFilter}
+                onChange={(e) => setBidderFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Bidders</option>
+                <option value="Acme Tech Solutions">Acme Tech Solutions</option>
+                <option value="Global Traders">Global Traders Inc</option>
+                <option value="Vanguard Systems">Vanguard Systems Ltd</option>
+                <option value="ABC Engineering">ABC Engineering Pvt Ltd</option>
+                <option value="XYZ Industries">XYZ Industries Pvt Ltd</option>
+                <option value="TechVision Solutions">TechVision Solutions</option>
+              </select>
+            </div>
+
+            {/* 5. Tender */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Tender</label>
+              <select
+                value={tenderFilter}
+                onChange={(e) => setTenderFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Tenders</option>
+                <option value="GEM-CPCL-2026-001">GEM-CPCL-2026-001</option>
+                <option value="GEM-CPCL-2026-002">GEM-CPCL-2026-002</option>
+                <option value="GEM-CPCL-2026-003">GEM-CPCL-2026-003</option>
+                <option value="GEM-CPCL-001">GEM-CPCL-001</option>
+              </select>
+            </div>
+
+            {/* 6. Status */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Success">Success</option>
+                <option value="Review">Review</option>
+                <option value="Flagged">Flagged</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* DETAILED ACTIVITY TABLE */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+              <thead>
+                <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", textAlign: "left" }}>
+                  <th style={{ padding: "14px 16px" }}>Timestamp</th>
+                  <th style={{ padding: "14px 16px" }}>User</th>
+                  <th style={{ padding: "14px 16px" }}>Role</th>
+                  <th style={{ padding: "14px 16px" }}>Action</th>
+                  <th style={{ padding: "14px 16px" }}>Bidder / Tender</th>
+                  <th style={{ padding: "14px 16px" }}>Status</th>
+                  <th style={{ padding: "14px 16px" }}>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLogs.map((log) => {
+                  const stStyle = getStatusBadgeStyle(log.status);
+                  const rlStyle = getRoleBadgeStyle(log.role);
+
+                  return (
+                    <tr
+                      key={log.id}
+                      onClick={() => setSelectedEvent(log)}
+                      style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", transition: "background 0.15s ease" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
+                    >
+                      {/* Timestamp & ID */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <strong style={{ display: "block", color: "#0f172a", fontSize: "0.8rem" }}>{log.timestamp}</strong>
+                        <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{log.id}</span>
+                      </td>
+
+                      {/* User */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <strong style={{ color: "#0f172a", display: "block" }}>{log.user}</strong>
+                        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{log.userId}</span>
+                      </td>
+
+                      {/* Role */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <span
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: "12px",
+                            fontSize: "0.68rem",
+                            fontWeight: 800,
+                            background: rlStyle.bg,
+                            color: rlStyle.color,
+                            border: `1px solid ${rlStyle.border}`
+                          }}
+                        >
+                          {log.role}
+                        </span>
+                      </td>
+
+                      {/* Action */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div style={{ width: "26px", height: "26px", borderRadius: "6px", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {getActionIcon(log.action)}
+                          </div>
+                          <strong style={{ color: "#0f172a", fontSize: "0.82rem" }}>{log.action}</strong>
+                        </div>
+                      </td>
+
+                      {/* Bidder / Tender */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <strong style={{ color: "#334155", display: "block" }}>{log.bidder}</strong>
+                        <span style={{ fontSize: "0.72rem", color: "#0284c7", fontWeight: 700 }}>{log.tender}</span>
+                      </td>
+
+                      {/* Status */}
+                      <td style={{ padding: "14px 16px" }}>
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            fontSize: "0.72rem",
+                            fontWeight: 800,
+                            background: stStyle.bg,
+                            color: stStyle.color,
+                            border: `1px solid ${stStyle.border}`,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                        >
+                          <span>{stStyle.icon}</span> {log.status}
+                        </span>
+                      </td>
+
+                      {/* Details */}
+                      <td style={{ padding: "14px 16px", color: "#475569", fontSize: "0.78rem", maxWidth: "280px" }}>
+                        <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {log.details}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {filteredLogs.length === 0 && (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>
+                      No audit logs found matching active filter parameters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer Bar */}
+          <div style={{ padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#64748b" }}>
+            <span>Showing <strong>{filteredLogs.length}</strong> of <strong>{logsList.length}</strong> audit records</span>
+            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>🔒 Cryptographic Audit Hashing Active (SHA-256 Ledger)</span>
+          </div>
+        </div>
+
+        {/* DETAILED AUDIT EVENT SIDE DRAWER / MODAL */}
+        {selectedEvent && (
+          <div className="drawer-overlay" onClick={() => setSelectedEvent(null)}>
+            <div className="audit-drawer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "580px" }}>
+
+              {/* Header */}
+              <div className="drawer-header" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#ffffff", padding: "20px 24px" }}>
+                <div className="drawer-title">
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "0.72rem", fontWeight: 800, background: "#0284c7", color: "#ffffff", padding: "2px 8px", borderRadius: "10px" }}>
+                      EVENT AUDIT RECORD
+                    </span>
+                    <span style={{ fontSize: "0.82rem", color: "#cbd5e1", fontFamily: "monospace" }}>{selectedEvent.id}</span>
+                  </div>
+                  <h2 style={{ fontSize: "1.25rem", margin: "6px 0 2px 0", color: "#ffffff" }}>{selectedEvent.action}</h2>
+                  <span style={{ fontSize: "0.78rem", color: "#cbd5e1" }}>Timestamp: {selectedEvent.timestamp}</span>
+                </div>
+                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setSelectedEvent(null)}>✕</button>
+              </div>
+
+              {/* Drawer Content Body */}
+              <div className="drawer-content" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+                {/* Status & Role Summary Pill Bar */}
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "block" }}>EVENT STATUS</span>
+                    <strong style={{ fontSize: "0.9rem", color: selectedEvent.status === "Success" ? "#16a34a" : selectedEvent.status === "Failed" ? "#dc2626" : "#ea580c" }}>
+                      ● {selectedEvent.status.toUpperCase()}
+                    </strong>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "block" }}>PERFORMED BY</span>
+                    <strong style={{ fontSize: "0.85rem", color: "#0f172a" }}>{selectedEvent.user} ({selectedEvent.role})</strong>
+                  </div>
+                </div>
+
+                {/* Detailed Audit Event Fields */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+                  <div>
+                    <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>Event ID & Timestamp</span>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>
+                      {selectedEvent.id} — {selectedEvent.timestamp}
+                    </p>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>User / Actor</span>
+                      <strong style={{ fontSize: "0.82rem", color: "#0f172a", display: "block", marginTop: "2px" }}>{selectedEvent.user}</strong>
+                      <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>ID: {selectedEvent.userId}</span>
+                    </div>
+
+                    <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>System / AI Source</span>
+                      <strong style={{ fontSize: "0.82rem", color: "#2563eb", display: "block", marginTop: "2px" }}>{selectedEvent.source}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>Related Bidder</span>
+                      <strong style={{ fontSize: "0.82rem", color: "#0f172a", display: "block", marginTop: "2px" }}>{selectedEvent.bidder}</strong>
+                    </div>
+
+                    <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>Related Tender</span>
+                      <strong style={{ fontSize: "0.82rem", color: "#0284c7", display: "block", marginTop: "2px" }}>{selectedEvent.tender}</strong>
+                    </div>
+                  </div>
+
+                  {/* State Delta: Previous Value vs New Value */}
+                  <div style={{ background: "#fffbe6", border: "1px solid #ffe58f", borderRadius: "8px", padding: "12px" }}>
+                    <span style={{ fontSize: "0.72rem", color: "#b45309", fontWeight: 800, textTransform: "uppercase" }}>State Delta / Historical Comparison</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px", fontSize: "0.78rem" }}>
+                      <div>
+                        <span style={{ color: "#78350f", fontWeight: 700 }}>Previous Value: </span>
+                        <code style={{ background: "#ffffff", padding: "2px 6px", borderRadius: "4px", border: "1px solid #fde68a", color: "#92400e" }}>{selectedEvent.previousValue}</code>
+                      </div>
+                      <div>
+                        <span style={{ color: "#15803d", fontWeight: 700 }}>New Value: </span>
+                        <code style={{ background: "#ffffff", padding: "2px 6px", borderRadius: "4px", border: "1px solid #bbf7d0", color: "#166534" }}>{selectedEvent.newValue}</code>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Verification Evidence */}
+                  <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "8px", padding: "12px" }}>
+                    <span style={{ fontSize: "0.72rem", color: "#0369a1", fontWeight: 800, textTransform: "uppercase" }}>Verification Evidence & Proof</span>
+                    <p style={{ margin: "4px 0 0 0", fontSize: "0.78rem", color: "#0c4a6e", lineHeight: 1.4 }}>
+                      {selectedEvent.evidence}
+                    </p>
+                  </div>
+
+                  {/* IP / Device Information */}
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px" }}>
+                    <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 800, textTransform: "uppercase" }}>IP & Device Telemetry</span>
+                    <p style={{ margin: "4px 0 0 0", fontSize: "0.75rem", color: "#334155", fontFamily: "monospace" }}>
+                      {selectedEvent.ipDevice}
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="drawer-actions" style={{ padding: "16px 24px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedEvent(null)}
+                  style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "9px 22px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer" }}
+                >
+                  Close Inspection
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </div>
     );
   };
@@ -4241,19 +6156,38 @@ function Home({ role, user, onLogout }) {
     const [selectedDateRange, setSelectedDateRange] = useState("01 May 2026 – 31 May 2026");
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Dynamic metrics calculated strictly from active bids state
+    const totalBidsCount = bids.length;
+    const avgScoreVal = totalBidsCount > 0 ? Math.round(bids.reduce((acc, b) => acc + (b.score || 0), 0) / totalBidsCount) : 0;
+    const totalIssuesCount = bids.reduce((acc, b) => acc + (b.anomalies ? b.anomalies.length : 0), 0);
+    const approvedBidsCount = bids.filter(b => b.status === "Qualified" || b.status === "Passed" || b.status === "Approved").length;
+    const compliantPct = totalBidsCount > 0 ? Math.round((approvedBidsCount / totalBidsCount) * 100) : 0;
+    const nonCompliantCount = totalBidsCount - approvedBidsCount;
+    const nonCompliantPct = 100 - compliantPct;
+
+    const lowRiskCount = bids.filter(b => (b.score || 0) >= 80).length;
+    const mediumRiskCount = bids.filter(b => (b.score || 0) >= 60 && (b.score || 0) < 80).length;
+    const highRiskCount = bids.filter(b => (b.score || 0) >= 40 && (b.score || 0) < 60).length;
+    const criticalRiskCount = bids.filter(b => (b.score || 0) < 40).length;
+
+    const statutoryIssues = bids.reduce((acc, b) => acc + ((b.anomalies || []).filter(a => a.toLowerCase().includes("gst") || a.toLowerCase().includes("pan") || a.toLowerCase().includes("epfo")).length), 0);
+    const financialIssues = bids.reduce((acc, b) => acc + ((b.anomalies || []).filter(a => a.toLowerCase().includes("solvency") || a.toLowerCase().includes("turnover") || a.toLowerCase().includes("financial")).length), 0);
+    const technicalIssues = bids.reduce((acc, b) => acc + ((b.anomalies || []).filter(a => a.toLowerCase().includes("oem") || a.toLowerCase().includes("spec") || a.toLowerCase().includes("iso")).length), 0);
+    const documentIssues = bids.reduce((acc, b) => acc + ((b.anomalies || []).filter(a => a.toLowerCase().includes("expiry") || a.toLowerCase().includes("format") || a.toLowerCase().includes("date")).length), 0);
+
     const handleExportPDF = () => {
-      alert("Generating Official GeM Governance PDF Report for period: " + selectedDateRange + "\n\nDownloading 'GeM_Bid_Compliance_Report_May2026.pdf'...");
+      alert(`Generating Official GeM Governance PDF Report for period: ${selectedDateRange}\n\nDownloading 'GeM_Bid_Compliance_Report.pdf' (${totalBidsCount} Records)...`);
     };
 
     const handleExportExcel = () => {
-      alert("Exporting Data Matrix to Excel (.xlsx)...\n\nDownloading 'GeM_Compliance_Data_May2026.xlsx' (1,248 Records).");
+      alert(`Exporting Data Matrix to Excel (.xlsx)...\n\nDownloading 'GeM_Compliance_Data.xlsx' (${totalBidsCount} Records).`);
     };
 
     const handleGenerateReport = () => {
       setIsGenerating(true);
       setTimeout(() => {
         setIsGenerating(false);
-        alert("Report refreshed successfully! 1,248 bids synchronized with live database records.");
+        alert(`Report refreshed successfully! ${totalBidsCount} bids synchronized with live database records.`);
       }, 1000);
     };
 
@@ -4380,9 +6314,9 @@ function Home({ role, user, onLogout }) {
                 <FileText size={16} />
               </div>
             </div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>1,248</div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{totalBidsCount}</div>
             <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700, display: "flex", alignItems: "center", gap: "3px" }}>
-              <TrendingUp size={12} /> +14.2% vs previous period
+              <TrendingUp size={12} /> Dynamic Active State Sync
             </span>
           </div>
 
@@ -4394,9 +6328,9 @@ function Home({ role, user, onLogout }) {
                 <Award size={16} />
               </div>
             </div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#15803d", lineHeight: 1.1 }}>92.4%</div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#15803d", lineHeight: 1.1 }}>{avgScoreVal}%</div>
             <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700, display: "flex", alignItems: "center", gap: "3px" }}>
-              <TrendingUp size={12} /> ↑ 4.8% increase this month
+              <TrendingUp size={12} /> Calculated across active bids
             </span>
           </div>
 
@@ -4408,9 +6342,9 @@ function Home({ role, user, onLogout }) {
                 <AlertTriangle size={16} />
               </div>
             </div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#c2410c", lineHeight: 1.1 }}>156</div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#c2410c", lineHeight: 1.1 }}>{totalIssuesCount}</div>
             <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>
-              12.5% of total bids flagged for review
+              Flagged anomalies across bids
             </span>
           </div>
 
@@ -4422,9 +6356,9 @@ function Home({ role, user, onLogout }) {
                 <Clock size={16} />
               </div>
             </div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#7e22ce", lineHeight: 1.1 }}>34.7 hrs</div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#7e22ce", lineHeight: 1.1 }}>{(totalBidsCount * 0.4).toFixed(1)} hrs</div>
             <span style={{ fontSize: "0.72rem", color: "#7e22ce", fontWeight: 700 }}>
-              ⚡ 3.2 min avg AI processing speed
+              ⚡ Real-time AI processing speed
             </span>
           </div>
 
@@ -4436,9 +6370,9 @@ function Home({ role, user, onLogout }) {
                 <CheckCircle2 size={16} />
               </div>
             </div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>1,102</div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{approvedBidsCount}</div>
             <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 700 }}>
-              88.3% final approval rating
+              {compliantPct}% approval rating
             </span>
           </div>
 
@@ -4452,10 +6386,10 @@ function Home({ role, user, onLogout }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
               <div>
                 <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>1. Compliance Score Over Time</h3>
-                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Weekly progression during May 2026</span>
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Weekly progression for active bids</span>
               </div>
               <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#16a34a", background: "#f0fdf4", padding: "3px 8px", borderRadius: "6px" }}>
-                Current: 92.4%
+                Current: {avgScoreVal}%
               </span>
             </div>
 
@@ -4492,12 +6426,11 @@ function Home({ role, user, onLogout }) {
 
             {/* X-AXIS DATES */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#64748b", marginTop: "4px", borderTop: "1px solid #f1f5f9", paddingTop: "6px" }}>
-              <span>May 01 (87.2%)</span>
-              <span>May 07 (88.6%)</span>
-              <span>May 14 (90.1%)</span>
-              <span>May 21 (91.3%)</span>
-              <span>May 28 (92.0%)</span>
-              <strong style={{ color: "#16a34a" }}>May 31 (92.4%)</strong>
+              <span>Batch #1</span>
+              <span>Batch #2</span>
+              <span>Batch #3</span>
+              <span>Batch #4</span>
+              <strong style={{ color: "#16a34a" }}>Latest Avg ({avgScoreVal}%)</strong>
             </div>
           </div>
 
@@ -4516,10 +6449,10 @@ function Home({ role, user, onLogout }) {
               <div style={{ position: "relative", width: "140px", height: "140px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="140" height="140" viewBox="0 0 36 36">
                   <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#fee2e2" strokeWidth="4" />
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="4" strokeDasharray="88.3, 100" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="4" strokeDasharray={`${compliantPct}, 100`} />
                 </svg>
                 <div style={{ position: "absolute", textAlign: "center" }}>
-                  <span style={{ fontSize: "1.3rem", fontWeight: 900, color: "#0f172a", display: "block", lineHeight: 1 }}>88.3%</span>
+                  <span style={{ fontSize: "1.3rem", fontWeight: 900, color: "#0f172a", display: "block", lineHeight: 1 }}>{compliantPct}%</span>
                   <span style={{ fontSize: "0.65rem", color: "#16a34a", fontWeight: 700 }}>Compliant</span>
                 </div>
               </div>
@@ -4529,16 +6462,16 @@ function Home({ role, user, onLogout }) {
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf4", padding: "8px 12px", borderRadius: "8px", border: "1px solid #dcfce7" }}>
                   <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#16a34a" }}></div>
                   <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>1,102 Compliant Bids</strong>
-                    <span style={{ fontSize: "0.7rem", color: "#16a34a" }}>88.3% Total Rate</span>
+                    <strong style={{ color: "#0f172a", display: "block" }}>{approvedBidsCount} Compliant Bids</strong>
+                    <span style={{ fontSize: "0.7rem", color: "#16a34a" }}>{compliantPct}% Total Rate</span>
                   </div>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fef2f2", padding: "8px 12px", borderRadius: "8px", border: "1px solid #fee2e2" }}>
                   <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#dc2626" }}></div>
                   <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>146 Non-Compliant Bids</strong>
-                    <span style={{ fontSize: "0.7rem", color: "#dc2626" }}>11.7% Flagged Rate</span>
+                    <strong style={{ color: "#0f172a", display: "block" }}>{nonCompliantCount} Non-Compliant Bids</strong>
+                    <span style={{ fontSize: "0.7rem", color: "#dc2626" }}>{nonCompliantPct}% Flagged Rate</span>
                   </div>
                 </div>
               </div>
@@ -4551,7 +6484,7 @@ function Home({ role, user, onLogout }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
               <div>
                 <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>3. Issues by Category</h3>
-                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Distribution across 156 total flagged issues</span>
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Distribution across {totalIssuesCount} total flagged issues</span>
               </div>
             </div>
 
@@ -4561,10 +6494,10 @@ function Home({ role, user, onLogout }) {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                   <span style={{ fontWeight: 700, color: "#334155" }}>Statutory & Tax Verification (GSTN, PAN, EPFO)</span>
-                  <strong style={{ color: "#2563eb" }}>58 Issues (37.2%)</strong>
+                  <strong style={{ color: "#2563eb" }}>{statutoryIssues} Issues</strong>
                 </div>
                 <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
-                  <div style={{ width: "37.2%", height: "100%", background: "#2563eb", borderRadius: "4px" }}></div>
+                  <div style={{ width: `${totalIssuesCount > 0 ? (statutoryIssues / totalIssuesCount) * 100 : 0}%`, height: "100%", background: "#2563eb", borderRadius: "4px" }}></div>
                 </div>
               </div>
 
@@ -4572,10 +6505,10 @@ function Home({ role, user, onLogout }) {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                   <span style={{ fontWeight: 700, color: "#334155" }}>Financial Solvency & Turnover Certificates</span>
-                  <strong style={{ color: "#ea580c" }}>42 Issues (26.9%)</strong>
+                  <strong style={{ color: "#ea580c" }}>{financialIssues} Issues</strong>
                 </div>
                 <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
-                  <div style={{ width: "26.9%", height: "100%", background: "#ea580c", borderRadius: "4px" }}></div>
+                  <div style={{ width: `${totalIssuesCount > 0 ? (financialIssues / totalIssuesCount) * 100 : 0}%`, height: "100%", background: "#ea580c", borderRadius: "4px" }}></div>
                 </div>
               </div>
 
@@ -4583,10 +6516,10 @@ function Home({ role, user, onLogout }) {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                   <span style={{ fontWeight: 700, color: "#334155" }}>Technical OEM Authorization & Specs</span>
-                  <strong style={{ color: "#9333ea" }}>34 Issues (21.8%)</strong>
+                  <strong style={{ color: "#9333ea" }}>{technicalIssues} Issues</strong>
                 </div>
                 <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
-                  <div style={{ width: "21.8%", height: "100%", background: "#9333ea", borderRadius: "4px" }}></div>
+                  <div style={{ width: `${totalIssuesCount > 0 ? (technicalIssues / totalIssuesCount) * 100 : 0}%`, height: "100%", background: "#9333ea", borderRadius: "4px" }}></div>
                 </div>
               </div>
 
@@ -4594,10 +6527,10 @@ function Home({ role, user, onLogout }) {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                   <span style={{ fontWeight: 700, color: "#334155" }}>Document Format & Expiry Date Mismatches</span>
-                  <strong style={{ color: "#dc2626" }}>22 Issues (14.1%)</strong>
+                  <strong style={{ color: "#dc2626" }}>{documentIssues} Issues</strong>
                 </div>
                 <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "4px" }}>
-                  <div style={{ width: "14.1%", height: "100%", background: "#dc2626", borderRadius: "4px" }}></div>
+                  <div style={{ width: `${totalIssuesCount > 0 ? (documentIssues / totalIssuesCount) * 100 : 0}%`, height: "100%", background: "#dc2626", borderRadius: "4px" }}></div>
                 </div>
               </div>
 
@@ -4613,23 +6546,19 @@ function Home({ role, user, onLogout }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", textAlign: "center" }}>
                 <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 6px", borderRadius: "8px" }}>
                   <span style={{ fontSize: "0.68rem", color: "#16a34a", fontWeight: 700, display: "block" }}>LOW RISK</span>
-                  <strong style={{ fontSize: "1.1rem", color: "#15803d" }}>898</strong>
-                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>72.0%</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#15803d" }}>{lowRiskCount}</strong>
                 </div>
                 <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", padding: "10px 6px", borderRadius: "8px" }}>
                   <span style={{ fontSize: "0.68rem", color: "#ea580c", fontWeight: 700, display: "block" }}>MEDIUM</span>
-                  <strong style={{ fontSize: "1.1rem", color: "#c2410c" }}>250</strong>
-                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>20.0%</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#c2410c" }}>{mediumRiskCount}</strong>
                 </div>
                 <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", padding: "10px 6px", borderRadius: "8px" }}>
                   <span style={{ fontSize: "0.68rem", color: "#dc2626", fontWeight: 700, display: "block" }}>HIGH RISK</span>
-                  <strong style={{ fontSize: "1.1rem", color: "#b91c1c" }}>75</strong>
-                  <span style={{ fontSize: "0.65rem", color: "#64748b", display: "block" }}>6.0%</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#b91c1c" }}>{highRiskCount}</strong>
                 </div>
                 <div style={{ background: "#450a0a", border: "1px solid #7f1d1d", padding: "10px 6px", borderRadius: "8px", color: "#ffffff" }}>
                   <span style={{ fontSize: "0.68rem", color: "#fca5a5", fontWeight: 700, display: "block" }}>CRITICAL</span>
-                  <strong style={{ fontSize: "1.1rem", color: "#ffffff" }}>25</strong>
-                  <span style={{ fontSize: "0.65rem", color: "#fecaca", display: "block" }}>2.0%</span>
+                  <strong style={{ fontSize: "1.1rem", color: "#ffffff" }}>{criticalRiskCount}</strong>
                 </div>
               </div>
             </div>
@@ -4640,19 +6569,15 @@ function Home({ role, user, onLogout }) {
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.75rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "#334155", fontWeight: 600 }}>● Approved & Qualified</span>
-                  <strong style={{ color: "#16a34a" }}>1,102 (88.3%)</strong>
+                  <strong style={{ color: "#16a34a" }}>{approvedBidsCount} ({compliantPct}%)</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "#334155", fontWeight: 600 }}>● Pending Officer Review</span>
-                  <strong style={{ color: "#2563eb" }}>84 (6.7%)</strong>
+                  <strong style={{ color: "#2563eb" }}>{bids.filter(b => b.status === "Review Required" || b.status === "Under Review" || b.status === "Pending").length}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "#334155", fontWeight: 600 }}>● Clarification Requested</span>
-                  <strong style={{ color: "#ea580c" }}>42 (3.4%)</strong>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "#334155", fontWeight: 600 }}>● Disqualified / Rejected</span>
-                  <strong style={{ color: "#dc2626" }}>20 (1.6%)</strong>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>● Disqualified / Flagged</span>
+                  <strong style={{ color: "#dc2626" }}>{bids.filter(b => b.status === "Disqualified" || b.status === "Rejected" || b.status === "Flagged").length}</strong>
                 </div>
               </div>
             </div>
@@ -4674,45 +6599,36 @@ function Home({ role, user, onLogout }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
 
             <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: "0.72rem", color: "#38bdf8", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>MOST COMMON ISSUES</span>
+              <span style={{ fontSize: "0.72rem", color: "#38bdf8", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>COMMON ANOMALIES</span>
               <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
-                • <strong>GSTIN Return Delays:</strong> 38% of flagged bids<br />
-                • <strong>OEM Letter Name Mismatch:</strong> 27%<br />
-                • <strong>Bank Solvency Expiry:</strong> 21%
+                • GSTIN Return Verification<br />
+                • OEM Authorization Name Alignment<br />
+                • Bank Solvency Validity
               </p>
             </div>
 
             <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: "0.72rem", color: "#f59e0b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>FREQUENTLY MISSING DOCS</span>
+              <span style={{ fontSize: "0.72rem", color: "#f59e0b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>VERIFIED CLAUSES</span>
               <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
-                • <strong>Latest GSTR-3B Receipts:</strong> 45% missing<br />
-                • <strong>EPFO Compliance Clearance:</strong> 32% missing<br />
-                • <strong>Udyam MSME Annexure:</strong> 23% missing
+                • GSTR-3B Filing Status<br />
+                • EPFO Clearance<br />
+                • Udyam MSME Exemption
               </p>
             </div>
 
             <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: "0.72rem", color: "#4ade80", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>AVERAGE VERIFICATION TIME</span>
+              <span style={{ fontSize: "0.72rem", color: "#4ade80", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>PROCESSING SPEED</span>
               <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
-                • <strong>AI Processing Speed:</strong> 3.2 minutes / bid<br />
-                • <strong>Manual Time Saved:</strong> 34.7 total hours<br />
-                • <strong>Turnaround Improvement:</strong> 94% faster
+                • AI Processing Time: Under 3.5 minutes per bid<br />
+                • Direct Government API Verification Active
               </p>
             </div>
 
             <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: "0.72rem", color: "#f43f5e", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>HIGHEST-RISK CATEGORY</span>
+              <span style={{ fontSize: "0.72rem", color: "#c084fc", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>ACTIVE SUMMARY</span>
               <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
-                • <strong>Financial Solvency & Turnover</strong><br />
-                • Accounts for 42% of high-risk score deductions due to expired certificate dates.
-              </p>
-            </div>
-
-            <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: "0.72rem", color: "#c084fc", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }}>COMPLIANCE IMPROVEMENT</span>
-              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: "6px 0 0 0", lineHeight: 1.4 }}>
-                • <strong>Overall Score Growth:</strong> +6.8% MoM<br />
-                • Vendor alignment score increased from 85.6% to 92.4% within 30 days.
+                • Total Active Bids: {totalBidsCount}<br />
+                • Average Platform Compliance: {avgScoreVal}%
               </p>
             </div>
 
@@ -4729,10 +6645,7 @@ function Home({ role, user, onLogout }) {
               <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>ANALYSIS</h3>
             </div>
             <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
-              The <strong>AI-Powered Integrated Bid Compliance Verification Platform</strong> analyzed <strong>1,248 procurement bids</strong> during May 2026. Automated OCR parsing coupled with direct Government REST API webhooks (CBDT, GSTN, MSME Udyam, EPFO) achieved a <strong>98.6% automatic extraction fidelity rate</strong>.
-            </p>
-            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
-              Throughput efficiency improved dramatically, reducing average verification latency down to <strong>3.2 minutes per submission</strong> compared to historical manual benchmarks of 4.5 hours per tender file.
+              The <strong>AI-Powered Integrated Bid Compliance Verification Platform</strong> evaluated <strong>{totalBidsCount} active procurement bids</strong> in real-time. Automated OCR parsing coupled with direct Government REST API integrations (CBDT, GSTN, MSME Udyam, EPFO) guarantees high data extraction fidelity.
             </p>
           </div>
 
@@ -4743,10 +6656,7 @@ function Home({ role, user, onLogout }) {
               <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>INSIGHTS</h3>
             </div>
             <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
-              Deep pattern recognition across 156 flagged items revealed that <strong>37.2% of non-compliance issues</strong> stem from minor entity naming variations between GSTIN Registrant records and original OEM Authorization letters (e.g. "Pvt. Ltd." vs "Private Limited").
-            </p>
-            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
-              Furthermore, MSME bidders demonstrated a <strong>97% compliance score when Udyam validation was active</strong>, confirming the efficacy of automated EMD waiver verification pipelines.
+              Pattern recognition across <strong>{totalIssuesCount} flagged items</strong> revealed that non-compliance issues primarily stem from entity naming variations between GSTIN Registrant records and original OEM Authorization letters.
             </p>
           </div>
 
@@ -4757,10 +6667,7 @@ function Home({ role, user, onLogout }) {
               <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>CONCLUSIONS</h3>
             </div>
             <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
-              Overall bidder compliance on GeM procurement has reached an all-time high of <strong>92.4% average score</strong>. The introduction of immutable cryptographic audit hashing has eliminated post-decision tampering risks, ensuring 100% legal enforceability across all 1,102 approved bids.
-            </p>
-            <p style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.6, margin: "10px 0 0 0" }}>
-              Procurement Officer manual review backlog was reduced by <strong>84%</strong>, allowing officers to focus exclusively on flagged high-risk edge cases.
+              Overall bidder compliance on GeM procurement stands at <strong>{avgScoreVal}% average score</strong>. The introduction of immutable cryptographic audit hashing has eliminated post-decision tampering risks across all <strong>{approvedBidsCount} approved bids</strong>.
             </p>
           </div>
 
@@ -4779,6 +6686,913 @@ function Home({ role, user, onLogout }) {
           </div>
 
         </div>
+
+      </div>
+    );
+  };
+
+  // Admin "System Settings" View Component
+  const SettingsView = () => {
+    const [activeTab, setActiveTab] = useState("general");
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [saveToast, setSaveToast] = useState(false);
+
+    const defaultSettings = {
+      platformName: "AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement",
+      organization: "Government e-Marketplace (GeM), Ministry of Commerce & Industry",
+      department: "National Public Procurement & Compliance Auditing Bureau",
+      timeZone: "(UTC+05:30) India Standard Time (IST)",
+      dateFormat: "DD/MM/YYYY (e.g. 30/08/2026)",
+      language: "English (India)",
+
+      passwordPolicy: "STRICT",
+      twoFactorAuth: true,
+      sessionTimeout: "30",
+      loginAttemptLimit: "5",
+      ipRestrictions: "10.240.0.0/16, 14.143.0.0/19 (NIC Gov Grid Allowlist)",
+
+      aiVerificationEnabled: true,
+      documentAnalysis: true,
+      mismatchDetection: true,
+      riskScoring: true,
+      aiRecommendation: true,
+      confidenceThreshold: 85,
+
+      emailNotifications: true,
+      bidVerificationAlerts: true,
+      highRiskAlerts: true,
+      failedIntegrationAlerts: true,
+      auditAlerts: true,
+
+      defaultRiskThreshold: 65,
+      complianceScoreThreshold: 75,
+      mandatoryDocPolicy: "STRICT",
+      autoReverification: true,
+      tenderSpecificRules: true,
+
+      docRetention: "7_YEARS",
+      auditRetention: "INDEFINITE",
+      backupFrequency: "HOURLY",
+      dataExportFormat: "ALL",
+
+      apiEndpoint: "https://gateway.gem.gov.in/api/v2.4/compliance",
+      connectionTimeout: "5000",
+      retryAttempts: "3",
+      syncFrequency: "REALTIME",
+
+      announcementEnabled: announcementConfig.enabled,
+      announcementBadgeText: announcementConfig.badgeText,
+      announcementText: announcementConfig.text,
+      announcementType: announcementConfig.type,
+      announcementSpeed: announcementConfig.speed
+    };
+
+    const [settings, setSettings] = useState(defaultSettings);
+
+    const handleToggle = (key) => {
+      setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleChange = (key, val) => {
+      setSettings((prev) => ({ ...prev, [key]: val }));
+    };
+
+    const handleSave = () => {
+      const updatedConfig = {
+        enabled: settings.announcementEnabled,
+        badgeText: settings.announcementBadgeText,
+        text: settings.announcementText,
+        type: settings.announcementType,
+        speed: settings.announcementSpeed
+      };
+      setAnnouncementConfig(updatedConfig);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("gem_announcement_config", JSON.stringify(updatedConfig));
+      }
+      setShowSaveConfirm(false);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 4000);
+    };
+
+    const handleReset = () => {
+      setSettings(defaultSettings);
+      setShowResetConfirm(false);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 4000);
+    };
+
+    const categories = [
+      { id: "general", label: "General Settings", icon: Settings, desc: "Platform name, timezone & language" },
+      { id: "announcements", label: "Live Announcements", icon: Megaphone, desc: "Control live scrolling ticker & alerts" },
+      { id: "security", label: "Security & Auth", icon: ShieldCheck, desc: "Password policy, 2FA & IP limits" },
+      { id: "ai", label: "AI Configuration", icon: Cpu, desc: "Engine models, OCR & risk scoring" },
+      { id: "notifications", label: "Notification Alerts", icon: Bell, desc: "Email notifications & high-risk alerts" },
+      { id: "compliance", label: "Compliance Rules", icon: FileText, desc: "Risk thresholds & mandatory policies" },
+      { id: "storage", label: "Data & Storage", icon: Database, desc: "Retention policy & backups" },
+      { id: "integrations", label: "Integration Settings", icon: Sliders, desc: "API gateway, timeouts & retries" }
+    ];
+
+    const inputStyle = {
+      width: "100%",
+      padding: "10px 14px",
+      borderRadius: "8px",
+      border: "1px solid #cbd5e1",
+      background: "#ffffff",
+      color: "#0f172a",
+      fontSize: "0.88rem",
+      fontWeight: 600,
+      outline: "none",
+      boxSizing: "border-box"
+    };
+
+    const labelStyle = {
+      display: "block",
+      fontSize: "0.82rem",
+      fontWeight: 700,
+      color: "#334155",
+      marginBottom: "6px"
+    };
+
+    const ToggleSwitch = ({ checked, onChange, label, subtext }) => (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "#f8fafc", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "12px" }}>
+        <div>
+          <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#0f172a" }}>{label}</div>
+          {subtext && <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>{subtext}</div>}
+        </div>
+        <button
+          type="button"
+          onClick={onChange}
+          style={{
+            width: "48px",
+            height: "26px",
+            borderRadius: "999px",
+            background: checked ? "#2563eb" : "#cbd5e1",
+            position: "relative",
+            border: "none",
+            cursor: "pointer",
+            transition: "background 0.2s ease",
+            flexShrink: 0
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: "3px",
+              left: checked ? "25px" : "3px",
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              background: "#ffffff",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              transition: "left 0.2s ease"
+            }}
+          />
+        </button>
+      </div>
+    );
+
+    return (
+      <div style={{ padding: "30px 40px", background: "#f8fafc", minHeight: "100vh" }}>
+        {/* Save Confirmation Toast */}
+        {saveToast && (
+          <div style={{ position: "fixed", bottom: "30px", right: "30px", zIndex: 100000, background: "#0f172a", color: "#ffffff", padding: "14px 20px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.3)", borderLeft: "4px solid #10b981" }}>
+            <CheckCircle2 size={20} style={{ color: "#10b981" }} />
+            <div>
+              <div style={{ fontSize: "0.88rem", fontWeight: 800 }}>System Settings Saved Successfully</div>
+              <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>All security and AI governance policies updated across live nodes.</div>
+            </div>
+          </div>
+        )}
+
+        {/* Header Block */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ padding: "10px", borderRadius: "10px", background: "#dbeafe", color: "#2563eb" }}>
+                <Settings size={26} />
+              </div>
+              <div>
+                <h1 style={{ fontSize: "1.75rem", fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.5px" }}>
+                  SYSTEM SETTINGS
+                </h1>
+                <p style={{ fontSize: "0.88rem", color: "#475569", margin: "4px 0 0 0" }}>
+                  Configure platform preferences, security, notifications and AI verification settings.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
+            >
+              <RotateCcw size={16} />
+              Reset to Default
+            </button>
+            <button
+              onClick={() => setShowSaveConfirm(true)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 22px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)", color: "#ffffff", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)" }}
+            >
+              <Save size={16} />
+              Save Changes
+            </button>
+          </div>
+        </div>
+
+        {/* Two-Column Grid */}
+        <div style={{ display: "flex", gap: "24px" }}>
+          {/* Left Navigation Sidebar */}
+          <div style={{ width: "300px", flexShrink: 0 }}>
+            <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+              {categories.map(({ id, label, icon: IconComponent, desc }) => {
+                const isActive = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 14px",
+                      borderRadius: "10px",
+                      border: "none",
+                      background: isActive ? "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" : "transparent",
+                      color: isActive ? "#1d4ed8" : "#334155",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      marginBottom: "6px",
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    <div style={{ padding: "8px", borderRadius: "8px", background: isActive ? "#ffffff" : "#f1f5f9", color: isActive ? "#2563eb" : "#64748b", boxShadow: isActive ? "0 2px 6px rgba(37,99,235,0.15)" : "none" }}>
+                      <IconComponent size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.88rem", fontWeight: isActive ? 800 : 700 }}>{label}</div>
+                      <div style={{ fontSize: "0.72rem", color: isActive ? "#2563eb" : "#94a3b8", marginTop: "2px" }}>{desc}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Active Form Panel */}
+          <div style={{ flex: 1 }}>
+            <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "28px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+
+              {/* 1. GENERAL SETTINGS */}
+              {activeTab === "general" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>GENERAL SETTINGS</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Configure platform identification, regional parameters, and operational metadata.</p>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={labelStyle}>Platform Name</label>
+                      <input
+                        type="text"
+                        value={settings.platformName}
+                        onChange={(e) => handleChange("platformName", e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Organization</label>
+                      <input
+                        type="text"
+                        value={settings.organization}
+                        onChange={(e) => handleChange("organization", e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Department</label>
+                      <input
+                        type="text"
+                        value={settings.department}
+                        onChange={(e) => handleChange("department", e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Time Zone</label>
+                      <select
+                        value={settings.timeZone}
+                        onChange={(e) => handleChange("timeZone", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="IST">(UTC+05:30) India Standard Time (IST)</option>
+                        <option value="UTC">(UTC+00:00) Coordinated Universal Time (UTC)</option>
+                        <option value="EST">(UTC-05:00) Eastern Standard Time (EST)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Date Format</label>
+                      <select
+                        value={settings.dateFormat}
+                        onChange={(e) => handleChange("dateFormat", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="DD/MM/YYYY">DD/MM/YYYY (e.g. 30/08/2026)</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD (e.g. 2026-08-30)</option>
+                        <option value="MM/DD/YYYY">MM/DD/YYYY (e.g. 08/30/2026)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Language</label>
+                      <select
+                        value={settings.language}
+                        onChange={(e) => handleChange("language", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="en-IN">English (India)</option>
+                        <option value="hi-IN">Hindi (हिंदी)</option>
+                        <option value="ta-IN">Tamil (தமிழ்)</option>
+                        <option value="bn-IN">Bengali (বাংলা)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* LIVE ANNOUNCEMENTS GOVERNANCE */}
+              {activeTab === "announcements" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>LIVE ANNOUNCEMENTS & TICKER GOVERNANCE</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Control real-time scrolling announcement tickers, broadcast emergency compliance alerts, and customize portal notice themes.</p>
+                  </div>
+
+                  <ToggleSwitch
+                    checked={settings.announcementEnabled}
+                    onChange={() => handleToggle("announcementEnabled")}
+                    label="Live Announcement Ticker Enabled"
+                    subtext="Display the scrolling live announcement banner across all procurement officer and bidder portal views."
+                  />
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "16px" }}>
+                    <div>
+                      <label style={labelStyle}>Announcement Badge Title</label>
+                      <input
+                        type="text"
+                        value={settings.announcementBadgeText}
+                        onChange={(e) => handleChange("announcementBadgeText", e.target.value)}
+                        placeholder="e.g. 📢 LIVE ANNOUNCEMENTS"
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Announcement Alert Level & Theme</label>
+                      <select
+                        value={settings.announcementType}
+                        onChange={(e) => handleChange("announcementType", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="NOTICE">Notice (Navy Blue - Standard)</option>
+                        <option value="CRITICAL">Critical (Crimson Red - Emergency)</option>
+                        <option value="WARNING">Warning (Amber Orange - System Alert)</option>
+                        <option value="SUCCESS">Success (Emerald Green - Broadcast)</option>
+                      </select>
+                    </div>
+
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={labelStyle}>Broadcast Announcement Message Text</label>
+                      <textarea
+                        rows={3}
+                        value={settings.announcementText}
+                        onChange={(e) => handleChange("announcementText", e.target.value)}
+                        style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+                        placeholder="Enter scrolling announcement text..."
+                      />
+                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Use ✦ separator symbols for clean multi-topic scrolling announcements.</span>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Ticker Scroll Speed</label>
+                      <select
+                        value={settings.announcementSpeed}
+                        onChange={(e) => handleChange("announcementSpeed", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="NORMAL">Normal Speed (28 Seconds)</option>
+                        <option value="SLOW">Slow Speed (45 Seconds - High Readability)</option>
+                        <option value="FAST">Fast Speed (15 Seconds - Rapid Scroll)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* REAL-TIME PREVIEW BOX */}
+                  <div style={{ marginTop: "24px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #cbd5e1", padding: "16px" }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "#0f172a", marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <Radio size={16} style={{ color: "#2563eb" }} />
+                        <span>LIVE PREVIEW (REAL-TIME ANIMATION)</span>
+                      </div>
+                      <span style={{ fontSize: "0.72rem", background: settings.announcementEnabled ? "#dcfce7" : "#fee2e2", color: settings.announcementEnabled ? "#15803d" : "#b91c1c", padding: "2px 8px", borderRadius: "6px", fontWeight: 700 }}>
+                        {settings.announcementEnabled ? "● BROADCASTING LIVE" : "○ TICKER OFF"}
+                      </span>
+                    </div>
+
+                    {settings.announcementEnabled ? (
+                      <div
+                        className="gov-ticker-bar"
+                        style={{
+                          borderRadius: "8px",
+                          padding: "6px 14px",
+                          background:
+                            settings.announcementType === "CRITICAL"
+                              ? "linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%)"
+                              : settings.announcementType === "WARNING"
+                                ? "linear-gradient(90deg, #78350f 0%, #92400e 100%)"
+                                : settings.announcementType === "SUCCESS"
+                                  ? "linear-gradient(90deg, #064e3b 0%, #047857 100%)"
+                                  : "linear-gradient(90deg, #0f172a 0%, #1e293b 100%)"
+                        }}
+                      >
+                        <span className="ticker-badge">
+                          {settings.announcementBadgeText || "📢 LIVE ANNOUNCEMENTS"}
+                        </span>
+                        <div className="ticker-wrapper">
+                          <span
+                            key={`${settings.announcementSpeed}-${settings.announcementText}`}
+                            className="ticker-text"
+                            style={{
+                              animationDuration:
+                                settings.announcementSpeed === "SLOW"
+                                  ? "45s"
+                                  : settings.announcementSpeed === "FAST"
+                                    ? "15s"
+                                    : "28s"
+                            }}
+                          >
+                            {settings.announcementText || "No active announcement text entered."}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: "14px", background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", fontSize: "0.82rem", fontWeight: 700, textAlign: "center" }}>
+                        ⚠️ Live Announcement Ticker is currently Disabled (Banner hidden across portal)
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. SECURITY & AUTH */}
+              {activeTab === "security" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>SECURITY & AUTHENTICATION</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Enforce password rules, multi-factor authentication, session governance, and IP allowlists.</p>
+                  </div>
+
+                  <ToggleSwitch
+                    checked={settings.twoFactorAuth}
+                    onChange={() => handleToggle("twoFactorAuth")}
+                    label="Two-Factor Authentication (2FA)"
+                    subtext="Require TOTP / SMS OTP authentication for all Super Admin and Procurement Officer logins."
+                  />
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "16px" }}>
+                    <div>
+                      <label style={labelStyle}>Password Policy</label>
+                      <select
+                        value={settings.passwordPolicy}
+                        onChange={(e) => handleChange("passwordPolicy", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="STRICT">Strict (Min 12 chars, Uppercase, Numbers, Special Symbols)</option>
+                        <option value="MEDIUM">Medium (Min 8 chars, Alphanumeric)</option>
+                        <option value="STANDARD">Standard (Min 8 chars)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Session Timeout (Minutes)</label>
+                      <select
+                        value={settings.sessionTimeout}
+                        onChange={(e) => handleChange("sessionTimeout", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="15">15 Minutes (High Security)</option>
+                        <option value="30">30 Minutes (Recommended)</option>
+                        <option value="60">60 Minutes</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Login Attempt Limit</label>
+                      <select
+                        value={settings.loginAttemptLimit}
+                        onChange={(e) => handleChange("loginAttemptLimit", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="3">3 Failed Attempts (Strict Lockout)</option>
+                        <option value="5">5 Failed Attempts (Standard Lockout)</option>
+                        <option value="10">10 Failed Attempts</option>
+                      </select>
+                    </div>
+
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={labelStyle}>IP Restrictions & Allowlisted Subnets</label>
+                      <input
+                        type="text"
+                        value={settings.ipRestrictions}
+                        onChange={(e) => handleChange("ipRestrictions", e.target.value)}
+                        style={inputStyle}
+                      />
+                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Comma-separated CIDR subnets allowed to access administrative endpoints.</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. AI CONFIGURATION */}
+              {activeTab === "ai" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>AI VERIFICATION ENGINE CONFIGURATION</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Control deep document analysis, OCR extraction, legal name mismatch detection, and risk scoring algorithms.</p>
+                  </div>
+
+                  <ToggleSwitch
+                    checked={settings.aiVerificationEnabled}
+                    onChange={() => handleToggle("aiVerificationEnabled")}
+                    label="AI Verification Engine Enabled"
+                    subtext="Enable automated real-time document extraction and compliance verification across all incoming bids."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.documentAnalysis}
+                    onChange={() => handleToggle("documentAnalysis")}
+                    label="Multilingual OCR Document Analysis"
+                    subtext="Extract GST, PAN, Bank Solvency, and Turnover data from PDF and scanned image attachments."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.mismatchDetection}
+                    onChange={() => handleToggle("mismatchDetection")}
+                    label="Fuzzy Entity Mismatch Detection"
+                    subtext="Cross-reference bidder legal names with Income Tax and GSTN databases using Levenshtein distance matching."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.riskScoring}
+                    onChange={() => handleToggle("riskScoring")}
+                    label="Multi-Factor Algorithmic Risk Assessment"
+                    subtext="Generate automated risk score percentage (0-100%) based on historical compliance and registry alerts."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.aiRecommendation}
+                    onChange={() => handleToggle("aiRecommendation")}
+                    label="AI Recommendation Model"
+                    subtext="Provide automated Qualification / Manual Review recommendations to Procurement Officers."
+                  />
+
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "10px", border: "1px solid #e2e8f0", marginTop: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <label style={{ fontSize: "0.88rem", fontWeight: 700, color: "#0f172a" }}>AI Minimum Confidence Threshold</label>
+                      <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#2563eb", background: "#dbeafe", padding: "2px 10px", borderRadius: "6px" }}>
+                        {settings.confidenceThreshold}% Minimum
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="98"
+                      value={settings.confidenceThreshold}
+                      onChange={(e) => handleChange("confidenceThreshold", e.target.value)}
+                      style={{ width: "100%", accentColor: "#2563eb", cursor: "pointer" }}
+                    />
+                    <span style={{ fontSize: "0.72rem", color: "#64748b" }}>Verifications scoring below {settings.confidenceThreshold}% confidence will automatically flag a mandatory manual review.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. NOTIFICATION SETTINGS */}
+              {activeTab === "notifications" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>NOTIFICATION & ALERT SETTINGS</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Manage real-time officer dispatch alerts, SMS notifications, and system integration event logs.</p>
+                  </div>
+
+                  <ToggleSwitch
+                    checked={settings.emailNotifications}
+                    onChange={() => handleToggle("emailNotifications")}
+                    label="Global Email Notifications"
+                    subtext="Send automated email dispatches to registered officers upon major compliance events."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.bidVerificationAlerts}
+                    onChange={() => handleToggle("bidVerificationAlerts")}
+                    label="Bid Verification Completion Alerts"
+                    subtext="Dispatch notification whenever AI finishes parsing a submitted tender bid."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.highRiskAlerts}
+                    onChange={() => handleToggle("highRiskAlerts")}
+                    label="High-Risk Bid Escalation Alerts"
+                    subtext="Trigger immediate SMS & Email alerts when a bid generates a risk score over 65%."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.failedIntegrationAlerts}
+                    onChange={() => handleToggle("failedIntegrationAlerts")}
+                    label="Government Registry API Failure Alerts"
+                    subtext="Notify platform administrators if connections to GST, PAN, or MSME gateways drop."
+                  />
+
+                  <ToggleSwitch
+                    checked={settings.auditAlerts}
+                    onChange={() => handleToggle("auditAlerts")}
+                    label="Administrative Override Audit Alerts"
+                    subtext="Log and notify security team when an officer overrides an automated AI rejection."
+                  />
+                </div>
+              )}
+
+              {/* 5. COMPLIANCE SETTINGS */}
+              {activeTab === "compliance" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>COMPLIANCE & GOVERNANCE RULES</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Define default risk boundaries, mandatory document policies, and automatic re-verification schedules.</p>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    <div>
+                      <label style={labelStyle}>Default Risk Escalation Threshold (%)</label>
+                      <input
+                        type="number"
+                        value={settings.defaultRiskThreshold}
+                        onChange={(e) => handleChange("defaultRiskThreshold", e.target.value)}
+                        style={inputStyle}
+                      />
+                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Bids exceeding this risk percentage are automatically routed to manual review.</span>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Compliance Qualification Threshold (%)</label>
+                      <input
+                        type="number"
+                        value={settings.complianceScoreThreshold}
+                        onChange={(e) => handleChange("complianceScoreThreshold", e.target.value)}
+                        style={inputStyle}
+                      />
+                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Minimum score required for automated qualification clearance.</span>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Mandatory Document Enforcement Policy</label>
+                      <select
+                        value={settings.mandatoryDocPolicy}
+                        onChange={(e) => handleChange("mandatoryDocPolicy", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="STRICT">Strict (GST, PAN, Solvency, Turnover & OEM Certificates mandatory)</option>
+                        <option value="STANDARD">Standard (GST, PAN & Solvency mandatory)</option>
+                        <option value="FLEXIBLE">Flexible (Allow provisional upload with 48h cure period)</option>
+                      </select>
+                    </div>
+
+                    <div style={{ gridColumn: "span 2", marginTop: "10px" }}>
+                      <ToggleSwitch
+                        checked={settings.autoReverification}
+                        onChange={() => handleToggle("autoReverification")}
+                        label="Automated Periodic Re-Verification"
+                        subtext="Re-check active supplier GSTIN status and blacklisting records every 30 days automatically."
+                      />
+
+                      <ToggleSwitch
+                        checked={settings.tenderSpecificRules}
+                        onChange={() => handleToggle("tenderSpecificRules")}
+                        label="Tender-Specific Override Eligibility Rules"
+                        subtext="Allow Procurement Officers to append custom criteria to specific high-value tenders."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. DATA & STORAGE */}
+              {activeTab === "storage" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>DATA RETENTION & STORAGE GOVERNANCE</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Manage CPPP document retention mandates, audit log permanence, and NIC sovereign cloud backup intervals.</p>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    <div>
+                      <label style={labelStyle}>Document Retention Policy</label>
+                      <select
+                        value={settings.docRetention}
+                        onChange={(e) => handleChange("docRetention", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="7_YEARS">7 Years (CPPP & GeM Sovereign Procurement Policy)</option>
+                        <option value="10_YEARS">10 Years (Extended Audit Retention)</option>
+                        <option value="INDEFINITE">Indefinite Permanent Storage</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Audit Log Retention</label>
+                      <select
+                        value={settings.auditRetention}
+                        onChange={(e) => handleChange("auditRetention", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="INDEFINITE">Indefinite (Immutable SHA-256 Cryptographic Ledger)</option>
+                        <option value="7_YEARS">7 Years Archive</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Sovereign Cloud Backup Frequency</label>
+                      <select
+                        value={settings.backupFrequency}
+                        onChange={(e) => handleChange("backupFrequency", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="HOURLY">Hourly Automated Snapshot (NIC Cloud)</option>
+                        <option value="DAILY">Daily Midnight Backup</option>
+                        <option value="WEEKLY">Weekly Full System Dump</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Export Data Format</label>
+                      <select
+                        value={settings.dataExportFormat}
+                        onChange={(e) => handleChange("dataExportFormat", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="ALL">JSON, CSV, & Digitally Signed PDF Formats</option>
+                        <option value="PDF">Digitally Signed PDF Audit Packages Only</option>
+                        <option value="CSV">CSV Data Export Only</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. INTEGRATION SETTINGS */}
+              {activeTab === "integrations" && (
+                <div>
+                  <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>GOVERNMENT INTEGRATION & API CONFIGURATION</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "4px 0 0 0" }}>Configure connection parameters, retry backoff algorithms, and synchronization frequencies for government gateways.</p>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={labelStyle}>Primary Production API Gateway Endpoint</label>
+                      <input
+                        type="text"
+                        value={settings.apiEndpoint}
+                        onChange={(e) => handleChange("apiEndpoint", e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Connection Timeout (Milliseconds)</label>
+                      <select
+                        value={settings.connectionTimeout}
+                        onChange={(e) => handleChange("connectionTimeout", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="3000">3000 ms (3 Seconds)</option>
+                        <option value="5000">5000 ms (5 Seconds - Standard)</option>
+                        <option value="10000">10000 ms (10 Seconds)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Retry Attempt Strategy</label>
+                      <select
+                        value={settings.retryAttempts}
+                        onChange={(e) => handleChange("retryAttempts", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="3">3 Exponential Backoff Retries (Recommended)</option>
+                        <option value="5">5 Retries (High Tolerance)</option>
+                        <option value="1">1 Immediate Retry Only</option>
+                      </select>
+                    </div>
+
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={labelStyle}>Registry Synchronization Frequency</label>
+                      <select
+                        value={settings.syncFrequency}
+                        onChange={(e) => handleChange("syncFrequency", e.target.value)}
+                        style={inputStyle}
+                      >
+                        <option value="REALTIME">Real-Time (Event-Driven Webhooks)</option>
+                        <option value="EVERY_15_MIN">Every 15 Minutes Batch Sync</option>
+                        <option value="HOURLY">Hourly Batch Sync</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SENSITIVE CONFIGURATION WARNING BOX */}
+              <div style={{ marginTop: "32px", padding: "16px 20px", borderRadius: "12px", background: "#fffbe6", border: "1px solid #fde68a", borderLeft: "4px solid #f59e0b", display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                <AlertTriangle size={22} style={{ color: "#d97706", flexShrink: 0, marginTop: "2px" }} />
+                <div>
+                  <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "#92400e" }}>
+                    Sovereign Security & AI Governance Notice
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "#b45309", marginTop: "3px", lineHeight: 1.5 }}>
+                    Modifying core AI risk scoring thresholds, security policies, or IP restrictions will immediately take effect across all active GeM procurement verifications. Ensure proper clearance from the Chief Compliance Auditor before saving configuration changes.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* CONFIRMATION DIALOG MODAL FOR SAVE */}
+        {showSaveConfirm && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", zIndex: 100000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "480px", maxWidth: "90%", padding: "24px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25)", borderTop: "4px solid #2563eb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <ShieldCheck size={24} style={{ color: "#2563eb" }} />
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                  Confirm System Settings Update
+                </h3>
+              </div>
+              <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.5, marginBottom: "20px" }}>
+                Are you sure you want to commit these system configuration changes? Updated parameters will take effect immediately across live verification nodes.
+              </p>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+                <button
+                  onClick={() => setShowSaveConfirm(false)}
+                  style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  style={{ padding: "8px 20px", borderRadius: "6px", border: "none", background: "#2563eb", color: "#ffffff", fontWeight: 700, cursor: "pointer" }}
+                >
+                  Confirm & Commit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONFIRMATION DIALOG MODAL FOR RESET */}
+        {showResetConfirm && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", zIndex: 100000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "480px", maxWidth: "90%", padding: "24px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25)", borderTop: "4px solid #d97706" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <AlertTriangle size={24} style={{ color: "#d97706" }} />
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                  Reset Settings to Default Parameters?
+                </h3>
+              </div>
+              <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.5, marginBottom: "20px" }}>
+                This action will restore all platform preferences, security limits, AI confidence thresholds, and notification rules back to their factory default values.
+              </p>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReset}
+                  style={{ padding: "8px 20px", borderRadius: "6px", border: "none", background: "#d97706", color: "#ffffff", fontWeight: 700, cursor: "pointer" }}
+                >
+                  Reset Parameters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     );
@@ -4815,10 +7629,14 @@ function Home({ role, user, onLogout }) {
         return <VerificationView />;
       case "reports":
         return <ReportsView />;
+      case "userManagement":
+        return <UserManagementView />;
       case "integrations":
-        return isAdmin ? <IntegrationsView /> : <BuyerDashboardView />;
+        return <IntegrationsView />;
       case "auditTrail":
         return <AuditTrailView />;
+      case "settings":
+        return <SettingsView />;
       case "notifications":
         return <NotificationsSection />;
       case "support":
@@ -4909,12 +7727,76 @@ function Home({ role, user, onLogout }) {
               <ChevronDown size={14} className="dropdown-arrow" />
 
               {userDropdownOpen && (
-                <div className="dropdown-menu">
-                  <button className="dropdown-item" onClick={() => setActiveSection("profile")}>
-                    My Profile
+                <div
+                  className="dropdown-menu"
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "calc(100% + 12px)",
+                    background: "#ffffff",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "14px",
+                    padding: "10px",
+                    minWidth: "220px",
+                    boxShadow: "0 20px 30px -10px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08)",
+                    zIndex: 99999
+                  }}
+                >
+                  <div style={{ padding: "8px 10px 12px 10px", borderBottom: "1px solid #f1f5f9", marginBottom: "8px" }}>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a" }}>
+                      {user ? user.full_name : "ABC Engineering Pvt. Ltd."}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>
+                      {user?.email || "bidder@abcengineering.com"}
+                    </div>
+                  </div>
+
+                  <button
+                    className="dropdown-item"
+                    onClick={() => { setActiveSection("profile"); setUserDropdownOpen(false); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      background: activeSection === "profile" ? "#f1f5f9" : "transparent",
+                      color: activeSection === "profile" ? "#0f172a" : "#334155",
+                      border: "none",
+                      fontSize: "0.85rem",
+                      fontWeight: activeSection === "profile" ? 800 : 600,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      marginBottom: "4px"
+                    }}
+                  >
+                    <User size={16} style={{ color: "#2563eb" }} />
+                    <span>My Profile</span>
                   </button>
-                  <button className="dropdown-item signout-item" onClick={onLogout}>
-                    <LogOut size={14} />
+
+                  <div style={{ height: "1px", background: "#f1f5f9", margin: "6px 0" }} />
+
+                  <button
+                    className="dropdown-item signout-item"
+                    onClick={() => { setUserDropdownOpen(false); onLogout(); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      background: "#fef2f2",
+                      color: "#dc2626",
+                      border: "1px solid #fecaca",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      textAlign: "left"
+                    }}
+                  >
+                    <LogOut size={16} style={{ color: "#dc2626" }} />
                     <span>Sign Out</span>
                   </button>
                 </div>
@@ -4924,14 +7806,38 @@ function Home({ role, user, onLogout }) {
         </header>
 
         {/* Government Live Ticker Bar */}
-        <div className="gov-ticker-bar">
-          <span className="ticker-badge">📢 LIVE ANNOUNCEMENTS</span>
-          <div className="ticker-wrapper">
-            <span className="ticker-text">
-              ✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦
-            </span>
+        {announcementConfig.enabled && (
+          <div
+            className="gov-ticker-bar"
+            style={{
+              background:
+                announcementConfig.type === "CRITICAL"
+                  ? "linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%)"
+                  : announcementConfig.type === "WARNING"
+                    ? "linear-gradient(90deg, #78350f 0%, #92400e 100%)"
+                    : announcementConfig.type === "SUCCESS"
+                      ? "linear-gradient(90deg, #064e3b 0%, #047857 100%)"
+                      : undefined
+            }}
+          >
+            <span className="ticker-badge">{announcementConfig.badgeText || "📢 LIVE ANNOUNCEMENTS"}</span>
+            <div className="ticker-wrapper">
+              <span
+                className="ticker-text"
+                style={{
+                  animationDuration:
+                    announcementConfig.speed === "SLOW"
+                      ? "45s"
+                      : announcementConfig.speed === "FAST"
+                        ? "15s"
+                        : "28s"
+                }}
+              >
+                {announcementConfig.text}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <main className="bidder-main" style={{ paddingBottom: "80px" }}>
           <section className="bidder-content">{renderContent()}</section>
@@ -5102,18 +8008,206 @@ function Home({ role, user, onLogout }) {
             <span className="notification-dot"></span>
           </button>
 
-          <div className="user-profile-dropdown" onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
-            <img src={profileImage} alt="User Profile" className="avatar-img" />
-            <span className="company-name">{user ? user.full_name : "Procurement Officer"}</span>
-            <ChevronDown size={14} className="dropdown-arrow" />
+          <div className="user-profile-dropdown" style={{ position: "relative" }}>
+            <div
+              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", padding: "4px 8px", borderRadius: "8px" }}
+            >
+              <img src={profileImage} alt="User Profile" className="avatar-img" />
+              <span className="company-name">{user ? user.full_name : "Procurement Officer"}</span>
+              <ChevronDown size={14} className="dropdown-arrow" />
+            </div>
 
             {userDropdownOpen && (
-              <div className="dropdown-menu">
-                <button className="dropdown-item" onClick={() => setActiveSection("profile")}>
-                  My Profile
+              <div
+                className="dropdown-menu"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 12px)",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "14px",
+                  padding: "10px",
+                  minWidth: "240px",
+                  boxShadow: "0 20px 30px -10px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08)",
+                  zIndex: 99999
+                }}
+              >
+                {/* User Info Header */}
+                <div style={{ padding: "8px 10px 12px 10px", borderBottom: "1px solid #f1f5f9", marginBottom: "8px" }}>
+                  <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a" }}>
+                    {user ? user.full_name : "Admin User"}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>
+                    {user?.email || "admin@example.com"}
+                  </div>
+                  <div style={{
+                    fontSize: "0.68rem",
+                    fontWeight: 800,
+                    color: "#0284c7",
+                    marginTop: "6px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.4px",
+                    background: "#e0f2fe",
+                    display: "inline-block",
+                    padding: "3px 10px",
+                    borderRadius: "6px"
+                  }}>
+                    {isAdmin ? "Super Admin" : (role || "Procurement Officer")}
+                  </div>
+                </div>
+
+                {/* My Profile */}
+                <button
+                  className="dropdown-item"
+                  onClick={() => { setActiveSection("profile"); setUserDropdownOpen(false); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    background: activeSection === "profile" ? "#f1f5f9" : "transparent",
+                    color: activeSection === "profile" ? "#0f172a" : "#334155",
+                    border: "none",
+                    fontSize: "0.85rem",
+                    fontWeight: activeSection === "profile" ? 800 : 600,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    marginBottom: "4px"
+                  }}
+                >
+                  <User size={16} style={{ color: "#2563eb" }} />
+                  <span>My Profile</span>
                 </button>
-                <button className="dropdown-item signout-item" onClick={onLogout}>
-                  <LogOut size={14} />
+
+                {/* Admin Management Links */}
+                {isAdmin && (
+                  <>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => { setActiveSection("userManagement"); setUserDropdownOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: activeSection === "userManagement" ? "#f1f5f9" : "transparent",
+                        color: activeSection === "userManagement" ? "#0f172a" : "#334155",
+                        border: "none",
+                        fontSize: "0.85rem",
+                        fontWeight: activeSection === "userManagement" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      <Users size={16} style={{ color: "#9333ea" }} />
+                      <span>User Management</span>
+                    </button>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => { setActiveSection("integrations"); setUserDropdownOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: activeSection === "integrations" ? "#f1f5f9" : "transparent",
+                        color: activeSection === "integrations" ? "#0f172a" : "#334155",
+                        border: "none",
+                        fontSize: "0.85rem",
+                        fontWeight: activeSection === "integrations" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      <Sliders size={16} style={{ color: "#0284c7" }} />
+                      <span>Integrations</span>
+                    </button>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => { setActiveSection("settings"); setUserDropdownOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: activeSection === "settings" ? "#f1f5f9" : "transparent",
+                        color: activeSection === "settings" ? "#0f172a" : "#334155",
+                        border: "none",
+                        fontSize: "0.85rem",
+                        fontWeight: activeSection === "settings" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      <Settings size={16} style={{ color: "#2563eb" }} />
+                      <span>System Settings</span>
+                    </button>
+                  </>
+                )}
+
+                {/* Audit Trail */}
+                <button
+                  className="dropdown-item"
+                  onClick={() => { setActiveSection("auditTrail"); setUserDropdownOpen(false); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    background: activeSection === "auditTrail" ? "#f1f5f9" : "transparent",
+                    color: activeSection === "auditTrail" ? "#0f172a" : "#334155",
+                    border: "none",
+                    fontSize: "0.85rem",
+                    fontWeight: activeSection === "auditTrail" ? 800 : 600,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    marginBottom: "4px"
+                  }}
+                >
+                  <ClipboardList size={16} style={{ color: "#16a34a" }} />
+                  <span>Audit Trail</span>
+                </button>
+
+                <div style={{ height: "1px", background: "#f1f5f9", margin: "6px 0" }} />
+
+                {/* Sign Out */}
+                <button
+                  className="dropdown-item signout-item"
+                  onClick={() => { setUserDropdownOpen(false); onLogout(); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    background: "#fef2f2",
+                    color: "#dc2626",
+                    border: "1px solid #fecaca",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    textAlign: "left"
+                  }}
+                >
+                  <LogOut size={16} style={{ color: "#dc2626" }} />
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -5123,14 +8217,38 @@ function Home({ role, user, onLogout }) {
       </header>
 
       {/* Government Live Ticker Bar */}
-      <div className="gov-ticker-bar">
-        <span className="ticker-badge">📢 LIVE ANNOUNCEMENTS</span>
-        <div className="ticker-wrapper">
-          <span className="ticker-text">
-            ✦ BidVerify Officer Administrative Console ✦ Automated Cross-Verification with GST, Income Tax, EPFO, & MSME Udyam Registries Active ✦ 12 Integrity Alerts Flagged ✦
-          </span>
+      {announcementConfig.enabled && (
+        <div
+          className="gov-ticker-bar"
+          style={{
+            background:
+              announcementConfig.type === "CRITICAL"
+                ? "linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%)"
+                : announcementConfig.type === "WARNING"
+                  ? "linear-gradient(90deg, #78350f 0%, #92400e 100%)"
+                  : announcementConfig.type === "SUCCESS"
+                    ? "linear-gradient(90deg, #064e3b 0%, #047857 100%)"
+                    : undefined
+          }}
+        >
+          <span className="ticker-badge">{announcementConfig.badgeText || "📢 LIVE ANNOUNCEMENTS"}</span>
+          <div className="ticker-wrapper">
+            <span
+              className="ticker-text"
+              style={{
+                animationDuration:
+                  announcementConfig.speed === "SLOW"
+                    ? "45s"
+                    : announcementConfig.speed === "FAST"
+                      ? "15s"
+                      : "28s"
+              }}
+            >
+              {announcementConfig.text}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <main className="bidder-main">
         <section className="bidder-content">{renderContent()}</section>

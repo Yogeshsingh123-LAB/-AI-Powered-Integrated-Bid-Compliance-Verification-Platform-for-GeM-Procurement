@@ -68,13 +68,11 @@ function DocumentUploadPage({ onAddBid }) {
     }
   };
 
-  const fetchWithTimeout = (url, options, timeout = 30000) => {
-    return Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timeout — backend may be busy")), timeout)
-      )
-    ]);
+  const fetchWithTimeout = (url, options = {}, timeout = 30000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    return fetch(url, { ...options, signal: controller.signal })
+      .finally(() => clearTimeout(timer));
   };
 
   const triggerComplianceAnalysis = async (uploadedFile) => {

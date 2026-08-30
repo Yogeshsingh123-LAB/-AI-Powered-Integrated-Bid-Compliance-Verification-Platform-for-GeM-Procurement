@@ -24,6 +24,8 @@ from app.schemas.auth import UserRegister, UserLogin, ChangePassword
 logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+
 
 def create_audit_record(
     db: Session,
@@ -224,6 +226,15 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         )
 
     return user
+
+def get_optional_current_user(db: Session = Depends(get_db), token: Optional[str] = Depends(oauth2_scheme_optional)) -> Optional[User]:
+    """Dependency to retrieve authenticated user if token present, or None if anonymous."""
+    if not token:
+        return None
+    try:
+        return get_current_user(db=db, token=token)
+    except HTTPException:
+        return None
 
 # FastAPI Dependency for Role-Based Access Control
 class require_role:

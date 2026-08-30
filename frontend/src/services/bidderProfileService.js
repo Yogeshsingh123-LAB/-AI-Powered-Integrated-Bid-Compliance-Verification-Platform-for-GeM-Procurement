@@ -167,7 +167,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").repla
 export async function getBidderProfile(token = null) {
   if (token) {
     try {
-      const response = await fetch(`${API_BASE}/api/bidders/me/profile`, {
+      const response = await fetch(`${API_BASE}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {

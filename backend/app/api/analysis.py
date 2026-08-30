@@ -2,15 +2,16 @@ import os
 import re
 import uuid
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.models.user import User
 from app.ai_engine import DocumentAnalyzer
 from app.services.mock_verifier import MockVerifier
 from app.scoring import ComplianceScorer
-from app.services.auth_service import create_audit_record
+from app.services.auth_service import create_audit_record, get_optional_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 @router.post("/analyze", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def analyze_document(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ):
     """
     Main analysis endpoint:
@@ -32,7 +34,7 @@ async def analyze_document(
     2. Runs the AI OCR text & entity extraction pipeline.
     3. Queries mock registries for validation (GST, PAN, Udyam, Blacklist).
     4. Computes compliance scoring, risk classification, and recommendations.
-    5. Stores audit log.
+    5. Stores audit log with optional authenticated user context.
     6. Returns the consolidated compliance report.
     """
     logger.info(f"Analysis Endpoint: Received file '{file.filename}' for compliance verification.")
@@ -102,6 +104,7 @@ async def analyze_document(
         create_audit_record(
             db=db,
             action="DOCUMENT_ANALYSIS",
+            user_id=current_user.id if current_user else None,
             entity_type="Document",
             new_value=f"Filename: {file.filename}, Score: {score_result['score']}, Risk: {score_result['risk_level']}"
         )

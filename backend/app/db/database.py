@@ -42,6 +42,7 @@ if is_sqlite:
         
         # Self-healing migration for SQLite fallback DB schema updates
         with engine.connect() as conn:
+            # pyrefly: ignore [missing-import]
             from sqlalchemy import text
             try:
                 conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))

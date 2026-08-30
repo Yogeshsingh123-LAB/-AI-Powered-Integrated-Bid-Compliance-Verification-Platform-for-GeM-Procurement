@@ -5,7 +5,7 @@ This document serves as the central brain, architecture guide, and design reposi
 ---
 
 ## 1. System Overview & Objectives
-The goal of this platform is to automate compliance checking for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing and verification against official government registry APIs, the platform prevents bid rigging, simplifies verification, and guarantees transparent auditing.
+The goal of this platform is to automate compliance checking for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing, Semantic NLP RFP clause matching, and verification against official government registry APIs, the platform prevents bid rigging, simplifies verification, and guarantees transparent auditing.
 
 ---
 
@@ -17,8 +17,9 @@ graph TD
     B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
     B -- External Integration --> E[Govt API Gateways & CBIC GSTN v2.0 Sandbox]
     B -- OCR & Forgery Engine --> F[AI Parser & ELA Forgery Detector]
-    B -- Fraud Engine --> G[Cross-Bidder Collusion & Risk Detector]
-    B -- Blockchain Audit --> H[SHA-256 Tamper-Evident Chain & Audit API]
+    B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator]
+    B -- Fraud Engine --> H[Cross-Bidder Collusion & Risk Detector]
+    B -- Blockchain Audit --> I[SHA-256 Tamper-Evident Chain & Audit API]
 ```
 
 ### Containerized Infrastructure (Docker Orchestration)
@@ -36,6 +37,10 @@ graph TD
 
 ### Backend (Core Engine)
 - **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), SQLite/PostgreSQL.
+- **AI & NLP Suite**:
+  - `SemanticRFPComparator`: Clause-by-clause NLP & Gemini LLM evaluator (`MET`, `PARTIALLY_MET`, `NOT_MET`).
+  - `ForgeryDetector`: Error Level Analysis (ELA), font consistency, and metadata modification detector.
+  - `ProcurementFraudDetector`: Multi-bidder GSTIN/PAN identifier reuse & collusion detector.
 - **Security & Integrity**:
   - Stateless JWT-based session tokens and password strength verification.
   - Constant-time password verification defense against timing side-channel attacks.
@@ -127,6 +132,7 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `GET` | `/api/admin/users` | List all registered users | Yes | `ADMIN` |
 | `PATCH` | `/api/admin/users/{user_id}/status` | Activate/deactivate user account | Yes | `ADMIN` |
 | `POST` | `/api/analyze` | Main PDF/image compliance analysis endpoint | No | None |
+| `POST` | `/api/analyze/semantic-comparator` | Evaluate custom RFP clauses against bid text | No | None |
 | `POST` | `/api/documents/upload` | Upload compliance document for a bid | Yes | `BIDDER` |
 | `GET` | `/api/documents/bid/{bid_id}` | List all uploaded documents for a bid | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
 | `GET` | `/api/documents/{doc_id}/download` | Generate temporary signed download URL | Yes | `BIDDER` (Owner), `OFFICER`, `ADMIN` |
@@ -149,3 +155,4 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 6: Cryptographic Blockchain Audit Chain & Security Hardening** ✅ COMPLETE (SHA-256 hash chaining on AuditLog, timing attack mitigation on password verification, 10MB payload size limits, regex filename sanitization, port 8000 alignment).
 - **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
 - **Phase 8: One-Command Docker Setup, Audit Verification API & Self-Healing Migration** ✅ COMPLETE (Added `docker-compose.yml`, multi-stage Dockerfiles for backend & frontend, `/api/audit/verify` verification endpoints, `backend/scenarios/README.md` documentation, and automatic SQLite column schema migration).
+- **Phase 9: Semantic NLP RFP Clause Comparator (100/100 SIH Feature Complete)** ✅ COMPLETE (Implemented `SemanticRFPComparator` dual Gemini LLM & local NLP engine, clause-by-clause evidence extractor, `POST /api/analyze/semantic-comparator` endpoint, and 47 passing tests).

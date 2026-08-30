@@ -16,14 +16,16 @@ SIH_TRAILS/
 │   └── vite.config.js
 ├── backend/                # FastAPI / SQLAlchemy 2.x API Server
 │   ├── app/
-│   │   ├── ai_engine/      # AI OCR document parser pipeline (Tesseract + OpenCV + spaCy NER)
-│   │   ├── mock_apis/      # Mock Government Portals (GSTIN, PAN, Udyam, Blacklist)
-│   │   ├── scoring/        # Compliance Scorer, Risk Classifier, Recommendation Engine
+│   │   ├── ai_engine/      # OCR pipeline (PyMuPDF, Tesseract, OpenCV) + Forgery Detector (ELA, metadata, font consistency)
+│   │   ├── mock_apis/      # Mock Govt Portals (GSTIN, PAN, Udyam, Blacklist) + GSTN/UIDAI Sandbox Gateway v2.0
+│   │   ├── scoring/        # Compliance Scorer, Fraud & Collusion Detector, Risk Classifier
 │   │   └── api/            # API Router endpoints (Auth, Users, Documents, Analysis)
 │   │   
 │   ├── scenarios/          # Pre-built realistic PDF bid scenarios for testing
+│   ├── tests/              # Pytest automated test suites (OCR, APIs, Scoring, Forgery & Fraud)
 │   ├── requirements.txt
 │   └── .env.example
+├── docs/                   # Integration blueprints (GSTN Sandbox, Architecture guides)
 ├── brain.md                # System Architecture & API Blueprint
 └── README.md               # Main instructions (this file)
 ```
@@ -104,11 +106,12 @@ The frontend reads `VITE_API_URL` and defaults to `http://127.0.0.1:8000` for ch
 
 ## 4. Core Verification & Security Architecture
 
-1. **AI OCR Engine**: Uses Tesseract OCR + OpenCV image preprocessing (binarization, Otsu thresholding, blurring) to parse scanned PDFs/images, alongside PyMuPDF for digital PDFs with a 50-page limit. Extracts identifiers (GSTIN, PAN, Udyam) and organization names via regex and spaCy NER.
-2. **Mock Government APIs**: REST API endpoints simulating direct integrations with external GSTIN, PAN, Udyam MSME, and Blacklist registries with input format regex validation and local JSON fallbacks.
-3. **Compliance Scoring**: Assesses weighted scores (Presence: 30%, Verification: 40%, Integrity/Risk: 30%), verifies registry name alignments, deducts points for missing primary mandatory IDs (GSTIN/PAN), flags risk categories, and provides actionable recommendation alerts.
-4. **Cryptographic Audit Chain**: Uses SHA-256 block hashing to chain every audit log entry to the previous record (`blockchain_hash`), establishing an immutable audit log.
-5. **Endpoint `/api/analyze`**: Exposes a POST endpoint taking uploaded bid documents (PDF, JPG, PNG up to 10 MB), processing through OCR and verification, writing SHA-256 audit entries, and returning a unified JSON compliance report.
+1. **AI OCR & Forgery Detection Engine**: Uses Tesseract OCR + OpenCV image preprocessing (binarization, Otsu thresholding, blurring) to parse scanned PDFs/images alongside PyMuPDF for digital PDFs (50-page max safety check). Performs Error Level Analysis (ELA), font consistency inspection, and PDF metadata tampering detection to flag forged documents. Extracts identifiers (GSTIN, PAN, Udyam) and organization names via regex and spaCy NER.
+2. **CBIC GSTN & UIDAI Sandbox Gateways**: Production-ready gateway implementation (`backend/app/mock_apis/sandbox_gateway.py`) supporting CBIC GSTN Public API v2.0 with HMAC-SHA256 request signing, OAuth2 token rotation, rate-limiting retry, and seamless fallback to verified mock schemas if external sandbox endpoints are offline.
+3. **Collusion & Fraud Risk Engine**: Analyzes bid submissions across bidders for duplicate document hashes, shared bank account details / PAN / contact numbers, shell company risk indicators, and pattern-based bidder collusion.
+4. **Compliance Scoring**: Assesses weighted scores (Presence: 30%, Verification: 40%, Integrity/Risk: 30%), verifies registry name alignments, deducts points for missing primary mandatory IDs (GSTIN/PAN) and detected document forgery/fraud risks, flags risk categories, and provides actionable recommendation alerts.
+5. **Cryptographic Audit Chain**: Uses SHA-256 block hashing to chain every audit log entry to the previous record (`blockchain_hash`), establishing an immutable audit log.
+6. **Endpoint `/api/analyze`**: Exposes a POST endpoint taking uploaded bid documents (PDF, JPG, PNG up to 10 MB), processing through OCR, forgery analysis, and registry verification, writing SHA-256 audit entries, and returning a unified JSON compliance report.
 
 ---
 
@@ -125,12 +128,13 @@ Individual test scripts:
 1. **AI OCR Pipeline Test**: `python run_ai_engine_test.py`
 2. **Mock APIs Registry Test**: `python run_mock_apis_test.py`
 3. **Scoring & Risk Engine Test**: `python run_scoring_test.py`
-4. **Final Analysis REST Integration Test**: `python run_final_integration_test.py`
+4. **Forgery & Fraud Detection Test**: `pytest backend/tests/test_forgery_and_fraud.py`
+5. **Final Analysis REST Integration Test**: `python run_final_integration_test.py`
 
 ---
 
 ## 6. Performance Metrics
-- **Average Document Processing Time**: `< 5 seconds` (including PDF text parsing, image preprocessing/binarization, fallback image OCR, and mock registry queries).
+- **Average Document Processing Time**: `< 5 seconds` (including PDF text parsing, image preprocessing/binarization, fallback image OCR, forgery ELA analysis, and mock registry queries).
 - **Registry Lookup Latency**: `< 2.0 seconds` per API query (with zero-latency local fallback mechanism).
 
 ---
@@ -140,8 +144,9 @@ Individual test scripts:
 | Aspect | Implementation Summary |
 |--------|------------------------|
 | **Architecture** | Monorepo structure, FastAPI backend, React Vite SPA frontend |
-| **AI/ML Engine** | PyMuPDF + Tesseract OCR + OpenCV preprocessors + spaCy NER |
-| **Mock APIs** | GSTIN, PAN, Udyam MSME, Blacklist REST lookups with format validation |
-| **Scoring Engine** | 3-tier weighted scoring, mandatory ID penalty, name token alignment |
+| **AI/ML Engine** | PyMuPDF + Tesseract OCR + OpenCV preprocessors + spaCy NER + Forgery Detector (ELA & metadata checks) |
+| **Sandbox & Mock APIs** | CBIC GSTN v2.0 HMAC Sandbox Gateway, UIDAI e-KYC Sandbox, PAN, Udyam MSME, Blacklist REST lookups |
+| **Fraud & Collusion** | Cross-bidder hash matching, shared banking/PAN collusion flags, shell company risk detection |
+| **Scoring Engine** | 3-tier weighted scoring, mandatory ID penalty, name token alignment, forgery risk deductions |
 | **Security & Auditing** | SHA-256 blockchain hash chain audit logs, timing attack defense, 10MB limit |
-| **Testing** | 39 pytest automated tests, 4 runner scripts, 5 sample PDF scenarios |
+| **Testing** | Automated pytest test suites, 4 runner scripts, 5 sample PDF scenarios |

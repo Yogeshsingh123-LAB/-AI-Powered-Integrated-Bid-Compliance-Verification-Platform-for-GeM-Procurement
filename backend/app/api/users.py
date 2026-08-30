@@ -1,5 +1,7 @@
 from typing import List, Dict, Any
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -13,6 +15,7 @@ router = APIRouter(tags=["User Profile & Administration"])
 # --- User Profile Endpoints ---
 
 @router.get("/users/me", response_model=UserResponse)
+@router.get("/bidders/me/profile", response_model=UserResponse)
 def get_user_me(current_user: User = Depends(get_current_user)):
     """Get profile details of the authenticated user."""
     return current_user

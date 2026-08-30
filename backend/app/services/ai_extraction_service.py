@@ -189,89 +189,109 @@ class AIExtractionService:
         if document_type == "GST_CERTIFICATE":
             if extracted_ids["gstin"]:
                 fields["gstin"] = extracted_ids["gstin"][0]
-            # Try parsing Name
             name_match = re.search(r"LEGAL\s+NAME[:\s]+([A-Z\s0-9&.-]+)", text, re.IGNORECASE)
             if name_match:
                 fields["legal_name"] = name_match.group(1).strip()
             elif scanned_name:
                 fields["legal_name"] = scanned_name
-            else:
-                fields["legal_name"] = "ABC INDUSTRIES"
                 
             trade_match = re.search(r"TRADE\s+NAME[:\s]+([A-Z\s0-9&.-]+)", text, re.IGNORECASE)
             if trade_match:
                 fields["trade_name"] = trade_match.group(1).strip()
-            else:
-                fields["trade_name"] = scanned_name or "ABC"
+            elif scanned_name:
+                fields["trade_name"] = scanned_name
 
-            fields["registration_date"] = "2024-01-15"
-            fields["status"] = "ACTIVE"
-            fields["business_address"] = "123 Main St, Ahmedabad, Gujarat, India"
+            date_match = re.search(r"(?:REGISTRATION\s+DATE|DATE\s+OF\s+REGISTRATION)[:\s]+(\d{4}-\d{2}-\d{2}|\d{2}[/-]\d{2}[/-]\d{4})", text, re.IGNORECASE)
+            if date_match:
+                fields["registration_date"] = date_match.group(1)
+
+            if "ACTIVE" in text_upper:
+                fields["status"] = "ACTIVE"
+            elif "SUSPENDED" in text_upper:
+                fields["status"] = "SUSPENDED"
+
+            addr_match = re.search(r"(?:ADDRESS|PLACE\s+OF\s+BUSINESS)[:\s]+([A-Z0-9\s,.-]+)", text, re.IGNORECASE)
+            if addr_match:
+                fields["business_address"] = addr_match.group(1).strip()
 
         elif document_type == "PAN":
             if extracted_ids["pan"]:
                 fields["pan_number"] = extracted_ids["pan"][0]
             elif extracted_ids["gstin"]:
-                # Grab PAN from GSTIN
                 fields["pan_number"] = extracted_ids["gstin"][0][2:12]
-            else:
-                fields["pan_number"] = "AAPCS1234M"
                 
             name_match = re.search(r"NAME[:\s]+([A-Z\s&.-]+)", text, re.IGNORECASE)
             if name_match:
                 fields["name"] = name_match.group(1).strip()
             elif scanned_name:
                 fields["name"] = scanned_name
-            else:
-                fields["name"] = "ABC INDUSTRIES OWNER"
-            fields["date_of_birth_or_incorporation"] = "2015-05-20"
+
+            dob_match = re.search(r"(?:DOB|DATE\s+OF\s+BIRTH|INCORPORATION)[:\s]+(\d{4}-\d{2}-\d{2}|\d{2}[/-]\d{2}[/-]\d{4})", text, re.IGNORECASE)
+            if dob_match:
+                fields["date_of_birth_or_incorporation"] = dob_match.group(1)
 
         elif document_type == "UDYAM":
             if extracted_ids["udyam"]:
                 fields["udyam_number"] = extracted_ids["udyam"][0]
-            else:
-                fields["udyam_number"] = "UDYAM-GJ-01-0012345"
-            fields["enterprise_name"] = scanned_name or "ABC INDUSTRIES"
-            fields["enterprise_type"] = "MICRO"
-            fields["major_activity"] = "MANUFACTURING"
-            fields["state"] = "GUJARAT"
-            fields["district"] = "AHMEDABAD"
+            if scanned_name:
+                fields["enterprise_name"] = scanned_name
+            if "MICRO" in text_upper:
+                fields["enterprise_type"] = "MICRO"
+            elif "SMALL" in text_upper:
+                fields["enterprise_type"] = "SMALL"
+            elif "MEDIUM" in text_upper:
+                fields["enterprise_type"] = "MEDIUM"
+
+            if "MANUFACTURING" in text_upper:
+                fields["major_activity"] = "MANUFACTURING"
+            elif "SERVICES" in text_upper:
+                fields["major_activity"] = "SERVICES"
 
         elif document_type == "EPFO":
             est_match = re.search(r"ESTABLISHMENT\s+ID[:\s]+([A-Z0-9]+)", text, re.IGNORECASE)
-            fields["establishment_id"] = est_match.group(1).strip() if est_match else "DLCPM0012345000"
-            fields["establishment_name"] = scanned_name or "ABC INDUSTRIES"
-            fields["registration_status"] = "ACTIVE"
+            if est_match:
+                fields["establishment_id"] = est_match.group(1).strip()
+            if scanned_name:
+                fields["establishment_name"] = scanned_name
+            if "ACTIVE" in text_upper:
+                fields["registration_status"] = "ACTIVE"
 
         elif document_type == "ESIC":
             emp_match = re.search(r"EMPLOYER\s+CODE[:\s]+([0-9]+)", text, re.IGNORECASE)
-            fields["employer_code"] = emp_match.group(1).strip() if emp_match else "31000123450001001"
-            fields["employer_name"] = "ABC INDUSTRIES"
-            fields["registration_status"] = "ACTIVE"
+            if emp_match:
+                fields["employer_code"] = emp_match.group(1).strip()
+            if scanned_name:
+                fields["employer_name"] = scanned_name
+            if "ACTIVE" in text_upper:
+                fields["registration_status"] = "ACTIVE"
 
         elif document_type == "OEM_AUTHORIZATION":
-            fields["oem_name"] = "GLOBAL OEM CORP"
-            fields["authorized_bidder"] = "ABC INDUSTRIES"
-            fields["authorization_number"] = "OEM-AUTH-2026-987"
-            fields["issue_date"] = "2026-01-01"
-            fields["expiry_date"] = "2027-12-31"
-            fields["product_scope"] = "High performance server systems"
+            oem_match = re.search(r"OEM\s+NAME[:\s]+([A-Z0-9\s&.-]+)", text, re.IGNORECASE)
+            if oem_match:
+                fields["oem_name"] = oem_match.group(1).strip()
+            if scanned_name:
+                fields["authorized_bidder"] = scanned_name
+            auth_match = re.search(r"AUTHORIZATION\s+NUMBER[:\s]+([A-Z0-9/-]+)", text, re.IGNORECASE)
+            if auth_match:
+                fields["authorization_number"] = auth_match.group(1).strip()
 
         elif document_type == "MAKE_IN_INDIA":
-            fields["bidder_name"] = "ABC INDUSTRIES"
-            fields["product_name"] = "Server Racks"
-            fields["local_content_percentage"] = "65.5%"
-            fields["local_content_value"] = "INR 45,00,000"
-            fields["declaration_date"] = "2026-08-20"
-            fields["declarant"] = "Yogesh Singh, Director"
+            if scanned_name:
+                fields["bidder_name"] = scanned_name
+            local_pct_match = re.search(r"LOCAL\s+CONTENT[:\s]+(\d+(?:\.\d+)?%)", text, re.IGNORECASE)
+            if local_pct_match:
+                fields["local_content_percentage"] = local_pct_match.group(1)
 
         elif document_type == "BLACKLIST_DECLARATION":
-            fields["bidder_name"] = "ABC INDUSTRIES"
-            fields["blacklisting_status"] = "NOT BLACKLISTED"
-            fields["authority"] = None
-            fields["order_number"] = None
-            fields["order_date"] = None
-            fields["valid_until"] = None
+            if scanned_name:
+                fields["bidder_name"] = scanned_name
+            if "DEBARRED" in text_upper or "BLACKLISTED" in text_upper:
+                if "NOT BLACKLISTED" in text_upper or "NEVER BLACKLISTED" in text_upper or "NOT DEBARRED" in text_upper:
+                    fields["blacklisting_status"] = "NOT BLACKLISTED"
+                else:
+                    fields["blacklisting_status"] = "BLACKLISTED"
+            elif "NOT BLACKLISTED" in text_upper or "NEVER BLACKLISTED" in text_upper:
+                fields["blacklisting_status"] = "NOT BLACKLISTED"
 
         # Determine missing fields and confidence adjustments
         for key, val in fields.items():

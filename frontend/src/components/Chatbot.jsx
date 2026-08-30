@@ -111,7 +111,7 @@ function Chatbot({ userRole = "Guest" }) {
           isError: true,
           content: timedOut
             ? "The assistant took too long to respond. Please try again."
-            : "I can’t reach the assistant service right now. Please start the FastAPI backend on port 8080 and try again.",
+            : "I can’t reach the assistant service right now. Please start the FastAPI backend on port 8000 and try again.",
         },
       ]);
       setSuggestions(INITIAL_SUGGESTIONS);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Lock, Mail, Terminal, Database, ChevronUp, ChevronDown, RefreshCw, ShieldCheck } from "lucide-react";
+import { User, Lock, Mail, RefreshCw, ShieldCheck } from "lucide-react";
 
 function Login({ onLogin }) {
   const [selectedPortal, setSelectedPortal] = useState("Supplier");
@@ -19,10 +19,6 @@ function Login({ onLogin }) {
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [organization, setOrganization] = useState("");
-
-  // Dev helper panel state
-  const [isDevCollapsed, setIsDevCollapsed] = useState(true);
-  const [seeding, setSeeding] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -159,32 +155,7 @@ function Login({ onLogin }) {
     }
   };
 
-  const triggerMockCredentials = (email, pwd, portalType) => {
-    setLoginEmail(email);
-    setPassword(pwd);
-    setSelectedPortal(portalType);
-    setCaptcha(captchaText);
-    setAuthError("");
-    setSuccessMsg("");
-  };
 
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/auth/seed`, {
-        method: "POST"
-      });
-      if (response.ok) {
-        alert("Developer Database Seeded successfully! Mock accounts are now active.");
-      } else {
-        alert("Database seeding failed or mock data already exists.");
-      }
-    } catch (err) {
-      alert("Error connecting to backend for database seeding: " + err.message);
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   return (
     <div className="login-3d-page-wrapper">
@@ -361,79 +332,18 @@ function Login({ onLogin }) {
         <div className="split-overlay-container">
           <div className="split-overlay">
             <div className="overlay-slide overlay-slide-left">
-              <h2>WELCOME!</h2>
+              <img src="/logo.png" alt="BidVerify Logo" style={{ height: "80px", marginBottom: "12px", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }} />
+              <h2 style={{ fontSize: "2rem", fontWeight: 900, margin: 0, letterSpacing: "-0.5px" }}>BidVerify</h2>
+              <p style={{ fontSize: "0.85rem", opacity: 0.9, marginTop: "6px", fontWeight: 600 }}>AI-Powered Integrated Compliance Platform</p>
             </div>
             <div className="overlay-slide overlay-slide-right">
-              <h2>WELCOME BACK!</h2>
+              <img src="/logo.png" alt="BidVerify Logo" style={{ height: "80px", marginBottom: "12px", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }} />
+              <h2 style={{ fontSize: "2rem", fontWeight: 900, margin: 0, letterSpacing: "-0.5px" }}>BidVerify</h2>
+              <p style={{ fontSize: "0.85rem", opacity: 0.9, marginTop: "6px", fontWeight: 600 }}>Government e-Auction & Compliance Portal</p>
             </div>
           </div>
         </div>
 
-      </div>
-
-      {/* Developer Helper Panel */}
-      <DevCredentialsPanel
-        isCollapsed={isDevCollapsed}
-        onToggle={() => setIsDevCollapsed(!isDevCollapsed)}
-        onSelectAcc={triggerMockCredentials}
-        onSeed={handleSeedDatabase}
-        seeding={seeding}
-      />
-    </div>
-  );
-}
-
-// DevCredentialsPanel Component
-function DevCredentialsPanel({ isCollapsed, onToggle, onSelectAcc, onSeed, seeding }) {
-  return (
-    <div className={`dev-helper-drawer ${isCollapsed ? "collapsed" : ""}`}>
-      <div className="dev-helper-header" onClick={onToggle}>
-        <span>
-          <Terminal size={14} /> DEVELOPMENT CREDENTIALS & AUTOFILL ASSISTANT
-        </span>
-        <button type="button">
-          {isCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-      </div>
-      <div className="dev-helper-content">
-        <div className="dev-helper-intro" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'left', margin: 0 }}>
-            Click on any profile card below to autofill and switch to the correct portal configuration instantly.
-          </p>
-          <button
-            type="button"
-            className="dev-helper-seed-button"
-            onMouseDown={(e) => { e.stopPropagation(); }}
-            onClick={(e) => { e.stopPropagation(); onSeed(); }}
-            disabled={seeding}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Database size={12} /> {seeding ? "Seeding..." : "Seed Mock Database Accounts"}
-          </button>
-        </div>
-
-        <div className="dev-helper-grid">
-          {/* Supplier Bidder */}
-          <div className="dev-account-card" onClick={() => onSelectAcc("bidder@example.com", "BidderPassword123", "Supplier")}>
-            <span className="dev-account-role bidder">SUPPLIER (BIDDER)</span>
-            <div className="dev-account-email">bidder@example.com</div>
-            <div className="dev-account-pwd">Pwd: BidderPassword123</div>
-          </div>
-
-          {/* Officer */}
-          <div className="dev-account-card" onClick={() => onSelectAcc("officer@example.com", "OfficerPassword123", "Buyer")}>
-            <span className="dev-account-role officer">OFFICER (AUDITOR)</span>
-            <div className="dev-account-email">officer@example.com</div>
-            <div className="dev-account-pwd">Pwd: OfficerPassword123</div>
-          </div>
-
-          {/* Admin */}
-          <div className="dev-account-card" onClick={() => onSelectAcc("admin@example.com", "AdminPassword123", "Buyer")}>
-            <span className="dev-account-role admin">SUPER ADMIN</span>
-            <div className="dev-account-email">admin@example.com</div>
-            <div className="dev-account-pwd">Pwd: AdminPassword123</div>
-          </div>
-        </div>
       </div>
     </div>
   );

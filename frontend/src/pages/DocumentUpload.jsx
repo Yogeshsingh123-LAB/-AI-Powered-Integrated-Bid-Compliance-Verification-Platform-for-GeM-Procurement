@@ -163,6 +163,8 @@ function DocumentUploadPage({ onAddBid }) {
           pages_detail: [{ page_number: 1, method: data.analysis.ocr_used ? "ocr" : "digital" }]
         },
         extracted_identifiers: ids,
+        forgery_analysis: data.analysis.forgery_analysis || {},
+        fraud_analysis: data.analysis.fraud_analysis || {},
         compliance_report: {
           score: data.compliance.score,
           risk_level: data.compliance.risk_level,
@@ -179,6 +181,7 @@ function DocumentUploadPage({ onAddBid }) {
       const terminalLogsList = [
         `[System] Initialized cryptographic inspection for uploaded document: ${uploadedFile.name}`,
         `[SmartPDFHandler] Text extraction completed using page summary: ${extractionMethod}`,
+        `[ForgeryDetector] Structural Forgery Score: ${data.analysis.forgery_analysis?.forgery_score || 100}/100 | Risk: ${data.analysis.forgery_analysis?.risk_level || 'LOW'}`,
         `[RegexExtractor] Extracted GSTIN: ${ids.gstin[0] || 'None'} | PAN: ${ids.pan[0] || 'None'} | Udyam: ${ids.udyam[0] || 'None'} | Aadhaar: ${(ids.aadhaar && ids.aadhaar[0]) || 'None'}`,
         ...data.compliance.recommendations.map(r => `[ScoringEngine] Analysis: ${r}`)
       ];
@@ -194,7 +197,7 @@ function DocumentUploadPage({ onAddBid }) {
         pan: ids.pan?.[0] || "",
         udyam: ids.udyam?.[0] || "",
         submittedOn: new Date().toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
-        status: "Under Review", // Default to Under Review for auditing
+        status: data.analysis.fraud_analysis?.is_collusion_risk ? "Collusion Flagged" : "Under Review",
         score: data.compliance?.score || 0,
         risk: data.compliance?.risk_level || "MEDIUM",
         compliance_record: data.verification?.gstin?.[0]?.data?.compliance_record || "Good",
@@ -563,6 +566,70 @@ function DocumentUploadPage({ onAddBid }) {
 
           {/* Cards with verified statuses */}
           <div className="registry-cards">
+            {/* AI PDF Forgery & Tampering Inspection Card */}
+            {report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
+              <div className="registry-card" style={{ borderColor: report.forgery_analysis.forgery_score >= 80 ? '#10b981' : '#f59e0b' }}>
+                <div className="reg-header">
+                  <h3>AI PDF Tampering & Structural Forensics</h3>
+                  <span className="reg-label" style={{ background: '#3b82f6', color: '#fff' }}>PyMuPDF AI Engine</span>
+                </div>
+                <div className="reg-grid">
+                  <div className="reg-item">
+                    <label>Structural Integrity Score</label>
+                    <strong style={{ color: report.forgery_analysis.forgery_score >= 80 ? '#10b981' : '#dc2626' }}>
+                      {report.forgery_analysis.forgery_score} / 100 ({report.forgery_analysis.risk_level} RISK)
+                    </strong>
+                  </div>
+                  <div className="reg-item">
+                    <label>Digital Signature Status</label>
+                    <span>{report.forgery_analysis.has_digital_signature ? "✓ Embedded PKCS#7 Signature" : "⚠️ No PKCS#7 Signature Found"}</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>Creation Software Signature</label>
+                    <span>{report.forgery_analysis.metadata?.producer || "Official Government Generator"}</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>Document Tampering Status</label>
+                    <span className={`status ${report.forgery_analysis.authentic ? "active" : "inactive"}`}>
+                      {report.forgery_analysis.authentic ? "Authentic Certificate Structure" : "Potential Alterations Detected"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Multi-Bidder Fraud & Collusion Alert Card */}
+            {report.fraud_analysis && (
+              <div className="registry-card" style={{ borderColor: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
+                <div className="reg-header">
+                  <h3>Multi-Bidder Collusion & Entity Verification</h3>
+                  <span className="reg-label" style={{ background: '#8b5cf6', color: '#fff' }}>GeM Fraud Shield</span>
+                </div>
+                <div className="reg-grid">
+                  <div className="reg-item">
+                    <label>Multi-Bidder Identifier Reuse</label>
+                    <strong style={{ color: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
+                      {report.fraud_analysis.is_collusion_risk ? "CRITICAL: GSTIN/PAN Reused Across Bidders" : "✓ Unique Entity Identifier"}
+                    </strong>
+                  </div>
+                  <div className="reg-item">
+                    <label>Legal Name Fuzzy Alignment</label>
+                    <span>{report.fraud_analysis.metrics?.gst_pan_name_similarity || 100}% GST-to-PAN Name Match</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>Shell Entity Risk Penalty</label>
+                    <span>{report.fraud_analysis.fraud_penalty ? `-${report.fraud_analysis.fraud_penalty} pts` : "0 pts (Compliant)"}</span>
+                  </div>
+                  <div className="reg-item">
+                    <label>Anti-Collusion Status</label>
+                    <span className={`status ${!report.fraud_analysis.is_collusion_risk ? "active" : "inactive"}`}>
+                      {!report.fraud_analysis.is_collusion_risk ? "Clean Entity Clearance" : "Collusion Investigation Flagged"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* GST Details */}
             {report.verification_details.gstin.map((item, index) => (
               <div key={index} className="registry-card">

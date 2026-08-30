@@ -12,25 +12,14 @@ class ComplianceScorer:
     """
     
     @staticmethod
-    def calculate_compliance_score(verification_results: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
+    def calculate_compliance_score(
+        verification_results: Dict[str, List[Dict[str, Any]]],
+        forgery_analysis: Optional[Dict[str, Any]] = None,
+        fraud_analysis: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Calculates compliance score and builds a structured report.
-        
-        Weights structure:
-        1. ID Presence & Completeness (Max 30 pts):
-           - GSTIN present: 10 pts
-           - PAN present: 10 pts
-           - Udyam present: 10 pts
-           
-        2. Database Verification (Max 40 pts):
-           - GSTIN verified & found: 15 pts
-           - PAN verified & found: 15 pts
-           - Udyam verified & found: 10 pts
-           
-        3. Risk Checks & Alignment (Max 30 pts baseline, deductions apply):
-           - Any ID status is not "Active": -10 pts
-           - GSTIN compliance history is Poor: -10 pts
-           - Name mismatch between registries: -10 pts
+        Includes verification results, AI PDF forgery detection, and multi-bidder fraud detection.
         """
         logger.info("ComplianceScorer: Calculating compliance scoring report...")
         
@@ -174,7 +163,26 @@ class ComplianceScorer:
                         deductions.append(f"Registry name mismatch (-10 pts)")
                         name_mismatch_desc = f"Name mismatch between {base_ref_type} ('{base_ref_name}') and {other_type} ('{other_name}')"
                         break
-                        
+
+            # Deductions for Forgery & Structural Anomalies
+            if forgery_analysis and not forgery_analysis.get("authentic", True):
+                forgery_penalty = 100 - forgery_analysis.get("forgery_score", 100)
+                deduction_val = min(30, int(forgery_penalty * 0.3))
+                integrity_score -= deduction_val
+                anomalies = forgery_analysis.get("anomalies", [])
+                for anomaly in anomalies:
+                    deductions.append(f"AI Tampering Alert: {anomaly}")
+
+            # Deductions for Multi-Bidder Collusion & Fraud
+            if fraud_analysis:
+                fraud_pen = fraud_analysis.get("fraud_penalty", 0)
+                if fraud_pen > 0:
+                    integrity_score -= min(30, fraud_pen)
+                for w in fraud_analysis.get("all_warnings", []):
+                    deductions.append(f"Procurement Fraud Risk: {w}")
+                if fraud_analysis.get("is_collusion_risk"):
+                    has_status_issue = True # Elevate risk level
+
             # Clamp integrity score
             integrity_score = max(0, integrity_score)
         
@@ -204,6 +212,15 @@ class ComplianceScorer:
             compliance_issues=compliance_issues,
             name_mismatch_desc=name_mismatch_desc
         )
+
+        # Append forgery & collusion warnings to recommendations
+        if forgery_analysis and forgery_analysis.get("anomalies"):
+            for a in forgery_analysis["anomalies"]:
+                recommendations.append(f"FORGERY DETECTED: {a}")
+
+        if fraud_analysis and fraud_analysis.get("all_warnings"):
+            for w in fraud_analysis["all_warnings"]:
+                recommendations.append(f"FRAUD DETECTED: {w}")
         
         return {
             "score": total_score,
@@ -214,5 +231,8 @@ class ComplianceScorer:
                 "registry_integrity": f"{integrity_score}/30"
             },
             "deductions": deductions,
-            "recommendations": recommendations
+            "recommendations": recommendations,
+            "forgery_analysis": forgery_analysis or {},
+            "fraud_analysis": fraud_analysis or {}
         }
+

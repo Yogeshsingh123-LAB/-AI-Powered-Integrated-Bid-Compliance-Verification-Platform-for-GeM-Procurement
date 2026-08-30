@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from .ocr_parser import OCRParser
 from .pdf_handler import PDFHandler
 from .entity_extractor import EntityExtractor
+from .forgery_detector import ForgeryDetector
 
 logger = logging.getLogger(__name__)
 
@@ -12,10 +13,11 @@ class DocumentAnalyzer:
 
     def analyze_document(self, file_bytes: bytes, mime_type: str) -> Dict[str, Any]:
         """
-        Runs the full AI OCR document analysis pipeline:
+        Runs the full AI OCR & Forgery document analysis pipeline:
         1. Extract raw text based on MIME type (using PDFHandler or OCRParser).
-        2. Perform entity and identifier extraction.
-        3. Formulate structured results.
+        2. Inspect document structure, metadata anomalies, & tampering signatures.
+        3. Perform entity and identifier extraction.
+        4. Formulate structured results.
         """
         logger.info(f"DocumentAnalyzer: Starting analysis for MIME type: {mime_type}")
         
@@ -44,12 +46,27 @@ class DocumentAnalyzer:
                 "ocr_engine": "none",
                 "ocr_confidence": 0.0,
                 "page_count": 0,
+                "forgery_analysis": {"authentic": False, "forgery_score": 0, "anomalies": ["Text extraction failed"]},
                 "identifiers": {"gstin": [], "pan": [], "udyam": []},
                 "entities": {"organizations": [], "dates": [], "locations": [], "money_or_percentage": []},
                 "error": extract_res.get("error", "Unknown extraction error")
             }
             
-        # 2. Entity and Identifier Extraction
+        # 2. Forgery & Structural Anomaly Detection
+        if mime_type == "application/pdf":
+            forgery_res = ForgeryDetector.analyze_pdf_bytes(file_bytes)
+        else:
+            forgery_res = {
+                "authentic": True,
+                "forgery_score": 90,
+                "risk_level": "LOW",
+                "anomalies": [],
+                "warnings": ["Image file uploaded - PDF metadata checks skipped"],
+                "has_digital_signature": False,
+                "metadata": {}
+            }
+
+        # 3. Entity and Identifier Extraction
         text = extract_res["text"]
         extracted_data = EntityExtractor.extract_all(text)
         
@@ -60,7 +77,9 @@ class DocumentAnalyzer:
             "ocr_engine": extract_res.get("ocr_engine", "tesseract"),
             "ocr_confidence": extract_res.get("ocr_confidence", 0.85),
             "page_count": extract_res.get("page_count", 1),
+            "forgery_analysis": forgery_res,
             "identifiers": extracted_data["identifiers"],
             "entities": extracted_data["entities"],
             "error": None
         }
+

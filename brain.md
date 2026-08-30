@@ -15,9 +15,9 @@ The goal of this platform is to automate compliance checking for bids submitted 
 graph TD
     A[React/Vite Frontend] -- HTTP / JSON + JWT Bearer --> B[FastAPI Backend Engine]
     B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
-    B -- Supabase Storage --> D[Private Storage Bucket]
-    B -- External Integration --> E[Govt API Gateways]
-    B -- OCR Processing --> F[AI OCR Parser]
+    B -- External Integration --> E[Govt API Gateways & CBIC GSTN v2.0 Sandbox]
+    B -- OCR & Forgery Engine --> F[AI Parser & ELA Forgery Detector]
+    B -- Fraud Engine --> G[Cross-Bidder Collusion & Risk Detector]
 ```
 
 ### Frontend (User Interface)
@@ -135,5 +135,6 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 - **Phase 2: Government API Connectors** ✅ COMPLETE (GSTIN/PAN/Udyam/Blacklist gateways with REST lookups, format regex validation, and JSON fallbacks)
 - **Phase 3: Compliance Scoring Algorithm** ✅ COMPLETE (Completeness/Verification/Integrity weighted scoring engine, mandatory ID missing penalties, and name token suffix matchers)
 - **Phase 4: End-to-End Integration** ✅ COMPLETE (Main POST `/api/analyze` endpoint orchestration, upload handling, scoring report formatters, SHA-256 audit chain entries)
-- **Phase 5: Testing & Validation** ✅ COMPLETE (39 automated pytest tests, 4 runner scripts, 5 scenario PDF mock documents)
+- **Phase 5: Testing & Validation** ✅ COMPLETE (Automated pytest test suites, runner scripts, scenario PDF mock documents)
 - **Phase 6: Cryptographic Blockchain Audit Chain & Security Hardening** ✅ COMPLETE (SHA-256 hash chaining on AuditLog, timing attack mitigation on password verification, 10MB payload size limits, regex filename sanitization, port 8000 alignment).
+- **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).

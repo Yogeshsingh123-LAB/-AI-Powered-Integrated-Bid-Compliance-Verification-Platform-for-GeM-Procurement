@@ -15,7 +15,8 @@ class ComplianceScorer:
     def calculate_compliance_score(
         verification_results: Dict[str, List[Dict[str, Any]]],
         forgery_analysis: Optional[Dict[str, Any]] = None,
-        fraud_analysis: Optional[Dict[str, Any]] = None
+        fraud_analysis: Optional[Dict[str, Any]] = None,
+        semantic_analysis: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Calculates compliance score and builds a structured report.
@@ -228,11 +229,13 @@ class ComplianceScorer:
             "breakdown": {
                 "document_completeness": f"{presence_score}/30",
                 "database_verification": f"{verification_score}/40",
-                "registry_integrity": f"{integrity_score}/30"
+                "registry_integrity": f"{integrity_score}/30",
+                "semantic_rfp_alignment": f"{semantic_analysis.get('semantic_score', 100)}/100" if semantic_analysis else "100/100"
             },
             "deductions": deductions,
             "recommendations": recommendations,
             "forgery_analysis": forgery_analysis or {},
-            "fraud_analysis": fraud_analysis or {}
+            "fraud_analysis": fraud_analysis or {},
+            "semantic_analysis": semantic_analysis or {}
         }
 

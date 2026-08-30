@@ -1,14 +1,15 @@
+# pyrefly: ignore [missing-import]
 import os
 import re
 import uuid
 import logging
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, status
+from typing import Dict, Any, Optional, List
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, status, Body
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.user import User
-from app.ai_engine import DocumentAnalyzer
+from app.ai_engine import DocumentAnalyzer, SemanticRFPComparator
 from app.services.mock_verifier import MockVerifier
 from app.scoring import ComplianceScorer
 from app.scoring.fraud_detector import ProcurementFraudDetector
@@ -23,6 +24,7 @@ UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..",
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
+
 @router.post("/analyze", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def analyze_document(
     file: UploadFile = File(...),
@@ -35,14 +37,15 @@ async def analyze_document(
     Main analysis endpoint:
     1. Saves uploaded document to the local uploads directory.
     2. Runs AI OCR text extraction and PDF forgery/metadata anomaly checks.
-    3. Queries mock registries for validation (GST, PAN, Udyam, Blacklist).
-    4. Evaluates multi-bidder identifier reuse & cross-bidder collusion risk.
-    5. Computes compliance scoring, risk classification, and recommendations.
-    6. Stores audit log with optional authenticated user context.
-    7. Returns consolidated compliance & integrity report.
+    3. Evaluates Semantic NLP RFP clause compliance against tender requirements.
+    4. Queries mock registries for validation (GST, PAN, Udyam, Blacklist).
+    5. Evaluates multi-bidder identifier reuse & cross-bidder collusion risk.
+    6. Computes compliance scoring, risk classification, and recommendations.
+    7. Stores immutable audit record with cryptographic SHA-256 block hash.
+    8. Returns consolidated compliance & integrity report.
     """
     logger.info(f"Analysis Endpoint: Received file '{file.filename}' for compliance verification.")
-    
+
     # 1. Read file bytes, enforce size limit, and save with sanitized filename
     try:
         file_bytes = await file.read()
@@ -56,7 +59,7 @@ async def analyze_document(
         clean_basename = re.sub(r'[^a-zA-Z0-9._-]', '_', raw_basename).strip("._")
         safe_filename = f"{file_id}_{clean_basename}"
         file_path = os.path.join(UPLOAD_DIR, safe_filename)
-        
+
         with open(file_path, "wb") as f:
             f.write(file_bytes)
         logger.info(f"Analysis Endpoint: Saved file to {file_path}")
@@ -68,7 +71,7 @@ async def analyze_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process and store file upload: {str(e)}"
         )
-        
+
     # 2. Run AI OCR & Forgery Analysis Pipeline
     try:
         analyzer = DocumentAnalyzer()
@@ -81,8 +84,12 @@ async def analyze_document(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"AI document parsing failed: {str(e)}"
         )
-        
-    # 3. Query Mock Government Registries
+
+    # 3. Perform Semantic NLP RFP Clause Analysis
+    extracted_text = analysis_result.get("text", "")
+    semantic_analysis = SemanticRFPComparator.evaluate_bid_against_rfp(extracted_text)
+
+    # 4. Query Mock Government Registries
     try:
         identifiers = analysis_result.get("identifiers", {"gstin": [], "pan": [], "udyam": []})
         verification_results = MockVerifier.verify_all_identifiers(identifiers)
@@ -93,7 +100,7 @@ async def analyze_document(
             detail=f"Registry database verification queries failed: {str(e)}"
         )
 
-    # 4. Multi-Bidder Fraud & Collusion Detection
+    # 5. Multi-Bidder Fraud & Collusion Detection
     try:
         effective_bidder_name = bidder_name or (current_user.full_name if current_user else "")
         fraud_analysis = ProcurementFraudDetector.detect_fraud_and_collusion(
@@ -106,14 +113,15 @@ async def analyze_document(
     except Exception as e:
         logger.error(f"Analysis Endpoint: Fraud detection error: {e}")
         fraud_analysis = {"is_collusion_risk": False, "fraud_penalty": 0, "all_warnings": []}
-        
-    # 5. Perform Compliance Scoring and Risk Assessment
+
+    # 6. Perform Compliance Scoring and Risk Assessment
     try:
         forgery_analysis = analysis_result.get("forgery_analysis", {})
         score_result = ComplianceScorer.calculate_compliance_score(
             verification_results=verification_results,
             forgery_analysis=forgery_analysis,
-            fraud_analysis=fraud_analysis
+            fraud_analysis=fraud_analysis,
+            semantic_analysis=semantic_analysis
         )
     except Exception as e:
         logger.error(f"Analysis Endpoint: Score calculation error: {e}")
@@ -121,20 +129,20 @@ async def analyze_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Compliance score calculations failed: {str(e)}"
         )
-        
-    # 6. Log audit record
+
+    # 7. Log audit record
     try:
         create_audit_record(
             db=db,
             action="DOCUMENT_ANALYSIS",
             user_id=current_user.id if current_user else None,
             entity_type="Document",
-            new_value=f"Filename: {file.filename}, Score: {score_result['score']}, Risk: {score_result['risk_level']}, ForgeryScore: {forgery_analysis.get('forgery_score', 100)}"
+            new_value=f"Filename: {file.filename}, Score: {score_result['score']}, Risk: {score_result['risk_level']}, ForgeryScore: {forgery_analysis.get('forgery_score', 100)}, SemanticScore: {semantic_analysis.get('semantic_score', 100)}"
         )
     except Exception as e:
         logger.error(f"Analysis Endpoint: Failed to save audit log: {e}")
-        
-    # 7. Return response
+
+    # 8. Return response
     return {
         "file_id": file_id,
         "filename": file.filename,
@@ -147,9 +155,41 @@ async def analyze_document(
             "identifiers": identifiers,
             "entities": analysis_result.get("entities", {}),
             "forgery_analysis": forgery_analysis,
-            "fraud_analysis": fraud_analysis
+            "fraud_analysis": fraud_analysis,
+            "semantic_analysis": semantic_analysis
         },
         "verification": verification_results,
         "compliance": score_result
     }
 
+
+@router.post("/analyze/semantic-comparator", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def evaluate_semantic_rfp_comparator(
+    payload: Dict[str, Any] = Body(..., example={
+        "bid_text": "We are ABC Tech Solutions. Our GSTIN is 27AAPCS1234M1Z5 and PAN is AAPCS1234M. We hold MSME Udyam UDYAM-MH-12-0012345.",
+        "rfp_clauses": None
+    })
+):
+    """
+    Dedicated Semantic NLP RFP Clause Comparator Endpoint:
+    Compares custom bid document text against tender RFP clauses to compute clause-by-clause
+    compliance status ('MET', 'PARTIALLY_MET', 'NOT_MET') and extracted evidence snippets.
+    """
+    bid_text = payload.get("bid_text", "")
+    rfp_clauses = payload.get("rfp_clauses", None)
+
+    if not bid_text:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Field 'bid_text' is required for semantic RFP evaluation."
+        )
+
+    evaluation = SemanticRFPComparator.evaluate_bid_against_rfp(
+        bid_text=bid_text,
+        rfp_clauses=rfp_clauses
+    )
+
+    return {
+        "status": "success",
+        "evaluation": evaluation
+    }

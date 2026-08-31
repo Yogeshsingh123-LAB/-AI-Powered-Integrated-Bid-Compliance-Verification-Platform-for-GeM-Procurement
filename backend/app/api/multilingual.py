@@ -10,12 +10,12 @@ from app.services.multilingual_service import MultilingualService
 router = APIRouter(prefix="/v1/multilingual", tags=["Multi-Language Support & Regional OCR Engine"])
 
 class RegionalOCRRequest(BaseModel):
-    raw_text: Optional[str] = Field(default=None, example="जीएसटी पंजीकरण संख्या 27AAAAA1111A1Z1 स्थायी खाता संख्या AAAAA1111A वार्षिक कारोबार 75 लाख")
-    target_language: str = Field(default="hin", example="hin") # "hin", "guj", "mar", "tam", "ben", "tel"
+    raw_text: Optional[str] = Field(default=None, json_schema_extra={"example": "जीएसटी पंजीकरण संख्या 27AAAAA1111A1Z1 स्थायी खाता संख्या AAAAA1111A वार्षिक कारोबार 75 लाख"})
+    target_language: str = Field(default="hin", json_schema_extra={"example": "hin"}) # "hin", "guj", "mar", "tam", "ben", "tel"
 
 class TranslateRequest(BaseModel):
-    text: str = Field(..., min_length=2, example="આવકવેરો પાન કાર્ડ AAAAA1111A વાર્ષિક ટર્નઓવર 50 લાખ")
-    language: str = Field(default="guj", example="guj")
+    text: str = Field(..., min_length=2, json_schema_extra={"example": "આવકવેરો પાન કાર્ડ AAAAA1111A વાર્ષિક ટર્નઓવર 50 લાખ"})
+    language: str = Field(default="guj", json_schema_extra={"example": "guj"})
 
 @router.get("/supported-languages", response_model=Dict[str, Any])
 def get_supported_languages():

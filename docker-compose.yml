@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------------
+  # PostgreSQL Database Service
+  # -------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: gem_bid_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: bid_compliance_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------------
+  # FastAPI Backend AI Scorer & Document Processor
+  # -------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gem_bid_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/bid_compliance_db
+      - SECRET_KEY=sih2026_bid_compliance_super_secret_jwt_key
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80
+      - UPLOAD_DIR=/app/uploads
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-groq}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=openai/gpt-oss-20b
+      - GROQ_WEB_SEARCH_ENABLED=true
+      - GROQ_WEB_MODEL=groq/compound-mini
+
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # -------------------------------------------------------------------
+  # React/Vite Frontend Web Interface
+  # -------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gem_bid_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

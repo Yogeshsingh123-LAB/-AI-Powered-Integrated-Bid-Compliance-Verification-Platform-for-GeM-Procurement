@@ -2,9 +2,13 @@ import logging
 import uuid
 import hashlib
 from typing import List, Optional
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from fastapi.security import OAuth2PasswordBearer
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
 from sqlalchemy import desc
 
 from app.db.database import get_db
@@ -226,6 +230,8 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         )
 
     return user
+
+get_current_active_user = get_current_user
 
 def get_optional_current_user(db: Session = Depends(get_db), token: Optional[str] = Depends(oauth2_scheme_optional)) -> Optional[User]:
     """Dependency to retrieve authenticated user if token present, or None if anonymous."""

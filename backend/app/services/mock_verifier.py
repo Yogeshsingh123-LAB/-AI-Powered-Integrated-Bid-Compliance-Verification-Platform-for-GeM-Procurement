@@ -3,8 +3,11 @@ import os
 import json
 import requests
 from typing import Dict, Any, List, Optional
+from app.core.config import settings
+from app.services.real_verifiers import GSTINRealVerifier, UdyamRealVerifier, PANRealVerifier
 
 logger = logging.getLogger(__name__)
+
 
 # Base Mock API endpoint URL
 BASE_MOCK_URL = os.getenv("MOCK_API_BASE_URL", "http://127.0.0.1:8000")
@@ -92,11 +95,20 @@ class MockVerifier:
 
     @classmethod
     def verify_gstin(cls, gstin: str) -> Dict[str, Any]:
-        """Queries the GSTIN registry."""
+        """Queries the GSTIN registry (Tier 1: Real Public API -> Tier 2: Microservice REST -> Tier 3: Local Database)."""
         gstin = gstin.upper().strip()
         logger.info(f"MockVerifier: Verifying GSTIN: {gstin}")
         
-        # 1. Active REST query
+        # Tier 1: Real Live Public API lookup attempt if enabled
+        if getattr(settings, "ENABLE_REAL_API_LOOKUP", True):
+            real_res = GSTINRealVerifier.verify(gstin)
+            if real_res:
+                blacklist = cls.check_blacklist(gstin)
+                real_res["data"]["blacklisted"] = blacklist.get("blacklisting_status") == "Blacklisted"
+                real_res["data"]["blacklist_details"] = blacklist
+                return real_res
+
+        # Tier 2: Active REST query against local mock gateway
         try:
             response = requests.get(f"{BASE_MOCK_URL}/mock/gst/{gstin}", timeout=2.0)
             if response.status_code == 200:
@@ -115,7 +127,7 @@ class MockVerifier:
         except requests.exceptions.RequestException:
             logger.info("MockVerifier: GST API offline, using local fallback.")
             
-        # 2. Local fallback
+        # Tier 3: Local fallback
         record = get_local_db_record("gst", gstin)
         if record:
             blacklist = cls.check_blacklist(gstin)
@@ -145,13 +157,22 @@ class MockVerifier:
 
     @classmethod
     def verify_pan(cls, pan: str) -> Dict[str, Any]:
-        """Queries the PAN registry."""
+        """Queries the PAN registry (Tier 1: Real Public API -> Tier 2: Microservice REST -> Tier 3: Local Database)."""
         pan = pan.upper().strip()
         logger.info(f"MockVerifier: Verifying PAN: {pan}")
         
         decoded_cat = cls.decode_pan_category(pan)
         
-        # 1. Active REST query
+        # Tier 1: Real Live Public API lookup attempt if enabled
+        if getattr(settings, "ENABLE_REAL_API_LOOKUP", True):
+            real_res = PANRealVerifier.verify(pan)
+            if real_res:
+                blacklist = cls.check_blacklist(pan)
+                real_res["data"]["blacklisted"] = blacklist.get("blacklisting_status") == "Blacklisted"
+                real_res["data"]["blacklist_details"] = blacklist
+                return real_res
+
+        # Tier 2: Active REST query against local mock gateway
         try:
             response = requests.get(f"{BASE_MOCK_URL}/mock/pan/{pan}", timeout=2.0)
             if response.status_code == 200:
@@ -171,7 +192,7 @@ class MockVerifier:
         except requests.exceptions.RequestException:
             logger.info("MockVerifier: PAN API offline, using local fallback.")
             
-        # 2. Local fallback
+        # Tier 3: Local fallback
         record = get_local_db_record("pan", pan)
         if record:
             blacklist = cls.check_blacklist(pan)
@@ -200,11 +221,17 @@ class MockVerifier:
 
     @classmethod
     def verify_udyam(cls, udyam: str) -> Dict[str, Any]:
-        """Queries the Udyam MSME registry."""
+        """Queries the Udyam MSME registry (Tier 1: Real Public API -> Tier 2: Microservice REST -> Tier 3: Local Database)."""
         udyam = udyam.upper().strip()
         logger.info(f"MockVerifier: Verifying Udyam: {udyam}")
         
-        # 1. Active REST query
+        # Tier 1: Real Live Public API lookup attempt if enabled
+        if getattr(settings, "ENABLE_REAL_API_LOOKUP", True):
+            real_res = UdyamRealVerifier.verify(udyam)
+            if real_res:
+                return real_res
+
+        # Tier 2: Active REST query against local mock gateway
         try:
             response = requests.get(f"{BASE_MOCK_URL}/mock/udyam/{udyam}", timeout=2.0)
             if response.status_code == 200:
@@ -219,7 +246,7 @@ class MockVerifier:
         except requests.exceptions.RequestException:
             logger.info("MockVerifier: Udyam API offline, using local fallback.")
             
-        # 2. Local fallback
+        # Tier 3: Local fallback
         record = get_local_db_record("udyam", udyam)
         if record:
             return {
@@ -244,6 +271,7 @@ class MockVerifier:
             },
             "message": "Udyam registration not found in mock database registry."
         }
+
 
     @classmethod
     def verify_aadhaar(cls, aadhaar: str) -> Dict[str, Any]:

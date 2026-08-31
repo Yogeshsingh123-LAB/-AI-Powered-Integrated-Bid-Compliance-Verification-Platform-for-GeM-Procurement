@@ -167,6 +167,18 @@ flowchart LR
 - **`extract_dsc_from_pdf()`**: Inspects PDF byte streams for `/Contents` PKCS#7 / X.509 detached digital signature payloads.
 - **API Endpoint**: `/api/analyze/validate-dsc`.
 
+#### 15. L1 Price Comparison Engine & Reverse Auction (RA) Collusion Monitoring
+- **`calculate_l1()`** (`backend/app/services/evaluation_engine.py`): Ranks financial bids for technically qualified bidders:
+  - Technical Score Filter: Enforces minimum 70% technical score (GeM Rule) for financial evaluation.
+  - Price Ranking: Sorts compliant bids by `loaded_evaluated_price` / `total_price` ascending.
+  - Generates L1 (lowest evaluated bidder), L2, L3... rankings with relative price differences (`price_difference_from_l1`, `price_difference_pct`).
+- **`detect_ra_collusion()`**: Monitors Reverse Auction (RA) bidding patterns for bid rigging:
+  - Shared IP Address Detection: Identifies multiple bidders submitting from identical IP addresses.
+  - Synchronized Timestamp Submissions: Identifies bids submitted within millisecond intervals (< 2.0s).
+  - Coordinated Price Drops: Identifies identical percentage price reductions across RA rounds.
+- **`evaluate_tender_bids()`**: Consolidates financial evaluation and collusion monitoring.
+- **API Endpoints**: `POST /api/evaluate` and `POST /api/analyze/evaluate`.
+
 ---
 
 ## 3. Database Schema Blueprint
@@ -322,6 +334,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 12: Techno-Commercial Loading & Procurement Mode Auto-Detection Engine** ✅ COMPLETE (Implemented `ProcurementMode` auto-detection for Direct, L1, Custom Bid, and Reverse Auction, delivery delay loading, payment terms loading, warranty shortfall loading, spec gap loading, `/upload-rfp` and `/analyze/techno-commercial-loading` endpoints, and `test_tender_analyzer.py` achieving **103/103 passed tests**).
 - **Phase 13: e-EMD & e-PBG Digital Bank Guarantee Validation Module** ✅ COMPLETE (Implemented `validate_emd` and `validate_epbg` in `statutory_checks.py`, scheduled commercial bank verification, minimum threshold calculations, digital signature check, `/api/analyze/validate-emd` & `/api/analyze/validate-epbg` endpoints, and `test_statutory_checks.py` test suite achieving **114/114 passed tests**).
 - **Phase 14: Digital Signature Certificate (Class 3 DSC) Validation Engine** ✅ COMPLETE (Implemented `validate_dsc` and `extract_dsc_from_pdf` in `dsc_validator.py`, X.509 certificate expiry/effective date checks, Subject CN PAN linkage verification, licensed Indian CA checks, `/api/analyze/validate-dsc` REST endpoint, and `test_dsc_validator.py` test suite achieving **120/120 passed tests**).
+- **Phase 15: L1 Price Comparison Engine & Reverse Auction Collusion Support** ✅ COMPLETE (Implemented `calculate_l1` ranking, technical qualification filter >=70%, `detect_ra_collusion` for shared IPs, synchronized timestamp submissions, price drop monitoring, `POST /api/evaluate` & `/api/analyze/evaluate` REST endpoints, and `test_evaluation_engine.py` test suite achieving **125/125 passed tests**).
 
 ---
 

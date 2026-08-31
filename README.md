@@ -30,15 +30,15 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 
 ```mermaid
 graph TD
-    A[React/Vite Frontend & Mobile Officer App] -- HTTP / WebSockets / WebPush --> B[FastAPI Backend Engine]
-    B -- Direct API mTLS OAuth2 --> GeM[Official GeM Portal Gateway (api.gem.gov.in)]
-    B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
-    B -- Neo4j / NetworkX --> D[Cartel Relationship Graph Engine]
-    B -- External Integration --> E[Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker]
-    B -- OCR & Multi-Lang Engine --> F[Multi-Language Tesseract OCR & PDF Forgery/ELA Detector]
-    B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator & XAI Snippet Generator]
-    B -- Blockchain Audit --> H[Cryptographic Merkle Tree Ledger & Hyperledger Connector]
-    B -- Real-time Service --> I[WebSocket Connection Manager & Alert Engine]
+    A["React/Vite Frontend & Mobile Officer App"] -- "HTTP / WebSockets / WebPush" --> B["FastAPI Backend Engine"]
+    B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
+    B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
+    B -- "Neo4j / NetworkX" --> D["Cartel Relationship Graph Engine"]
+    B -- "External Integration" --> E["Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker"]
+    B -- "OCR & Multi-Lang Engine" --> F["Multi-Language Tesseract OCR & PDF Forgery/ELA Detector"]
+    B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
+    B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
+    B -- "Real-time Service" --> I["WebSocket Connection Manager & Alert Engine"]
 ```
 
 ---

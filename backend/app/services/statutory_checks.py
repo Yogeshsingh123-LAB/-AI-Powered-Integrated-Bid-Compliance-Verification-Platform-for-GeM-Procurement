@@ -265,15 +265,100 @@ def validate_epbg(pbg_cert_path_or_text: str, tender_value: Optional[float] = No
     }
 
 
-def perform_statutory_checks(doc_text: str, tender_value: Optional[float] = None) -> Dict[str, Any]:
+def validate_bidder_statutory(bidder_data: Any) -> Dict[str, Any]:
     """
-    Consolidated helper executing EMD, PBG, and statutory document checks.
+    Validates statutory identifiers for domestic (India) and foreign (GTE) bidders.
+    - If country is 'India': validates presence of PAN and GST.
+    - If country is foreign (not India): skips PAN/GST, validates foreign_tax_id and import_license instead.
+    """
+    if hasattr(bidder_data, "dict"):
+        data = bidder_data.dict()
+    elif hasattr(bidder_data, "model_dump"):
+        data = bidder_data.model_dump()
+    elif isinstance(bidder_data, dict):
+        data = bidder_data
+    else:
+        data = {}
+
+    country = str(data.get("country", "India")).strip()
+    is_foreign = country.lower() not in ("india", "in")
+
+    if is_foreign:
+        foreign_tax_id = data.get("foreign_tax_id")
+        import_license = data.get("import_license")
+
+        has_tax_id = bool(foreign_tax_id and str(foreign_tax_id).strip())
+        has_import_license = bool(import_license and str(import_license).strip())
+
+        passed = has_tax_id and has_import_license
+
+        return {
+            "country": country,
+            "is_foreign": True,
+            "passed": passed,
+            "skipped_checks": ["pan", "gst"],
+            "validated_checks": {
+                "foreign_tax_id": has_tax_id,
+                "import_license": has_import_license,
+                "foreign_tax_id_value": foreign_tax_id,
+                "import_license_value": import_license
+            },
+            "reason": (
+                f"Foreign GTE Bidder ({country}): Foreign Tax ID and Import License verified."
+                if passed
+                else f"Foreign GTE Bidder ({country}): Missing mandatory Foreign Tax ID or Import License."
+            )
+        }
+    else:
+        pan = data.get("pan") or data.get("pan_number")
+        gst = data.get("gst") or data.get("gstin") or data.get("gst_number")
+
+        has_pan = bool(pan and len(str(pan).strip()) >= 10)
+        has_gst = bool(gst and len(str(gst).strip()) >= 15)
+
+        passed = has_pan and has_gst
+
+        return {
+            "country": country,
+            "is_foreign": False,
+            "passed": passed,
+            "validated_checks": {
+                "pan": has_pan,
+                "gst": has_gst,
+                "pan_value": pan,
+                "gst_value": gst
+            },
+            "reason": (
+                "Domestic Bidder (India): PAN and GST verified."
+                if passed
+                else "Domestic Bidder (India): Missing mandatory PAN or GST identifier."
+            )
+        }
+
+
+def perform_statutory_checks(
+    doc_text: str,
+    tender_value: Optional[float] = None,
+    bidder_data: Optional[Any] = None
+) -> Dict[str, Any]:
+    """
+    Consolidated helper executing EMD, PBG, and statutory document / bidder checks.
     """
     emd_res = validate_emd(doc_text, tender_value=tender_value)
     epbg_res = validate_epbg(doc_text, tender_value=tender_value)
-    
+
+    bidder_statutory_res = None
+    if bidder_data is not None:
+        bidder_statutory_res = validate_bidder_statutory(bidder_data)
+
+    statutory_pass = emd_res.get("valid", False) or epbg_res.get("valid", False)
+    if bidder_statutory_res is not None:
+        statutory_pass = statutory_pass or bidder_statutory_res.get("passed", False)
+
     return {
         "emd_validation": emd_res,
         "epbg_validation": epbg_res,
-        "statutory_pass": emd_res.get("valid", False) or epbg_res.get("valid", False)
+        "bidder_statutory": bidder_statutory_res,
+        "statutory_pass": statutory_pass
     }
+

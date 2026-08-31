@@ -32,7 +32,7 @@ graph TD
 - **Port Alignment**: Frontend connects to FastAPI backend on port `8000` (`VITE_API_URL` defaults to `http://127.0.0.1:8000`).
 - **Role-Based Portals**:
   - **Procurement Officer / Buyer**: Master Audit Queue, bid details inspection, compliance audit reports, logs console, and compliance sign-off actions.
-  - **Admin**: User credentials management, API gateways connectivity toggles, and compliance rules weight tuning.
+  - **Admin**: Blacklisted & Debarred Bidders Console, User Credentials Management, Government Portal Integrations dashboard, system settings, and security password authorization workflows.
   - **Bidder / Supplier**: Secure document upload terminal, Bidder Document Vault, bid status milestones tracker, and corporate profiles.
 
 ### Backend (Core Engine)
@@ -194,3 +194,4 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, fuzzy Levenshtein name alignment, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
 - **Phase 8: One-Command Docker Setup, Audit Verification API & Self-Healing Migration** ✅ COMPLETE (Added `docker-compose.yml`, multi-stage Dockerfiles for backend & frontend, `/api/audit/verify` verification endpoints, `backend/scenarios/README.md` documentation, and automatic SQLite column schema migration).
 - **Phase 9: Semantic NLP RFP Clause Comparator, Cartel Network Graph, Explainable Override & Live Bid Monitoring (100/100 SIH Feature Complete)** ✅ COMPLETE (Implemented `SemanticRFPComparator` dual Gemini LLM & local NLP engine, Cartel Network Graph visualizer, Explainable Officer Override engine, Tender Rule Builder, Live WebSocket Bid Monitoring, and complete test suite coverage).
+- **Phase 10: Blacklisted & Debarred Bidders Governance Console & Security Password Authorization Workflows** ✅ COMPLETE (Implemented Admin Blacklisted Bidders registry console, CVC vigilance order tracking, investigation dossiers with cryptographic hashes, debarment revocation, and security password authorization for tender management).

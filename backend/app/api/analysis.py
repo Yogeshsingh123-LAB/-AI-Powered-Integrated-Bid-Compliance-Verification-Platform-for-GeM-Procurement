@@ -250,3 +250,53 @@ async def evaluate_techno_commercial_loading(
         "compliance_eval": compliance_res,
         "techno_commercial_loading": loading_analysis
     }
+
+
+@router.post("/analyze/validate-emd", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def validate_emd_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "text": "EARNEST MONEY DEPOSIT (EMD) - State Bank of India Amount: ₹ 50,000.00",
+        "tender_value": 2000000.0
+    })
+):
+    """
+    Electronic EMD (e-EMD) Validation Endpoint:
+    Verifies scheduled bank issuer, minimum 2% EMD amount threshold, and digital signature status.
+    """
+    from app.services.statutory_checks import validate_emd
+
+    text = str(payload.get("text", payload.get("emd_text", "")))
+    tender_value = payload.get("tender_value")
+    if tender_value is not None:
+        tender_value = float(tender_value)
+
+    res = validate_emd(text, tender_value=tender_value)
+    return {
+        "status": "success",
+        "emd_validation": res
+    }
+
+
+@router.post("/analyze/validate-epbg", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def validate_epbg_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "text": "PERFORMANCE BANK GUARANTEE (e-PBG) - HDFC Bank Amount: ₹ 150,000.00",
+        "tender_value": 3000000.0
+    })
+):
+    """
+    Electronic Performance Bank Guarantee (e-PBG) Validation Endpoint:
+    Verifies scheduled bank issuer, minimum 3% PBG amount threshold, and digital signature status.
+    """
+    from app.services.statutory_checks import validate_epbg
+
+    text = str(payload.get("text", payload.get("epbg_text", "")))
+    tender_value = payload.get("tender_value")
+    if tender_value is not None:
+        tender_value = float(tender_value)
+
+    res = validate_epbg(text, tender_value=tender_value)
+    return {
+        "status": "success",
+        "epbg_validation": res
+    }

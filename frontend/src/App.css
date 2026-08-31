@@ -2952,11 +2952,6 @@ footer {
 @media (max-width: 768px) {
 
   /* --- 3D Login Page Overrides --- */
-  .login-3d-page-wrapper {
-    padding: 16px !important;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
-  }
-
   .split-overlay-container {
     display: none !important;
   }
@@ -2966,11 +2961,10 @@ footer {
     max-width: 440px !important;
     min-height: auto !important;
     flex-direction: column !important;
-    padding: 32px 24px !important;
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 1px rgba(15, 23, 42, 0.1) !important;
-    border-radius: 16px !important;
+    padding: 30px 20px !important;
+    background: rgba(10, 15, 30, 0.98) !important;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.25) !important;
+    border-radius: 12px !important;
     margin: 10px auto !important;
   }
 
@@ -2981,7 +2975,6 @@ footer {
     right: auto !important;
     transform: none !important;
     padding: 0 !important;
-    background: #ffffff !important;
     transition: none !important;
   }
 

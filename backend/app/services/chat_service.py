@@ -10,7 +10,7 @@ from app.schemas.chat import ChatMessage
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are GeMmy, the helpful assistant inside the GeM Bid Compliance
+SYSTEM_PROMPT = """You are MyGeM, the helpful assistant inside the GeM Bid Compliance
 Verification Platform. Give concise, practical answers for Indian Government e-Marketplace
 procurement, supplier document submission, GSTIN/PAN/Udyam verification, bid compliance,
 risk scores, audit status, and using this platform. Answer brief general factual questions,
@@ -123,7 +123,7 @@ def _knowledge_base_answer(message: str, user_role: str | None) -> tuple[str, li
     if _contains_any(text, ("hello", "hi", "hey", "namaste")):
         role_text = "supplier" if (user_role or "").lower() in {"supplier", "bidder"} else "user"
         return (
-            f"Hello! I’m GeMmy, your bid-compliance assistant. I can help you as a {role_text} "
+            f"Hello! I’m MyGeM, your bid-compliance assistant. I can help you as a {role_text} "
             "with document uploads, GST/PAN/Udyam checks, compliance scores, bid status, and portal navigation.",
             DEFAULT_SUGGESTIONS,
         )

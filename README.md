@@ -60,7 +60,7 @@ graph TD
 | **DigiLocker Integration** | MeitY DigiLocker Sandbox | OAuth2 authentication, document URI fetching, and e-Signed document extraction |
 | **Cartel Ring Detection** | Neo4j & NetworkX Graph Engine | Collusion detection mapping shared directors (DINs), common addresses, bank accounts, and synchronized IP/timestamp patterns |
 | **Explainable AI (XAI)** | Evidence Extraction Engine | Document title, page #, quote snippet, confidence score, and rationale for every compliance score |
-| **GeMmy AI Assistant** | Knowledge Base + Optional Live Web Search | Conversational help for portal workflows and bid compliance, with Groq-powered internet search for current questions and a local knowledge-base fallback |
+| **MyGeM AI Assistant** | Knowledge Base + Optional Live Web Search | Conversational help for portal workflows and bid compliance, with Groq-powered internet search for current questions and a local knowledge-base fallback |
 | **Officer Override Workflow** | GFR Rule 173 Guidelines | "Approve with Deviation" workflow with SHA-256 audit trail and officer annotation comment threads |
 | **Real-time Monitoring** | WebSockets & Alerts | Live WebSocket feeds (`/ws/live`, `/ws/tender/{id}`) with instant alert dispatching for non-compliant bids, PDF forgery, and blacklisting |
 | **Multi-Language Regional OCR** | Pan-India Indic Scripts | Tesseract multi-language OCR for Hindi (हिन्दी), Gujarati (ગુજરાતી), Marathi (मराठी), Tamil (தமிழ்), Bengali (বাংলা), Telugu (తెలుగు), and English with automatic Unicode language detection |
@@ -72,15 +72,15 @@ graph TD
 
 ---
 
-## 🌳 GeMmy AI Assistant
+## 🌳 MyGeM AI Assistant
 
 <p align="center">
-  <img src="frontend/src/assets/gemmy-icon.png" alt="GeMmy AI spiral tree icon" width="160">
+  <img src="frontend/src/assets/gemmy-icon.png" alt="MyGeM AI spiral tree icon" width="160">
 </p>
 
-**GeMmy** is the platform's built-in AI bid-compliance assistant. It helps bidders, procurement officers, and administrators understand the portal and navigate the bid-verification workflow.
+**MyGeM** is the platform's built-in AI bid-compliance assistant. It helps bidders, procurement officers, and administrators understand the portal and navigate the bid-verification workflow.
 
-### What you can ask GeMmy
+### What you can ask MyGeM
 
 - How to upload bid documents and resolve upload problems
 - Which GSTIN, PAN, and Udyam details are checked
@@ -91,7 +91,7 @@ graph TD
 
 ### Internet-assisted questions
 
-When Groq web search is enabled, GeMmy can search the internet for time-sensitive questions containing phrases such as **"latest," "current," "today," "recent," "news,"** or **"search the web."** Questions about GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain. Web-assisted responses are identified in the chat as **"Live web answer via Groq."**
+When Groq web search is enabled, MyGeM can search the internet for time-sensitive questions containing phrases such as **"latest," "current," "today," "recent," "news,"** or **"search the web."** Questions about GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain. Web-assisted responses are identified in the chat as **"Live web answer via Groq."**
 
 Example questions:
 - "What is the latest official GeM update?"
@@ -107,7 +107,7 @@ GROQ_WEB_SEARCH_ENABLED=true
 GROQ_WEB_MODEL=groq/compound-mini
 ```
 
-If the AI provider or internet search is unavailable, GeMmy automatically falls back to its local portal knowledge base. Tender-specific, legal, financial, and policy-critical answers should always be verified against the tender document and the official GeM portal.
+If the AI provider or internet search is unavailable, MyGeM automatically falls back to its local portal knowledge base. Tender-specific, legal, financial, and policy-critical answers should always be verified against the tender document and the official GeM portal.
 
 ---
 

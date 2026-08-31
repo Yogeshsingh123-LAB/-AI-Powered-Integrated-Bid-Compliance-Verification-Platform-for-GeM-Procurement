@@ -22,7 +22,7 @@ graph TD
     B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
     B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
     B -- "Real-time Service" --> I["WebSocket Connection Manager & Alert Engine"]
-    B -- "POST /api/chat" --> J["GeMmy Assistant Router & Chat Service"]
+    B -- "POST /api/chat" --> J["MyGeM Assistant Router & Chat Service"]
     J -- "Portal Guidance Fallback" --> K["Local Knowledge Base"]
     J -- "General AI Questions" --> L["Gemini or Groq Chat Model"]
     J -- "Time-Sensitive Queries" --> M["Groq Compound Web Search"]
@@ -74,25 +74,25 @@ graph TD
 - **`PerformanceBenchmarkService`**: Benchmarked against actual GeM monthly procurement volumes (**5,000+ tenders / month** / **25,000+ bids / month**).
 - **Sub-5-Second SLA Pass Rate:** `99.4%` ($p_{50}$ median: `1.18s`, $p_{95}$ tail: `2.84s`, $p_{99}$ burst: `4.12s`).
 
-#### 10. GeMmy AI Assistant & Internet-Assisted Questions
-- **Brand identity:** GeMmy uses the spiral-tree icon stored at `frontend/src/assets/gemmy-icon.png`.
-- **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask GeMmy** launcher, conversation history, suggested questions, loading states, error handling, and response-source labels.
+#### 10. MyGeM AI Assistant & Internet-Assisted Questions
+- **Brand identity:** MyGeM uses the spiral-tree icon stored at `frontend/src/assets/gemmy-icon.png`.
+- **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask MyGeM** launcher, conversation history, suggested questions, loading states, error handling, and response-source labels.
 - **Chat API:** `POST /api/chat` accepts the user's message, recent conversation history, and current portal role through `backend/app/api/chat.py`.
 - **Portal guidance:** `backend/app/services/chat_service.py` provides answers about document uploads, GSTIN, PAN, Udyam verification, compliance scoring, risk ratings, audit status, accounts, and buyer workflows.
 - **AI providers:** The `AI_PROVIDER` setting selects Gemini or Groq. Groq uses `GROQ_MODEL` for ordinary questions and `GROQ_WEB_MODEL` for internet-assisted questions.
 - **Internet-assisted answers:** Time-sensitive prompts containing terms such as `latest`, `current`, `today`, `recent`, `news`, `search the web`, or `search internet` can use Groq web search when `GROQ_WEB_SEARCH_ENABLED=true`.
 - **Official GeM sources:** Internet searches related to GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain.
 - **Source transparency:** Responses are classified as `ai`, `ai_web`, or `knowledge_base`. The frontend identifies internet-assisted responses as **Live web answer via Groq** and fallback responses as **Portal knowledge base**.
-- **Reliable fallback:** If an AI provider is unavailable, credentials are missing, a request times out, or an empty response is returned, GeMmy automatically provides an answer from its local knowledge base.
-- **Safety boundary:** GeMmy must not invent bid status, registry results, laws, deadlines, tender requirements, or government policies. Policy-critical, financial, legal, and tender-specific information should always be verified using the tender document and official GeM sources.
+- **Reliable fallback:** If an AI provider is unavailable, credentials are missing, a request times out, or an empty response is returned, MyGeM automatically provides an answer from its local knowledge base.
+- **Safety boundary:** MyGeM must not invent bid status, registry results, laws, deadlines, tender requirements, or government policies. Policy-critical, financial, legal, and tender-specific information should always be verified using the tender document and official GeM sources.
 
-##### GeMmy Answer-Routing Flow
+##### MyGeM Answer-Routing Flow
 
 ```mermaid
 flowchart LR
-    U["Portal User"] --> W["GeMmy Chat Widget"]
+    U["Portal User"] --> W["MyGeM Chat Widget"]
     W -->|"POST /api/chat"| A["FastAPI Chat Endpoint"]
-    A --> S["GeMmy Chat Service"]
+    A --> S["MyGeM Chat Service"]
 
     S --> Q{"AI provider configured?"}
     Q -->|"No"| K["Local Knowledge Base"]
@@ -113,7 +113,7 @@ flowchart LR
     X -. "Search error" .-> K
     K --> FALL["Knowledge-Base Answer"]
 
-    AI --> UI["Display Answer in GeMmy"]
+    AI --> UI["Display Answer in MyGeM"]
     WEB --> UI
     FALL --> UI
 
@@ -290,7 +290,7 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 | `GET` | `/api/audit/logs` | Retrieve paginated immutable audit log entries | Yes | `OFFICER`, `ADMIN` |
 | `GET` | `/api/audit/verify/{log_id}` | Cryptographically verify SHA-256 hash of an audit record | No | None |
 | `GET` | `/api/audit/bids/{bid_id}/verify` | Cryptographically verify full audit chain for a bid | No | None |
-| `POST` | `/api/chat` | Ask the GeMmy platform assistant | No | None |
+| `POST` | `/api/chat` | Ask the MyGeM platform assistant | No | None |
 
 ---
 

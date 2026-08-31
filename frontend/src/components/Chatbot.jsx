@@ -16,7 +16,7 @@ const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
   content:
-    "Welcome! I’m GeMmy, your AI bid-compliance assistant. Ask me about document uploads, GST/PAN/Udyam checks, risk scores, audit status, or how to use this portal.",
+    "Welcome! I’m MyGeM, your AI bid-compliance assistant. Ask me about document uploads, GST/PAN/Udyam checks, risk scores, audit status, or how to use this portal.",
 };
 
 const INITIAL_SUGGESTIONS = [
@@ -131,29 +131,29 @@ function Chatbot({ userRole = "Guest" }) {
         type="button"
         className="gemmy-launcher"
         onClick={() => setIsOpen(true)}
-        aria-label="Open GeMmy assistant"
+        aria-label="Open MyGeM assistant"
       >
         <span className="gemmy-launcher-pulse" />
         <img className="gemmy-launcher-icon" src={gemmyIcon} alt="" aria-hidden="true" />
-        <span>Ask GeMmy</span>
+        <span>Ask MyGeM</span>
       </button>
     );
   }
 
   return (
-    <section className="gemmy-widget" aria-label="GeMmy bid compliance assistant">
+    <section className="gemmy-widget" aria-label="MyGeM bid compliance assistant">
       <header className="gemmy-header">
         <div className="gemmy-brand">
           <span className="gemmy-brand-icon">
             <img src={gemmyIcon} alt="" aria-hidden="true" />
           </span>
           <div>
-            <strong>Ask GeMmy</strong>
+            <strong>Ask MyGeM</strong>
             <span>AI compliance assistant</span>
           </div>
         </div>
         <div className="gemmy-header-actions">
-          <button type="button" title="About GeMmy" aria-label="About GeMmy">
+          <button type="button" title="About MyGeM" aria-label="About MyGeM">
             <Info size={18} />
           </button>
           <button

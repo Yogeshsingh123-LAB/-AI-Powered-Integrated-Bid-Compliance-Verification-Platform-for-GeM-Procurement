@@ -44,6 +44,7 @@ def extract_text_from_input(source: str) -> str:
             except Exception as e:
                 logger.warning(f"Failed PDF extraction via PDFHandler for {source}: {e}")
                 try:
+                    # pyrefly: ignore [missing-import]
                     import fitz  # PyMuPDF
                     doc = fitz.open(source)
                     text = "\n".join([page.get_text() for page in doc])

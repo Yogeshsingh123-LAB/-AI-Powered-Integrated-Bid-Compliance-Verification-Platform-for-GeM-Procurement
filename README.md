@@ -51,6 +51,7 @@ graph TD
 | **L1 Ranking & RA Collusion** | GeM Financial Rule | Filters technical compliance (>=70%), ranks L1/L2/L3 by loaded price, monitors Reverse Auction (RA) shared IPs & synchronized bidding timestamps |
 | **DSC Validation** | Class 3 Digital Certificate | X.509 Digital Signature Certificate (Class 3 DSC) expiry, effective date, Certifying Authority (eMudhra, nCode, VSign, CDAC), and Bidder PAN linkage verification |
 | **e-EMD & e-PBG Validation** | GeM 3.0/4.0 Mandate | Electronic EMD (min 2% tender threshold) and Performance Bank Guarantee (min 3% threshold) verification against Scheduled Commercial Banks with digital signature checks |
+| **ESG & Data Security** | GeM Mandatory Rule | Rule-based verification of required ESG (environmental compliance, social responsibility, governance) and Data Security (data encryption, access control, breach notification) declarations |
 | **Techno-Commercial Loading** | GeM 4.0 Load Criteria | Auto-detection of procurement modes (Direct <= ₹50k, L1 ₹50k-₹10L, Bid > ₹10L, Reverse Auction) and techno-commercial loading penalties (delivery delay, payment terms, warranty shortfall) |
 | **Direct GeM API Sync** | OAuth 2.0 mTLS Auth | Dedicated client certificate authentication (`mTLS`), live tender fetching, bid retrieval, and compliance report sync |
 | **Statutory Identifiers** | CBIC GSTN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |

@@ -14,19 +14,19 @@ from app.services.auth_service import get_current_active_user
 router = APIRouter(prefix="/v1/tenders", tags=["Tender Configuration Engine"])
 
 class RuleDefinition(BaseModel):
-    rule_id: str = Field(..., example="CR-01")
-    name: str = Field(..., example="Minimum Annual Turnover")
-    field: str = Field(..., example="turnover")  # turnover, experience_years, local_content_pct, oem_authorization
-    operator: str = Field(default=">=", example=">=")  # >=, <=, ==, contains
-    value: Any = Field(default=50, example=50)
-    weight: int = Field(default=20, example=20)
+    rule_id: str = Field(..., json_schema_extra={"example": "CR-01"})
+    name: str = Field(..., json_schema_extra={"example": "Minimum Annual Turnover"})
+    field: str = Field(..., json_schema_extra={"example": "turnover"})  # turnover, experience_years, local_content_pct, oem_authorization
+    operator: str = Field(default=">=", json_schema_extra={"example": ">="})  # >=, <=, ==, contains
+    value: Any = Field(default=50, json_schema_extra={"example": 50})
+    weight: int = Field(default=20, json_schema_extra={"example": 20})
     is_mandatory: bool = Field(default=True)
 
 class ScoringWeights(BaseModel):
-    completeness: int = Field(default=25, example=25)
-    verification: int = Field(default=35, example=35)
-    integrity: int = Field(default=20, example=20)
-    custom_rules: int = Field(default=20, example=20)
+    completeness: int = Field(default=25, json_schema_extra={"example": 25})
+    verification: int = Field(default=35, json_schema_extra={"example": 35})
+    integrity: int = Field(default=20, json_schema_extra={"example": 20})
+    custom_rules: int = Field(default=20, json_schema_extra={"example": 20})
 
 class TenderConfigRequest(BaseModel):
     custom_rules: List[RuleDefinition]

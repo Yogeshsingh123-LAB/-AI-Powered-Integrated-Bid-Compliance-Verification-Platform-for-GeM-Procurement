@@ -9,7 +9,37 @@ An end-to-end AI-powered verification, Semantic NLP RFP clause comparator, docum
 
 ---
 
-##  Quickstart: 1-Command Docker Setup
+## 🎯 Pitch Deck, Demo Video & Presentation Assets
+
+- 📄 **Official 12-Slide Pitch Deck**: [`docs/PITCH_DECK.md`](docs/PITCH_DECK.md)
+- 🎬 **Presenter Walkthrough & Demo Guide**: [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
+- ⚡ **Locust Load Test Suite**: [`backend/tests/load_test_locust.py`](backend/tests/load_test_locust.py)
+- 🌐 **Live Demo Portal**: *[Deployable on Render / Railway - See setup guide in DEMO_GUIDE.md]*
+
+---
+
+## 📑 GeM Real Tender Compliance Matrix & Domain Alignment
+
+| GeM Tender Clause / Requirement | Rule / Standard | Platform AI Implementation |
+|---|---|---|
+| **Statutory Identifiers** | GSTIN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
+| **Land Border Country Restriction** | GFR Rule 144(xi) | RFP-06 Clause Matching + Mandatory Competent Authority Declaration Check |
+| **MSME EMD Exemption** | GeM Procurement Guidelines | Category-Aware Filter: Valid for Manufacturers/Services, Excludes Traders |
+| **Startup Exemption Path** | DPIIT Recognition | RFP-08 Dedicated Turnover & Prior Experience Relaxation Path |
+| **EMD / PBG Guarantee** | Tender Security Deposit | RFP-07 Verification of Payment Proof, Demand Draft, or Exemption Certificate |
+| **Entity Integrity** | Tax & Procurement Registries | Cross-Registry Name Alignment & Blacklist Status Verification |
+
+---
+
+## 🔒 Sandbox Integration Transparency
+
+> [!NOTE]
+> **API Sandbox Mocks**: All government API integrations (CBIC GSTN, Income Tax PAN, Udyam Registration, UIDAI e-KYC) operate against realistic microservice sandbox mocks located in `backend/app/mock_apis/`. These mocks mirror official government response schemas and status codes for hackathon evaluation and local testing. Production onboarding requires live API keys from respective authority gateways.
+
+---
+
+## 🚀 Quickstart: 1-Command Docker Setup
+
 
 For instant evaluation, spin up PostgreSQL, the FastAPI Backend, and Nginx Static Frontend using **Docker Compose**:
 
@@ -174,15 +204,20 @@ All security-sensitive operations (bid submissions, document uploads, score calc
 
 ---
 
-##  Testing & Validation
+## 🧪 Testing & Validation
 
-Run backend unit and integration test suites:
+Run backend unit, integration, and performance load test suites:
 
 ```bash
 cd backend
-# Run full pytest suite (47 tests passed)
+
+# 1. Run full pytest suite (47 tests passed)
 python -m pytest
 
-# Run end-to-end final integration test pipeline
+# 2. Run end-to-end final integration test pipeline
 python run_final_integration_test.py
+
+# 3. Run Locust load test (50 concurrent users benchmark)
+locust -f tests/load_test_locust.py --headless -u 50 -r 10 --run-time 1m --host http://localhost:8000
 ```
+

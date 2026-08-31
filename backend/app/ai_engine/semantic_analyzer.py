@@ -24,10 +24,10 @@ DEFAULT_GEM_RFP_CLAUSES = [
     },
     {
         "clause_id": "RFP-03",
-        "title": "MSME / Startup Exemption Certificate",
-        "description": "Eligible MSMEs / Startups may claim exemption from EMD / Turnover requirements by furnishing Udyam or DPIIT registration.",
+        "title": "MSME / Micro & Small Enterprise Exemption Certificate",
+        "description": "Eligible MSE Manufacturers/Service Providers may claim EMD exemption by furnishing Udyam registration (Traders excluded).",
         "mandatory": False,
-        "keywords": ["udyam", "msme", "micro", "small", "startup", "dpiit", "exemption", "certificate"]
+        "keywords": ["udyam", "msme", "micro", "small", "manufacturer", "service provider", "exemption", "certificate"]
     },
     {
         "clause_id": "RFP-04",
@@ -42,8 +42,30 @@ DEFAULT_GEM_RFP_CLAUSES = [
         "description": "Bidder must submit self-declaration confirming they are not debarred or blacklisted by any Govt entity.",
         "mandatory": True,
         "keywords": ["blacklisted", "debarred", "undertaking", "declaration", "integrity", "affidavit"]
+    },
+    {
+        "clause_id": "RFP-06",
+        "title": "Land Border Sharing Country Compliance (GFR Rule 144(xi))",
+        "description": "Bidder must declare compliance with land-border country restrictions or provide DPIIT Competent Authority registration.",
+        "mandatory": True,
+        "keywords": ["land border", "rule 144", "gfr", "sharing border", "competent authority", "dpiit registration", "border restriction"]
+    },
+    {
+        "clause_id": "RFP-07",
+        "title": "EMD & Performance Bank Guarantee (PBG) Compliance",
+        "description": "Bidder must furnish EMD payment receipt/e-PBG guarantee or present valid MSE/Startup exemption proof.",
+        "mandatory": True,
+        "keywords": ["emd", "earnest money", "pbg", "bank guarantee", "security deposit", "emd exemption", "dd", "fdr"]
+    },
+    {
+        "clause_id": "RFP-08",
+        "title": "Startup DPIIT Exemption Path",
+        "description": "DPIIT-recognized Startups can claim relaxation from prior turnover and experience criteria.",
+        "mandatory": False,
+        "keywords": ["startup", "dpiit", "dipp", "recognition", "startup india", "turnover relaxation", "experience exemption"]
     }
 ]
+
 
 
 class SemanticRFPComparator:

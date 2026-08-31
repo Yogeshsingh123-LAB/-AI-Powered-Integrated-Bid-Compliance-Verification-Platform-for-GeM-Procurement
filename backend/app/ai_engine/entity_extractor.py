@@ -113,12 +113,66 @@ class EntityExtractor:
         return results
 
     @classmethod
+    def detect_certificates_and_declarations(cls, text: str) -> Dict[str, Any]:
+        """Detects specific GeM certificate categories, bidder enterprise classification, and land border declarations."""
+        if not text:
+            return {
+                "detected_certificates": [],
+                "bidder_category": "Undetermined",
+                "land_border_declared": False,
+                "emd_proof_present": False,
+                "startup_declared": False
+            }
+
+        text_lower = text.lower()
+
+        # 1. Certificate Types Detection
+        cert_types = []
+        if any(k in text_lower for k in ["turnover certificate", "audited balance sheet", "financial turnover", "ca certificate"]):
+            cert_types.append("Turnover Certificate")
+        if any(k in text_lower for k in ["completion certificate", "work order", "experience certificate", "past performance"]):
+            cert_types.append("Experience Certificate")
+        if any(k in text_lower for k in ["udyam", "msme", "micro enterprise", "small enterprise"]):
+            cert_types.append("MSE/Udyam Registration Certificate")
+        if any(k in text_lower for k in ["oem authorization", "maf", "manufacturer authorization", "authorization letter"]):
+            cert_types.append("OEM Authorization Certificate")
+        if any(k in text_lower for k in ["land border", "rule 144(xi)", "rule 144", "sharing border", "competent authority"]):
+            cert_types.append("Land Border Sharing Declaration")
+        if any(k in text_lower for k in ["earnest money", "emd receipt", "bank guarantee", "pbg", "demand draft", "fdr"]):
+            cert_types.append("EMD/PBG Payment Proof")
+
+        # 2. Bidder Enterprise Classification (Manufacturer vs Service Provider vs Trader)
+        bidder_category = "Undetermined"
+        if any(k in text_lower for k in ["manufacturer", "factory", "manufacturing unit", "oem"]):
+            bidder_category = "Manufacturer"
+        elif any(k in text_lower for k in ["service provider", "consultancy", "managed services"]):
+            bidder_category = "Service Provider"
+        elif any(k in text_lower for k in ["trader", "reseller", "dealer", "distributor", "retailer"]):
+            bidder_category = "Trader"
+
+        # 3. Specific Declarations
+        land_border_declared = any(k in text_lower for k in ["land border", "rule 144", "not share land border", "competent authority registration"])
+        emd_proof_present = any(k in text_lower for k in ["emd", "earnest money", "pbg", "bank guarantee", "security deposit"])
+        startup_declared = any(k in text_lower for k in ["dpiit", "startup india", "dipp", "startup recognition"])
+
+        return {
+            "detected_certificates": cert_types,
+            "bidder_category": bidder_category,
+            "land_border_declared": land_border_declared,
+            "emd_proof_present": emd_proof_present,
+            "startup_declared": startup_declared
+        }
+
+    @classmethod
     def extract_all(cls, text: str) -> Dict[str, Any]:
-        """Combines Regex and spaCy extraction into a single dictionary."""
+        """Combines Regex, spaCy extraction, and Certificate/Declaration detection into a single dictionary."""
         identifiers = cls.extract_identifiers(text)
         entities = cls.extract_entities_spacy(text)
+        certificates_and_declarations = cls.detect_certificates_and_declarations(text)
         
         return {
             "identifiers": identifiers,
-            "entities": entities
+            "entities": entities,
+            "certificate_analysis": certificates_and_declarations
         }
+

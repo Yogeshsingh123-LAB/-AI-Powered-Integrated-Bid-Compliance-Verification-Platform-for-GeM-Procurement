@@ -8,9 +8,11 @@ def test_semantic_rfp_comparator_full_match():
     sample_text = """
     TECHGOV SOLUTIONS PVT LTD
     GSTIN: 27AAPCS1234M1Z5 | PAN: AAPCS1234M
-    We are a registered MSME under Udyam Registration UDYAM-MH-12-0012345 with 8 years of turnover experience in government IT procurement.
+    We are a registered MSE Manufacturer under Udyam Registration UDYAM-MH-12-0012345 with 8 years of annual turnover experience in government IT procurement.
     We hereby attach our OEM authorization certificate and confirm we are not blacklisted or debarred by any government department.
+    We confirm compliance with Land Border Sharing restrictions under GFR Rule 144(xi) and provide EMD / Bank Guarantee payment exemption proof under MSE manufacturer status.
     """
+
     result = SemanticRFPComparator.evaluate_bid_against_rfp(sample_text)
 
     assert result["semantic_score"] >= 80

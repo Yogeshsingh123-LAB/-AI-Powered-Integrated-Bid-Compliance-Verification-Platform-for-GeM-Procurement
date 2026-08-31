@@ -330,6 +330,28 @@ async def validate_dsc_endpoint(
     }
 
 
+@router.post("/analyze/declarations", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def validate_declarations_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "text": "We commit to environmental compliance, social responsibility, and governance, as well as data encryption, access control, and breach notification."
+    })
+):
+    """
+    ESG & Data-Security Declarations Verification Endpoint:
+    Verifies mandatory environmental compliance, social responsibility, governance,
+    data encryption, access control, and breach notification clauses in bid declarations.
+    """
+    from app.services.declaration_checker import check_all_declarations
+
+    text = str(payload.get("text", payload.get("declaration_text", "")))
+    res = check_all_declarations(text)
+    return {
+        "status": "success",
+        "declarations_verification": res
+    }
+
+
+
 @router.post("/evaluate", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 @router.post("/analyze/evaluate", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def evaluate_bids_endpoint(

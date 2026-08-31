@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Bot,
   Info,
   Loader2,
   MessageCircleQuestion,
   RefreshCw,
   Send,
-  Sparkles,
   X,
 } from "lucide-react";
+import gemmyIcon from "../assets/gemmy-icon.png";
 import "./Chatbot.css";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -135,7 +134,7 @@ function Chatbot({ userRole = "Guest" }) {
         aria-label="Open GeMmy assistant"
       >
         <span className="gemmy-launcher-pulse" />
-        <Sparkles size={23} aria-hidden="true" />
+        <img className="gemmy-launcher-icon" src={gemmyIcon} alt="" aria-hidden="true" />
         <span>Ask GeMmy</span>
       </button>
     );
@@ -145,7 +144,9 @@ function Chatbot({ userRole = "Guest" }) {
     <section className="gemmy-widget" aria-label="GeMmy bid compliance assistant">
       <header className="gemmy-header">
         <div className="gemmy-brand">
-          <span className="gemmy-brand-icon"><Sparkles size={21} /></span>
+          <span className="gemmy-brand-icon">
+            <img src={gemmyIcon} alt="" aria-hidden="true" />
+          </span>
           <div>
             <strong>Ask GeMmy</strong>
             <span>AI compliance assistant</span>
@@ -183,7 +184,9 @@ function Chatbot({ userRole = "Guest" }) {
         {messages.map((message) => (
           <div key={message.id} className={`gemmy-message-row ${message.role}`}>
             {message.role === "assistant" && (
-              <span className="gemmy-avatar" aria-hidden="true"><Bot size={17} /></span>
+              <span className="gemmy-avatar" aria-hidden="true">
+                <img src={gemmyIcon} alt="" />
+              </span>
             )}
             <div className={`gemmy-message ${message.isError ? "error" : ""}`}>
               {message.content}
@@ -199,7 +202,9 @@ function Chatbot({ userRole = "Guest" }) {
 
         {isLoading && (
           <div className="gemmy-message-row assistant">
-            <span className="gemmy-avatar" aria-hidden="true"><Bot size={17} /></span>
+            <span className="gemmy-avatar" aria-hidden="true">
+              <img src={gemmyIcon} alt="" />
+            </span>
             <div className="gemmy-message gemmy-typing">
               <Loader2 size={15} className="gemmy-spinner" />
               Checking the guidance…

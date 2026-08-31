@@ -158,6 +158,15 @@ flowchart LR
 - **`validate_epbg()`**: Validates electronic Performance Bank Guarantee (e-PBG) digital certificates. Verifies keywords ("Performance Bank Guarantee", "e-PBG", "PBG"), scheduled commercial bank issuer, minimum 3% tender value threshold, and digital signature verification.
 - **API Endpoints**: `/api/analyze/validate-emd` and `/api/analyze/validate-epbg`.
 
+#### 14. Digital Signature Certificate (Class 3 DSC) Validation Engine
+- **`validate_dsc()`** (`backend/app/services/dsc_validator.py`): Validates X.509 Digital Signature Certificates (Class 3 Commercial / Procurement DSC) required for GeM bid submissions:
+  - Expiry (`not_valid_after_utc`) and Effective date (`not_valid_before_utc`) verification.
+  - Subject Common Name (CN), Organization (O), and Serial Number extraction.
+  - Cross-verification that the Subject CN or Serial Number contains the Bidder's PAN (e.g., `YOGESH KUMAR SINGH:AAACA1234A`).
+  - Certifying Authority (CA) verification against Indian CCA licensed CAs (eMudhra, nCode, Safescrypt, Capricorn, Pantagon Sign, VSign, CDAC, IDRBT, NIC).
+- **`extract_dsc_from_pdf()`**: Inspects PDF byte streams for `/Contents` PKCS#7 / X.509 detached digital signature payloads.
+- **API Endpoint**: `/api/analyze/validate-dsc`.
+
 ---
 
 ## 3. Database Schema Blueprint
@@ -312,6 +321,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 11: Direct GeM Production API OAuth 2.0 mTLS Integration & Synchronization Gateway** ✅ COMPLETE (Implemented `get_gem_token()` mTLS OAuth 2.0 client certificate authenticator, `GeMClient` tender/bid/report sync service, `/api/v1/sync-*` REST endpoints, and `test_gem_sync.py` test suite achieving **94/94 passed tests**).
 - **Phase 12: Techno-Commercial Loading & Procurement Mode Auto-Detection Engine** ✅ COMPLETE (Implemented `ProcurementMode` auto-detection for Direct, L1, Custom Bid, and Reverse Auction, delivery delay loading, payment terms loading, warranty shortfall loading, spec gap loading, `/upload-rfp` and `/analyze/techno-commercial-loading` endpoints, and `test_tender_analyzer.py` achieving **103/103 passed tests**).
 - **Phase 13: e-EMD & e-PBG Digital Bank Guarantee Validation Module** ✅ COMPLETE (Implemented `validate_emd` and `validate_epbg` in `statutory_checks.py`, scheduled commercial bank verification, minimum threshold calculations, digital signature check, `/api/analyze/validate-emd` & `/api/analyze/validate-epbg` endpoints, and `test_statutory_checks.py` test suite achieving **114/114 passed tests**).
+- **Phase 14: Digital Signature Certificate (Class 3 DSC) Validation Engine** ✅ COMPLETE (Implemented `validate_dsc` and `extract_dsc_from_pdf` in `dsc_validator.py`, X.509 certificate expiry/effective date checks, Subject CN PAN linkage verification, licensed Indian CA checks, `/api/analyze/validate-dsc` REST endpoint, and `test_dsc_validator.py` test suite achieving **120/120 passed tests**).
 
 ---
 

@@ -36,17 +36,17 @@ class ComplianceScorer:
             rule_name = rule.get("name", "Custom Rule")
 
             rule_met = False
-            has_negative = any(neg in summary_text for neg in ["no ", "not ", "missing", "unmet", "absent", "lacking", "without ", "failed", "non-compliant"])
+            has_negative = bool(re.search(r'\b(no|not|missing|unmet|absent|lacking|without|failed|non-compliant)\b', summary_text))
 
             if field == "turnover":
                 has_keywords = any(k in summary_text for k in ["turnover", "lakhs", "crores", "revenue"])
-                rule_met = has_keywords and not any(n in summary_text for n in ["no turnover", "missing turnover", "unmet", "not provided"])
+                rule_met = has_keywords and not bool(re.search(r'\b(no|not|missing|unmet|absent|lacking|without|failed)\b', summary_text))
             elif field == "experience_years":
                 has_keywords = any(k in summary_text for k in ["experience", "years", "execution"])
-                rule_met = has_keywords and not any(n in summary_text for n in ["no experience", "missing experience", "unmet", "not provided"])
+                rule_met = has_keywords and not bool(re.search(r'\b(no|not|missing|unmet|absent|lacking|without|failed)\b', summary_text))
             elif field == "local_content_pct":
                 has_keywords = any(k in summary_text for k in ["local content", "make in india", "class-i"])
-                rule_met = has_keywords and not any(n in summary_text for n in ["no local content", "non-local", "unmet", "not compliant"])
+                rule_met = has_keywords and not bool(re.search(r'\b(no|not|missing|unmet|absent|lacking|without|failed|non-compliant)\b', summary_text))
             elif field == "oem_authorization":
                 has_keywords = any(k in summary_text for k in ["oem", "authorization", "maf"])
                 rule_met = has_keywords and not has_negative

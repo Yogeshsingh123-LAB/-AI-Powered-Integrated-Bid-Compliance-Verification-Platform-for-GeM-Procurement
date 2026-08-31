@@ -53,6 +53,7 @@ graph TD
 | **e-EMD & e-PBG Validation** | GeM 3.0/4.0 Mandate | Electronic EMD (min 2% tender threshold) and Performance Bank Guarantee (min 3% threshold) verification against Scheduled Commercial Banks with digital signature checks |
 | **ESG & Data Security** | GeM Mandatory Rule | Rule-based verification of required ESG (environmental compliance, social responsibility, governance) and Data Security (data encryption, access control, breach notification) declarations |
 | **Techno-Commercial Loading** | GeM 4.0 Load Criteria | Auto-detection of procurement modes (Direct <= ₹50k, L1 ₹50k-₹10L, Bid > ₹10L, Reverse Auction) and techno-commercial loading penalties (delivery delay, payment terms, warranty shortfall) |
+| **Global Tender Enquiry (GTE)** | GeM GTE International Rule | Multi-country Bidder model supporting foreign tax IDs (EIN, VAT) & IEC import licenses for non-Indian international bidders |
 | **Direct GeM API Sync** | OAuth 2.0 mTLS Auth | Dedicated client certificate authentication (`mTLS`), live tender fetching, bid retrieval, and compliance report sync |
 | **Statutory Identifiers** | CBIC GSTN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
 | **Labor & Compliance** | EPFO & ESIC Registries | Verification of Establishment IDs, ESIC Registration Numbers, employee headcounts, and monthly ECR remittance receipts |

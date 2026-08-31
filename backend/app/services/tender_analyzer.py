@@ -32,10 +32,41 @@ def detect_mode(tender_value: float, is_reverse_auction: bool = False) -> Procur
 
 def check_statutory(bid_doc: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Basic statutory identification check required for Direct Purchase mode.
-    Validates presence and format of GSTIN, PAN, and Udyam/MSME identifiers.
+    Statutory identification check for domestic and foreign GTE bidders.
+    - Domestic (India): Validates presence and format of GSTIN and PAN.
+    - Foreign (country != India): Skips PAN/GST, validates foreign_tax_id and import_license instead.
     """
-    gstin = bid_doc.get("gstin") or bid_doc.get("gst_number")
+    country = str(bid_doc.get("country", "India")).strip()
+    is_foreign = country.lower() not in ("india", "in")
+
+    if is_foreign:
+        foreign_tax_id = bid_doc.get("foreign_tax_id")
+        import_license = bid_doc.get("import_license")
+        has_tax_id = bool(foreign_tax_id and str(foreign_tax_id).strip())
+        has_import_license = bool(import_license and str(import_license).strip())
+
+        passed = has_tax_id and has_import_license
+        score = 100.0 if passed else (50.0 if (has_tax_id or has_import_license) else 0.0)
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "score": score,
+            "country": country,
+            "is_foreign": True,
+            "details": {
+                "has_foreign_tax_id": has_tax_id,
+                "has_import_license": has_import_license,
+                "foreign_tax_id_value": foreign_tax_id,
+                "import_license_value": import_license
+            },
+            "reason": (
+                f"Foreign GTE Bidder ({country}): Foreign tax ID and import license verified successfully."
+                if passed
+                else f"Foreign GTE Bidder ({country}): Missing mandatory Foreign Tax ID or Import License."
+            )
+        }
+
+    gstin = bid_doc.get("gstin") or bid_doc.get("gst_number") or bid_doc.get("gst")
     pan = bid_doc.get("pan") or bid_doc.get("pan_number")
     udyam = bid_doc.get("udyam") or bid_doc.get("udyam_number")
 
@@ -49,6 +80,8 @@ def check_statutory(bid_doc: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "status": "PASS" if passed else "FAIL",
         "score": score,
+        "country": country,
+        "is_foreign": False,
         "details": {
             "has_valid_gstin": has_gstin,
             "has_valid_pan": has_pan,
@@ -58,6 +91,7 @@ def check_statutory(bid_doc: Dict[str, Any]) -> Dict[str, Any]:
         },
         "reason": "Statutory identifiers verified successfully." if passed else "Missing mandatory GSTIN or PAN identifier for Direct Purchase."
     }
+
 
 
 def check_technical_score(bid_doc: Dict[str, Any]) -> float:

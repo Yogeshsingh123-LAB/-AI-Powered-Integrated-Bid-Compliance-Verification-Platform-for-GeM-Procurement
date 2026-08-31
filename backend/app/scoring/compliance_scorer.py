@@ -12,17 +12,69 @@ class ComplianceScorer:
     """
     
     @staticmethod
+    def evaluate_custom_rules(
+        custom_rules: List[Dict[str, Any]],
+        semantic_analysis: Optional[Dict[str, Any]],
+        verification_results: Dict[str, List[Dict[str, Any]]]
+    ) -> Tuple[int, List[str]]:
+        """Evaluates tender-specific buyer custom compliance rules."""
+        if not custom_rules:
+            return 100, []
+
+        passed_weight = 0
+        total_weight = 0
+        deductions = []
+
+        summary_text = str(semantic_analysis or {}).lower()
+
+        for rule in custom_rules:
+            weight = rule.get("weight", 10)
+            total_weight += weight
+            field = rule.get("field", "").lower()
+            op = rule.get("operator", ">=")
+            target_val = rule.get("value", 0)
+            rule_name = rule.get("name", "Custom Rule")
+
+            rule_met = False
+            has_negative = any(neg in summary_text for neg in ["no ", "not ", "missing", "unmet", "absent", "lacking", "without ", "failed", "non-compliant"])
+
+            if field == "turnover":
+                has_keywords = any(k in summary_text for k in ["turnover", "lakhs", "crores", "revenue"])
+                rule_met = has_keywords and not any(n in summary_text for n in ["no turnover", "missing turnover", "unmet", "not provided"])
+            elif field == "experience_years":
+                has_keywords = any(k in summary_text for k in ["experience", "years", "execution"])
+                rule_met = has_keywords and not any(n in summary_text for n in ["no experience", "missing experience", "unmet", "not provided"])
+            elif field == "local_content_pct":
+                has_keywords = any(k in summary_text for k in ["local content", "make in india", "class-i"])
+                rule_met = has_keywords and not any(n in summary_text for n in ["no local content", "non-local", "unmet", "not compliant"])
+            elif field == "oem_authorization":
+                has_keywords = any(k in summary_text for k in ["oem", "authorization", "maf"])
+                rule_met = has_keywords and not has_negative
+            else:
+                rule_met = True
+
+            if rule_met:
+                passed_weight += weight
+            else:
+                deductions.append(f"Custom Rule Unmet: '{rule_name}' ({field} {op} {target_val}) (-{weight} pts)")
+
+        score = int((passed_weight / total_weight) * 100) if total_weight > 0 else 100
+        return score, deductions
+
+    @staticmethod
     def calculate_compliance_score(
         verification_results: Dict[str, List[Dict[str, Any]]],
         forgery_analysis: Optional[Dict[str, Any]] = None,
         fraud_analysis: Optional[Dict[str, Any]] = None,
-        semantic_analysis: Optional[Dict[str, Any]] = None
+        semantic_analysis: Optional[Dict[str, Any]] = None,
+        tender_config: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Calculates compliance score and builds a structured report.
-        Includes verification results, AI PDF forgery detection, and multi-bidder fraud detection.
+        Supports per-tender custom rules and dynamic buyer-configured scoring weights.
         """
         logger.info("ComplianceScorer: Calculating compliance scoring report...")
+
         
         # 1. Presence & Completeness Check (Max 30)
         presence_score = 0
@@ -218,14 +270,38 @@ class ComplianceScorer:
             # the final registry_integrity breakdown score stays within [0, 30] without underflowing.
             integrity_score = max(0, integrity_score)
 
+        # Evaluate Tender Custom Rules if present
+        custom_rules_score = 100
+        if tender_config and tender_config.get("custom_rules"):
+            custom_rules_score, custom_deductions = ComplianceScorer.evaluate_custom_rules(
+                tender_config["custom_rules"],
+                semantic_analysis,
+                verification_results
+            )
+            deductions.extend(custom_deductions)
 
-        
-        # Calculate score
-        total_score = presence_score + verification_score + integrity_score
+        # Calculate total score (Default 30/40/30 baseline or Buyer-Configured Weighted Scoring)
+        if tender_config and tender_config.get("scoring_weights"):
+            weights = tender_config["scoring_weights"]
+            w_comp = weights.get("completeness", 25)
+            w_ver = weights.get("verification", 35)
+            w_int = weights.get("integrity", 20)
+            w_cust = weights.get("custom_rules", 20)
+
+            scale_comp = (presence_score / 30.0) * w_comp
+            scale_ver = (verification_score / 40.0) * w_ver
+            scale_int = (integrity_score / 30.0) * w_int
+            scale_cust = (custom_rules_score / 100.0) * w_cust
+
+            total_score = int(scale_comp + scale_ver + scale_int + scale_cust)
+            total_score = min(100, max(0, total_score))
+        else:
+            total_score = presence_score + verification_score + integrity_score
         
         # Resolve risk level
         risk_level = RiskClassifier.classify_risk(
             score=total_score,
+
             has_status_issue=has_status_issue,
             has_name_mismatch=has_name_mismatch,
             is_blacklisted=blacklisted

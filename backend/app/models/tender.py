@@ -1,4 +1,6 @@
-from sqlalchemy import Column, String, Text, Numeric
+# pyrefly: ignore [missing-import]
+from sqlalchemy import Column, String, Text, Numeric, JSON
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -10,7 +12,10 @@ class Tender(Base):
     description = Column(Text, nullable=True)
     budget_limit = Column(Numeric(15, 2), nullable=False)
     status = Column(String(50), nullable=False, default="Active")  # "Active", "Closed"
+    custom_rules = Column(JSON, nullable=True)  # Per-tender custom rule definitions
+    scoring_weights = Column(JSON, nullable=True)  # Per-tender breakdown weights
 
     # Relationships
     requirements = relationship("Requirement", back_populates="tender", cascade="all, delete-orphan")
     bids = relationship("Bid", back_populates="tender", cascade="all, delete-orphan")
+

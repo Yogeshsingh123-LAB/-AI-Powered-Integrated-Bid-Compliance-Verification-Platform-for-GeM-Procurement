@@ -46,14 +46,30 @@ async def analyze_document(
     """
     logger.info(f"Analysis Endpoint: Received file '{file.filename}' for compliance verification.")
 
-    # 1. Read file bytes, enforce size limit, and save with sanitized filename
+    # 1. Validate file extension, read bytes, enforce size limit, and save with sanitized filename
     try:
+        raw_basename = os.path.basename(file.filename or "upload.pdf")
+        ext = os.path.splitext(raw_basename)[1].lower()
+        allowed_extensions = {".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
+        if ext and ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported file format '{ext}'. Only PDF documents and image files (PNG, JPG, TIFF) are accepted."
+            )
+
         file_bytes = await file.read()
+        if len(file_bytes) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Uploaded file is empty. Please upload a valid bid document."
+            )
+
         if len(file_bytes) > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="File size exceeds maximum allowed limit of 10 MB."
             )
+
         file_id = str(uuid.uuid4())
         raw_basename = os.path.basename(file.filename or "upload.pdf")
         clean_basename = re.sub(r'[^a-zA-Z0-9._-]', '_', raw_basename).strip("._")

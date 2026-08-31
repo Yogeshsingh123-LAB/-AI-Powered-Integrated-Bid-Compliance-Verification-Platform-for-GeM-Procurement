@@ -672,3 +672,39 @@ def test_document_replacement(seed_test_tender_requirement_bid):
     assert new_record is not None
     assert new_record.original_filename == "updated_gst.pdf"
     db.close()
+
+
+def test_analyze_empty_file_upload():
+    """16. Uploading a zero-byte empty file returns 400 Bad Request."""
+    empty_file = io.BytesIO(b"")
+    response = client.post(
+        "/api/analyze",
+        files={"file": ("empty_doc.pdf", empty_file, "application/pdf")}
+    )
+    assert response.status_code == 400
+    assert "empty" in response.json()["detail"].lower()
+
+
+def test_analyze_unsupported_file_extension():
+    """17. Uploading an invalid file extension returns 400 Bad Request."""
+    invalid_file = io.BytesIO(b"malicious script content")
+    response = client.post(
+        "/api/analyze",
+        files={"file": ("script.exe", invalid_file, "application/octet-stream")}
+    )
+    assert response.status_code == 400
+    assert "unsupported file format" in response.json()["detail"].lower()
+
+
+def test_seed_endpoint_production_gating():
+    """18. Database seed endpoint returns 403 Forbidden in production environment."""
+    from app.core.config import settings
+    original_env = settings.ENVIRONMENT
+    try:
+        settings.ENVIRONMENT = "production"
+        response = client.post("/api/auth/seed")
+        assert response.status_code == 403
+        assert "disabled in production" in response.json()["detail"].lower()
+    finally:
+        settings.ENVIRONMENT = original_env
+

@@ -191,6 +191,7 @@ class SemanticRFPComparator:
 
 
         try:
+            # pyrefly: ignore [missing-import]
             import google.generativeai as genai
             genai.configure(api_key=gemini_api_key)
             model = genai.GenerativeModel("gemini-1.5-flash")

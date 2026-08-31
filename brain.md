@@ -1,11 +1,15 @@
 # Project Brain: GeM Bid Compliance Verification Platform
 
-This document serves as the central brain, technical architecture guide, and design repository for the **AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement** (Problem Statement ID: 26100).
+This document serves as the central brain, architecture guide, and design repository for the **AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement** (Problem Statement ID: 26100).
 
 ---
 
 ## 1. System Overview & Objectives
+<<<<<<< HEAD
 The goal of this platform is to automate compliance verification for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing, Pan-India Indic Multi-Language OCR, Semantic NLP RFP clause matching, structural document forgery detection, Neo4j multi-bidder cartel graph analysis, direct GeM API OAuth 2.0 certificate integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, verification against official government registry APIs (CBIC GSTN Sandbox v2.0, NSDL PAN, MSME Udyam, EPFO, ESIC, Startup India DPIIT, DigiLocker), Cryptographic Merkle Tree Blockchain Auditing, and Mobile Officer Quick Actions, the platform prevents bid rigging, simplifies verification, and guarantees transparent, sub-5-second SLA compliance.
+=======
+The goal of this platform is to automate compliance checking for bids submitted on the Government e-Marketplace (GeM). By replacing slow, manual document inspections with AI OCR parsing, Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder collusion risk analysis, and verification against official government registry APIs (CBIC GSTN Sandbox v2.0, NSDL PAN, UIDAI e-KYC Vault, MSME Udyam), the platform prevents bid rigging, simplifies verification, and guarantees transparent, tamper-evident auditing.
+>>>>>>> 134b292 (fix: resolve document validation, upload trigger, PDF constraints, and new bidder profile initialization)
 
 ---
 
@@ -13,6 +17,7 @@ The goal of this platform is to automate compliance verification for bids submit
 
 ```mermaid
 graph TD
+<<<<<<< HEAD
     A["React/Vite Frontend & Mobile Officer App"] -- "HTTP / WebSockets / WebPush" --> B["FastAPI Backend Engine"]
     B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
     B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
@@ -27,10 +32,20 @@ graph TD
     J -- "General AI Questions" --> L["Gemini or Groq Chat Model"]
     J -- "Time-Sensitive Queries" --> M["Groq Compound Web Search"]
     M -- "Official GeM Queries" --> N["gem.gov.in Domain"]
+=======
+    A[React/Vite Frontend] -- HTTP / JSON + JWT Bearer --> B[FastAPI Backend Engine]
+    B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
+    B -- External Integration --> E[Govt API Gateways, CBIC GSTN v2.0 Sandbox & DigiLocker]
+    B -- OCR & Forgery Engine --> F[AI Parser & Forgery/ELA Detector]
+    B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator]
+    B -- Fraud & Cartel Engine --> H[Cross-Bidder Collusion & Cartel Graph Detector]
+    B -- Blockchain Audit --> I[SHA-256 Tamper-Evident Chain & Audit API]
+>>>>>>> 134b292 (fix: resolve document validation, upload trigger, PDF constraints, and new bidder profile initialization)
 ```
 
 ### Core Architecture Components
 
+<<<<<<< HEAD
 #### 1. Direct GeM API Production Integration Engine
 - **`get_gem_token()`** (`backend/app/core/gem_auth.py`): Performs OAuth 2.0 client credentials authentication using client certificate pairs (`mTLS`) with `requests.post` against `{GEM_BASE_URL}/oauth/token`. Features graceful sandbox fallback for hackathon evaluation when certificate files are absent.
 - **`GeMClient`** (`backend/app/services/gem_client.py`): High-level client API wrapper:
@@ -139,6 +154,29 @@ flowchart LR
 #### 11. Blacklisted & Debarred Bidders Governance Console
 - **Admin Console View**: `BlacklistedBiddersView` provides central registry management for debarred suppliers with CVC (Central Vigilance Commission) order tracking, statutory identifiers (PAN/GSTIN), and debarment terms.
 - **Security Authorization Workflows**: Enforces mandatory Admin Security Authorization Password verification for sensitive actions (blacklist entity creation, revocation, status mutations).
+=======
+### Frontend (User Interface)
+- **Tech Stack**: React 18, Vite, Custom Vanilla CSS, Lucide Icons.
+- **Port Alignment**: Frontend connects to FastAPI backend on port `8000` (`VITE_API_URL` defaults to `http://127.0.0.1:8000`).
+- **Role-Based Portals**:
+  - **Procurement Officer / Buyer**: Master Audit Queue, bid details inspection, compliance audit reports, logs console, and compliance sign-off actions.
+  - **Admin**: User credentials management, API gateways connectivity toggles, and compliance rules weight tuning.
+  - **Bidder / Supplier**: Secure document upload terminal, Bidder Document Vault, bid status milestones tracker, and corporate profiles.
+
+### Backend (Core Engine)
+- **Tech Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.x (ORM), Alembic (Migrations), SQLite/PostgreSQL.
+- **AI & NLP Suite**:
+  - `SemanticRFPComparator`: Clause-by-clause NLP & Gemini LLM evaluator (`MET`, `PARTIALLY_MET`, `NOT_MET`).
+  - `ForgeryDetector`: Error Level Analysis (ELA), font consistency, and metadata modification detector.
+  - `ProcurementFraudDetector`: Multi-bidder GSTIN/PAN identifier reuse & collusion detector.
+- **Security & Integrity**:
+  - Stateless JWT-based session tokens and password strength verification.
+  - Constant-time password verification defense against timing side-channel attacks.
+  - Cryptographic SHA-256 blockchain hash chain (`blockchain_hash`) for tamper-evident audit logging.
+  - Upload payload size limits (10 MB max) and regex filename sanitization.
+  - Self-healing database schema migrations for SQLite fallback instances.
+- **CORS Configuration**: Restricts origins to trusted development origins (`http://localhost:5173`, `http://localhost:5174`, `http://localhost:3000`).
+>>>>>>> 134b292 (fix: resolve document validation, upload trigger, PDF constraints, and new bidder profile initialization)
 
 #### 12. Techno-Commercial Loading & Procurement Mode Auto-Detection Engine
 - **`ProcurementMode` Enum & `detect_mode()`** (`backend/app/services/tender_analyzer.py`): Auto-detects GeM 4.0 procurement mode based on monetary tender value:
@@ -260,17 +298,12 @@ The SQLAlchemy 2.x structure incorporates the following core tables:
 
 ---
 
-## 4. Complete API Endpoints Blueprint
+## 4. API Endpoints Map
 
 | Method | Endpoint | Description | Auth Required | Role Restrictions |
 |--------|----------|-------------|---------------|-------------------|
-| `GET` | `/` | Root running status | No | None |
-| `GET` | `/health` | Server health check | No | None |
-| `POST` | `/api/documents/upload-rfp` | Upload RFP, auto-detect procurement mode, & calculate loading | No | None |
-| `POST` | `/api/analyze/techno-commercial-loading` | Evaluate JSON payload for techno-commercial loading penalties | No | None |
-| `POST` | `/api/v1/sync-tender/{id}` | Synchronize tender data from GeM portal via mTLS OAuth2 | No | None |
-| `POST` | `/api/v1/sync/submit-report/{id}` | Submit AI compliance report to GeM portal | No | None |
-| `GET` | `/api/v1/sync/bids/{id}` | Retrieve submitted vendor bids for a tender from GeM | No | None |
+| `GET` | `/` | Root running message | No | None |
+| `GET` | `/health` | Server health status | No | None |
 | `POST` | `/api/auth/register` | Register a new Bidder account | No | None (Forces BIDDER) |
 | `POST` | `/api/auth/login` | Login and obtain JWT token | No | None |
 | `GET` | `/api/auth/me` | Retrieve authenticated profile | Yes | None |
@@ -343,6 +376,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 7: Document Forgery Detection, Cross-Bidder Fraud Risk Engine & CBIC Sandbox Gateway** ✅ COMPLETE (Digital document tampering & ELA image analysis, font and metadata anomaly checks, multi-bidder collusion risk detection, shell company flags, fuzzy Levenshtein name alignment, and production CBIC GSTN API v2.0 / UIDAI e-KYC Sandbox Gateways with HMAC-SHA256 signature generation and OAuth2 token caching).
 - **Phase 8: One-Command Docker Setup, Audit Verification API & Self-Healing Migration** ✅ COMPLETE (Added `docker-compose.yml`, multi-stage Dockerfiles for backend & frontend, `/api/audit/verify` verification endpoints, `backend/scenarios/README.md` documentation, and automatic SQLite column schema migration).
 - **Phase 9: Semantic NLP RFP Clause Comparator, Cartel Network Graph, Explainable Override & Live Bid Monitoring (100/100 SIH Feature Complete)** ✅ COMPLETE (Implemented `SemanticRFPComparator` dual Gemini LLM & local NLP engine, Cartel Network Graph visualizer, Explainable Officer Override engine, Tender Rule Builder, Live WebSocket Bid Monitoring, and complete test suite coverage).
+<<<<<<< HEAD
 - **Phase 10: Blacklisted & Debarred Bidders Governance Console & Security Password Authorization Workflows** ✅ COMPLETE (Implemented Admin Blacklisted Bidders registry console, CVC vigilance order tracking, investigation dossiers with cryptographic hashes, debarment revocation, and security password authorization for tender management).
 - **Phase 11: Direct GeM Production API OAuth 2.0 mTLS Integration & Synchronization Gateway** ✅ COMPLETE (Implemented `get_gem_token()` mTLS OAuth 2.0 client certificate authenticator, `GeMClient` tender/bid/report sync service, `/api/v1/sync-*` REST endpoints, and `test_gem_sync.py` test suite achieving **94/94 passed tests**).
 - **Phase 12: Techno-Commercial Loading & Procurement Mode Auto-Detection Engine** ✅ COMPLETE (Implemented `ProcurementMode` auto-detection for Direct, L1, Custom Bid, and Reverse Auction, delivery delay loading, payment terms loading, warranty shortfall loading, spec gap loading, `/upload-rfp` and `/analyze/techno-commercial-loading` endpoints, and `test_tender_analyzer.py` achieving **103/103 passed tests**).
@@ -367,3 +401,5 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
   - Statutory Registry Verification APIs: `0.42s` (23%)
   - Cartel Graph Traversal: `0.31s` (17%)
   - Compliance Scoring & XAI Evidence Extraction: `0.22s` (13%)
+=======
+>>>>>>> 134b292 (fix: resolve document validation, upload trigger, PDF constraints, and new bidder profile initialization)

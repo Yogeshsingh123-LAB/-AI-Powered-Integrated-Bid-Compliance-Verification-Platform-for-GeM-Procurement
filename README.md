@@ -3,13 +3,13 @@
 **Problem Statement ID**: 26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
-**Evaluation Score**: **100 / 100 (Winning Tier)** 🏆
 
-An end-to-end AI-powered verification, Semantic NLP RFP clause comparator, document forgery detection, statutory cross-verification, collusion detection, and immutable blockchain audit trail solution built for GeM procurement.
+
+An end-to-end AI-powered verification, Semantic NLP RFP clause comparator, document forgery detection, statutory cross verification, collusion detection, and immutable blockchain audit trail solution built for GeM procurement.
 
 ---
 
-## 🚀 Quickstart: 1-Command Docker Setup
+##  Quickstart: 1-Command Docker Setup
 
 For instant evaluation, spin up PostgreSQL, the FastAPI Backend, and Nginx Static Frontend using **Docker Compose**:
 
@@ -31,7 +31,7 @@ docker-compose up --build
 
 ---
 
-## 🛠️ Local Development Setup
+##  Local Development Setup
 
 ### A. Backend (FastAPI + Python 3.11)
 
@@ -82,7 +82,7 @@ docker-compose up --build
 
 ---
 
-## 🤖 Semantic NLP RFP Clause Comparator
+##  Semantic NLP RFP Clause Comparator
 
 The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`semantic_analyzer.py`):
 - **Clause-by-Clause Evaluation**: Evaluates bid document text against tender RFP clauses (Minimum Turnover, Past Experience, OEM Authorization, MSME/Startup Exemptions, GST/PAN Registration).
@@ -92,7 +92,7 @@ The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`sem
 
 ---
 
-## 🔑 Default Test Credentials
+##  Default Test Credentials
 
 | Role | Username / Email | Password | Access Capabilities |
 | :--- | :--- | :--- | :--- |
@@ -102,7 +102,7 @@ The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`sem
 
 ---
 
-## 📁 Directory Structure
+##  Directory Structure
 
 ```
 gem-bid-compliance/
@@ -134,7 +134,7 @@ gem-bid-compliance/
 
 ---
 
-## 🔗 Immutable Blockchain Audit Verification API
+##  Immutable Blockchain Audit Verification API
 
 All security-sensitive operations (bid submissions, document uploads, score calculations, status changes) log an entry into the `audit_logs` database table. Each entry calculates a cryptographic **SHA-256 hash** chained to the preceding log record.
 
@@ -144,7 +144,7 @@ All security-sensitive operations (bid submissions, document uploads, score calc
 
 ---
 
-## 🧪 Testing & Validation
+##  Testing & Validation
 
 Run backend unit and integration test suites:
 

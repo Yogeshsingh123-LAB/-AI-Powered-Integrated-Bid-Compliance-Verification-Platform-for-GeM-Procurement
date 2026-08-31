@@ -27,6 +27,7 @@ function DocumentUploadPage({ onAddBid, user }) {
   const terminalEndRef = useRef(null);
 
   const isDemoAccount = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
+  const isOfficer = user && (user.role?.toUpperCase() === "OFFICER" || user.role?.toUpperCase() === "ADMIN");
 
   const getCleanRequirementsList = () => [
     {
@@ -547,65 +548,96 @@ function DocumentUploadPage({ onAddBid, user }) {
       {report && report.success && (
         <div className="compliance-grid">
           {/* Score Dial Badge */}
-          <div className="score-panel">
-            <div style={{ position: "relative", width: "110px", height: "110px", margin: "0 auto 16px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#e2e8f0"
-                  strokeWidth="10"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke={report.compliance_report.score >= 80 ? "#10b981" : report.compliance_report.score >= 50 ? "#f59e0b" : "#ef4444"}
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(report.compliance_report.score / 100) * 251.2} 251.2`}
-                  strokeDashoffset="0"
-                  style={{ transition: "stroke-dasharray 0.6s ease" }}
-                />
-              </svg>
-              <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{report.compliance_report.score}%</span>
-                <span style={{ fontSize: "0.65rem", fontWeight: "700", color: report.compliance_report.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
-              </div>
-            </div>
+          <div className="score-panel" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justify: 'center', 
+            textAlign: 'center',
+            background: 'linear-gradient(145deg, #0f172a, #1e293b)',
+            border: '1px solid #334155',
+            borderRadius: '16px',
+            padding: '28px 24px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+          }}>
+            {(() => {
+              const score = report.compliance_report.score || 0;
+              const scoreColor = score >= 80 ? "#34d399" : score >= 50 ? "#fbbf24" : "#f87171";
+              const riskPillBg = score >= 80 ? "rgba(16, 185, 129, 0.2)" : score >= 50 ? "rgba(245, 158, 11, 0.2)" : "rgba(239, 68, 68, 0.2)";
+              const riskPillBorder = score >= 80 ? "rgba(52, 211, 153, 0.4)" : score >= 50 ? "rgba(251, 191, 36, 0.4)" : "rgba(248, 113, 113, 0.4)";
+              
+              return (
+                <>
+                  <div style={{ position: "relative", width: "135px", height: "135px", margin: "0 auto 16px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="135" height="135" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "135px", height: "135px" }}>
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="rgba(51, 65, 85, 0.6)"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke={scoreColor}
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(score / 100) * 251.2} 251.2`}
+                        strokeDashoffset="0"
+                        style={{ transition: "stroke-dasharray 0.6s ease" }}
+                      />
+                    </svg>
+                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                      <span style={{ fontSize: "2.1rem", fontWeight: "900", color: scoreColor, lineHeight: 1, textShadow: `0 0 12px ${scoreColor}40` }}>{score}%</span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: "800", color: scoreColor, textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.1em" }}>MATCH</span>
+                    </div>
+                  </div>
 
-            <h3>Compliance Index</h3>
-            <p>Risk classification computed from matching and filing histories.</p>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: "700", margin: "6px 0 2px 0", color: "#38bdf8", textAlign: "center" }}>Compliance Index</h3>
+                  <p style={{ fontSize: "0.82rem", color: "#94a3b8", textAlign: "center", marginBottom: "16px" }}>Risk classification computed from matching and filing histories.</p>
 
-            <div style={{ marginBottom: '24px' }}>
-              <span className={`risk-badge ${report.compliance_report.risk_level.toLowerCase()}`} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
-                {report.compliance_report.risk_level} RISK RATING
-              </span>
-            </div>
+                  <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+                    <span className={`risk-badge ${report.compliance_report.risk_level.toLowerCase()}`} style={{ 
+                      padding: '6px 18px', 
+                      fontSize: '0.82rem', 
+                      fontWeight: '700', 
+                      borderRadius: '9999px',
+                      background: riskPillBg,
+                      color: scoreColor,
+                      border: `1px solid ${riskPillBorder}`,
+                      letterSpacing: '0.04em'
+                    }}>
+                      {report.compliance_report.risk_level} RISK RATING
+                    </span>
+                  </div>
 
-            <div className="score-breakdown">
-              <div className="breakdown-row">
-                <span>Verification Completeness</span>
-                <strong>{report.compliance_report.breakdown.document_completeness}</strong>
-              </div>
-              <div className="breakdown-row">
-                <span>Official Registry Audits</span>
-                <strong>{report.compliance_report.breakdown.database_verification}</strong>
-              </div>
-              <div className="breakdown-row">
-                <span>Registry Integrity Check</span>
-                <strong>{report.compliance_report.breakdown.registry_integrity}</strong>
-              </div>
-            </div>
+                  <div className="score-breakdown" style={{ width: '100%', marginTop: '4px', background: 'rgba(15, 23, 42, 0.6)', padding: '12px 16px', borderRadius: '12px', border: '1px solid #1e293b' }}>
+                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #334155' }}>
+                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Verification Completeness</span>
+                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.document_completeness}</strong>
+                    </div>
+                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #334155' }}>
+                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Official Registry Audits</span>
+                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.database_verification}</strong>
+                    </div>
+                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Registry Integrity Check</span>
+                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.registry_integrity}</strong>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {/* Cards with verified statuses */}
           <div className="registry-cards">
-            {/* AI PDF Forgery & Tampering Inspection Card */}
-            {report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
+            {/* AI PDF Forgery & Tampering Inspection Card (Internal Officer Clearance Only) */}
+            {isOfficer && report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
               <div className="registry-card" style={{ borderColor: report.forgery_analysis.forgery_score >= 80 ? '#10b981' : '#f59e0b' }}>
                 <div className="reg-header">
                   <h3>AI PDF Tampering & Structural Forensics</h3>
@@ -636,8 +668,8 @@ function DocumentUploadPage({ onAddBid, user }) {
               </div>
             )}
 
-            {/* Multi-Bidder Fraud & Collusion Alert Card */}
-            {report.fraud_analysis && (
+            {/* Multi-Bidder Fraud & Collusion Alert Card (Internal Officer Clearance Only) */}
+            {isOfficer && report.fraud_analysis && (
               <div className="registry-card" style={{ borderColor: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
                 <div className="reg-header">
                   <h3>Multi-Bidder Collusion & Entity Verification</h3>

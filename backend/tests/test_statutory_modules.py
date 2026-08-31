@@ -3,7 +3,9 @@ Unit tests for expanded statutory compliance modules (EPFO, ESIC, Startup India,
 and DigiLocker OAuth2 integration.
 """
 
+# pyrefly: ignore [missing-import]
 import pytest
+# pyrefly: ignore [missing-import]
 from fastapi.testclient import TestClient
 from app.main import app
 from app.services.real_verifiers import (

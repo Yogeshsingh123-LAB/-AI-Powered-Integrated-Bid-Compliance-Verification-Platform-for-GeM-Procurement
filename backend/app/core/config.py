@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     REAL_GST_API_URL: str = Field(default="https://api.gst.gov.in/public/search")
     REAL_UDYAM_API_URL: str = Field(default="https://udyamregistration.gov.in/api/verify")
     REAL_PAN_API_URL: str = Field(default="https://eportal.incometax.gov.in/iec/services/pan")
+    GEM_BASE_URL: str = Field(default="https://api.gem.gov.in/v1")
+    GEM_CLIENT_ID: str = Field(default="gem_production_client_2026")
+    GEM_CLIENT_CERT: str = Field(default="certs/gem_client_cert.pem")
+    GEM_CLIENT_KEY: str = Field(default="certs/gem_client_key.pem")
+    GEM_USE_MOCK: bool = Field(default=True)
 
 
     @property

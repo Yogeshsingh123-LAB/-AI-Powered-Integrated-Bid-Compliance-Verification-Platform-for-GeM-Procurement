@@ -300,3 +300,31 @@ async def validate_epbg_endpoint(
         "status": "success",
         "epbg_validation": res
     }
+
+
+@router.post("/analyze/validate-dsc", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def validate_dsc_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "pem_cert_data": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+        "pan_number": "AAACA1234A"
+    })
+):
+    """
+    Digital Signature Certificate (DSC) Validation Endpoint:
+    Verifies X.509 certificate expiry date, effective date, Certifying Authority (CA) status,
+    and checks if the Subject Common Name (CN) is linked against the bidder's PAN.
+    """
+    from app.services.dsc_validator import validate_dsc, generate_sample_dsc_pem
+
+    pem_cert_data = payload.get("pem_cert_data") or payload.get("dsc_pem")
+    pan_number = payload.get("pan_number")
+
+    if not pem_cert_data:
+        # If no cert data provided, generate sample test DSC for demonstration
+        pem_cert_data = generate_sample_dsc_pem(pan_number=pan_number or "AAACA1234A")
+
+    res = validate_dsc(pem_cert_data, pan_number=pan_number)
+    return {
+        "status": "success",
+        "dsc_validation": res
+    }

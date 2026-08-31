@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   CloudUpload,
   Terminal,
@@ -11,7 +11,7 @@ import {
   BadgeCheck
 } from "lucide-react";
 
-function DocumentUploadPage({ onAddBid }) {
+function DocumentUploadPage({ onAddBid, user }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -25,6 +25,73 @@ function DocumentUploadPage({ onAddBid }) {
 
   const fileInputRef = useRef(null);
   const terminalEndRef = useRef(null);
+
+  const isDemoAccount = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
+
+  const getCleanRequirementsList = () => [
+    {
+      bidId: "GEM-CPCL-2026-001",
+      bidTitle: "Supply of Industrial Pumps",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Pending", file: null, updated: "Not uploaded" }
+      ]
+    },
+    {
+      bidId: "GEM-CPCL-2026-002",
+      bidTitle: "Industrial Equipment Maintenance Services",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "PAN", name: "PAN Card Certificate", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "OEM", name: "OEM Maintenance Authorization", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Pending", file: null, updated: "Not uploaded" }
+      ]
+    }
+  ];
+
+  const getDemoRequirementsList = () => [
+    {
+      bidId: "GEM-CPCL-2026-001",
+      bidTitle: "Supply of Industrial Pumps",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" },
+        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
+        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Verified", file: "EPFO_ECR_2026.pdf", updated: "25 Aug 2026" }
+      ]
+    },
+    {
+      bidId: "GEM-CPCL-2026-002",
+      bidTitle: "Industrial Equipment Maintenance Services",
+      org: "Chennai Petroleum Corporation Limited",
+      documents: [
+        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "PAN", name: "PAN Card Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
+        { code: "OEM", name: "OEM Maintenance Authorization", status: "Verified", file: "OEM_Auth_Letter.pdf", updated: "26 Aug 2026" },
+        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" }
+      ]
+    }
+  ];
+
+  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
+
+  const [requirementsList, setRequirementsList] = useState(() => {
+    return isDemoAccount ? getDemoRequirementsList() : getCleanRequirementsList();
+  });
+
+  useEffect(() => {
+    const isDemo = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
+    setRequirementsList(isDemo ? getDemoRequirementsList() : getCleanRequirementsList());
+  }, [user]);
 
   const addLog = (text, type = "info") => {
     const timestamp = new Date().toLocaleTimeString();
@@ -221,35 +288,6 @@ function DocumentUploadPage({ onAddBid }) {
       setUploading(false);
     }
   };
-
-  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
-
-  const [requirementsList, setRequirementsList] = useState([
-    {
-      bidId: "GEM-CPCL-2026-001",
-      bidTitle: "Supply of Industrial Pumps",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" },
-        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Verified", file: "EPFO_ECR_2026.pdf", updated: "25 Aug 2026" }
-      ]
-    },
-    {
-      bidId: "GEM-CPCL-2026-002",
-      bidTitle: "Industrial Equipment Maintenance Services",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "PAN", name: "PAN Card Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "OEM", name: "OEM Maintenance Authorization", status: "Verified", file: "OEM_Auth_Letter.pdf", updated: "26 Aug 2026" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" }
-      ]
-    }
-  ]);
 
   const [docFilter, setDocFilter] = useState("all");
 

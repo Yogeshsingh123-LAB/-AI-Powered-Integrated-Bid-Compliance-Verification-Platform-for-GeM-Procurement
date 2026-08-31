@@ -184,8 +184,38 @@ class ComplianceScorer:
                 if fraud_analysis.get("is_collusion_risk"):
                     has_status_issue = True # Elevate risk level
 
+            # Deductions for Specific GeM Real Tender Domain Rules
+            if semantic_analysis and "clause_details" in semantic_analysis:
+                clause_map = {c.get("clause_id"): c for c in semantic_analysis["clause_details"]}
+                
+                # Rule 1: Land Border Sharing Country Restriction (GFR Rule 144(xi))
+                rfp_06 = clause_map.get("RFP-06")
+                if rfp_06 and rfp_06.get("status") == "NOT_MET":
+                    integrity_score -= 10
+                    deductions.append("Land Border Sharing Country Compliance Declaration (Rule 144(xi)) missing or non-compliant (-10 pts)")
+
+                # Rule 2: EMD / Bank Guarantee Proof & Exemption Validity
+                rfp_07 = clause_map.get("RFP-07")
+                rfp_03 = clause_map.get("RFP-03")
+                rfp_08 = clause_map.get("RFP-08")
+                
+                # Check Trader Category Exclusion for MSME Exemption
+                bid_summary_text = str(semantic_analysis).lower()
+                is_trader = any(k in bid_summary_text for k in ["trader", "reseller", "dealer", "distributor"])
+                has_msme_exemption = rfp_03 and rfp_03.get("status") == "MET"
+                has_startup_exemption = rfp_08 and rfp_08.get("status") == "MET"
+
+                if is_trader and has_msme_exemption:
+                    integrity_score -= 10
+                    deductions.append("Trader/Reseller enterprise category detected: Ineligible for MSME EMD Exemption per GeM rules (-10 pts)")
+
+                if rfp_07 and rfp_07.get("status") == "NOT_MET" and not (has_startup_exemption or (has_msme_exemption and not is_trader)):
+                    integrity_score -= 10
+                    deductions.append("EMD payment receipt/e-PBG guarantee or valid MSME/Startup exemption proof missing (-10 pts)")
+
             # Clamp integrity score
             integrity_score = max(0, integrity_score)
+
         
         # Calculate score
         total_score = presence_score + verification_score + integrity_score

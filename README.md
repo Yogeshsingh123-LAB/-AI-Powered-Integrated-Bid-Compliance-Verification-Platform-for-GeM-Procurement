@@ -4,14 +4,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-103%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
+[![Tests](https://img.shields.io/badge/Tests-114%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: 26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 
-An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, statutory cross-verification, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
+An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, statutory cross-verification, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
 
 ---
 
@@ -47,6 +47,7 @@ graph TD
 
 | Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
+| **e-EMD & e-PBG Validation** | GeM 3.0/4.0 Mandate | Electronic EMD (min 2% tender threshold) and Performance Bank Guarantee (min 3% threshold) verification against Scheduled Commercial Banks with digital signature checks |
 | **Techno-Commercial Loading** | GeM 4.0 Load Criteria | Auto-detection of procurement modes (Direct <= ₹50k, L1 ₹50k-₹10L, Bid > ₹10L, Reverse Auction) and techno-commercial loading penalties (delivery delay, payment terms, warranty shortfall) |
 | **Direct GeM API Sync** | OAuth 2.0 mTLS Auth | Dedicated client certificate authentication (`mTLS`), live tender fetching, bid retrieval, and compliance report sync |
 | **Statutory Identifiers** | CBIC GSTN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
@@ -113,6 +114,8 @@ The FastAPI backend exposes modular RESTful endpoints and WebSocket channels:
 
 | Router Path | Description | Key Operations |
 |---|---|---|
+| `/api/analyze/validate-emd` | e-EMD Digital Certificate Validation | Verifies EMD certificate, Scheduled Bank issuer, 2% threshold, & digital signature |
+| `/api/analyze/validate-epbg` | e-PBG Digital Guarantee Validation | Verifies Performance Bank Guarantee, Scheduled Bank issuer, 3% threshold, & signature |
 | `/api/documents/upload-rfp` | RFP Mode & Loading Auto-Detection | Uploads RFP, auto-detects mode (Direct/L1/Bid), and evaluates loading criteria |
 | `/api/analyze/techno-commercial-loading` | Techno-Commercial Loading | JSON evaluation of delivery delay loading, payment terms, and warranty penalties |
 | `/api/v1/sync-tender/{id}` | Direct GeM API Sync | OAuth 2.0 mTLS tender fetch and DB synchronization |

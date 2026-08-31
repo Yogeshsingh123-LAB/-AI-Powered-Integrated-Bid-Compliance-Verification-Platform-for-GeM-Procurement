@@ -99,6 +99,11 @@ graph TD
   - Technical Specification Gap Loading (1.5% penalty per non-critical spec gap).
 - **API Routes**: `/api/documents/upload-rfp` and `/api/analyze/techno-commercial-loading`.
 
+#### 13. e-EMD & e-PBG Validation Engine
+- **`validate_emd()`** (`backend/app/services/statutory_checks.py`): Validates electronic Earnest Money Deposit (e-EMD) digital certificates. Verifies keywords ("Earnest Money Deposit", "EMD", "Bid Security"), scheduled commercial bank issuer (SBI, HDFC, ICICI, PNB, BOB, Axis, etc.), minimum 2% tender value threshold, and digital signature status (`PKCS#7`, `E-Signed`).
+- **`validate_epbg()`**: Validates electronic Performance Bank Guarantee (e-PBG) digital certificates. Verifies keywords ("Performance Bank Guarantee", "e-PBG", "PBG"), scheduled commercial bank issuer, minimum 3% tender value threshold, and digital signature verification.
+- **API Endpoints**: `/api/analyze/validate-emd` and `/api/analyze/validate-epbg`.
+
 ---
 
 ## 3. Database Schema Blueprint
@@ -252,6 +257,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 10: Blacklisted & Debarred Bidders Governance Console & Security Password Authorization Workflows** ✅ COMPLETE (Implemented Admin Blacklisted Bidders registry console, CVC vigilance order tracking, investigation dossiers with cryptographic hashes, debarment revocation, and security password authorization for tender management).
 - **Phase 11: Direct GeM Production API OAuth 2.0 mTLS Integration & Synchronization Gateway** ✅ COMPLETE (Implemented `get_gem_token()` mTLS OAuth 2.0 client certificate authenticator, `GeMClient` tender/bid/report sync service, `/api/v1/sync-*` REST endpoints, and `test_gem_sync.py` test suite achieving **94/94 passed tests**).
 - **Phase 12: Techno-Commercial Loading & Procurement Mode Auto-Detection Engine** ✅ COMPLETE (Implemented `ProcurementMode` auto-detection for Direct, L1, Custom Bid, and Reverse Auction, delivery delay loading, payment terms loading, warranty shortfall loading, spec gap loading, `/upload-rfp` and `/analyze/techno-commercial-loading` endpoints, and `test_tender_analyzer.py` achieving **103/103 passed tests**).
+- **Phase 13: e-EMD & e-PBG Digital Bank Guarantee Validation Module** ✅ COMPLETE (Implemented `validate_emd` and `validate_epbg` in `statutory_checks.py`, scheduled commercial bank verification, minimum threshold calculations, digital signature check, `/api/analyze/validate-emd` & `/api/analyze/validate-epbg` endpoints, and `test_statutory_checks.py` test suite achieving **114/114 passed tests**).
 
 ---
 

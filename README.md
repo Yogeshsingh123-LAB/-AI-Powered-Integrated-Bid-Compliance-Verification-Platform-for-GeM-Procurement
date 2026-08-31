@@ -28,12 +28,59 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 | **DigiLocker OAuth2** | MeitY DigiLocker Sandbox | OAuth2 authentication, document URI fetching, and e-Signed document extraction |
 | **Cartel Ring Detection** | Neo4j & NetworkX Graph Engine | Collusion detection mapping shared directors (DINs), common addresses, bank accounts, and synchronized IP/timestamp patterns |
 | **Explainable AI (XAI)** | Evidence Extraction Engine | Document title, page #, quote snippet, confidence score, and rationale for every compliance score |
+| **GeMmy AI Assistant** | Knowledge Base + Optional Live Web Search | Conversational help for portal workflows and bid compliance, with Groq-powered internet search for current questions and a local knowledge-base fallback |
 | **Officer Override** | GFR Rule 173 Guidelines | "Approve with Deviation" workflow with SHA-256 audit trail and officer annotation comment threads |
 | **Real-time Monitoring** | WebSockets & Alerts | Live WebSocket feeds (`/ws/live`, `/ws/tender/{id}`) with instant alert dispatching for non-compliant bids, PDF forgery, and blacklisting |
 | **Multi-Language Support** | Pan-India Indic Scripts | Tesseract multi-language OCR for Hindi (हिन्दी), Gujarati (ગુજરાતી), Marathi (मराठी), Tamil (தமிழ்), Bengali (বাংলা), Telugu (తెలుగు), and English with automatic Unicode language detection |
 | **Blockchain Audit Trail** | Cryptographic Merkle Tree | SHA-256 block chaining, $O(\log N)$ Merkle proof verification (`verify_merkle_proof`), and Hyperledger Fabric chaincode payload exporter |
 | **Mobile Officer App** | iOS / Android Responsive | Touch-optimized mobile app frame, Web Push Notifications (VAPID protocol), and 1-tap Quick Approve/Reject action cards |
 | **High-Volume Benchmark** | GeM Monthly Scale (5,000+/mo) | Benchmarked against 5,000+ tenders/month scale achieving **99.4% Sub-5-Second SLA Pass Rate** ($p_{50}: 1.18\text{s}, p_{95}: 2.84\text{s}$) |
+
+---
+
+## 🌳 GeMmy AI Assistant
+
+<p align="center">
+  <img src="frontend/src/assets/gemmy-icon.png" alt="GeMmy AI spiral tree icon" width="160">
+</p>
+
+**GeMmy** is the platform's built-in AI bid-compliance assistant. It helps bidders, procurement officers, and administrators understand the portal and navigate the bid-verification workflow.
+
+### What you can ask GeMmy
+
+- How to upload bid documents and resolve upload problems
+- Which GSTIN, PAN, and Udyam details are checked
+- How compliance scores and risk ratings are calculated
+- What bid statuses and audit stages mean
+- How suppliers and procurement officers use the portal
+- Brief general questions, acronym meanings, and calculations
+
+### Internet-assisted questions
+
+When Groq web search is enabled, GeMmy can search the internet for time-sensitive questions containing phrases such as **"latest," "current," "today," "recent," "news,"** or **"search the web."** Questions about GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain. Web-assisted responses are identified in the chat as **"Live web answer via Groq."**
+
+Example questions:
+
+- "What is the latest official GeM update?"
+- "Search the web for recent GeM procurement news."
+- "What are the current GeM guidelines?"
+
+Configure the feature through environment variables:
+
+```env
+AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key
+GROQ_WEB_SEARCH_ENABLED=true
+GROQ_WEB_MODEL=groq/compound-mini
+```
+
+If the AI provider or internet search is unavailable, GeMmy automatically falls back to its local portal knowledge base. Tender-specific, legal, financial, and policy-critical answers should always be verified against the tender document and the official GeM portal.
+
+**Implementation:**
+
+- Frontend: `frontend/src/components/Chatbot.jsx`
+- Backend endpoint: `POST /api/chat`
+- Assistant service: `backend/app/services/chat_service.py`
 
 ---
 

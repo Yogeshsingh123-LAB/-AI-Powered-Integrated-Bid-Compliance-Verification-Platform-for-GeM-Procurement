@@ -21,6 +21,11 @@ graph TD
     B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator & XAI Snippet Generator]
     B -- Blockchain Audit --> H[Cryptographic Merkle Tree Ledger & Hyperledger Connector]
     B -- Real-time Service --> I[WebSocket Connection Manager & Alert Engine]
+    B -- POST /api/chat --> J[GeMmy Assistant Router & Chat Service]
+    J -- Portal Guidance Fallback --> K[Local Knowledge Base]
+    J -- General AI Questions --> L[Gemini or Groq Chat Model]
+    J -- Time-Sensitive Questions --> M[Groq Compound Web Search]
+    M -- Official GeM Queries --> N[gem.gov.in]
 ```
 
 ### Core Architecture Components
@@ -69,6 +74,37 @@ graph TD
 #### 8. High-Volume Performance Benchmarking Engine
 - **`PerformanceBenchmarkService`**: Benchmarked against actual GeM monthly procurement volumes (**5,000+ tenders / month** / **25,000+ bids / month**).
 - **Sub-5-Second SLA Pass Rate:** `99.4%` ($p_{50}$ median: `1.18s`, $p_{95}$ tail: `2.84s`, $p_{99}$ burst: `4.12s`).
+
+#### 9. GeMmy AI Assistant & Internet-Assisted Questions
+- **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask GeMmy** launcher, conversation history, suggested questions, loading/error states, and response-source labels.
+- **API contract:** `POST /api/chat` accepts a user message, the latest conversation history, and the current portal role through `backend/app/api/chat.py`.
+- **Portal guidance:** `backend/app/services/chat_service.py` contains concise local answers for document uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk ratings, audit status, accounts, and buyer workflows.
+- **AI providers:** `AI_PROVIDER` selects Gemini or Groq. Groq uses `GROQ_MODEL` for ordinary AI questions and `GROQ_WEB_MODEL` for eligible live-search requests.
+- **Internet request detection:** `_needs_web_search()` routes time-sensitive prompts containing terms such as `latest`, `current`, `today`, `recent`, `news`, `search the web`, or `search internet` to the configured Groq web model when `GROQ_WEB_SEARCH_ENABLED=true`.
+- **Official-source restriction:** Web searches about GeM or Government e-Marketplace are restricted to `gem.gov.in` and use India as the search country.
+- **Source transparency:** Responses are classified as `ai`, `ai_web`, or `knowledge_base`; the frontend identifies web-assisted results as **Live web answer via Groq** and fallback responses as **Portal knowledge base**.
+- **Resilient fallback:** Missing credentials, provider errors, empty responses, or timeouts automatically return a safe local knowledge-base answer so the chatbot remains usable.
+- **Safety boundary:** GeMmy must not invent bid status, registry results, laws, deadlines, or policies. Tender-specific, legal, financial, and policy-critical guidance must be verified against the tender and official GeM sources.
+
+##### GeMmy answer-routing flow
+
+```mermaid
+flowchart LR
+    U[Portal User] --> W[React GeMmy Widget]
+    W -->|POST /api/chat| A[FastAPI Chat Endpoint]
+    A --> S[Chat Service]
+    S --> Q{Groq selected and configured?}
+    Q -->|No| K[Local Knowledge Base]
+    Q -->|Yes| T{Time-sensitive request?}
+    T -->|No| G[Standard Groq Chat Model]
+    T -->|Yes| X[Groq Compound Web Search]
+    X -->|GeM-related query| O[Official gem.gov.in Results]
+    G --> R[Answer with ai source]
+    O --> V[Answer with ai_web source]
+    G -. provider error .-> K
+    X -. provider error .-> K
+    K --> F[Answer with knowledge_base source]
+```
 
 ---
 

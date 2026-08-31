@@ -1,21 +1,21 @@
 import { useState, useRef } from "react";
-import { 
-  CloudUpload, 
-  Terminal, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  ShieldAlert, 
-  FileText, 
-  Loader2, 
-  BadgeCheck 
+import {
+  CloudUpload,
+  Terminal,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  ShieldAlert,
+  FileText,
+  Loader2,
+  BadgeCheck
 } from "lucide-react";
 
 function DocumentUploadPage({ onAddBid }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  
+
   // Terminal logs state
   const [logs, setLogs] = useState([]);
   const [parsingProgress, setParsingProgress] = useState(0); // 0: Idle, 1: Loading API, 2: Finished
@@ -29,7 +29,7 @@ function DocumentUploadPage({ onAddBid }) {
   const addLog = (text, type = "info") => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs((prev) => [...prev, { text: `[${timestamp}] ${text}`, type }]);
-    
+
     // Scroll to bottom
     setTimeout(() => {
       if (terminalEndRef.current) {
@@ -52,7 +52,7 @@ function DocumentUploadPage({ onAddBid }) {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
       setFile(droppedFile);
@@ -84,8 +84,8 @@ function DocumentUploadPage({ onAddBid }) {
       return;
     }
 
-    const isPDF = uploadedFile.type === "application/pdf" || 
-                  uploadedFile.name.toLowerCase().endsWith(".pdf");
+    const isPDF = uploadedFile.type === "application/pdf" ||
+      uploadedFile.name.toLowerCase().endsWith(".pdf");
     if (!isPDF) {
       alert("Verification System Error: Only PDF files (.pdf) are permitted.");
       setFile(null);
@@ -140,19 +140,19 @@ function DocumentUploadPage({ onAddBid }) {
       }
 
       const data = await response.json();
-      
+
       // Print final extraction success logs
       addLog("SmartPDFHandler: Successfully extracted document string data.", "success");
-      
+
       // Handle page extraction method logs format details
-      const extractionMethod = data.analysis.ocr_used 
-        ? `OCR (${data.analysis.ocr_engine.toUpperCase()})` 
+      const extractionMethod = data.analysis.ocr_used
+        ? `OCR (${data.analysis.ocr_engine.toUpperCase()})`
         : "Digital text extraction";
       addLog(`Extraction Method: ${extractionMethod}`, "success");
-      
+
       const ids = data.analysis.identifiers;
       addLog(`RegexExtractor: Found GSTINs: [${ids.gstin.join(", ")}], PANs: [${ids.pan.join(", ")}], Udyam: [${ids.udyam.join(", ")}], Aadhaar: [${(ids.aadhaar || []).join(", ")}]`, "success");
-      
+
       addLog("MockVerifier: Batch queries complete. Registry alignment scores computed.", "success");
       addLog(`ScoringEngine: Final compliance score is: ${data.compliance.score}/100. Risk Tier: ${data.compliance.risk_level}`, "success");
 
@@ -189,7 +189,7 @@ function DocumentUploadPage({ onAddBid }) {
       // Format a clean object to sync to Home.jsx state array
       const bidId = `GEM-BID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const bidderName = data.verification?.gstin?.[0]?.data?.legal_name || data.verification?.pan?.[0]?.data?.name || data.verification?.udyam?.[0]?.data?.enterprise_name || "Unknown Bidder Org";
-      
+
       const newBid = {
         id: bidId,
         bidderName: bidderName,
@@ -323,10 +323,10 @@ function DocumentUploadPage({ onAddBid }) {
 
   return (
     <>
-      <input 
-        type="file" 
+      <input
+        type="file"
         ref={fileInputRef}
-        className="file-input" 
+        className="file-input"
         accept=".pdf"
         onChange={handleRowFileChange}
         style={{ display: "none" }}
@@ -347,19 +347,19 @@ function DocumentUploadPage({ onAddBid }) {
           <div className="panel-table-header">
             <h3>Required Documents Checklist</h3>
             <div className="panel-actions">
-              <button 
+              <button
                 className={`filter-pill ${docFilter === "all" ? "active" : ""}`}
                 onClick={() => setDocFilter("all")}
               >
                 All Documents
               </button>
-              <button 
+              <button
                 className={`filter-pill ${docFilter === "pending" ? "active" : ""}`}
                 onClick={() => setDocFilter("pending")}
               >
                 Pending for Submission ⏳
               </button>
-              <button 
+              <button
                 className={`filter-pill ${docFilter === "completed" ? "active" : ""}`}
                 onClick={() => setDocFilter("completed")}
               >
@@ -435,7 +435,7 @@ function DocumentUploadPage({ onAddBid }) {
                                 ✓ Verified & Locked
                               </span>
                             ) : req.status === "Mismatch" ? (
-                              <button 
+                              <button
                                 type="button"
                                 style={{
                                   background: "#dc2626",
@@ -453,7 +453,7 @@ function DocumentUploadPage({ onAddBid }) {
                                 Fix & Re-upload ⚠️
                               </button>
                             ) : (
-                              <button 
+                              <button
                                 type="button"
                                 style={{
                                   background: "#0284c7",
@@ -482,28 +482,28 @@ function DocumentUploadPage({ onAddBid }) {
           </div>
         </div>
       </div>
-        {/* Real-time verification logs */}
-        {parsingProgress > 0 && (
-          <div className="terminal-window">
-            <div className="terminal-header">
-              <div className="terminal-dots">
-                <span className="t-dot red"></span>
-                <span className="t-dot yellow"></span>
-                <span className="t-dot green"></span>
-              </div>
-              <span className="terminal-title">Cryptographic Verification trace</span>
-              <Terminal size={14} style={{ color: '#475569' }} />
+      {/* Real-time verification logs */}
+      {parsingProgress > 0 && (
+        <div className="terminal-window">
+          <div className="terminal-header">
+            <div className="terminal-dots">
+              <span className="t-dot red"></span>
+              <span className="t-dot yellow"></span>
+              <span className="t-dot green"></span>
             </div>
-            <div className="terminal-body">
-              {logs.map((log, index) => (
-                <div key={index} className={`term-line ${log.type}`}>
-                  {log.text}
-                </div>
-              ))}
-              <div ref={terminalEndRef} />
-            </div>
+            <span className="terminal-title">Cryptographic Verification trace</span>
+            <Terminal size={14} style={{ color: '#475569' }} />
           </div>
-        )}
+          <div className="terminal-body">
+            {logs.map((log, index) => (
+              <div key={index} className={`term-line ${log.type}`}>
+                {log.text}
+              </div>
+            ))}
+            <div ref={terminalEndRef} />
+          </div>
+        </div>
+      )}
 
       {/* COMPLIANCE REPORT CARD DETAILS */}
       {report && report.success && (
@@ -520,10 +520,10 @@ function DocumentUploadPage({ onAddBid }) {
                   stroke="#e2e8f0"
                   strokeWidth="10"
                 />
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
                   fill="none"
                   stroke={report.compliance_report.score >= 80 ? "#10b981" : report.compliance_report.score >= 50 ? "#f59e0b" : "#ef4444"}
                   strokeWidth="10"
@@ -538,10 +538,10 @@ function DocumentUploadPage({ onAddBid }) {
                 <span style={{ fontSize: "0.65rem", fontWeight: "700", color: report.compliance_report.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
               </div>
             </div>
-            
+
             <h3>Compliance Index</h3>
             <p>Risk classification computed from matching and filing histories.</p>
-            
+
             <div style={{ marginBottom: '24px' }}>
               <span className={`risk-badge ${report.compliance_report.risk_level.toLowerCase()}`} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
                 {report.compliance_report.risk_level} RISK RATING
@@ -759,7 +759,7 @@ function DocumentUploadPage({ onAddBid }) {
                   let alertType = "info";
                   if (rec.includes("CRITICAL:") || rec.includes("deductions")) alertType = "critical";
                   else if (rec.includes("WARNING:")) alertType = "warning";
-                  
+
                   return (
                     <div key={index} className={`warning-item ${alertType}`}>
                       <div className="warning-icon">

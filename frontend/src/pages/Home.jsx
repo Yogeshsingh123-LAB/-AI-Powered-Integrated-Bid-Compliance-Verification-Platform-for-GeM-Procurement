@@ -2159,6 +2159,9 @@ function Home({ role, user, onLogout }) {
     const [verificationFilter, setVerificationFilter] = useState("All");
     const [activeKpi, setActiveKpi] = useState("ALL");
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [activeBidderMenuId, setActiveBidderMenuId] = useState(null);
+    const [viewingBidderDetails, setViewingBidderDetails] = useState(null);
+    const [biddersActionToast, setBiddersActionToast] = useState("");
 
     const ALL_BIDDERS = [
       {
@@ -8643,10 +8646,10 @@ function Home({ role, user, onLogout }) {
             ]}
           />
         ) : (
-          <BidderProfile />
+          <BidderProfile user={user} />
         );
       case "documents":
-        return <DocumentUploadPage onAddBid={handleAddBid} />;
+        return <DocumentUploadPage onAddBid={handleAddBid} user={user} />;
       case "myBids":
         return <MyBidsSection />;
       case "tenders":

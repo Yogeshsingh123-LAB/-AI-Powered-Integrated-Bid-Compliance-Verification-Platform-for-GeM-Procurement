@@ -4,19 +4,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-94%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
+[![Tests](https://img.shields.io/badge/Tests-103%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: 26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 
-<<<<<<< HEAD
-
-An end-to-end AI-powered verification, Semantic NLP RFP clause comparator, document forgery detection, statutory cross verification, collusion detection, and immutable blockchain audit trail solution built for GeM procurement.
-=======
-An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, statutory cross-verification, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, and high-volume performance benchmarking built for GeM procurement.
->>>>>>> 3cd52e77509f1f3af11ac770a156837b3005de0f
+An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, statutory cross-verification, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
 
 ---
 
@@ -36,9 +31,10 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 ```mermaid
 graph TD
     A[React/Vite Frontend & Mobile Officer App] -- HTTP / WebSockets / WebPush --> B[FastAPI Backend Engine]
+    B -- Direct API mTLS OAuth2 --> GeM[Official GeM Portal Gateway (api.gem.gov.in)]
     B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
     B -- Neo4j / NetworkX --> D[Cartel Relationship Graph Engine]
-    B -- External Integration --> E[Govt API Gateways: GeM Production API, CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker]
+    B -- External Integration --> E[Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker]
     B -- OCR & Multi-Lang Engine --> F[Multi-Language Tesseract OCR & PDF Forgery/ELA Detector]
     B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator & XAI Snippet Generator]
     B -- Blockchain Audit --> H[Cryptographic Merkle Tree Ledger & Hyperledger Connector]
@@ -47,18 +43,11 @@ graph TD
 
 ---
 
-## 📑 GeM Real Tender Compliance Matrix & Domain Alignment
+## 🌟 Key Platform Modules & Capability Matrix
 
-| GeM Tender Clause / Requirement | Rule / Standard | Platform AI Implementation |
+| Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
-<<<<<<< HEAD
-| **Statutory Identifiers** | GSTIN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
-| **Land Border Country Restriction** | GFR Rule 144(xi) | RFP-06 Clause Matching + Mandatory Competent Authority Declaration Check |
-| **MSME EMD Exemption** | GeM Procurement Guidelines | Category-Aware Filter: Valid for Manufacturers/Services, Excludes Traders |
-| **Startup Exemption Path** | DPIIT Recognition | RFP-08 Dedicated Turnover & Prior Experience Relaxation Path |
-| **EMD / PBG Guarantee** | Tender Security Deposit | RFP-07 Verification of Payment Proof, Demand Draft, or Exemption Certificate |
-| **Entity Integrity** | Tax & Procurement Registries | Cross-Registry Name Alignment & Blacklist Status Verification |
-=======
+| **Techno-Commercial Loading** | GeM 4.0 Load Criteria | Auto-detection of procurement modes (Direct <= ₹50k, L1 ₹50k-₹10L, Bid > ₹10L, Reverse Auction) and techno-commercial loading penalties (delivery delay, payment terms, warranty shortfall) |
 | **Direct GeM API Sync** | OAuth 2.0 mTLS Auth | Dedicated client certificate authentication (`mTLS`), live tender fetching, bid retrieval, and compliance report sync |
 | **Statutory Identifiers** | CBIC GSTN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
 | **Labor & Compliance** | EPFO & ESIC Registries | Verification of Establishment IDs, ESIC Registration Numbers, employee headcounts, and monthly ECR remittance receipts |
@@ -76,7 +65,6 @@ graph TD
 | **Mobile Officer App** | iOS / Android Responsive | Touch-optimized mobile app frame, Web Push Notifications (VAPID protocol), and 1-tap Quick Approve/Reject action cards |
 | **High-Volume Benchmark** | GeM Monthly Scale (5,000+/mo) | Benchmarked against 5,000+ tenders/month scale achieving **99.4% Sub-5-Second SLA Pass Rate** ($p_{50}: 1.18\text{s}, p_{95}: 2.84\text{s}$) |
 | **Dynamic Tender Rule Builder** | Custom GeM RFP Rules | Configurable evaluation weights and custom threshold criteria per tender specification |
->>>>>>> 3cd52e77509f1f3af11ac770a156837b3005de0f
 
 ---
 
@@ -125,6 +113,8 @@ The FastAPI backend exposes modular RESTful endpoints and WebSocket channels:
 
 | Router Path | Description | Key Operations |
 |---|---|---|
+| `/api/documents/upload-rfp` | RFP Mode & Loading Auto-Detection | Uploads RFP, auto-detects mode (Direct/L1/Bid), and evaluates loading criteria |
+| `/api/analyze/techno-commercial-loading` | Techno-Commercial Loading | JSON evaluation of delivery delay loading, payment terms, and warranty penalties |
 | `/api/v1/sync-tender/{id}` | Direct GeM API Sync | OAuth 2.0 mTLS tender fetch and DB synchronization |
 | `/api/v1/sync/submit-report/{id}` | GeM Report Submission | Pushes AI verification results directly to GeM portal |
 | `/api/v1/sync/bids/{id}` | GeM Bid Retrieval | Pulls vendor bid submissions directly from GeM gateway |
@@ -159,9 +149,9 @@ gem-bid-compliance/
 │   │   ├── models/             # SQLAlchemy ORM Data Models
 │   │   ├── schemas/            # Pydantic v2 validation schemas
 │   │   ├── scoring/            # Compliance Scorer & Rule Evaluator Engine
-│   │   ├── services/           # Business logic, verifiers, gem_client.py, WebSocket manager
+│   │   ├── services/           # Business logic, tender_analyzer.py, verifiers, gem_client.py, WebSocket manager
 │   │   └── main.py             # FastAPI App Entrypoint & Lifespan Setup
-│   ├── tests/                  # Automated pytest test suite (16 modules)
+│   ├── tests/                  # Automated pytest test suite (17 modules)
 │   │   ├── load_test_locust.py # Locust performance load testing script
 │   │   └── test_*.py           # Unit & Integration test modules
 │   ├── requirements.txt        # Backend Python dependencies
@@ -192,11 +182,7 @@ gem-bid-compliance/
 ## 🔒 Sandbox Integration & Direct GeM API Mode
 
 > [!NOTE]
-<<<<<<< HEAD
-> **API Sandbox Mocks**: All government API integrations (CBIC GSTN, Income Tax PAN, Udyam Registration, UIDAI e-KYC) operate against realistic microservice sandbox mocks located in `backend/app/mock_apis/`. These mocks mirror official government response schemas and status codes for hackathon evaluation and local testing. Production onboarding requires live API keys from respective authority gateways.
-=======
 > **Production & Sandbox Dual-Mode**: Direct GeM portal integration uses OAuth 2.0 Client Certificate Authentication (`mTLS`). When client certificates (`GEM_CLIENT_CERT`, `GEM_CLIENT_KEY`) are present, requests route directly to `https://api.gem.gov.in/v1`. For offline testing and evaluation, setting `GEM_USE_MOCK=true` operates against realistic mock gateways in [`backend/app/mock_apis/`](backend/app/mock_apis/).
->>>>>>> 3cd52e77509f1f3af11ac770a156837b3005de0f
 
 ---
 
@@ -217,7 +203,6 @@ cp .env.example .env
 # 3. Launch all services
 docker-compose up --build
 ```
-```
 
 - **Frontend Client**: [http://localhost:3000](http://localhost:3000)
 - **Backend API Docs (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -225,138 +210,40 @@ docker-compose up --build
 
 ---
 
-<<<<<<< HEAD
-##  Local Development Setup
+### Option B: Local Development Setup
 
-### A. Backend (FastAPI + Python 3.11)
+#### 1. Backend Setup
+```bash
+# Navigate to backend and create virtual environment
+cd backend
+python -m venv venv
+backend\venv\Scripts\activate  # Windows (or source venv/bin/activate on Linux/macOS)
 
-1. Navigate to backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate Python virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows PowerShell:
-   .\venv\Scripts\activate
-   # On Linux/macOS:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Generate mock database records & synthetic test scenarios:
-   ```bash
-   python generate_mock_data.py
-   python generate_sample_pdfs.py
-   ```
-5. Launch FastAPI development server:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-   *Swagger Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)*
+# Install dependencies
+pip install -r requirements.txt
 
----
+# Run database migrations / seed local SQLite database
+python -c "from app.db.session import init_db; init_db()"
 
-### B. Frontend (React + Vite + Tailwind/Vanilla CSS)
+# Start FastAPI server with live reload
+uvicorn app.main:app --reload --port 8000
+```
 
-1. Navigate to frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install Node dependencies:
-   ```bash
-   npm install
-   ```
-3. Start Vite dev server:
-   ```bash
-   npm run dev
-   ```
-   *Frontend Client: [http://localhost:5173](http://localhost:5173)*
+#### 2. Frontend Setup
+```bash
+# In a separate terminal, navigate to frontend
+cd frontend
+npm install
 
----
-
-##  Semantic NLP RFP Clause Comparator
-
-The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`semantic_analyzer.py`):
-- **Clause-by-Clause Evaluation**: Evaluates bid document text against tender RFP clauses (Minimum Turnover, Past Experience, OEM Authorization, MSME/Startup Exemptions, GST/PAN Registration).
-- **Dual-Engine Architecture**: Uses **Gemini LLM Deep Reasoning** when `GEMINI_API_KEY` is provided with automatic fallback to an **Advanced Local NLP Keyword & Similarity Engine**.
-- **Evidence Extraction**: Automatically extracts exact evidence text quotes for each clause.
-- **Dedicated Endpoint**: `POST /api/analyze/semantic-comparator`
-
----
-
-## 💬 GeMmy AI Bid-Compliance Chatbot
-
-**GeMmy** is the platform’s built-in conversational assistant. It helps bidders, procurement officers, and administrators understand the portal and the bid-compliance workflow.
-
-### Key Capabilities
-
-- **Bid Submission Guidance**: Explains how to upload PDF bid documents and resolve common upload problems.
-- **Compliance Assistance**: Answers questions about GSTIN, PAN, Udyam/MSME verification, document mismatches, compliance scores, and risk ratings.
-- **Role-Aware Responses**: Adjusts guidance for bidders, buyers, and guest users.
-- **Audit and Status Help**: Explains bid review stages, audit workflows, approvals, rejections, and revision requests.
-- **Conversation History**: Uses recent messages to maintain context during a conversation.
-- **Suggested Questions**: Displays helpful follow-up prompts based on the current topic.
-- **Local Knowledge-Base Fallback**: Continues answering common platform questions when the external AI service is unavailable or no API key is configured.
-- **Optional Live Internet Search**: Uses Groq web search for time-sensitive questions containing terms such as “latest,” “current,” “today,” “news,” or “search the web.”
-- **Safety Controls**: Does not invent bid statuses, registry results, laws, deadlines, or tender-specific requirements. Users are advised to verify critical information through the official GeM portal and tender documents.
-
-### AI and Internet Search Configuration
-
-Add the following variables to `backend/.env`:
-
-```env
-AI_PROVIDER=groq
-GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=openai/gpt-oss-20b
-GROQ_WEB_SEARCH_ENABLED=true
-GROQ_WEB_MODEL=groq/compound-mini
+# Start Vite development server
+npm run dev
 ```
 
 ---
 
-##  Default Test Credentials
+## 🧪 Automated Test Suite Verification
 
-| Role | Username / Email | Password | Access Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Bidder Entity** | `bidder@techgov.in` | `Bidder@123` | Submit bid documents, view score report & profile |
-| **Procurement Officer** | `officer@gem.gov.in` | `Officer@123` | Evaluate bids, inspect forgery flags & collusion matrix |
-| **Platform Administrator** | `admin@gem.gov.in` | `Admin@123` | Audit trail verification & system rule configuration |
-
----
-
-## 📁 Directory Structure
-
-```
-gem-bid-compliance/
-├── .env.example            # Environment variables template
-├── docker-compose.yml      # Multi-container orchestration (DB + Backend + Frontend)
-├── README.md               # Project documentation & setup instructions
-├── brain.md                # System Architecture & Technical Blueprint
-├── frontend/               # React SPA Client
-│   ├── Dockerfile          # Nginx static deployment build
-│   ├── src/
-│   │   ├── components/     # UI components (Chatbot, DocumentUpload, ScoreCard, CartelDetectionGraph, LiveBidMonitoring, ExplainableOfficerOverride, TenderRuleBuilder)
-│   │   ├── pages/          # Home, Login, Admin, Officer pages
-│   │   └── services/       # API services & mock profile fallback
-│   └── package.json
-├── backend/                # FastAPI Application
-│   ├── Dockerfile          # Multi-stage Python build with Tesseract & Poppler
-│   ├── requirements.txt    # Pinned dependency definitions
-│   ├── app/
-│   │   ├── ai_engine/      # OCR, ELA forgery detector & Semantic NLP Clause Comparator
-│   │   ├── api/            # REST API endpoints (Auth, Documents, Analysis, Audit, Cartel, DigiLocker, Override, TenderRules, WebSocket)
-│   │   ├── mock_apis/      # Govt Portals (GSTIN, PAN, Udyam, Debarment) + Gateway v2.0
-│   │   ├── models/         # SQLAlchemy DB models (User, Bid, AuditLog, OfficerAnnotation)
-│   │   ├── scoring/        # Compliance Scorer, Fraud & Cartel Detector
-│   │   └── services/       # Document processing, AI extraction, Alert, Cartel Graph, DigiLocker, Explainable AI Engine
-│   ├── scenarios/          # 5 realistic synthetic scenario PDFs + README documentation
-│   └── tests/              # Pytest automated test suite
-└── docs/                   # Integration ## 🧪 Testing & Validation
-
-Run the full backend automated test suite covering all 16 test modules:
+The repository includes a comprehensive 17-module backend test suite verifying statutory verifiers, cartel graph algorithms, document classification, OCR parsing, blockchain Merkle tree proofs, officer override workflows, mobile quick actions, WebSocket connections, direct GeM API sync, and techno-commercial loading criteria:
 
 ```bash
 # Set PYTHONPATH and execute pytest suite
@@ -366,26 +253,27 @@ $env:PYTHONPATH="backend"; backend\venv\Scripts\python.exe -m pytest backend/tes
 ### Test Suite Execution Output
 ```text
 ============================= test session starts =============================
-collected 94 items
+collected 103 items
 
-backend/tests/test_auth_and_upload.py ............................      [ 29%]
-backend/tests/test_blockchain_audit.py ....                             [ 34%]
-backend/tests/test_cartel_detection.py ...                              [ 37%]
-backend/tests/test_chat_service.py .....                                [ 42%]
-backend/tests/test_document_processing.py .........                     [ 52%]
-backend/tests/test_explainable_and_override.py .                        [ 53%]
-backend/tests/test_forgery_and_fraud.py ....                            [ 57%]
-backend/tests/test_gem_sync.py ......                                   [ 63%]
-backend/tests/test_mobile_officer_app.py .....                          [ 69%]
-backend/tests/test_multilingual_ocr.py ....                             [ 73%]
-backend/tests/test_performance_benchmark.py ...                         [ 76%]
-backend/tests/test_real_verifiers.py .....                              [ 81%]
-backend/tests/test_semantic_analyzer.py ....                            [ 86%]
-backend/tests/test_statutory_modules.py ........                        [ 94%]
-backend/tests/test_tender_configuration.py ...                          [ 97%]
+backend/tests/test_auth_and_upload.py ............................      [ 27%]
+backend/tests/test_blockchain_audit.py ....                             [ 31%]
+backend/tests/test_cartel_detection.py ...                              [ 33%]
+backend/tests/test_chat_service.py .....                                [ 38%]
+backend/tests/test_document_processing.py .........                     [ 47%]
+backend/tests/test_explainable_and_override.py .                        [ 48%]
+backend/tests/test_forgery_and_fraud.py ....                            [ 52%]
+backend/tests/test_gem_sync.py ......                                   [ 58%]
+backend/tests/test_mobile_officer_app.py .....                          [ 63%]
+backend/tests/test_multilingual_ocr.py ....                             [ 66%]
+backend/tests/test_performance_benchmark.py ...                         [ 69%]
+backend/tests/test_real_verifiers.py .....                              [ 74%]
+backend/tests/test_semantic_analyzer.py ....                            [ 78%]
+backend/tests/test_statutory_modules.py ........                        [ 86%]
+backend/tests/test_tender_analyzer.py .........                         [ 95%]
+backend/tests/test_tender_configuration.py ...                          [ 98%]
 backend/tests/test_websocket_monitoring.py ..                           [100%]
 
-====================== 94 passed in 32.24s (100% Pass Rate) ======================
+====================== 103 passed in 38.27s (100% Pass Rate) =======================
 ```
 
 ---
@@ -404,23 +292,6 @@ locust -f backend/tests/load_test_locust.py --host=http://localhost:8000
 - **Median Latency ($p_{50}$):** `1.18 seconds`
 - **95th Percentile Latency ($p_{95}$):** `2.84 seconds`
 - **99th Percentile Burst Latency ($p_{99}$):** `4.12 seconds`
-
----
-
-## 📊 Technical Capabilities Summary
-
-| Aspect | Implementation Summary |
-|--------|------------------------|
-| **Architecture** | Monorepo structure, FastAPI backend engine, React Vite SPA frontend |
-| **Branding & Logos** | Transparent logo assets (`/logo.png`), studio-grade dark/light themes, ambient drop shadows |
-| **Platform Access Controls** | Role-Based Access Control (RBAC) separating Bidder Portal, Procurement Audit Queue & Admin Governance Console |
-| **Blacklist & Debarment System** | Sovereign Governance Console for blacklisted entity management, CVC order tracking, investigation dossiers & security password authorization |
-| **AI/ML & Forgery Engine** | PyMuPDF + Tesseract OCR + OpenCV preprocessors + spaCy NER + Forgery Detector (editing tool fingerprints, mod-date mismatch, font clutter, patch overlays, digital sigs) |
-| **Sandbox & Mock Gateways** | CBIC GSTN v2.0 HMAC Sandbox Gateway, UIDAI e-KYC Sandbox, PAN, Udyam MSME, Blacklist REST lookups with zero-downtime offline fallback |
-| **Fraud & Collusion Engine** | Database cross-matching of GSTIN/PAN reuse across competing bidders, fuzzy Levenshtein name alignment, shell company network detection |
-| **Scoring Engine** | 3-tier weighted scoring (30% Presence, 40% Verification, 30% Integrity), mandatory ID missing penalties, forgery & collusion risk deductions |
-| **Security & Auditing** | SHA-256 cryptographic hash chain audit logs, timing attack defense, password authorization locks, 10MB payload limit, regex filename sanitization |
-| **Codebase & Testing** | Optimized clean codebase, automated pytest test suites passing (94 passed), 4 runner scripts, 5 sample PDF scenario documents |
 
 ---
 

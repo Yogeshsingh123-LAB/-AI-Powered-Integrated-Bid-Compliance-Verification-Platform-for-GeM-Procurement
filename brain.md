@@ -127,6 +127,19 @@ graph TD
 - **Admin Console View**: `BlacklistedBiddersView` provides central registry management for debarred suppliers with CVC (Central Vigilance Commission) order tracking, statutory identifiers (PAN/GSTIN), and debarment terms.
 - **Security Authorization Workflows**: Enforces mandatory Admin Security Authorization Password verification for sensitive actions (blacklist entity creation, revocation, status mutations).
 
+#### 12. Techno-Commercial Loading & Procurement Mode Auto-Detection Engine
+- **`ProcurementMode` Enum & `detect_mode()`** (`backend/app/services/tender_analyzer.py`): Auto-detects GeM 4.0 procurement mode based on monetary tender value:
+  - **Direct Purchase (`direct`)**: Tender value $\le ₹50,000$. Enforces basic statutory checks (GSTIN, PAN).
+  - **L1 Purchase (`l1`)**: Tender value $₹50,000$ to $₹1,000,000$ ($₹10\text{L}$). Enforces technical qualification score $\ge 70\%$.
+  - **Custom Bid (`bid`)**: Tender value $> ₹1,000,000$ ($₹10\text{L}$). Enforces full Techno-Commercial Loading penalties.
+  - **Reverse Auction (`reverse_auction`)**: Dynamic bidding threshold loading for financial evaluation.
+- **`check_loading_criteria()`**: Computes loaded evaluated commercial price penalties:
+  - Delivery Schedule Delay Loading (0.5% per week beyond standard).
+  - Payment Terms Deviation Loading (2.0% advance payment penalty).
+  - Warranty Shortfall Loading (2.5% loading per missing warranty year).
+  - Technical Specification Gap Loading (1.5% penalty per non-critical spec gap).
+- **API Routes**: `/api/documents/upload-rfp` and `/api/analyze/techno-commercial-loading`.
+
 ---
 
 ## 3. Database Schema Blueprint
@@ -279,6 +292,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 =======
 - **Phase 10: Blacklisted & Debarred Bidders Governance Console & Security Password Authorization Workflows** ✅ COMPLETE (Implemented Admin Blacklisted Bidders registry console, CVC vigilance order tracking, investigation dossiers with cryptographic hashes, debarment revocation, and security password authorization for tender management).
 - **Phase 11: Direct GeM Production API OAuth 2.0 mTLS Integration & Synchronization Gateway** ✅ COMPLETE (Implemented `get_gem_token()` mTLS OAuth 2.0 client certificate authenticator, `GeMClient` tender/bid/report sync service, `/api/v1/sync-*` REST endpoints, and `test_gem_sync.py` test suite achieving **94/94 passed tests**).
+- **Phase 12: Techno-Commercial Loading & Procurement Mode Auto-Detection Engine** ✅ COMPLETE (Implemented `ProcurementMode` auto-detection for Direct, L1, Custom Bid, and Reverse Auction, delivery delay loading, payment terms loading, warranty shortfall loading, spec gap loading, `/upload-rfp` and `/analyze/techno-commercial-loading` endpoints, and `test_tender_analyzer.py` achieving **103/103 passed tests**).
 
 ---
 

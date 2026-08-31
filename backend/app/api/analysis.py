@@ -211,3 +211,42 @@ async def evaluate_semantic_rfp_comparator(
         "status": "success",
         "evaluation": evaluation
     }
+
+
+@router.post("/analyze/techno-commercial-loading", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def evaluate_techno_commercial_loading(
+    payload: Dict[str, Any] = Body(..., example={
+        "tender_value": 5000000.0,
+        "is_reverse_auction": False,
+        "bid_amount": 4800000.0,
+        "gstin": "27AAACA12341Z5",
+        "pan": "AAACA1234A",
+        "technical_score": 85.0,
+        "standard_delivery_weeks": 4,
+        "offered_delivery_weeks": 6,
+        "payment_terms": "Milestone",
+        "required_warranty_years": 3,
+        "offered_warranty_years": 2
+    })
+):
+    """
+    Dedicated GeM 4.0 Techno-Commercial Loading & Procurement Mode Auto-Detection Endpoint:
+    Auto-detects mode (Direct, L1, Custom Bid, Reverse Auction) based on tender value,
+    computes delivery delay penalties, payment terms loading, warranty gap loading, and loaded price.
+    """
+    from app.services.tender_analyzer import detect_mode, apply_compliance_rules, check_loading_criteria
+
+    tender_value = float(payload.get("tender_value", 100000.0))
+    is_ra = bool(payload.get("is_reverse_auction", False))
+
+    mode = detect_mode(tender_value, is_ra)
+    compliance_res = apply_compliance_rules(mode, payload)
+    loading_analysis = check_loading_criteria(payload)
+
+    return {
+        "status": "success",
+        "tender_value": tender_value,
+        "mode": mode.value,
+        "compliance_eval": compliance_res,
+        "techno_commercial_loading": loading_analysis
+    }

@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = Field(default="openai/gpt-oss-20b")
     GROQ_WEB_SEARCH_ENABLED: bool = Field(default=True)
     GROQ_WEB_MODEL: str = Field(default="groq/compound-mini")
+    ENABLE_REAL_API_LOOKUP: bool = Field(default=True)
+    REAL_GST_API_URL: str = Field(default="https://api.gst.gov.in/public/search")
+    REAL_UDYAM_API_URL: str = Field(default="https://udyamregistration.gov.in/api/verify")
+    REAL_PAN_API_URL: str = Field(default="https://eportal.incometax.gov.in/iec/services/pan")
+
 
     @property
     def effective_gemini_api_key(self) -> str:

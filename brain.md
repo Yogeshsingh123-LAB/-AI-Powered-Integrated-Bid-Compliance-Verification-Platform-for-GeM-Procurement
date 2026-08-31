@@ -75,12 +75,66 @@ graph TD
 - **Sub-5-Second SLA Pass Rate:** `99.4%` ($p_{50}$ median: `1.18s`, $p_{95}$ tail: `2.84s`, $p_{99}$ burst: `4.12s`).
 
 #### 10. GeMmy AI Assistant & Internet-Assisted Questions
-- **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask GeMmy** launcher, conversation history, suggested questions, loading/error states, and response-source labels.
-- **API contract:** `POST /api/chat` accepts a user message, recent conversation history, and current portal role through `backend/app/api/chat.py`.
-- **Portal guidance:** `backend/app/services/chat_service.py` contains concise local answers for document uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk ratings, audit status, and buyer workflows.
-- **AI providers:** `AI_PROVIDER` selects Gemini or Groq. Groq uses `GROQ_MODEL` for ordinary AI questions and `GROQ_WEB_MODEL` for eligible live-search requests.
-- **Internet request detection:** Routes time-sensitive prompts containing terms such as `latest`, `current`, `today`, `recent`, `news`, `search the web`, or `search internet` to the configured Groq web model when `GROQ_WEB_SEARCH_ENABLED=true`.
-- **Official-source restriction:** Web searches about GeM or Government e-Marketplace are restricted to `gem.gov.in`.
+- **Brand identity:** GeMmy uses the spiral-tree icon stored at `frontend/src/assets/gemmy-icon.png`.
+- **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask GeMmy** launcher, conversation history, suggested questions, loading states, error handling, and response-source labels.
+- **Chat API:** `POST /api/chat` accepts the user's message, recent conversation history, and current portal role through `backend/app/api/chat.py`.
+- **Portal guidance:** `backend/app/services/chat_service.py` provides answers about document uploads, GSTIN, PAN, Udyam verification, compliance scoring, risk ratings, audit status, accounts, and buyer workflows.
+- **AI providers:** The `AI_PROVIDER` setting selects Gemini or Groq. Groq uses `GROQ_MODEL` for ordinary questions and `GROQ_WEB_MODEL` for internet-assisted questions.
+- **Internet-assisted answers:** Time-sensitive prompts containing terms such as `latest`, `current`, `today`, `recent`, `news`, `search the web`, or `search internet` can use Groq web search when `GROQ_WEB_SEARCH_ENABLED=true`.
+- **Official GeM sources:** Internet searches related to GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain.
+- **Source transparency:** Responses are classified as `ai`, `ai_web`, or `knowledge_base`. The frontend identifies internet-assisted responses as **Live web answer via Groq** and fallback responses as **Portal knowledge base**.
+- **Reliable fallback:** If an AI provider is unavailable, credentials are missing, a request times out, or an empty response is returned, GeMmy automatically provides an answer from its local knowledge base.
+- **Safety boundary:** GeMmy must not invent bid status, registry results, laws, deadlines, tender requirements, or government policies. Policy-critical, financial, legal, and tender-specific information should always be verified using the tender document and official GeM sources.
+
+##### GeMmy Answer-Routing Flow
+
+```mermaid
+flowchart LR
+    U["Portal User"] --> W["GeMmy Chat Widget"]
+    W -->|"POST /api/chat"| A["FastAPI Chat Endpoint"]
+    A --> S["GeMmy Chat Service"]
+
+    S --> Q{"AI provider configured?"}
+    Q -->|"No"| K["Local Knowledge Base"]
+    Q -->|"Yes"| T{"Needs current information?"}
+
+    T -->|"No"| G["Gemini or Groq Model"]
+    T -->|"Yes"| X["Groq Web Search"]
+
+    X --> R{"GeM-related question?"}
+    R -->|"Yes"| O["Official gem.gov.in Sources"]
+    R -->|"No"| P["Relevant Internet Sources"]
+
+    G --> AI["AI Answer"]
+    O --> WEB["Web-Assisted Answer"]
+    P --> WEB
+
+    G -. "Provider error" .-> K
+    X -. "Search error" .-> K
+    K --> FALL["Knowledge-Base Answer"]
+
+    AI --> UI["Display Answer in GeMmy"]
+    WEB --> UI
+    FALL --> UI
+
+    classDef user fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px;
+    classDef interface fill:#E0E7FF,stroke:#4F46E5,color:#312E81,stroke-width:2px;
+    classDef service fill:#F3E8FF,stroke:#9333EA,color:#581C87,stroke-width:2px;
+    classDef decision fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px;
+    classDef ai fill:#CCFBF1,stroke:#0D9488,color:#134E4A,stroke-width:2px;
+    classDef official fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
+    classDef fallback fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px;
+    classDef output fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2px;
+
+    class U user;
+    class W,A interface;
+    class S service;
+    class Q,T,R decision;
+    class G,X,AI,P ai;
+    class O,WEB official;
+    class K,FALL fallback;
+    class UI output;
+```
 
 #### 11. Blacklisted & Debarred Bidders Governance Console
 - **Admin Console View**: `BlacklistedBiddersView` provides central registry management for debarred suppliers with CVC (Central Vigilance Commission) order tracking, statutory identifiers (PAN/GSTIN), and debarment terms.

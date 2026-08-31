@@ -183,11 +183,12 @@ class SemanticRFPComparator:
 
     @classmethod
     def _try_gemini_llm_evaluation(cls, bid_text: str, clauses: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """Optional LLM semantic evaluation via Gemini API if configured."""
         import os
-        gemini_api_key = os.getenv("GEMINI_API_KEY")
-        if not gemini_api_key or gemini_api_key == "your_gemini_api_key_here":
+        from app.core.config import settings
+        gemini_api_key = settings.effective_gemini_api_key or os.getenv("GEMINI_API_KEY")
+        if not gemini_api_key or gemini_api_key in {"YOUR_KEY", "your_gemini_api_key_here"}:
             return None
+
 
         try:
             import google.generativeai as genai

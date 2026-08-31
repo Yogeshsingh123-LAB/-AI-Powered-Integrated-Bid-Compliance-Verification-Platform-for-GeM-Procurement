@@ -26,16 +26,21 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
     AI_PROVIDER: str = Field(default="gemini")
     AI_API_KEY: str = Field(default="")
+    GEMINI_API_KEY: str = Field(default="")
     AI_MODEL: str = Field(default="gemini-1.5-flash")
     GROQ_API_KEY: str = Field(default="")
     GROQ_MODEL: str = Field(default="openai/gpt-oss-20b")
     GROQ_WEB_SEARCH_ENABLED: bool = Field(default=True)
     GROQ_WEB_MODEL: str = Field(default="groq/compound-mini")
 
+    @property
+    def effective_gemini_api_key(self) -> str:
+        return self.GEMINI_API_KEY or self.AI_API_KEY
 
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
 
     model_config = SettingsConfigDict(
         # Resolve this from the backend directory so configuration works whether

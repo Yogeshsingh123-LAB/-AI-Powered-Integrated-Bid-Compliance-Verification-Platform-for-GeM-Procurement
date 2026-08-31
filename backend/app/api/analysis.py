@@ -328,3 +328,47 @@ async def validate_dsc_endpoint(
         "status": "success",
         "dsc_validation": res
     }
+
+
+@router.post("/evaluate", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+@router.post("/analyze/evaluate", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def evaluate_bids_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "tender_value": 5000000.0,
+        "bids": [
+            {
+                "bidder_id": "b1",
+                "bidder_name": "TechGov Solutions",
+                "total_price": 4500000.0,
+                "technical_score": 85.0,
+                "ip_address": "192.168.1.10",
+                "bid_timestamp": "2026-08-31T12:00:00Z"
+            },
+            {
+                "bidder_id": "b2",
+                "bidder_name": "Apex Infra Tech",
+                "total_price": 4200000.0,
+                "technical_score": 90.0,
+                "ip_address": "192.168.1.15",
+                "bid_timestamp": "2026-08-31T12:05:00Z"
+            }
+        ]
+    })
+):
+    """
+    L1 Price Comparison Engine & Reverse Auction (RA) Collusion Monitoring Endpoint:
+    1. Filters technically qualified bids (technical_score >= 70%).
+    2. Ranks compliant bids by lowest price to determine L1, L2, L3...
+    3. Detects Reverse Auction collusion risks (shared IPs, synchronized timestamp submissions, price drops).
+    """
+    from app.services.evaluation_engine import evaluate_tender_bids
+
+    bids = payload.get("bids", [])
+    tender_value = payload.get("tender_value")
+    if tender_value is not None:
+        tender_value = float(tender_value)
+
+    ra_rounds = payload.get("ra_rounds_history") or payload.get("ra_rounds")
+
+    report = evaluate_tender_bids(bids=bids, tender_value=tender_value, ra_rounds_history=ra_rounds)
+    return report

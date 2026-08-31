@@ -179,6 +179,20 @@ flowchart LR
 - **`evaluate_tender_bids()`**: Consolidates financial evaluation and collusion monitoring.
 - **API Endpoints**: `POST /api/evaluate` and `POST /api/analyze/evaluate`.
 
+#### 16. Post-Award Tracking Engine (CRAC & PFMS Integration)
+- **`track_crac()`** (`backend/app/services/post_award.py`): Monitors Consignee Receipt and Acceptance Certificate (CRAC) issuance and 10-day payment SLA:
+  - Enforces mandatory 10-calendar-day GeM SLA from CRAC upload date to buyer payment release.
+  - Overdue Payment Penalty: Calculates penal interest @ RBI Repo Rate + 1% (7.5% p.a.) on delayed payment amount.
+- **`simulate_pfms_payment()`**: Simulates Ministry of Finance Public Financial Management System (PFMS) Treasury API:
+  - Generates official PFMS transaction receipt (`PFMS-2026-TXN-{hash}`) and Treasury UTR number.
+  - Tracks vendor bank account and GSTIN verification status for treasury credit.
+- **`get_post_award_lifecycle()`**: Consolidated 4-stage post-award tracking pipeline:
+  1. `AWARD_ISSUED` (Order Confirmed)
+  2. `GOODS_DELIVERED` (Consignee Delivery)
+  3. `CRAC_GENERATED` (CRAC SLA Verification)
+  4. `PFMS_DISBURSED` (Treasury Payment Release)
+- **API Endpoints**: `POST /api/post-award/track-crac`, `POST /api/post-award/simulate-pfms`, and `GET /api/post-award/status/{bid_id}`.
+
 ---
 
 ## 3. Database Schema Blueprint
@@ -335,6 +349,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 13: e-EMD & e-PBG Digital Bank Guarantee Validation Module** ✅ COMPLETE (Implemented `validate_emd` and `validate_epbg` in `statutory_checks.py`, scheduled commercial bank verification, minimum threshold calculations, digital signature check, `/api/analyze/validate-emd` & `/api/analyze/validate-epbg` endpoints, and `test_statutory_checks.py` test suite achieving **114/114 passed tests**).
 - **Phase 14: Digital Signature Certificate (Class 3 DSC) Validation Engine** ✅ COMPLETE (Implemented `validate_dsc` and `extract_dsc_from_pdf` in `dsc_validator.py`, X.509 certificate expiry/effective date checks, Subject CN PAN linkage verification, licensed Indian CA checks, `/api/analyze/validate-dsc` REST endpoint, and `test_dsc_validator.py` test suite achieving **120/120 passed tests**).
 - **Phase 15: L1 Price Comparison Engine & Reverse Auction Collusion Support** ✅ COMPLETE (Implemented `calculate_l1` ranking, technical qualification filter >=70%, `detect_ra_collusion` for shared IPs, synchronized timestamp submissions, price drop monitoring, `POST /api/evaluate` & `/api/analyze/evaluate` REST endpoints, and `test_evaluation_engine.py` test suite achieving **125/125 passed tests**).
+- **Phase 16: Post-Award Tracking Engine (CRAC & PFMS Integration)** ✅ COMPLETE (Implemented `track_crac` 10-day payment SLA monitoring, RBI 7.5% p.a. penal interest calculation, `simulate_pfms_payment` Treasury disbursement API, `get_post_award_lifecycle` 4-stage officer pipeline, REST endpoints, and `test_post_award.py` test suite achieving **132/132 passed tests**).
 
 ---
 

@@ -13,20 +13,20 @@ The goal of this platform is to automate compliance verification for bids submit
 
 ```mermaid
 graph TD
-    A[React/Vite Frontend & Mobile Officer App] -- HTTP / WebSockets / WebPush --> B[FastAPI Backend Engine]
-    B -- Direct API mTLS OAuth2 --> GeM[Official GeM Portal Gateway (api.gem.gov.in)]
-    B -- SQLAlchemy 2.x --> C[(PostgreSQL / Local SQLite)]
-    B -- Neo4j / NetworkX --> D[Cartel Relationship Graph Engine]
-    B -- External Integration --> E[Govt Registry Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker]
-    B -- OCR & Multi-Lang Engine --> F[Multi-Language Tesseract OCR & PDF Forgery/ELA Detector]
-    B -- Semantic NLP Engine --> G[Semantic RFP Clause Comparator & XAI Snippet Generator]
-    B -- Blockchain Audit --> H[Cryptographic Merkle Tree Ledger & Hyperledger Connector]
-    B -- Real-time Service --> I[WebSocket Connection Manager & Alert Engine]
-    B -- POST /api/chat --> J[GeMmy Assistant Router & Chat Service]
-    J -- Portal Guidance Fallback --> K[Local Knowledge Base]
-    J -- General AI Questions --> L[Gemini or Groq Chat Model]
-    J -- Time-Sensitive Queries --> M[Groq Compound Web Search]
-    M -- Official GeM Queries --> N[gem.gov.in Domain]
+    A["React/Vite Frontend & Mobile Officer App"] -- "HTTP / WebSockets / WebPush" --> B["FastAPI Backend Engine"]
+    B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
+    B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
+    B -- "Neo4j / NetworkX" --> D["Cartel Relationship Graph Engine"]
+    B -- "External Integration" --> E["Govt Registry Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker"]
+    B -- "OCR & Multi-Lang Engine" --> F["Multi-Language Tesseract OCR & PDF Forgery/ELA Detector"]
+    B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
+    B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
+    B -- "Real-time Service" --> I["WebSocket Connection Manager & Alert Engine"]
+    B -- "POST /api/chat" --> J["GeMmy Assistant Router & Chat Service"]
+    J -- "Portal Guidance Fallback" --> K["Local Knowledge Base"]
+    J -- "General AI Questions" --> L["Gemini or Groq Chat Model"]
+    J -- "Time-Sensitive Queries" --> M["Groq Compound Web Search"]
+    M -- "Official GeM Queries" --> N["gem.gov.in Domain"]
 ```
 
 ### Core Architecture Components

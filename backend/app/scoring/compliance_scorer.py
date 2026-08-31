@@ -213,8 +213,11 @@ class ComplianceScorer:
                     integrity_score -= 10
                     deductions.append("EMD payment receipt/e-PBG guarantee or valid MSME/Startup exemption proof missing (-10 pts)")
 
-            # Clamp integrity score
+            # NOTE: Cumulative deductions above (e.g. blacklisting, forgery, collusion, missing declarations)
+            # may push the intermediate integrity_score below 0. The max(0, ...) clamp below guarantees
+            # the final registry_integrity breakdown score stays within [0, 30] without underflowing.
             integrity_score = max(0, integrity_score)
+
 
         
         # Calculate score

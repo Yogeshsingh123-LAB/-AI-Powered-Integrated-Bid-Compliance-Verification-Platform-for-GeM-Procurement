@@ -5,9 +5,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
+    ENVIRONMENT: str = Field(default="development")
     DATABASE_URL: str = Field(default="postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db")
     JWT_SECRET: str = Field(default="super_secret_jwt_key_sih_2026_gem_procurement")
     JWT_ALGORITHM: str = Field(default="HS256")
@@ -39,3 +44,7 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+if settings.ENVIRONMENT.lower() == "production" and settings.JWT_SECRET == "super_secret_jwt_key_sih_2026_gem_procurement":
+    logger.warning("CRITICAL SECURITY WARNING: Default JWT_SECRET is active in PRODUCTION environment. Set JWT_SECRET in .env!")
+

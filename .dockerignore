@@ -1,0 +1,33 @@
+# Git & IDE files
+.git
+.gitignore
+.env
+.env.local
+
+# Python virtual environment & cache
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js dependencies & build outputs
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Uploads & local databases
+uploads/
+storage/uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# OS metadata
+.DS_Store
+Thumbs.db

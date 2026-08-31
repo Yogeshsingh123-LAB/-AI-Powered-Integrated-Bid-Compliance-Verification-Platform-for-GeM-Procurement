@@ -31,6 +31,8 @@ from app.api.multilingual import router as multilingual_router
 # pyrefly: ignore [missing-import]
 from app.api.blockchain_audit import router as blockchain_audit_router
 # pyrefly: ignore [missing-import]
+from app.api.mobile_officer import router as mobile_officer_router
+# pyrefly: ignore [missing-import]
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router, aadhaar_router
 
 app = FastAPI(
@@ -64,6 +66,7 @@ app.include_router(ws_monitoring_router, prefix="/api")
 app.include_router(ws_monitoring_router)
 app.include_router(multilingual_router, prefix="/api")
 app.include_router(blockchain_audit_router, prefix="/api")
+app.include_router(mobile_officer_router, prefix="/api")
 
 
 app.include_router(gst_router)

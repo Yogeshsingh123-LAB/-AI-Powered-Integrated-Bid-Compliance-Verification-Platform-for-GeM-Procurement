@@ -372,3 +372,81 @@ async def evaluate_bids_endpoint(
 
     report = evaluate_tender_bids(bids=bids, tender_value=tender_value, ra_rounds_history=ra_rounds)
     return report
+
+
+@router.post("/post-award/track-crac", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def track_crac_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "delivery_date": "2026-08-10T10:00:00Z",
+        "crac_upload_date": "2026-08-12T14:00:00Z",
+        "order_amount": 1000000.0
+    })
+):
+    """
+    Post-Award CRAC SLA Monitoring Endpoint:
+    Tracks Consignee Receipt and Acceptance Certificate (CRAC) issuance, 10-day payment SLA,
+    and calculates penal interest for overdue payments @ RBI Repo Rate + 1%.
+    """
+    from app.services.post_award import track_crac
+
+    delivery_date = payload.get("delivery_date", "2026-08-10T10:00:00Z")
+    crac_upload_date = payload.get("crac_upload_date", "2026-08-12T14:00:00Z")
+    order_amount = payload.get("order_amount")
+    if order_amount is not None:
+        order_amount = float(order_amount)
+
+    res = track_crac(delivery_date, crac_upload_date, order_amount=order_amount)
+    return {
+        "status": "success",
+        "crac_tracking": res
+    }
+
+
+@router.post("/post-award/simulate-pfms", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def simulate_pfms_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "bid_id": "GEM-BID-2026-99",
+        "amount": 1500000.0,
+        "vendor_gstin": "27AAACA12341Z5",
+        "vendor_bank_account": "998877665544",
+        "ifsc_code": "SBIN0001234"
+    })
+):
+    """
+    PFMS Government Treasury Payment Disbursement Simulation Endpoint:
+    Simulates Ministry of Finance PFMS e-P制度 Treasury API payment release and returns UTR transaction receipt.
+    """
+    from app.services.post_award import simulate_pfms_payment
+
+    bid_id = str(payload.get("bid_id", "GEM-BID-2026"))
+    amount = float(payload.get("amount", 100000.0))
+    vendor_gstin = payload.get("vendor_gstin")
+    vendor_bank_account = payload.get("vendor_bank_account")
+    ifsc_code = payload.get("ifsc_code")
+
+    res = simulate_pfms_payment(
+        bid_id=bid_id,
+        amount=amount,
+        vendor_gstin=vendor_gstin,
+        vendor_bank_account=vendor_bank_account,
+        ifsc_code=ifsc_code
+    )
+    return {
+        "status": "success",
+        "pfms_payment": res
+    }
+
+
+@router.get("/post-award/status/{bid_id}", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def get_post_award_status_endpoint(
+    bid_id: str,
+    amount: float = 1000000.0
+):
+    """
+    Complete Post-Award Lifecycle Tracking Endpoint for Procurement Officer Dashboard:
+    Returns 4-stage timeline: Contract Award -> Goods Delivery -> CRAC SLA -> PFMS Disbursement.
+    """
+    from app.services.post_award import get_post_award_lifecycle
+
+    report = get_post_award_lifecycle(bid_id=bid_id, order_amount=amount)
+    return report

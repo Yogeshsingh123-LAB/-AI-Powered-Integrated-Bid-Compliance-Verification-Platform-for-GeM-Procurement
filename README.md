@@ -4,14 +4,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-125%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
+[![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: 26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 
-An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, L1 price comparison ranking, Reverse Auction collusion monitoring, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
+An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, L1 price comparison ranking, Reverse Auction collusion monitoring, Post-Award CRAC 10-day payment SLA tracking & PFMS Treasury disbursement simulation, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
 
 ---
 
@@ -34,7 +34,7 @@ graph TD
     B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
     B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
     B -- "Neo4j / NetworkX" --> D["Cartel Relationship Graph Engine"]
-    B -- "External Integration" --> E["Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker"]
+    B -- "External Integration" --> E["Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT, DigiLocker & PFMS Treasury"]
     B -- "OCR & Multi-Lang Engine" --> F["Multi-Language Tesseract OCR & PDF Forgery/ELA Detector"]
     B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
     B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
@@ -47,6 +47,7 @@ graph TD
 
 | Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
+| **Post-Award & PFMS** | GeM 10-Day SLA & PFMS | Consignee Receipt and Acceptance Certificate (CRAC) 10-day payment SLA monitoring, penal interest calculation (@ 7.5% p.a.), and PFMS Treasury disbursement API simulation |
 | **L1 Ranking & RA Collusion** | GeM Financial Rule | Filters technical compliance (>=70%), ranks L1/L2/L3 by loaded price, monitors Reverse Auction (RA) shared IPs & synchronized bidding timestamps |
 | **DSC Validation** | Class 3 Digital Certificate | X.509 Digital Signature Certificate (Class 3 DSC) expiry, effective date, Certifying Authority (eMudhra, nCode, VSign, CDAC), and Bidder PAN linkage verification |
 | **e-EMD & e-PBG Validation** | GeM 3.0/4.0 Mandate | Electronic EMD (min 2% tender threshold) and Performance Bank Guarantee (min 3% threshold) verification against Scheduled Commercial Banks with digital signature checks |
@@ -94,7 +95,7 @@ When Groq web search is enabled, GeMmy can search the internet for time-sensitiv
 
 Example questions:
 - "What is the latest official GeM update?"
-- "Search the web for recent GeM procurement news."
+- "Search the web for recent GeM news."
 - "What are the current GeM guidelines?"
 
 Configure the feature through environment variables:
@@ -116,6 +117,9 @@ The FastAPI backend exposes modular RESTful endpoints and WebSocket channels:
 
 | Router Path | Description | Key Operations |
 |---|---|---|
+| `/api/post-award/track-crac` | CRAC SLA Payment Tracking | Monitors Consignee Receipt and Acceptance Certificate 10-day payment SLA |
+| `/api/post-award/simulate-pfms` | PFMS Treasury Simulation | Simulates Ministry of Finance PFMS Treasury payment release and returns UTR receipt |
+| `/api/post-award/status/{bid_id}` | Post-Award Lifecycle Status | Returns complete 4-stage lifecycle timeline for procurement officer dashboard |
 | `/api/evaluate` | L1 Ranking & RA Collusion Endpoint | Ranks compliant bids by lowest price (L1/L2/L3) and flags shared IP / timestamp collusion |
 | `/api/analyze/validate-dsc` | Class 3 DSC Validation | Verifies X.509 certificate expiry, CA issuer, and Bidder PAN linkage |
 | `/api/analyze/validate-emd` | e-EMD Digital Certificate Validation | Verifies EMD certificate, Scheduled Bank issuer, 2% threshold, & digital signature |

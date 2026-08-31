@@ -92,6 +92,36 @@ The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`sem
 
 ---
 
+## 💬 GeMmy AI Bid-Compliance Chatbot
+
+**GeMmy** is the platform’s built-in conversational assistant. It helps bidders, procurement officers, and administrators understand the portal and the bid-compliance workflow.
+
+### Key Capabilities
+
+- **Bid Submission Guidance**: Explains how to upload PDF bid documents and resolve common upload problems.
+- **Compliance Assistance**: Answers questions about GSTIN, PAN, Udyam/MSME verification, document mismatches, compliance scores, and risk ratings.
+- **Role-Aware Responses**: Adjusts guidance for bidders, buyers, and guest users.
+- **Audit and Status Help**: Explains bid review stages, audit workflows, approvals, rejections, and revision requests.
+- **Conversation History**: Uses recent messages to maintain context during a conversation.
+- **Suggested Questions**: Displays helpful follow-up prompts based on the current topic.
+- **Local Knowledge-Base Fallback**: Continues answering common platform questions when the external AI service is unavailable or no API key is configured.
+- **Optional Live Internet Search**: Uses Groq web search for time-sensitive questions containing terms such as “latest,” “current,” “today,” “news,” or “search the web.”
+- **Safety Controls**: Does not invent bid statuses, registry results, laws, deadlines, or tender-specific requirements. Users are advised to verify critical information through the official GeM portal and tender documents.
+
+### AI and Internet Search Configuration
+
+Add the following variables to `backend/.env`:
+
+```env
+AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_WEB_SEARCH_ENABLED=true
+GROQ_WEB_MODEL=groq/compound-mini
+```
+
+---
+
 ##  Default Test Credentials
 
 | Role | Username / Email | Password | Access Capabilities |

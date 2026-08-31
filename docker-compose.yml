@@ -37,6 +37,12 @@ services:
       - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80
       - UPLOAD_DIR=/app/uploads
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-groq}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=openai/gpt-oss-20b
+      - GROQ_WEB_SEARCH_ENABLED=true
+      - GROQ_WEB_MODEL=groq/compound-mini
+
     ports:
       - "8000:8000"
     volumes:

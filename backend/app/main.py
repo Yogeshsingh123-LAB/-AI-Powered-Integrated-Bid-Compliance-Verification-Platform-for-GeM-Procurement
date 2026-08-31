@@ -8,6 +8,12 @@ from app.api.users import router as users_router
 from app.api.documents import router as documents_router
 from app.api.chat import router as chat_router
 from app.api.analysis import router as analysis_router
+from app.api.audit import router as audit_router
+from app.api.digilocker import router as digilocker_router
+from app.api.tender_rules import router as tender_rules_router
+from app.api.cartel import router as cartel_router
+from app.api.override import router as override_router
+from app.api.websocket_monitoring import router as ws_monitoring_router
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router, aadhaar_router
 
 app = FastAPI(
@@ -32,6 +38,15 @@ app.include_router(users_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(analysis_router, prefix="/api")
+app.include_router(audit_router, prefix="/api")
+app.include_router(digilocker_router, prefix="/api/v1")
+app.include_router(tender_rules_router, prefix="/api")
+app.include_router(cartel_router, prefix="/api")
+app.include_router(override_router, prefix="/api")
+app.include_router(ws_monitoring_router, prefix="/api")
+app.include_router(ws_monitoring_router)
+
+
 app.include_router(gst_router)
 app.include_router(pan_router)
 app.include_router(udyam_router)

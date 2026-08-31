@@ -60,6 +60,12 @@
   box-shadow: 0 6px 18px rgba(49, 46, 129, 0.2);
 }
 
+.gemmy-brand-icon img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
 .gemmy-brand strong,
 .gemmy-brand span {
   display: block;
@@ -151,6 +157,12 @@
   background: linear-gradient(135deg, var(--gemmy-purple), #9b5de5);
   border-radius: 9px;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.22);
+}
+
+.gemmy-avatar img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
 }
 
 .gemmy-message {
@@ -326,6 +338,13 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.gemmy-launcher-icon {
+  width: 29px;
+  height: 29px;
+  margin-left: -5px;
+  object-fit: contain;
 }
 
 .gemmy-launcher:hover,

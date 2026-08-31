@@ -1,7 +1,9 @@
 import uuid
 from datetime import timedelta
 from typing import Any, Dict
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -114,11 +116,12 @@ def logout(request: Request, current_user: User = Depends(get_current_user), db:
 @router.post("/seed", status_code=status.HTTP_200_OK)
 def seed_dev_data(db: Session = Depends(get_db)):
     """Seed the database with development mock users, tender, requirement, and bid."""
-    if getattr(settings, "ENVIRONMENT", "development") == "production" and not getattr(settings, "ALLOW_SEED", False):
+    if settings.ENVIRONMENT.lower() == "production" and not getattr(settings, "ALLOW_SEED", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Database seeding is disabled in production environment."
         )
+
     # Seed Users
     users_data = [
         {"email": "bidder@example.com", "role": "BIDDER", "full_name": "Mock Bidder Company", "password": "BidderPassword123"},

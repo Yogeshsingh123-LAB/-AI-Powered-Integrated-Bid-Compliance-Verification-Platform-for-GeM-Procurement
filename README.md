@@ -1,96 +1,146 @@
 # AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement
 
 **Problem Statement ID**: 26100  
-This repository contains both the **Frontend** and **Backend** components of the GeM Bid Compliance Platform structured as a clean mono-repo.
+**Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
+**Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
+
+
+An end-to-end AI-powered verification, Semantic NLP RFP clause comparator, document forgery detection, statutory cross verification, collusion detection, and immutable blockchain audit trail solution built for GeM procurement.
 
 ---
 
-## 1. Directory Structure
+## 🎯 Pitch Deck, Demo Video & Presentation Assets
 
+- 📄 **Official 12-Slide Pitch Deck**: [`docs/PITCH_DECK.md`](docs/PITCH_DECK.md)
+- 🎬 **Presenter Walkthrough & Demo Guide**: [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
+- ⚡ **Locust Load Test Suite**: [`backend/tests/load_test_locust.py`](backend/tests/load_test_locust.py)
+- 🌐 **Live Demo Portal**: *[Deployable on Render / Railway - See setup guide in DEMO_GUIDE.md]*
+
+---
+
+## 📑 GeM Real Tender Compliance Matrix & Domain Alignment
+
+| GeM Tender Clause / Requirement | Rule / Standard | Platform AI Implementation |
+|---|---|---|
+| **Statutory Identifiers** | GSTIN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
+| **Land Border Country Restriction** | GFR Rule 144(xi) | RFP-06 Clause Matching + Mandatory Competent Authority Declaration Check |
+| **MSME EMD Exemption** | GeM Procurement Guidelines | Category-Aware Filter: Valid for Manufacturers/Services, Excludes Traders |
+| **Startup Exemption Path** | DPIIT Recognition | RFP-08 Dedicated Turnover & Prior Experience Relaxation Path |
+| **EMD / PBG Guarantee** | Tender Security Deposit | RFP-07 Verification of Payment Proof, Demand Draft, or Exemption Certificate |
+| **Entity Integrity** | Tax & Procurement Registries | Cross-Registry Name Alignment & Blacklist Status Verification |
+
+---
+
+## 🔒 Sandbox Integration Transparency
+
+> [!NOTE]
+> **API Sandbox Mocks**: All government API integrations (CBIC GSTN, Income Tax PAN, Udyam Registration, UIDAI e-KYC) operate against realistic microservice sandbox mocks located in `backend/app/mock_apis/`. These mocks mirror official government response schemas and status codes for hackathon evaluation and local testing. Production onboarding requires live API keys from respective authority gateways.
+
+---
+
+## 🚀 Quickstart: 1-Command Docker Setup
+
+For instant evaluation, spin up PostgreSQL, the FastAPI Backend, and Nginx Static Frontend using **Docker Compose**:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Yogeshsingh123-LAB/-AI-Powered-Integrated-Bid-Compliance-Verification-Platform-for-GeM-Procurement.git
+cd gem-bid-compliance
+
+# 2. Copy environment template
+cp .env.example .env
+
+# 3. Launch all services via Docker Compose
+docker-compose up --build
 ```
-SIH_TRAILS/
-├── frontend/               # React / Vite SPA Client
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-├── backend/                # FastAPI / SQLAlchemy 2.x API Server
-│   ├── app/
-│   │   ├── ai_engine/      # OCR pipeline (PyMuPDF, Tesseract, OpenCV) + Forgery Detector (editing signatures, font clutter, mod-dates, patch overlays)
-│   │   ├── mock_apis/      # Mock Govt Portals (GSTIN, PAN, Udyam, Blacklist) + GSTN v2.0 HMAC-SHA256 & UIDAI e-KYC Sandbox Gateways
-│   │   ├── scoring/        # Compliance Scorer, Procurement Fraud & Multi-Bidder Collusion Detector, Risk Classifier
-│   │   └── api/            # API Router endpoints (Auth, Users, Documents, Analysis)
-│   │   
-│   ├── scenarios/          # Pre-built realistic PDF bid scenarios for testing
-│   ├── tests/              # Pytest automated test suites (OCR, APIs, Scoring, Forgery & Fraud)
-│   ├── requirements.txt
-│   └── .env.example
-├── docs/                   # Integration blueprints (GEM_GSTN_SANDBOX_INTEGRATION.md)
-├── brain.md                # System Architecture & API Blueprint
-└── README.md               # Main instructions (this file)
 ```
 
----
-
-## 2. Operation Instructions
-
-### A. Frontend (React Client)
-To launch the frontend interface:
-1. Navigate to the `frontend/` folder:
-   ```bash
-   cd frontend
-   ```
-2. Install client dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The client will be running at: http://localhost:5173/ or http://localhost:5174/*
+- **Frontend Client**: [http://localhost:3000](http://localhost:3000)
+- **Backend API Docs (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **PostgreSQL Database**: Port `5432` (`bid_compliance_db`)
 
 ---
 
-### B. Backend (FastAPI Server)
-To launch the backend API:
-1. Navigate to the `backend/` folder:
+##  Local Development Setup
+
+### A. Backend (FastAPI + Python 3.11)
+
+1. Navigate to backend directory:
    ```bash
    cd backend
    ```
-2. Create and activate a python virtual environment:
+2. Create and activate Python virtual environment:
    ```bash
    python -m venv venv
-   # On Windows:
+   # On Windows PowerShell:
    .\venv\Scripts\activate
-   # On macOS/Linux:
+   # On Linux/macOS:
    source venv/bin/activate
    ```
-3. Install packages:
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Generate the mock database JSON records (uses Faker to generate 50+ linked registry records):
+4. Generate mock database records & synthetic test scenarios:
    ```bash
    python generate_mock_data.py
-   ```
-5. Generate sample scenario PDFs:
-   ```bash
    python generate_sample_pdfs.py
    ```
-6. Start the FastAPI application via Uvicorn:
+5. Launch FastAPI development server:
    ```bash
    uvicorn app.main:app --reload --port 8000
    ```
-   *The Swagger interactive API docs will be at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)*
+   *Swagger Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)*
 
 ---
 
-## 3. GeMmy Chat Assistant
+### B. Frontend (React + Vite + Tailwind/Vanilla CSS)
 
-The frontend includes a floating **Ask GeMmy** assistant on the login and dashboard screens. It answers questions about portal navigation, PDF/image uploads, GSTIN/PAN/Udyam checks, compliance scoring, risk levels, bid status, and the buyer audit workflow.
+1. Navigate to frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install Node dependencies:
+   ```bash
+   npm install
+   ```
+3. Start Vite dev server:
+   ```bash
+   npm run dev
+   ```
+   *Frontend Client: [http://localhost:5173](http://localhost:5173)*
 
-The assistant calls `POST /api/chat` on the FastAPI backend on port 8000 and works without an external service through its built-in platform knowledge base. To enable Groq-generated answers, copy `backend/.env.example` to `backend/.env` and configure:
+---
+
+##  Semantic NLP RFP Clause Comparator
+
+The platform includes a dedicated **Semantic / NLP RFP Clause Comparator** (`semantic_analyzer.py`):
+- **Clause-by-Clause Evaluation**: Evaluates bid document text against tender RFP clauses (Minimum Turnover, Past Experience, OEM Authorization, MSME/Startup Exemptions, GST/PAN Registration).
+- **Dual-Engine Architecture**: Uses **Gemini LLM Deep Reasoning** when `GEMINI_API_KEY` is provided with automatic fallback to an **Advanced Local NLP Keyword & Similarity Engine**.
+- **Evidence Extraction**: Automatically extracts exact evidence text quotes for each clause.
+- **Dedicated Endpoint**: `POST /api/analyze/semantic-comparator`
+
+---
+
+## 💬 GeMmy AI Bid-Compliance Chatbot
+
+**GeMmy** is the platform’s built-in conversational assistant. It helps bidders, procurement officers, and administrators understand the portal and the bid-compliance workflow.
+
+### Key Capabilities
+
+- **Bid Submission Guidance**: Explains how to upload PDF bid documents and resolve common upload problems.
+- **Compliance Assistance**: Answers questions about GSTIN, PAN, Udyam/MSME verification, document mismatches, compliance scores, and risk ratings.
+- **Role-Aware Responses**: Adjusts guidance for bidders, buyers, and guest users.
+- **Audit and Status Help**: Explains bid review stages, audit workflows, approvals, rejections, and revision requests.
+- **Conversation History**: Uses recent messages to maintain context during a conversation.
+- **Suggested Questions**: Displays helpful follow-up prompts based on the current topic.
+- **Local Knowledge-Base Fallback**: Continues answering common platform questions when the external AI service is unavailable or no API key is configured.
+- **Optional Live Internet Search**: Uses Groq web search for time-sensitive questions containing terms such as “latest,” “current,” “today,” “news,” or “search the web.”
+- **Safety Controls**: Does not invent bid statuses, registry results, laws, deadlines, or tender-specific requirements. Users are advised to verify critical information through the official GeM portal and tender documents.
+
+### AI and Internet Search Configuration
+
+Add the following variables to `backend/.env`:
 
 ```env
 AI_PROVIDER=groq
@@ -100,49 +150,75 @@ GROQ_WEB_SEARCH_ENABLED=true
 GROQ_WEB_MODEL=groq/compound-mini
 ```
 
-The frontend reads `VITE_API_URL` and defaults to `http://127.0.0.1:8000` for chat requests.
+---
+
+##  Default Test Credentials
+
+| Role | Username / Email | Password | Access Capabilities |
+| :--- | :--- | :--- | :--- |
+| **Bidder Entity** | `bidder@techgov.in` | `Bidder@123` | Submit bid documents, view score report & profile |
+| **Procurement Officer** | `officer@gem.gov.in` | `Officer@123` | Evaluate bids, inspect forgery flags & collusion matrix |
+| **Platform Administrator** | `admin@gem.gov.in` | `Admin@123` | Audit trail verification & system rule configuration |
 
 ---
 
-## 4. Core Verification & Security Architecture
+## 📁 Directory Structure
 
-1. **AI PDF Forgery & Structural Tampering Engine**: Inspects document structure, text layers, and embedded metadata (`backend/app/ai_engine/forgery_detector.py`). Detects unauthorized editing software fingerprints (Photoshop, Canva, GIMP, MS Word, Foxit, Sejda, etc.), creation vs. modification timestamp discrepancies indicating post-issuance tampering, font diversity clutter (>6 fonts per single-page certificate), image patch overlays on text layers, and verifies PKCS#7 digital signature markers.
-2. **CBIC GSTN v2.0 & UIDAI Sandbox Gateways**: Production gateway implementation (`backend/app/mock_apis/sandbox_gateway.py`) for CBIC GSTN Public API v2.0 featuring HMAC-SHA256 request signing (`X-HMAC-Signature`), OAuth2 token rotation with cached tokens, 2.0-second timeout retry, and seamless fail-soft fallback to structured offline mock schemas. Includes UIDAI e-KYC Sandbox integration enforcing strict Aadhaar privacy via salted SHA-256 hash checks.
-3. **Cross-Bidder Collusion & Procurement Fraud Engine**: Cross-references database extractions across competing bids in a tender (`backend/app/scoring/fraud_detector.py`) to detect multi-bidder GSTIN/PAN/Udyam reuse under distinct bidder aliases (identifying shell company networks and bid rigging). Computes fuzzy Levenshtein similarity ratios between submitted bidder titles, GSTIN legal names, and Income Tax PAN records (<60% legal name mismatch penalty, <50% submitted vs registered name mismatch).
-4. **Weighted Compliance Scoring Engine**: Evaluates bid compliance across 3 tiers (Presence: 30%, Verification: 40%, Registry Integrity: 30%), applies strict penalties for missing primary mandatory IDs (GSTIN/PAN, -15 pts), deducts points for blacklisted status (-30 pts, sets integrity to 0), subtracts AI forgery tampering penalties (up to 30 pts) and multi-bidder collusion/fraud penalties (up to 30 pts), classifying bids into `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` risk tiers.
-5. **BidVerify Role-Based Access Controls (RBAC)**: Enforces clear separation between Bidder / Supplier Terminal and Administrative Audit Console. Enforces JWT token validation and role clearance checks to prevent unauthorized access to buyer audit queues or admin portal controls.
-6. **Brand Identity & Logo Visual Polish**: Integrates high-definition transparent logo assets (`/public/logo.png`, `logo_icon.png`) with ambient drop-shadow styling across the Login card overlay, Bidder Portal header, and Administrative Console.
-7. **Cryptographic Audit Chain**: Uses SHA-256 block hashing to chain every audit log entry to the previous record (`blockchain_hash`), establishing an immutable audit log.
-8. **Unified REST API Endpoint `/api/analyze` & Codebase Cleanup**: Single POST endpoint processing uploaded bid documents (PDF, JPG, PNG up to 10 MB) through text parsing, AI forgery inspection, registry verification lookups, cross-bidder fraud detection, scoring, and cryptographic audit logging. Codebase is clean, optimized, and fully covered by 43 automated pytest integration tests.
-
----
-
-## 5. Running Verification Test Suites
-
-Automated verification test suites are located in the `backend/` directory. Run them with the virtual environment active:
-
-```bash
-# Run pytest test suite
-pytest
+```
+gem-bid-compliance/
+├── .env.example            # Environment variables template
+├── docker-compose.yml      # Multi-container orchestration (DB + Backend + Frontend)
+├── README.md               # Project documentation & setup instructions
+├── brain.md                # System Architecture & Technical Blueprint
+├── frontend/               # React SPA Client
+│   ├── Dockerfile          # Nginx static deployment build
+│   ├── src/
+│   │   ├── components/     # UI components (Chatbot, DocumentUpload, ScoreCard, CartelDetectionGraph, LiveBidMonitoring, ExplainableOfficerOverride, TenderRuleBuilder)
+│   │   ├── pages/          # Home, Login, Admin, Officer pages
+│   │   └── services/       # API services & mock profile fallback
+│   └── package.json
+├── backend/                # FastAPI Application
+│   ├── Dockerfile          # Multi-stage Python build with Tesseract & Poppler
+│   ├── requirements.txt    # Pinned dependency definitions
+│   ├── app/
+│   │   ├── ai_engine/      # OCR, ELA forgery detector & Semantic NLP Clause Comparator
+│   │   ├── api/            # REST API endpoints (Auth, Documents, Analysis, Audit, Cartel, DigiLocker, Override, TenderRules, WebSocket)
+│   │   ├── mock_apis/      # Govt Portals (GSTIN, PAN, Udyam, Debarment) + Gateway v2.0
+│   │   ├── models/         # SQLAlchemy DB models (User, Bid, AuditLog, OfficerAnnotation)
+│   │   ├── scoring/        # Compliance Scorer, Fraud & Cartel Detector
+│   │   └── services/       # Document processing, AI extraction, Alert, Cartel Graph, DigiLocker, Explainable AI Engine
+│   ├── scenarios/          # 5 realistic synthetic scenario PDFs + README documentation
+│   └── tests/              # Pytest automated test suite
+└── docs/                   # Integration blueprints, pitch deck, and demo guides
 ```
 
-Individual test scripts:
-1. **AI OCR Pipeline Test**: `python run_ai_engine_test.py`
-2. **Mock APIs Registry Test**: `python run_mock_apis_test.py`
-3. **Scoring & Risk Engine Test**: `python run_scoring_test.py`
-4. **Forgery & Fraud Detection Test**: `pytest backend/tests/test_forgery_and_fraud.py`
-5. **Final Analysis REST Integration Test**: `python run_final_integration_test.py`
+---
+
+## 🔒 Immutable Blockchain Audit Verification API
+
+All security-sensitive operations (bid submissions, document uploads, score calculations, status changes) log an entry into the `audit_logs` database table. Each entry calculates a cryptographic **SHA-256 hash** chained to the preceding log record.
+
+- `GET /api/audit/logs` — List system audit trail entries (filterable by `bid_id`)
+- `GET /api/audit/verify/{log_id}` — Verify individual log record integrity against payload
+- `GET /api/audit/bids/{bid_id}/verify` — Cryptographically verify complete audit chain for a bid
 
 ---
 
-## 6. Performance Metrics
-- **Average Document Processing Time**: `< 5 seconds` (including PDF text parsing, image preprocessing/binarization, fallback image OCR, forgery ELA/metadata analysis, and registry verification).
-- **Registry Lookup Latency**: `< 2.0 seconds` per API query (with zero-latency offline fallback mechanism).
+## 🧪 Testing & Validation
 
----
+Run backend unit, integration, and performance load test suites:
 
-## 7. Platform Capability Overview
+```bash
+cd backend
 
+# 1. Run full pytest suite
+python -m pytest
+
+# 2. Run Locust load test (50 concurrent users benchmark)
+locust -f tests/load_test_locust.py --headless -u 50 -r 10 --run-time 1m --host http://localhost:8000
+```
+
+<<<<<<< HEAD
 | Aspect | Implementation Summary |
 |--------|------------------------|
 | **Architecture** | Monorepo structure, FastAPI backend engine, React Vite SPA frontend |
@@ -156,3 +232,5 @@ Individual test scripts:
 | **Codebase & Testing** | Optimized clean codebase, 43 automated pytest test suites passing, 4 runner scripts, 5 sample PDF scenario documents |
 
 
+=======
+>>>>>>> 98cbb9c7d3c1d4da398989fb96c4b58788d2cdb9

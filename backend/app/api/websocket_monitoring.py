@@ -12,9 +12,9 @@ from app.scoring.compliance_scorer import ComplianceScorer
 router = APIRouter(prefix="/v1/monitoring", tags=["Real-Time Bid Monitoring & WebSockets"])
 
 class SimulateBidRequest(BaseModel):
-    tender_id: str = Field(default="TENDER-DEMO-01", example="TENDER-DEMO-01")
-    bidder_name: str = Field(default="Apex Infra Solution Ltd", example="Apex Infra Solution Ltd")
-    score: int = Field(default=45, example=45) # Set low score to demonstrate non-compliant alert
+    tender_id: str = Field(default="TENDER-DEMO-01", json_schema_extra={"example": "TENDER-DEMO-01"})
+    bidder_name: str = Field(default="Apex Infra Solution Ltd", json_schema_extra={"example": "Apex Infra Solution Ltd"})
+    score: int = Field(default=45, json_schema_extra={"example": 45}) # Set low score to demonstrate non-compliant alert
     include_forgery_alert: bool = Field(default=False)
     include_cartel_alert: bool = Field(default=False)
 

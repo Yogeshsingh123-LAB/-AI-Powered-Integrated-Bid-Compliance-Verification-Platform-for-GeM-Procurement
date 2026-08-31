@@ -19,15 +19,15 @@ from app.scoring.compliance_scorer import ComplianceScorer
 router = APIRouter(prefix="/v1/override", tags=["Explainable AI & Officer Override Engine"])
 
 class OfficerDecisionRequest(BaseModel):
-    bid_id: str = Field(..., example="123e4567-e89b-12d3-a456-426614174000")
-    officer_status: str = Field(..., example="Approved with Deviation") # "Approved", "Rejected", "Approved with Deviation"
-    deviation_category: Optional[str] = Field(default="Minor Administrative", example="Minor Administrative")
-    justification: str = Field(..., min_length=10, example="Approved under GFR Rule 173 due to minor formatting variation.")
+    bid_id: str = Field(..., json_schema_extra={"example": "123e4567-e89b-12d3-a456-426614174000"})
+    officer_status: str = Field(..., json_schema_extra={"example": "Approved with Deviation"}) # "Approved", "Rejected", "Approved with Deviation"
+    deviation_category: Optional[str] = Field(default="Minor Administrative", json_schema_extra={"example": "Minor Administrative"})
+    justification: str = Field(..., min_length=10, json_schema_extra={"example": "Approved under GFR Rule 173 due to minor formatting variation."})
 
 class AnnotationRequest(BaseModel):
     bid_id: str
-    target_component: str = Field(..., example="GSTIN")
-    comment_text: str = Field(..., min_length=2, example="Verified manual tax payment receipt attached.")
+    target_component: str = Field(..., json_schema_extra={"example": "GSTIN"})
+    comment_text: str = Field(..., min_length=2, json_schema_extra={"example": "Verified manual tax payment receipt attached."})
     is_internal: bool = Field(default=True)
 
 @router.get("/explainable/{bid_id}", response_model=Dict[str, Any])

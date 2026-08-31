@@ -15,9 +15,9 @@ from app.services.blockchain_audit_service import blockchain_ledger, MerkleTree
 router = APIRouter(prefix="/v1/blockchain", tags=["Blockchain & Merkle Audit Trail Engine"])
 
 class VerifyProofRequest(BaseModel):
-    target_hash: str = Field(..., min_length=10, example="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
-    proof: List[Dict[str, str]] = Field(..., example=[{"sibling_hash": "a1b2c3...", "direction": "right"}])
-    merkle_root: str = Field(..., example="f85c1e...")
+    target_hash: str = Field(..., min_length=10, json_schema_extra={"example": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"})
+    proof: List[Dict[str, str]] = Field(..., json_schema_extra={"example": [{"sibling_hash": "a1b2c3...", "direction": "right"}]})
+    merkle_root: str = Field(..., json_schema_extra={"example": "f85c1e..."})
 
 @router.get("/chain", response_model=Dict[str, Any])
 def get_blockchain_ledger():

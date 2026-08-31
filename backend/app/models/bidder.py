@@ -3,6 +3,7 @@ Bidder Model for GeM Procurement
 Supports domestic (Indian) and international (Global Tender Enquiry - GTE) bidders.
 """
 from typing import Optional
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 
 

@@ -204,6 +204,16 @@ All security-sensitive operations (bid submissions, document uploads, score calc
 
 ---
 
+## 🛡️ Blacklisted & Debarred Bidders Governance Console
+
+The platform provides an Admin-exclusive **Blacklisted & Debarred Bidders Registry** (`BlacklistedBiddersView`):
+- **Vigilance & Debarment Management**: Central registry for debarred suppliers with CVC (Central Vigilance Commission) order tracking, statutory identifiers (PAN/GSTIN), violation categories, and debarment terms.
+- **Investigation Dossiers**: Interactive modal exposing investigation evidence, vigilance notes, and cryptographic SHA-256 audit hashes for each blacklisted entity.
+- **Security Authorization Workflows**: Enforces mandatory Admin Security Authorization Password verification for sensitive administrative actions (Blacklist Entity Creation, Debarment Revocation, Tender Status Mutations).
+- **Export Capabilities**: One-click PDF generation of official debarment compliance registries.
+
+---
+
 ## 🧪 Testing & Validation
 
 Run backend unit, integration, and performance load test suites:
@@ -218,19 +228,20 @@ python -m pytest
 locust -f tests/load_test_locust.py --headless -u 50 -r 10 --run-time 1m --host http://localhost:8000
 ```
 
-<<<<<<< HEAD
+---
+
+## 📊 Technical Capabilities Summary
+
 | Aspect | Implementation Summary |
 |--------|------------------------|
 | **Architecture** | Monorepo structure, FastAPI backend engine, React Vite SPA frontend |
 | **Branding & Logos** | Transparent logo assets (`/logo.png`), studio-grade dark/light themes, ambient drop shadows |
-| **Platform Access Controls** | Role-Based Access Control (RBAC) separating Bidder Portal & Administrative Audit Console |
+| **Platform Access Controls** | Role-Based Access Control (RBAC) separating Bidder Portal, Procurement Audit Queue & Admin Governance Console |
+| **Blacklist & Debarment System** | Sovereign Governance Console for blacklisted entity management, CVC order tracking, investigation dossiers & security password authorization |
 | **AI/ML & Forgery Engine** | PyMuPDF + Tesseract OCR + OpenCV preprocessors + spaCy NER + Forgery Detector (editing tool fingerprints, mod-date mismatch, font clutter, patch overlays, digital sigs) |
 | **Sandbox & Mock Gateways** | CBIC GSTN v2.0 HMAC Sandbox Gateway, UIDAI e-KYC Sandbox, PAN, Udyam MSME, Blacklist REST lookups with zero-downtime offline fallback |
 | **Fraud & Collusion Engine** | Database cross-matching of GSTIN/PAN reuse across competing bidders, fuzzy Levenshtein name alignment, shell company network detection |
 | **Scoring Engine** | 3-tier weighted scoring (30% Presence, 40% Verification, 30% Integrity), mandatory ID missing penalties, forgery & collusion risk deductions |
-| **Security & Auditing** | SHA-256 cryptographic hash chain audit logs, timing attack defense, 10MB limit, regex filename sanitization |
-| **Codebase & Testing** | Optimized clean codebase, 43 automated pytest test suites passing, 4 runner scripts, 5 sample PDF scenario documents |
+| **Security & Auditing** | SHA-256 cryptographic hash chain audit logs, timing attack defense, password authorization locks, 10MB payload limit, regex filename sanitization |
+| **Codebase & Testing** | Optimized clean codebase, automated pytest test suites passing, 4 runner scripts, 5 sample PDF scenario documents |
 
-
-=======
->>>>>>> 98cbb9c7d3c1d4da398989fb96c4b58788d2cdb9

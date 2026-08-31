@@ -164,6 +164,131 @@ const INITIAL_BIDDERS_LIST = [
   { id: 6, name: "Vanguard Systems Ltd", tender: "GEM-CPCL-002", documents: "7/10", compliance: 40, risk: "High", verification: "Issues" }
 ];
 
+const INITIAL_BLACKLISTED_BIDDERS = [
+  {
+    id: "BLK-2026-001",
+    name: "Vanguard Systems Ltd",
+    pan: "AABCV9876K",
+    gstin: "27AABCV9876K1Z9",
+    type: "Public Limited",
+    reason: "Forged Solvency Certificate & Registry Name Mismatch",
+    violationCategory: "Document Forgery & Fraud",
+    debarmentOrderNo: "CVC/DEBAR/2025/089",
+    authority: "Central Vigilance Commission (CVC)",
+    startDate: "10 Jan 2025",
+    endDate: "10 Jan 2028",
+    duration: "3 Years",
+    severity: "CRITICAL",
+    status: "Active Debarment",
+    statusBg: "#fef2f2",
+    statusColor: "#dc2626",
+    contactEmail: "legal@vanguardsystems.in",
+    contactPhone: "+91 98230 11223",
+    investigationHash: "0x89F2A90CDE11234598001122AA3344FF",
+    notes: "Detected during automated OCR cross-verification. Solvency certificate issued under non-existent branch code with forged bank stamp."
+  },
+  {
+    id: "BLK-2026-002",
+    name: "Delta Infra Tech Solutions",
+    pan: "AACCD5432P",
+    gstin: "24AACCD5432P1Z2",
+    type: "Private Limited",
+    reason: "Cartel Formation & Collusive Bidding in CPCL Tender #004",
+    violationCategory: "Cartelization & Collusion",
+    debarmentOrderNo: "GeM/DISC/2025/104",
+    authority: "GeM Disciplinary Board",
+    startDate: "15 Mar 2025",
+    endDate: "15 Mar 2030",
+    duration: "5 Years",
+    severity: "CRITICAL",
+    status: "Active Debarment",
+    statusBg: "#fef2f2",
+    statusColor: "#dc2626",
+    contactEmail: "compliance@deltainfra.com",
+    contactPhone: "+91 97123 44556",
+    investigationHash: "0x77E11029BC44556677889900AABBCCDD",
+    notes: "IP log matching & identical bank guarantee metadata submitted across 3 ostensibly competing bidders."
+  },
+  {
+    id: "BLK-2026-003",
+    name: "Apex Global Supplies LLP",
+    pan: "ABFFA9988R",
+    gstin: "07ABFFA9988R1Z1",
+    type: "LLP",
+    reason: "Default on EMD Commitment & Repeated Order Cancellation",
+    violationCategory: "Financial & EMD Default",
+    debarmentOrderNo: "MoPNG/DIR/2024/442",
+    authority: "Ministry of Petroleum & Natural Gas",
+    startDate: "01 Aug 2024",
+    endDate: "01 Aug 2026",
+    duration: "2 Years",
+    severity: "HIGH",
+    status: "Active Debarment",
+    statusBg: "#fff7ed",
+    statusColor: "#c2410c",
+    contactEmail: "info@apexsupplies.llp",
+    contactPhone: "+91 99001 88776",
+    investigationHash: "0x11223344556677889900AABBCCDDEEFF",
+    notes: "Refused contract execution after L1 selection without legitimate force majeure justification."
+  },
+  {
+    id: "BLK-2026-004",
+    name: "Standard Logistics & Freight Co.",
+    pan: "AAACS7766M",
+    gstin: "27AAACS7766M1Z8",
+    type: "Partnership",
+    reason: "Fake MSME Udyam Certificate Submission",
+    violationCategory: "Misrepresentation",
+    debarmentOrderNo: "MSME/VIG/2025/012",
+    authority: "Ministry of MSME Audit Cell",
+    startDate: "12 Dec 2024",
+    endDate: "12 Dec 2027",
+    duration: "3 Years",
+    severity: "HIGH",
+    status: "Active Debarment",
+    statusBg: "#fff7ed",
+    statusColor: "#c2410c",
+    contactEmail: "admin@standardfreight.co.in",
+    contactPhone: "+91 98450 66778",
+    investigationHash: "0x55667788990011223344AABBCCDDEEFF",
+    notes: "Udyam registration number belonged to an unrelated textile unit in Tamil Nadu."
+  },
+  {
+    id: "BLK-2026-005",
+    name: "Zenith Electronics & Power Solutions",
+    pan: "AABCZ1122E",
+    gstin: "19AABCZ1122E1Z3",
+    type: "Private Limited",
+    reason: "CVC Integrity Pact Breach & False Declaration",
+    violationCategory: "Integrity Pact Violation",
+    debarmentOrderNo: "CVC/DEBAR/2023/901",
+    authority: "Central Vigilance Commission (CVC)",
+    startDate: "05 May 2023",
+    endDate: "05 May 2028",
+    duration: "5 Years",
+    severity: "CRITICAL",
+    status: "Active Debarment",
+    statusBg: "#fef2f2",
+    statusColor: "#dc2626",
+    contactEmail: "contact@zenithelectronics.com",
+    contactPhone: "+91 91234 56789",
+    investigationHash: "0x9900AABBCCDDEEFF1122334455667788",
+    notes: "Hidden sub-contracting to a banned subsidiary company."
+  }
+];
+
+const INITIAL_TENDERS_DATA = [
+  { id: "CPCL/2026/001", title: "Industrial Equipment Supply", category: "Equipment", department: "Projects", publishedDate: "08 May 2026", closingDate: "30 May 2026", daysLeft: "2 days left", bidders: 12, pending: 5, status: "Active" },
+  { id: "CPCL/2026/002", title: "Pipeline Components", category: "Infrastructure", department: "Projects", publishedDate: "06 May 2026", closingDate: "02 Jun 2026", daysLeft: "5 days left", bidders: 18, pending: 3, status: "Active" },
+  { id: "CPCL/2026/003", title: "Electrical Materials Supply", category: "Electrical", department: "Engineering", publishedDate: "05 May 2026", closingDate: "10 Jun 2026", daysLeft: "7 days left", bidders: 9, pending: 2, status: "Active" },
+  { id: "CPCL/2026/004", title: "Maintenance Services", category: "Services", department: "Operations", publishedDate: "01 May 2026", closingDate: "15 Jun 2026", daysLeft: "18 days left", bidders: 7, pending: 1, status: "Active" },
+  { id: "CPCL/2026/005", title: "Safety Equipment Supply", category: "Safety", department: "Operations", publishedDate: "30 Apr 2026", closingDate: "20 Jun 2026", daysLeft: "23 days left", bidders: 11, pending: 2, status: "Active" },
+  { id: "CPCL/2026/006", title: "Office Furniture Supply", category: "General", department: "Admin", publishedDate: "20 Apr 2026", closingDate: "25 Apr 2026", daysLeft: null, bidders: 6, pending: 0, status: "Closed" },
+  { id: "CPCL/2026/007", title: "Civil Construction Works", category: "Works", department: "Projects", publishedDate: "10 Apr 2026", closingDate: "18 Apr 2026", daysLeft: null, bidders: 15, pending: 0, status: "Closed" },
+  { id: "CPCL/2026/008", title: "Canteen Services", category: "Services", department: "Admin", publishedDate: "05 Apr 2026", closingDate: "12 Apr 2026", daysLeft: null, bidders: 5, pending: 0, status: "Cancelled" },
+];
+
+
 
 function SectionPlaceholder({ title, description, rows }) {
   return (
@@ -223,6 +348,86 @@ function Home({ role, user, onLogout }) {
   const [selectedVerificationBidder, setSelectedVerificationBidder] = useState(null);
   const [decidedBids, setDecidedBids] = useState({});
 
+  const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
+  const [editingTenderModalItem, setEditingTenderModalItem] = useState(null);
+  const [activeTenderMenuId, setActiveTenderMenuId] = useState(null);
+
+  // Security Authorization Modal State for Tender Operations
+  const [pendingTenderAction, setPendingTenderAction] = useState(null);
+  const [actionPasswordInput, setActionPasswordInput] = useState("");
+  const [actionPasswordError, setActionPasswordError] = useState("");
+
+  const verifyAndExecuteTenderAction = (e) => {
+    if (e) e.preventDefault();
+    if (!pendingTenderAction) return;
+
+    const inputPass = actionPasswordInput.trim();
+    if (!inputPass) {
+      setActionPasswordError("Password is required to authorize this tender operation.");
+      return;
+    }
+
+    const currentRoleUpper = (role || user?.role || "").toUpperCase();
+    const isUserAdmin = isAdmin || currentRoleUpper.includes("ADMIN");
+
+    if (isUserAdmin) {
+      // ADMIN Context: Only Admin Password works
+      if (inputPass === "officer123" || inputPass === "officer") {
+        setActionPasswordError("❌ Access Denied: Procurement Officer passwords are invalid on the Admin page. Please enter your Admin Password.");
+        return;
+      }
+      const validAdminPass = user?.password || "admin123";
+      if (inputPass !== validAdminPass && inputPass !== "admin123") {
+        setActionPasswordError("❌ Invalid Admin Password! Please try again.");
+        return;
+      }
+    } else {
+      // PROCUREMENT OFFICER Context: Only Officer Password works
+      if (inputPass === "admin123" || inputPass === "admin") {
+        setActionPasswordError("❌ Access Denied: Admin passwords are invalid on the Procurement Officer page. Please enter your Officer Password.");
+        return;
+      }
+      const validOfficerPass = user?.password || "officer123";
+      if (inputPass !== validOfficerPass && inputPass !== "officer123" && inputPass !== "officer") {
+        setActionPasswordError("❌ Invalid Procurement Officer Password! Please try again.");
+        return;
+      }
+    }
+
+    // Authorized! Execute action
+    const { type, payload } = pendingTenderAction;
+    if (type === "CREATE") {
+      setTendersList(prev => [payload.newTenderObj, ...prev]);
+      if (payload.onSuccess) payload.onSuccess();
+    } else if (type === "EDIT") {
+      setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
+      setEditingTenderModalItem(null);
+    } else if (type === "STATUS") {
+      setTendersList(prev => prev.map(t => t.id === payload.tenderId ? {
+        ...t,
+        status: payload.newStatus,
+        daysLeft: payload.newStatus === "Active" ? (t.daysLeft || "7 days left") : null
+      } : t));
+      setActiveTenderMenuId(null);
+    } else if (type === "DELETE") {
+      setTendersList(prev => prev.filter(t => t.id !== payload.tenderId));
+      setActiveTenderMenuId(null);
+    }
+
+    // Reset password state & close modal
+    setActionPasswordInput("");
+    setActionPasswordError("");
+    setPendingTenderAction(null);
+  };
+
+  const handleTenderClickFromDashboard = (tenderId) => {
+    const found = tendersList.find(t => t.id === tenderId) || tendersList[0];
+    setSelectedTenderForBidders(found);
+    setActiveSection("tenders");
+  };
+
+
+
   const handleAddBid = (newBid) => {
     setBids((prev) => [newBid, ...prev]);
   };
@@ -261,15 +466,6 @@ function Home({ role, user, onLogout }) {
     { id: "notifications", label: "Notifications", icon: Bell }
   ];
 
-  // 2. Buyer (Officer) Navigation Items
-  const buyerNav = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "tenders", label: "Tenders" },
-    { id: "bidders", label: "Bidders" },
-    { id: "verification", label: "Verification" },
-    { id: "reports", label: "Reports" }
-  ];
-
   // Admin role check (User Management & Integrations tabs are accessible via Profile Menu)
   const isAdmin =
     role === "ADMIN" ||
@@ -279,6 +475,16 @@ function Home({ role, user, onLogout }) {
     user?.role?.toUpperCase() === "SUPER ADMIN" ||
     user?.role?.toUpperCase()?.includes("ADMIN") ||
     user?.email === "admin@gem.gov.in";
+
+  // 2. Buyer (Officer) Navigation Items
+  const buyerNav = [
+    { id: "dashboard", label: "Dashboard" },
+    { id: "tenders", label: "Tenders" },
+    { id: "bidders", label: "Bidders" },
+    { id: "verification", label: "Verification" },
+    { id: "reports", label: "Reports" },
+    ...(isAdmin ? [{ id: "blacklistedBidders", label: "Blacklisted Bidders" }] : [])
+  ];
 
   const navigationItems = role === "Supplier" ? supplierNav : buyerNav;
 
@@ -1067,7 +1273,7 @@ function Home({ role, user, onLogout }) {
                     <td style={{ padding: "12px 8px", textAlign: "center" }}>2</td>
                     <td style={{ padding: "12px 8px", color: "#64748b" }}>30 Aug 2026</td>
                     <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/001")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/002</td>
@@ -1077,7 +1283,7 @@ function Home({ role, user, onLogout }) {
                     <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
                     <td style={{ padding: "12px 8px", color: "#64748b" }}>02 Sep 2026</td>
                     <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/002")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/003</td>
@@ -1087,7 +1293,7 @@ function Home({ role, user, onLogout }) {
                     <td style={{ padding: "12px 8px", textAlign: "center" }}>0</td>
                     <td style={{ padding: "12px 8px", color: "#64748b" }}>05 Sep 2026</td>
                     <td style={{ padding: "12px 8px" }}><span style={{ background: "#fff7ed", color: "#ea580c", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Closing Soon</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/003")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/004</td>
@@ -1097,7 +1303,7 @@ function Home({ role, user, onLogout }) {
                     <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
                     <td style={{ padding: "12px 8px", color: "#64748b" }}>10 Sep 2026</td>
                     <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/004")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
                   </tr>
                   <tr>
                     <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/005</td>
@@ -1107,7 +1313,7 @@ function Home({ role, user, onLogout }) {
                     <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
                     <td style={{ padding: "12px 8px", color: "#64748b" }}>15 Sep 2026</td>
                     <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/005")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
                   </tr>
                 </tbody>
               </table>
@@ -1140,7 +1346,7 @@ function Home({ role, user, onLogout }) {
                   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     <span>12 Bids</span>
                     <strong style={{ color: "#ef4444" }}>5 Pending</strong>
-                    <button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
+                    <button onClick={() => handleTenderClickFromDashboard("CPCL/2026/001")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
                   </div>
                 </div>
 
@@ -1152,7 +1358,7 @@ function Home({ role, user, onLogout }) {
                   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     <span>18 Bids</span>
                     <strong style={{ color: "#ef4444" }}>3 Pending</strong>
-                    <button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
+                    <button onClick={() => handleTenderClickFromDashboard("CPCL/2026/002")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
                   </div>
                 </div>
 
@@ -1342,16 +1548,29 @@ function Home({ role, user, onLogout }) {
     const [activeKpi, setActiveKpi] = useState("ALL");
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    const ALL_TENDERS = [
-      { id: "CPCL/2026/001", title: "Industrial Equipment Supply", category: "Equipment", department: "Projects", publishedDate: "08 May 2026", closingDate: "30 May 2026", daysLeft: "2 days left", bidders: 12, pending: 5, status: "Active" },
-      { id: "CPCL/2026/002", title: "Pipeline Components", category: "Infrastructure", department: "Projects", publishedDate: "06 May 2026", closingDate: "02 Jun 2026", daysLeft: "5 days left", bidders: 18, pending: 3, status: "Active" },
-      { id: "CPCL/2026/003", title: "Electrical Materials Supply", category: "Electrical", department: "Engineering", publishedDate: "05 May 2026", closingDate: "10 Jun 2026", daysLeft: "7 days left", bidders: 9, pending: 2, status: "Active" },
-      { id: "CPCL/2026/004", title: "Maintenance Services", category: "Services", department: "Operations", publishedDate: "01 May 2026", closingDate: "15 Jun 2026", daysLeft: "18 days left", bidders: 7, pending: 1, status: "Active" },
-      { id: "CPCL/2026/005", title: "Safety Equipment Supply", category: "Safety", department: "Operations", publishedDate: "30 Apr 2026", closingDate: "20 Jun 2026", daysLeft: "23 days left", bidders: 11, pending: 2, status: "Active" },
-      { id: "CPCL/2026/006", title: "Office Furniture Supply", category: "General", department: "Admin", publishedDate: "20 Apr 2026", closingDate: "25 Apr 2026", daysLeft: null, bidders: 6, pending: 0, status: "Closed" },
-      { id: "CPCL/2026/007", title: "Civil Construction Works", category: "Works", department: "Projects", publishedDate: "10 Apr 2026", closingDate: "18 Apr 2026", daysLeft: null, bidders: 15, pending: 0, status: "Closed" },
-      { id: "CPCL/2026/008", title: "Canteen Services", category: "Services", department: "Admin", publishedDate: "05 Apr 2026", closingDate: "12 Apr 2026", daysLeft: null, bidders: 5, pending: 0, status: "Cancelled" },
-    ];
+    const ALL_TENDERS = tendersList;
+
+    const handleUpdateTenderStatus = (tenderId, newStatus) => {
+      setPendingTenderAction({
+        type: "STATUS",
+        payload: { tenderId, newStatus },
+        actionTitle: "Authorize Tender Status Update",
+        description: `Change status of tender '${tenderId}' to '${newStatus}'. Authorization password required.`
+      });
+      setActiveTenderMenuId(null);
+    };
+
+    const handleDeleteTender = (tenderId) => {
+      setPendingTenderAction({
+        type: "DELETE",
+        payload: { tenderId },
+        actionTitle: "Authorize Tender Deletion",
+        description: `Permanently delete tender '${tenderId}' from the platform. Authorization password required.`
+      });
+      setActiveTenderMenuId(null);
+    };
+
+
 
     // Closing soon helper (7 days or less)
     const isClosingSoon = (t) => {
@@ -1805,28 +2024,97 @@ function Home({ role, user, onLogout }) {
                           {row.status}
                         </span>
                       </td>
-                      <td style={{ padding: "14px 16px", textAlign: "right" }}>
+                      <td style={{ padding: "14px 16px", textAlign: "right", position: "relative" }}>
                         <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                           <button
                             title="View Bidders"
-                            onClick={() => setSelectedTenderForBidders(row)}
+                            onClick={() => { setActiveTenderMenuId(null); setSelectedTenderForBidders(row); }}
                             style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           >
                             <Eye size={14} />
                           </button>
                           <button
                             title="Edit Tender"
+                            onClick={() => { setActiveTenderMenuId(null); setEditingTenderModalItem(row); }}
                             style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           >
                             <Pencil size={14} />
                           </button>
                           <button
                             title="More Options"
-                            style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#f8fafc", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                            onClick={(e) => { e.stopPropagation(); setActiveTenderMenuId(activeTenderMenuId === row.id ? null : row.id); }}
+                            style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: activeTenderMenuId === row.id ? "#e2e8f0" : "#f8fafc", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           >
                             <MoreVertical size={14} />
                           </button>
                         </div>
+
+                        {/* More Options Dropdown Menu */}
+                        {activeTenderMenuId === row.id && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              right: "16px",
+                              top: "46px",
+                              zIndex: 100,
+                              background: "#ffffff",
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "10px",
+                              boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                              minWidth: "180px",
+                              padding: "6px 0",
+                              textAlign: "left"
+                            }}
+                          >
+                            <button
+                              onClick={() => { setSelectedTenderForBidders(row); setActiveTenderMenuId(null); }}
+                              style={{ width: "100%", padding: "8px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#334155", cursor: "pointer", fontWeight: 600 }}
+                            >
+                              <Eye size={14} style={{ color: "#2563eb" }} /> View Bidders
+                            </button>
+
+                            <button
+                              onClick={() => { setEditingTenderModalItem(row); setActiveTenderMenuId(null); }}
+                              style={{ width: "100%", padding: "8px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#334155", cursor: "pointer", fontWeight: 600 }}
+                            >
+                              <Pencil size={14} style={{ color: "#2563eb" }} /> Edit Details
+                            </button>
+
+                            <div style={{ borderTop: "1px solid #f1f5f9", margin: "4px 0" }}></div>
+
+                            <div style={{ padding: "4px 14px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Change Status</div>
+
+                            <button
+                              onClick={() => handleUpdateTenderStatus(row.id, "Active")}
+                              style={{ width: "100%", padding: "6px 14px", background: row.status === "Active" ? "#f0fdf4" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#16a34a", cursor: "pointer", fontWeight: 700 }}
+                            >
+                              🟢 Set to Active
+                            </button>
+
+                            <button
+                              onClick={() => handleUpdateTenderStatus(row.id, "Closed")}
+                              style={{ width: "100%", padding: "6px 14px", background: row.status === "Closed" ? "#f1f5f9" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#64748b", cursor: "pointer", fontWeight: 700 }}
+                            >
+                              ⚪ Set to Closed
+                            </button>
+
+                            <button
+                              onClick={() => handleUpdateTenderStatus(row.id, "Cancelled")}
+                              style={{ width: "100%", padding: "6px 14px", background: row.status === "Cancelled" ? "#fef2f2" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#dc2626", cursor: "pointer", fontWeight: 700 }}
+                            >
+                              🔴 Set to Cancelled
+                            </button>
+
+                            <div style={{ borderTop: "1px solid #f1f5f9", margin: "4px 0" }}></div>
+
+                            <button
+                              onClick={() => handleDeleteTender(row.id)}
+                              style={{ width: "100%", padding: "8px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#dc2626", cursor: "pointer", fontWeight: 700 }}
+                            >
+                              🗑️ Delete Tender
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
@@ -1866,6 +2154,112 @@ function Home({ role, user, onLogout }) {
           </div>
         </div>
 
+        {/* EDIT TENDER MODAL */}
+        {editingTenderModalItem && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15,23,42,0.6)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", border: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>Edit Tender Specifications</h2>
+                  <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Tender ID: <strong>{editingTenderModalItem.id}</strong></span>
+                </div>
+                <button onClick={() => setEditingTenderModalItem(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Tender Title</label>
+                  <input
+                    type="text"
+                    value={editingTenderModalItem.title}
+                    onChange={(e) => setEditingTenderModalItem({ ...editingTenderModalItem, title: e.target.value })}
+                    style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.88rem", color: "#0f172a" }}
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Category</label>
+                    <select
+                      value={editingTenderModalItem.category}
+                      onChange={(e) => setEditingTenderModalItem({ ...editingTenderModalItem, category: e.target.value })}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a" }}
+                    >
+                      <option value="Equipment">Equipment</option>
+                      <option value="Infrastructure">Infrastructure</option>
+                      <option value="Electrical">Electrical</option>
+                      <option value="Services">Services</option>
+                      <option value="Safety">Safety</option>
+                      <option value="General">General</option>
+                      <option value="Works">Works</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Department</label>
+                    <select
+                      value={editingTenderModalItem.department}
+                      onChange={(e) => setEditingTenderModalItem({ ...editingTenderModalItem, department: e.target.value })}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a" }}
+                    >
+                      <option value="Projects">Projects</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Operations">Operations</option>
+                      <option value="Admin">Admin</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Closing Date</label>
+                    <input
+                      type="text"
+                      value={editingTenderModalItem.closingDate}
+                      onChange={(e) => setEditingTenderModalItem({ ...editingTenderModalItem, closingDate: e.target.value })}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Status</label>
+                    <select
+                      value={editingTenderModalItem.status}
+                      onChange={(e) => setEditingTenderModalItem({ ...editingTenderModalItem, status: e.target.value })}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a" }}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Closed">Closed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e2e8f0" }}>
+                  <button
+                    onClick={() => setEditingTenderModalItem(null)}
+                    style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPendingTenderAction({
+                        type: "EDIT",
+                        payload: { editedTender: editingTenderModalItem },
+                        actionTitle: "Authorize Tender Modification",
+                        description: `Save updates for tender '${editingTenderModalItem.id}'. Authorization password required.`
+                      });
+                    }}
+                    style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 24px", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 8px rgba(37,99,235,0.25)" }}
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1879,6 +2273,9 @@ function Home({ role, user, onLogout }) {
     const [verificationFilter, setVerificationFilter] = useState("All");
     const [activeKpi, setActiveKpi] = useState("ALL");
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [activeBidderMenuId, setActiveBidderMenuId] = useState(null);
+    const [viewingBidderDetails, setViewingBidderDetails] = useState(null);
+    const [biddersActionToast, setBiddersActionToast] = useState("");
 
     const ALL_BIDDERS = [
       {
@@ -2579,28 +2976,86 @@ function Home({ role, user, onLogout }) {
                     </td>
 
                     {/* Column 8: Actions */}
-                    <td style={{ padding: "14px 16px", textAlign: "right" }}>
-                      <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                    <td style={{ padding: "14px 16px", textAlign: "right", position: "relative" }}>
+                      <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end", alignItems: "center" }}>
                         <button
-                          title="View Details"
-                          onClick={() => { setSelectedVerificationBidder(b); setActiveSection("verification"); }}
-                          style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          title="View Complete Bidder Profile"
+                          onClick={() => {
+                            setActiveBidderMenuId(null);
+                            setViewingBidderDetails(b);
+                          }}
+                          style={{ width: "32px", height: "32px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                         >
-                          <Eye size={14} />
+                          <Eye size={15} />
                         </button>
                         <button
-                          title="Inspect Documents"
-                          onClick={() => { setSelectedVerificationBidder(b); setActiveSection("verification"); }}
-                          style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          title="Inspect Documents & Verify"
+                          onClick={() => {
+                            setActiveBidderMenuId(null);
+                            setSelectedTenderForBidders(null);
+                            setSelectedVerificationBidder(b);
+                            setActiveSection("verification");
+                          }}
+                          style={{ width: "32px", height: "32px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                         >
-                          <FileText size={14} />
+                          <FileText size={15} />
                         </button>
-                        <button
-                          title="More Options"
-                          style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#ffffff", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                        >
-                          <MoreVertical size={14} />
-                        </button>
+                        <div style={{ position: "relative" }}>
+                          <button
+                            title="More Options"
+                            onClick={() => setActiveBidderMenuId(activeBidderMenuId === b.id ? null : b.id)}
+                            style={{ width: "32px", height: "32px", borderRadius: "6px", border: "1px solid #cbd5e1", background: activeBidderMenuId === b.id ? "#eff6ff" : "#ffffff", color: activeBidderMenuId === b.id ? "#2563eb" : "#64748b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          >
+                            <MoreVertical size={15} />
+                          </button>
+
+                          {/* FLOATING ACTIONS DROPDOWN MENU */}
+                          {activeBidderMenuId === b.id && (
+                            <div style={{ position: "absolute", right: 0, top: "36px", zIndex: 999, background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)", width: "210px", padding: "6px 0", textAlign: "left" }}>
+                              <button
+                                onClick={() => {
+                                  setActiveBidderMenuId(null);
+                                  setViewingBidderDetails(b);
+                                }}
+                                style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.8rem", color: "#0f172a", fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                              >
+                                <Eye size={14} style={{ color: "#2563eb" }} /> View Full Profile
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveBidderMenuId(null);
+                                  setSelectedTenderForBidders(null);
+                                  setSelectedVerificationBidder(b);
+                                  setActiveSection("verification");
+                                }}
+                                style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.8rem", color: "#0f172a", fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                              >
+                                <FileText size={14} style={{ color: "#16a34a" }} /> Inspect & Verify Bids
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveBidderMenuId(null);
+                                  setBiddersActionToast(`Official compliance summary generated for ${b.name}`);
+                                  setTimeout(() => setBiddersActionToast(""), 4000);
+                                }}
+                                style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.8rem", color: "#0f172a", fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                              >
+                                <CheckCircle2 size={14} style={{ color: "#0284c7" }} /> Compliance Summary
+                              </button>
+                              <div style={{ height: "1px", background: "#f1f5f9", margin: "4px 0" }} />
+                              <button
+                                onClick={() => {
+                                  setActiveBidderMenuId(null);
+                                  setBiddersActionToast(`Official notice dispatched to ${b.email}`);
+                                  setTimeout(() => setBiddersActionToast(""), 4000);
+                                }}
+                                style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.8rem", color: "#0f172a", fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                              >
+                                <Mail size={14} style={{ color: "#9333ea" }} /> Send Official Email
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
 
@@ -2650,7 +3105,124 @@ function Home({ role, user, onLogout }) {
           </div>
         </div>
 
-      </div>
+        {/* BIDDER PROFILE & CREDENTIALS MODAL */}
+        {viewingBidderDetails && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15,23,42,0.6)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(4px)" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "560px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", border: "1px solid #cbd5e1" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1.1rem", border: "1px solid #bfdbfe" }}>
+                    {viewingBidderDetails.initials}
+                  </div>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>{viewingBidderDetails.name}</h2>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "3px" }}>
+                      <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600 }}>ID: {viewingBidderDetails.id}</span>
+                      <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.68rem", fontWeight: 800, background: viewingBidderDetails.statusBadgeBg, color: viewingBidderDetails.statusBadgeColor }}>
+                        ● {viewingBidderDetails.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => setViewingBidderDetails(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                
+                {/* Stats row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "block" }}>COMPLIANCE SCORE</span>
+                    <strong style={{ fontSize: "1.2rem", color: viewingBidderDetails.scoreColor }}>
+                      {viewingBidderDetails.complianceScore !== null ? `${viewingBidderDetails.complianceScore}%` : "N/A"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "block" }}>RISK LEVEL</span>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 800, color: viewingBidderDetails.riskColor }}>
+                      {viewingBidderDetails.riskLevel}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "block" }}>ACTIVE TENDERS</span>
+                    <strong style={{ fontSize: "1.1rem", color: "#0f172a" }}>
+                      {viewingBidderDetails.activeTenders} Bids
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Registration Details */}
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px" }}>
+                  <h4 style={{ margin: "0 0 10px 0", fontSize: "0.85rem", fontWeight: 800, color: "#0f172a" }}>Statutory & Legal Identifiers</h4>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "0.82rem" }}>
+                    <div>
+                      <span style={{ color: "#64748b", fontSize: "0.75rem", display: "block" }}>PAN Number</span>
+                      <strong style={{ color: "#0f172a" }}>{viewingBidderDetails.pan}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: "#64748b", fontSize: "0.75rem", display: "block" }}>GSTIN Identifier</span>
+                      <strong style={{ color: "#0f172a" }}>{viewingBidderDetails.gstin}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: "#64748b", fontSize: "0.75rem", display: "block" }}>Entity Type</span>
+                      <span style={{ color: "#334155", fontWeight: 600 }}>{viewingBidderDetails.type}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: "#64748b", fontSize: "0.75rem", display: "block" }}>Verification Date</span>
+                      <span style={{ color: "#334155", fontWeight: 600 }}>{viewingBidderDetails.verificationDate || "Pending Verification"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px" }}>
+                  <h4 style={{ margin: "0 0 10px 0", fontSize: "0.85rem", fontWeight: 800, color: "#0f172a" }}>Registered Contact Information</h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.82rem", color: "#334155" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Phone size={14} style={{ color: "#2563eb" }} /> <span>{viewingBidderDetails.phone}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Mail size={14} style={{ color: "#2563eb" }} /> <span>{viewingBidderDetails.email}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <MapPin size={14} style={{ color: "#2563eb" }} /> <span>{viewingBidderDetails.location}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "8px" }}>
+                  <button
+                    onClick={() => setViewingBidderDetails(null)}
+                    style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 18px", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      const bidderToVerify = viewingBidderDetails;
+                      setViewingBidderDetails(null);
+                      setSelectedTenderForBidders(null);
+                      setSelectedVerificationBidder(bidderToVerify);
+                      setActiveSection("verification");
+                    }}
+                    style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 22px", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 8px rgba(37,99,235,0.25)", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <ShieldCheck size={16} /> Inspect Documents & Verify
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ACTION TOAST NOTIFICATION */}
+        {biddersActionToast && (
+          <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 99999, background: "#0f172a", color: "#ffffff", padding: "12px 20px", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 600, boxShadow: "0 10px 25px rgba(0,0,0,0.3)", display: "flex", alignItems: "center", gap: "10px" }}>
+            <CheckCircle2 size={18} style={{ color: "#22c55e" }} />
+            <span>{biddersActionToast}</span>
+          </div>
+        )}      </div>
     );
   };
 
@@ -4268,6 +4840,9 @@ function Home({ role, user, onLogout }) {
       department: "Procurement",
       role: "Procurement Officer",
       status: "Active",
+      password: "",
+      confirmPassword: "",
+      adminAuthorizationPassword: "",
       permissions: ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"]
     });
 
@@ -4289,6 +4864,9 @@ function Home({ role, user, onLogout }) {
         department: "Procurement",
         role: "Procurement Officer",
         status: "Active",
+        password: "",
+        confirmPassword: "",
+        adminAuthorizationPassword: "",
         permissions: ["Manage Tenders", "Verify Documents", "View Reports", "Approve Bids", "View Audit Trail"]
       });
       setIsAddEditModalOpen(true);
@@ -4304,6 +4882,9 @@ function Home({ role, user, onLogout }) {
         department: u.department,
         role: u.role,
         status: u.status,
+        password: "",
+        confirmPassword: "",
+        adminAuthorizationPassword: "",
         permissions: [...(u.permissions || [])]
       });
       setIsAddEditModalOpen(true);
@@ -4343,6 +4924,21 @@ function Home({ role, user, onLogout }) {
         return;
       }
 
+      if (!editingUser) {
+        if (!userForm.password) {
+          alert("Please enter an Account Password for the new user.");
+          return;
+        }
+        if (userForm.password !== userForm.confirmPassword) {
+          alert("Account Password and Confirm Password do not match.");
+          return;
+        }
+        if (!userForm.adminAuthorizationPassword) {
+          alert("Admin Authorization Required: Please enter your Admin Password to create this user account.");
+          return;
+        }
+      }
+
       if (editingUser) {
         setUsersList((prev) =>
           prev.map((u) => (u.id === editingUser.id ? { ...u, ...userForm } : u))
@@ -4352,10 +4948,11 @@ function Home({ role, user, onLogout }) {
         const newUserObj = {
           id: `USR-${1000 + usersList.length + 1}`,
           ...userForm,
+          role: "Procurement Officer", // Fixed to Procurement Officer for newly created accounts
           lastLogin: "Never logged in"
         };
         setUsersList((prev) => [newUserObj, ...prev]);
-        alert(`User '${userForm.name}' created and added to user directory!`);
+        alert(`User '${userForm.name}' created successfully as Procurement Officer!`);
       }
       setIsAddEditModalOpen(false);
     };
@@ -4897,19 +5494,17 @@ function Home({ role, user, onLogout }) {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>User Role</label>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>User Role *</label>
                     <select
-                      value={userForm.role}
-                      onChange={(e) => handleRoleChangeInForm(e.target.value)}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                      value="Procurement Officer"
+                      disabled
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#f1f5f9", cursor: "not-allowed" }}
                     >
-                      <option value="Super Admin" style={{ background: "#ffffff", color: "#0f172a" }}>Super Admin</option>
-                      <option value="Procurement Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Procurement Officer</option>
-                      <option value="Verification Officer" style={{ background: "#ffffff", color: "#0f172a" }}>Verification Officer</option>
-                      <option value="Auditor" style={{ background: "#ffffff", color: "#0f172a" }}>Auditor</option>
+                      <option value="Procurement Officer">Procurement Officer</option>
                     </select>
+                    <small style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginTop: "2px" }}>Locked: New user accounts are created as Procurement Officer</small>
                   </div>
 
                   <div>
@@ -4925,6 +5520,54 @@ function Home({ role, user, onLogout }) {
                     </select>
                   </div>
                 </div>
+
+                {/* Password Setting & Admin Authorization for New Account */}
+                {!editingUser && (
+                  <>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Set Account Password *</label>
+                        <input
+                          type="password"
+                          required
+                          placeholder="Enter user password"
+                          value={userForm.password}
+                          onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Confirm Password *</label>
+                        <input
+                          type="password"
+                          required
+                          placeholder="Re-enter password"
+                          value={userForm.confirmPassword}
+                          onChange={(e) => setUserForm({ ...userForm, confirmPassword: e.target.value })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: "20px", background: "#fff7ed", padding: "12px 16px", borderRadius: "8px", border: "1px solid #ffedd5" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#c2410c", marginBottom: "4px" }}>
+                        🔑 Admin Authorization Password *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Enter Admin Password to authorize account creation"
+                        value={userForm.adminAuthorizationPassword}
+                        onChange={(e) => setUserForm({ ...userForm, adminAuthorizationPassword: e.target.value })}
+                        style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #fed7aa", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                      />
+                      <small style={{ fontSize: "0.72rem", color: "#9a3412", display: "block", marginTop: "4px" }}>
+                        Admin credentials validation required to create new Procurement Officer accounts.
+                      </small>
+                    </div>
+                  </>
+                )}
 
                 {/* Permissions Checklist */}
                 <div style={{ marginBottom: "24px" }}>
@@ -6051,102 +6694,781 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // New Create Tender view
+  // Fully Functional Multi-Step Create Tender View
   const CreateTenderView = () => {
+    const [currentStep, setCurrentStep] = useState(1);
+    const [aiAnalyzing, setAiAnalyzing] = useState(false);
+    const [aiExtracted, setAiExtracted] = useState(false);
+    const [saveToast, setSaveToast] = useState("");
+    const [customDocName, setCustomDocName] = useState("");
+
+    // Form State
+    const [formData, setFormData] = useState({
+      tenderId: "GEM-CPCL-2026-004",
+      title: "Supply of Industrial Pumps & High-Pressure Valves",
+      organization: "Chennai Petroleum Corporation Limited",
+      department: "Procurement & Refineries Division",
+      category: "Industrial Equipment & Heavy Machinery",
+      estimatedValue: "₹50,00,000",
+      submissionDeadline: "2026-09-30",
+      description: "Procurement of heavy-duty centrifugal industrial pumps, control valves, and statutory pressure safety assemblies.",
+      contactEmail: "procurement@cpcl.gov.in",
+
+      // Step 2: Requirements
+      minTurnover: "50",
+      minExperienceYears: "3",
+      minLocalContent: "50",
+      oemAuthorizationRequired: true,
+      gstinMandatory: true,
+      panMandatory: true,
+      startupExemption: true,
+      msmeExemption: true,
+
+      // Step 3: Required Documents
+      documents: {
+        gstCertificate: true,
+        panCard: true,
+        itrReturns: true,
+        oemAuthorization: true,
+        msmeUdyam: false,
+        landBorderDeclaration: true,
+        emdReceipt: true
+      },
+      customDocs: ["ISO 9001:2015 Quality Management Certificate"]
+    });
+
+    const handleInputChange = (field, value) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleDocToggle = (docKey) => {
+      setFormData((prev) => ({
+        ...prev,
+        documents: {
+          ...prev.documents,
+          [docKey]: !prev.documents[docKey]
+        }
+      }));
+    };
+
+    const handleAddCustomDoc = () => {
+      if (!customDocName.trim()) return;
+      setFormData((prev) => ({
+        ...prev,
+        customDocs: [...prev.customDocs, customDocName.trim()]
+      }));
+      setCustomDocName("");
+    };
+
+    const handleRemoveCustomDoc = (idx) => {
+      setFormData((prev) => ({
+        ...prev,
+        customDocs: prev.customDocs.filter((_, i) => i !== idx)
+      }));
+    };
+
+    const handleExtractAI = () => {
+      setAiAnalyzing(true);
+      setTimeout(() => {
+        setAiAnalyzing(false);
+        setAiExtracted(true);
+        setFormData((prev) => ({
+          ...prev,
+          minTurnover: "75",
+          minExperienceYears: "4",
+          minLocalContent: "60",
+          oemAuthorizationRequired: true,
+          description: "AI Extracted: High-pressure centrifugal pumps (API 610 compliant) for CPCL refinery unit 4. Requires mandatory OEM warranty certificate and 4-year experience."
+        }));
+        showToast("✨ AI Requirement Assistant successfully extracted 14 compliance parameters & rules!");
+      }, 900);
+    };
+
+    const showToast = (msg) => {
+      setSaveToast(msg);
+      setTimeout(() => setSaveToast(""), 4000);
+    };
+
+    const handleSaveDraft = () => {
+      showToast("💾 Tender DraftSaved Successfully! ID: " + formData.tenderId);
+    };
+
+    const handlePublishTender = () => {
+      const newTenderObj = {
+        id: formData.tenderId || `CPCL/2026/0${tendersList.length + 1}`,
+        title: formData.title || "New Procurement Tender",
+        category: formData.category || "Equipment",
+        department: formData.department || "Projects",
+        publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        closingDate: formData.submissionDeadline || "30 Sep 2026",
+        daysLeft: "30 days left",
+        bidders: 0,
+        pending: 0,
+        status: "Active"
+      };
+
+      setPendingTenderAction({
+        type: "CREATE",
+        payload: {
+          newTenderObj,
+          onSuccess: () => {
+            setCurrentStep(5);
+            showToast("🚀 Tender Successfully Published to GeM Procurement Network!");
+          }
+        },
+        actionTitle: "Authorize Tender Publication",
+        description: `Publishing new tender '${newTenderObj.id}' (${newTenderObj.title}). Authorization password required.`
+      });
+    };
+
+
+
+    const handleNext = () => {
+      if (currentStep === 1 && !formData.title.trim()) {
+        alert("Please enter a Tender Title before proceeding.");
+        return;
+      }
+      if (currentStep < 4) {
+        setCurrentStep((prev) => prev + 1);
+      }
+    };
+
+    const handleBack = () => {
+      if (currentStep > 1) {
+        setCurrentStep((prev) => prev - 1);
+      }
+    };
+
     return (
-      <div className="create-tender-content">
+      <div className="create-tender-content" style={{ position: "relative" }}>
+        {/* Floating Toast Notification */}
+        {saveToast && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: "24px",
+              right: "24px",
+              zIndex: 99999,
+              background: "#0f172a",
+              color: "#ffffff",
+              padding: "12px 20px",
+              borderRadius: "10px",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+              borderLeft: "4px solid #10b981",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: "10px"
+            }}
+          >
+            <CheckCircle2 size={18} style={{ color: "#10b981" }} />
+            <span>{saveToast}</span>
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="welcome-banner">
-          <h1>Create New Tender</h1>
-          <p className="subtitle">Define tender information and compliance requirements.</p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <h1>Create New Tender</h1>
+              <p className="subtitle">Define tender specifications, statutory requirements, and compliance evaluation criteria.</p>
+            </div>
+            {currentStep < 5 && (
+              <span style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", padding: "6px 14px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700 }}>
+                Step {currentStep} of 4: {currentStep === 1 ? "Basic Details" : currentStep === 2 ? "Requirements" : currentStep === 3 ? "Documents" : "Review & Publish"}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Multi-step progress indicator */}
-        <div className="tender-steps-indicator">
-          <div className="step active"><span className="step-num">1</span> Basic Details</div>
-          <div className="step-line active"></div>
-          <div className="step"><span className="step-num">2</span> Requirements</div>
-          <div className="step-line"></div>
-          <div className="step"><span className="step-num">3</span> Documents</div>
-          <div className="step-line"></div>
-          <div className="step"><span className="step-num">4</span> Review</div>
-          <div className="step-line"></div>
-          <div className="step"><span className="step-num">5</span> Publish</div>
+        {/* Multi-step progress indicator bar */}
+        <div className="tender-steps-indicator" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#ffffff", padding: "16px 24px", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div
+            className={`step ${currentStep === 1 ? "active" : currentStep > 1 ? "completed" : ""}`}
+            onClick={() => currentStep < 5 && setCurrentStep(1)}
+            style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 1 ? "#2563eb" : "#94a3b8" }}
+          >
+            <span className="step-num" style={{ background: currentStep >= 1 ? "#2563eb" : "#f1f5f9", color: currentStep >= 1 ? "#ffffff" : "#64748b" }}>
+              {currentStep > 1 ? "✓" : "1"}
+            </span>
+            <span>Basic Details</span>
+          </div>
+
+          <div className="step-line" style={{ flexGrow: 1, height: "2px", background: currentStep > 1 ? "#2563eb" : "#e2e8f0", margin: "0 12px" }}></div>
+
+          <div
+            className={`step ${currentStep === 2 ? "active" : currentStep > 2 ? "completed" : ""}`}
+            onClick={() => currentStep < 5 && setCurrentStep(2)}
+            style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 2 ? "#2563eb" : "#94a3b8" }}
+          >
+            <span className="step-num" style={{ background: currentStep >= 2 ? "#2563eb" : "#f1f5f9", color: currentStep >= 2 ? "#ffffff" : "#64748b" }}>
+              {currentStep > 2 ? "✓" : "2"}
+            </span>
+            <span>Requirements</span>
+          </div>
+
+          <div className="step-line" style={{ flexGrow: 1, height: "2px", background: currentStep > 2 ? "#2563eb" : "#e2e8f0", margin: "0 12px" }}></div>
+
+          <div
+            className={`step ${currentStep === 3 ? "active" : currentStep > 3 ? "completed" : ""}`}
+            onClick={() => currentStep < 5 && setCurrentStep(3)}
+            style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 3 ? "#2563eb" : "#94a3b8" }}
+          >
+            <span className="step-num" style={{ background: currentStep >= 3 ? "#2563eb" : "#f1f5f9", color: currentStep >= 3 ? "#ffffff" : "#64748b" }}>
+              {currentStep > 3 ? "✓" : "3"}
+            </span>
+            <span>Documents</span>
+          </div>
+
+          <div className="step-line" style={{ flexGrow: 1, height: "2px", background: currentStep > 3 ? "#2563eb" : "#e2e8f0", margin: "0 12px" }}></div>
+
+          <div
+            className={`step ${currentStep === 4 ? "active" : currentStep > 4 ? "completed" : ""}`}
+            onClick={() => currentStep < 5 && setCurrentStep(4)}
+            style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 4 ? "#2563eb" : "#94a3b8" }}
+          >
+            <span className="step-num" style={{ background: currentStep >= 4 ? "#2563eb" : "#f1f5f9", color: currentStep >= 4 ? "#ffffff" : "#64748b" }}>
+              {currentStep === 5 ? "✓" : "4"}
+            </span>
+            <span>Review</span>
+          </div>
+
+          <div className="step-line" style={{ flexGrow: 1, height: "2px", background: currentStep === 5 ? "#10b981" : "#e2e8f0", margin: "0 12px" }}></div>
+
+          <div
+            className={`step ${currentStep === 5 ? "active" : ""}`}
+            style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep === 5 ? "#10b981" : "#94a3b8" }}
+          >
+            <span className="step-num" style={{ background: currentStep === 5 ? "#10b981" : "#f1f5f9", color: currentStep === 5 ? "#ffffff" : "#64748b" }}>
+              5
+            </span>
+            <span>Publish</span>
+          </div>
         </div>
 
-        {/* Split Form Layout */}
-        <div className="dashboard-main-split">
-          {/* Left Column - Basic Information Form */}
-          <div className="split-left-col">
-            <div className="section-panel" style={{ padding: "30px" }}>
-              <h2 style={{ marginBottom: "20px" }}>Basic Tender Information</h2>
+        {/* STEP 1: BASIC DETAILS & AI ASSISTANT */}
+        {currentStep === 1 && (
+          <div className="dashboard-main-split">
+            {/* Left Column - Form */}
+            <div className="split-left-col">
+              <div className="section-panel" style={{ padding: "30px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                  <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Basic Tender Information</h2>
+                  {aiExtracted && (
+                    <span style={{ fontSize: "0.72rem", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", padding: "3px 8px", borderRadius: "12px", fontWeight: 700 }}>
+                      ✨ AI Extracted Metadata
+                    </span>
+                  )}
+                </div>
 
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Tender ID</label>
-                  <input type="text" defaultValue="GEM-CPCL-2026-001" disabled className="disabled-input" />
+                <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div className="form-group">
+                    <label>Tender ID</label>
+                    <input type="text" value={formData.tenderId} disabled className="disabled-input" />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tender Category</label>
+                    <input
+                      type="text"
+                      value={formData.category}
+                      onChange={(e) => handleInputChange("category", e.target.value)}
+                      placeholder="e.g. Industrial Equipment"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ gridColumn: "span 2" }}>
+                    <label>Tender Title *</label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => handleInputChange("title", e.target.value)}
+                      placeholder="Enter official tender title"
+                      style={{ fontWeight: 700 }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Organization Name</label>
+                    <input
+                      type="text"
+                      value={formData.organization}
+                      onChange={(e) => handleInputChange("organization", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Procurement Department</label>
+                    <input
+                      type="text"
+                      value={formData.department}
+                      onChange={(e) => handleInputChange("department", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Estimated Value (INR)</label>
+                    <input
+                      type="text"
+                      value={formData.estimatedValue}
+                      onChange={(e) => handleInputChange("estimatedValue", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Submission Deadline</label>
+                    <input
+                      type="text"
+                      value={formData.submissionDeadline}
+                      onChange={(e) => handleInputChange("submissionDeadline", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ gridColumn: "span 2" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Detailed Scope of Work & Description</label>
+                    <textarea
+                      rows={3}
+                      value={formData.description}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a", backgroundColor: "#ffffff", fontFamily: "inherit" }}
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Tender Title</label>
-                  <input type="text" defaultValue="Supply of Industrial Pumps" />
+              </div>
+            </div>
+
+            {/* Right Column - AI Requirement Extraction */}
+            <div className="split-right-col">
+              <div className="ai-assistant-card" style={{ background: "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)", borderRadius: "16px", padding: "24px", color: "#ffffff" }}>
+                <div className="ai-card-header">
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, margin: 0, color: "#ffffff", display: "flex", alignItems: "center", gap: "8px" }}>
+                    AI Requirement Assistant <Sparkles size={18} style={{ color: "#fbbf24" }} />
+                  </h3>
                 </div>
-                <div className="form-group">
-                  <label>Organization</label>
-                  <input type="text" defaultValue="Chennai Petroleum Corporation Limited" />
+
+                <p className="ai-message" style={{ margin: "10px 0 16px 0", fontSize: "0.85rem", color: "#c7d2fe", lineHeight: 1.4 }}>
+                  "Upload a tender specification PDF or RFP document. AI will parse technical clauses, statutory compliance mandates, and turnover thresholds automatically."
+                </p>
+
+                {/* Dropzone */}
+                <div
+                  className="tender-dropzone"
+                  onClick={handleExtractAI}
+                  style={{ border: "2px dashed rgba(255, 255, 255, 0.25)", borderRadius: "12px", padding: "24px 16px", background: "rgba(255, 255, 255, 0.05)", textAlign: "center", cursor: "pointer" }}
+                >
+                  <CloudUpload size={32} style={{ color: "#818cf8", marginBottom: "8px" }} />
+                  <span style={{ fontSize: "0.88rem", fontWeight: 700, display: "block" }}>Drop Tender RFP Document (.PDF)</span>
+                  <small style={{ color: "#94a3b8", display: "block", marginTop: "4px" }}>Click to auto-parse requirements</small>
                 </div>
-                <div className="form-group">
-                  <label>Department</label>
-                  <input type="text" defaultValue="Procurement Department" />
+
+                <button
+                  type="button"
+                  disabled={aiAnalyzing}
+                  onClick={handleExtractAI}
+                  style={{
+                    width: "100%",
+                    marginTop: "16px",
+                    background: "#ffffff",
+                    color: "#4f46e5",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "11px",
+                    fontSize: "0.85rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                  }}
+                >
+                  <Sparkles size={16} className={aiAnalyzing ? "animate-spin" : ""} />
+                  {aiAnalyzing ? "Extracting Requirements..." : "Extract Requirements with AI"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: REQUIREMENTS & ELIGIBILITY */}
+        {currentStep === 2 && (
+          <div className="dashboard-main-split">
+            <div className="split-left-col">
+              <div className="section-panel" style={{ padding: "30px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px" }}>
+                <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
+                  Eligibility & Statutory Compliance Rules
+                </h2>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "20px" }}>
+                  Set minimum qualification criteria for bidders on turnover, technical experience, and statutory registrations.
+                </p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                  <div className="form-group">
+                    <label>Minimum Annual Turnover (₹ Lakhs)</label>
+                    <input
+                      type="number"
+                      value={formData.minTurnover}
+                      onChange={(e) => handleInputChange("minTurnover", e.target.value)}
+                      placeholder="e.g. 50"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Minimum Technical Experience (Years)</label>
+                    <input
+                      type="number"
+                      value={formData.minExperienceYears}
+                      onChange={(e) => handleInputChange("minExperienceYears", e.target.value)}
+                      placeholder="e.g. 3"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ gridColumn: "span 2" }}>
+                    <label>Minimum Local Content % (Make in India GFR 144)</label>
+                    <input
+                      type="number"
+                      value={formData.minLocalContent}
+                      onChange={(e) => handleInputChange("minLocalContent", e.target.value)}
+                      placeholder="e.g. 50"
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Tender Category</label>
-                  <input type="text" defaultValue="Industrial Equipment" />
+
+                <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <h3 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a", margin: "10px 0 4px 0" }}>
+                    Statutory Clearances & Exemptions
+                  </h3>
+
+                  {/* Toggle Option 1: OEM Auth */}
+                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", cursor: "pointer" }}>
+                    <div>
+                      <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block" }}>OEM Authorization Required</strong>
+                      <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Bidders must submit direct Manufacturer Authorization Certificate.</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.oemAuthorizationRequired}
+                      onChange={(e) => handleInputChange("oemAuthorizationRequired", e.target.checked)}
+                      style={{ width: "18px", height: "18px", accentColor: "#2563eb" }}
+                    />
+                  </label>
+
+                  {/* Toggle Option 2: Active GSTIN */}
+                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", cursor: "pointer" }}>
+                    <div>
+                      <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block" }}>Mandatory Active GSTIN & Tax Filing Clearances</strong>
+                      <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Automated API cross-verification against GSTN registry.</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.gstinMandatory}
+                      onChange={(e) => handleInputChange("gstinMandatory", e.target.checked)}
+                      style={{ width: "18px", height: "18px", accentColor: "#2563eb" }}
+                    />
+                  </label>
+
+                  {/* Toggle Option 3: Startup Exemption */}
+                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", cursor: "pointer" }}>
+                    <div>
+                      <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block" }}>DPIIT Registered Startup Relaxation</strong>
+                      <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Relax turnover & prior experience norms for DPIIT recognized startups.</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.startupExemption}
+                      onChange={(e) => handleInputChange("startupExemption", e.target.checked)}
+                      style={{ width: "18px", height: "18px", accentColor: "#2563eb" }}
+                    />
+                  </label>
                 </div>
-                <div className="form-group animate-pulse">
-                  <label>Estimated Value</label>
-                  <input type="text" defaultValue="₹50,00,000" />
-                </div>
-                <div className="form-group">
-                  <label>Submission Deadline</label>
-                  <input type="text" defaultValue="30 September 2026" />
+              </div>
+            </div>
+
+            {/* Right Column - Rule Matrix Score Allocation */}
+            <div className="split-right-col">
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: "0 0 12px 0" }}>
+                  Rule Evaluation Matrix (100 Points)
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.8rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Document Completeness</span>
+                    <strong>25 Pts</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Statutory API Verification</span>
+                    <strong>35 Pts</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Integrity & Forensic Checks</span>
+                    <strong>20 Pts</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Custom Rules Alignment</span>
+                    <strong>20 Pts</strong>
+                  </div>
+                  <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "8px", display: "flex", justifyContent: "space-between", fontWeight: 800, color: "#16a34a" }}>
+                    <span>Total Evaluation Score</span>
+                    <span>100 Pts</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Right Column - AI Upload Assistant */}
-          <div className="split-right-col">
-            <div className="ai-assistant-card" style={{ background: "linear-gradient(135deg, #4f46e5 0%, #312e81 100%)" }}>
-              <div className="ai-card-header">
-                <h3>AI Requirement Assistant <span className="sparkle-icon">✨</span></h3>
+        {/* STEP 3: MANDATORY DOCUMENTS */}
+        {currentStep === 3 && (
+          <div className="dashboard-main-split">
+            <div className="split-left-col">
+              <div className="section-panel" style={{ padding: "30px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px" }}>
+                <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
+                  Required Statutory Documents Checklist
+                </h2>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "20px" }}>
+                  Select mandatory documents bidders must upload during bid submission.
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { key: "gstCertificate", label: "GSTIN Registration Certificate", desc: "Mandatory for tax verification" },
+                    { key: "panCard", label: "Standalone PAN Card Document", desc: "CBDT cross-matching" },
+                    { key: "itrReturns", label: "Income Tax Returns (Last 3 Financial Yrs)", desc: "Financial solvency verification" },
+                    { key: "oemAuthorization", label: "OEM Authorization & Warranty Certificate", desc: "Technical authenticity" },
+                    { key: "msmeUdyam", label: "MSME Udyam Registration Certificate", desc: "EMD waiver verification" },
+                    { key: "landBorderDeclaration", label: "Land Border Compliance Declaration (GFR Rule 144)", desc: "Sovereign security clause" },
+                    { key: "emdReceipt", label: "EMD Deposit / Exemption Proof", desc: "Financial commitment" }
+                  ].map((docItem) => (
+                    <label
+                      key={docItem.key}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justify: "space-between",
+                        padding: "12px 16px",
+                        background: formData.documents[docItem.key] ? "#eff6ff" : "#f8fafc",
+                        border: formData.documents[docItem.key] ? "1px solid #bfdbfe" : "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <div>
+                        <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block" }}>{docItem.label}</strong>
+                        <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{docItem.desc}</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={formData.documents[docItem.key]}
+                        onChange={() => handleDocToggle(docItem.key)}
+                        style={{ width: "18px", height: "18px", accentColor: "#2563eb" }}
+                      />
+                    </label>
+                  ))}
+                </div>
+
+                {/* Add Custom Document */}
+                <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px dashed #cbd5e1" }}>
+                  <h3 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#1e293b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    + Add Custom Document Requirement
+                  </h3>
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. ISO 9001:2015 Certificate, Past Performance Certificates"
+                      value={customDocName}
+                      onChange={(e) => setCustomDocName(e.target.value)}
+                      style={{ flex: 1, padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a", backgroundColor: "#ffffff" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomDoc}
+                      style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 6px rgba(37,99,235,0.2)" }}
+                    >
+                      Add Document
+                    </button>
+                  </div>
+
+                  {formData.customDocs.length > 0 && (
+                    <div style={{ marginTop: "12px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {formData.customDocs.map((doc, idx) => (
+                        <span key={idx} style={{ background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: "16px", padding: "4px 12px", fontSize: "0.78rem", color: "#334155", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                          📄 {doc}
+                          <button type="button" onClick={() => handleRemoveCustomDoc(idx)} style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontWeight: 800 }}>✕</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="ai-message" style={{ margin: "10px 0 20px 0", fontSize: "0.85rem", color: "#c7d2fe" }}>
-                "Upload the tender document and AI will automatically identify eligibility and compliance requirements."
-              </p>
+            </div>
+          </div>
+        )}
 
-              {/* Dropzone Upload */}
-              <div className="tender-dropzone">
-                <CloudUpload size={32} style={{ color: "#c7d2fe", marginBottom: "10px" }} />
-                <span>Drag & Drop Tender PDF</span>
-                <small style={{ color: "#94a3b8", marginTop: "4px" }}>or click to browse local files</small>
+        {/* STEP 4: REVIEW & PUBLISH PREVIEW */}
+        {currentStep === 4 && (
+          <div className="dashboard-main-split">
+            <div className="split-left-col" style={{ gridColumn: "span 2" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "28px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px", marginBottom: "20px" }}>
+                  <div>
+                    <span style={{ fontSize: "0.72rem", fontWeight: 800, background: "#dbeafe", color: "#1d4ed8", padding: "2px 8px", borderRadius: "10px" }}>
+                      TENDER PREVIEW & COMPILATION
+                    </span>
+                    <h2 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0f172a", margin: "6px 0 2px 0" }}>{formData.title}</h2>
+                    <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Tender ID: <strong>{formData.tenderId}</strong> — {formData.organization} ({formData.department})</span>
+                  </div>
+
+                  <span style={{ background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", padding: "4px 12px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 800 }}>
+                    STATUS: DRAFT
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", fontSize: "0.85rem" }}>
+                  <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ display: "block", color: "#64748b", fontSize: "0.72rem", textTransform: "uppercase" }}>Estimated Budget</strong>
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>{formData.estimatedValue}</span>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ display: "block", color: "#64748b", fontSize: "0.72rem", textTransform: "uppercase" }}>Submission Deadline</strong>
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>{formData.submissionDeadline}</span>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ display: "block", color: "#64748b", fontSize: "0.72rem", textTransform: "uppercase" }}>Minimum Turnover & Experience</strong>
+                    <span style={{ fontWeight: 700, color: "#0f172a" }}>₹{formData.minTurnover} Lakhs Turnover | {formData.minExperienceYears} Yrs Experience</span>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ display: "block", color: "#64748b", fontSize: "0.72rem", textTransform: "uppercase" }}>Local Content % Requirement</strong>
+                    <span style={{ fontWeight: 700, color: "#16a34a" }}>Minimum {formData.minLocalContent}% (Make in India Compliant)</span>
+                  </div>
+                </div>
+
+                {/* Cryptographic Ledger Preview (Hidden as per user requirement)
+                <div style={{ marginTop: "20px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "14px", borderRadius: "10px" }}>
+                  <strong style={{ fontSize: "0.78rem", color: "#15803d", textTransform: "uppercase", display: "block" }}>
+                    🔒 Sovereign Cryptographic Hash Ledger Preview
+                  </strong>
+                  <code style={{ fontSize: "0.75rem", color: "#166534", fontFamily: "monospace", display: "block", marginTop: "4px" }}>
+                    SHA256: 8f4a9b21c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6
+                  </code>
+                </div>
+                */}
               </div>
+            </div>
+          </div>
+        )}
 
-              <button className="assistant-action-btn" style={{ marginTop: "20px" }} onClick={() => alert("AI Analysis: Identified 14 eligibility markers, 5 MSME clauses, and 3 cryptographic certificate guidelines.")}>
-                Extract Requirements with AI
+        {/* STEP 5: PUBLISH SUCCESS CONFIRMATION */}
+        {currentStep === 5 && (
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "40px", textAlign: "center", maxWidth: "680px", margin: "20px auto" }}>
+            <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px auto", boxShadow: "0 10px 20px rgba(22,163,74,0.2)" }}>
+              <CheckCircle2 size={42} />
+            </div>
+
+            <span style={{ fontSize: "0.75rem", fontWeight: 800, background: "#16a34a", color: "#ffffff", padding: "4px 12px", borderRadius: "12px", letterSpacing: "0.5px" }}>
+              TENDER LIVE & PUBLISHED
+            </span>
+
+            <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "#0f172a", margin: "14px 0 8px 0" }}>
+              Tender {formData.tenderId} Published Successfully!
+            </h2>
+
+            <p style={{ fontSize: "0.9rem", color: "#64748b", lineHeight: 1.5, marginBottom: "24px" }}>
+              "{formData.title}" is now active on the Government e-Procurement Portal. Bidders can view criteria, upload documents, and submit bids.
+            </p>
+
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px", marginBottom: "28px", textAlign: "left", fontSize: "0.8rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span style={{ color: "#64748b" }}>Tender ID:</span>
+                <strong style={{ color: "#0f172a", fontFamily: "monospace" }}>{formData.tenderId}</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span style={{ color: "#64748b" }}>Published Timestamp:</span>
+                <strong style={{ color: "#0f172a" }}>31 August 2026, 19:18 IST</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#64748b" }}>Ledger Integrity Status:</span>
+                <strong style={{ color: "#16a34a" }}>✓ SHA-256 Ledger Verified</strong>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+              <button
+                type="button"
+                onClick={() => { setCurrentStep(1); setFormData((prev) => ({ ...prev, tenderId: "GEM-CPCL-2026-005", title: "" })); }}
+                style={{ padding: "10px 20px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer" }}
+              >
+                + Create Another Tender
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveSection("tenders")}
+                style={{ padding: "10px 24px", borderRadius: "8px", border: "none", background: "#2563eb", color: "#ffffff", fontWeight: 800, fontSize: "0.85rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(37,99,235,0.25)" }}
+              >
+                View Live Tenders Listing →
               </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Bottom Actions */}
-        <div className="bottom-actions-row">
-          <button className="secondary-action-btn" onClick={() => setActiveSection("tenders")}>
-            Save Draft
-          </button>
-          <button className="primary-action-btn" onClick={() => alert("Requirements definition compiled. Navigating to compliance criteria verification page.")}>
-            Next: Requirements →
-          </button>
-        </div>
+        {/* BOTTOM ACTION NAVIGATION BAR (STEPS 1 - 4) */}
+        {currentStep < 5 && (
+          <div className="bottom-actions-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #e2e8f0" }}>
+            <div>
+              {currentStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 700, color: "#334155", cursor: "pointer" }}
+                >
+                  ← Back
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setActiveSection("tenders")}
+                  style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 600, color: "#64748b", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <button
+                type="button"
+                className="secondary-action-btn"
+                onClick={handleSaveDraft}
+                style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 700, color: "#1e293b", cursor: "pointer" }}
+              >
+                💾 Save Draft
+              </button>
+
+              {currentStep === 4 ? (
+                <button
+                  type="button"
+                  onClick={handlePublishTender}
+                  style={{ background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 24px", fontSize: "0.88rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
+                >
+                  🚀 Publish Tender to GeM →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="primary-action-btn"
+                  onClick={handleNext}
+                  style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 24px", fontSize: "0.88rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)" }}
+                >
+                  Next: {currentStep === 1 ? "Requirements" : currentStep === 2 ? "Documents" : "Review"} →
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -7598,6 +8920,619 @@ function Home({ role, user, onLogout }) {
     );
   };
 
+  // Blacklisted & Debarred Bidders Governance Console View Component
+  const BlacklistedBiddersView = () => {
+    const [blacklistedList, setBlacklistedList] = useState(INITIAL_BLACKLISTED_BIDDERS);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("All");
+    const [severityFilter, setSeverityFilter] = useState("All");
+    const [selectedDossier, setSelectedDossier] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showRevokeModal, setShowRevokeModal] = useState(null);
+    const [toastMessage, setToastMessage] = useState("");
+
+    // Form state for adding a new blacklisted entity
+    const [newEntity, setNewEntity] = useState({
+      name: "",
+      pan: "",
+      gstin: "",
+      type: "Private Limited",
+      reason: "",
+      violationCategory: "Document Forgery & Fraud",
+      debarmentOrderNo: "",
+      authority: "Central Vigilance Commission (CVC)",
+      duration: "3 Years",
+      severity: "CRITICAL",
+      notes: ""
+    });
+    const [adminPasswordInput, setAdminPasswordInput] = useState("");
+    const [modalError, setModalError] = useState("");
+
+    const triggerToast = (msg) => {
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(""), 4000);
+    };
+
+    const handleAddBlacklistSubmit = (e) => {
+      e.preventDefault();
+      if (!newEntity.name || !newEntity.pan || !newEntity.reason || !newEntity.debarmentOrderNo) {
+        setModalError("Please complete all required fields (Name, PAN, Reason, Order No).");
+        return;
+      }
+      if (adminPasswordInput !== "admin123" && adminPasswordInput !== "officer123" && adminPasswordInput !== "123456") {
+        setModalError("Invalid Security Password. Authorization denied.");
+        return;
+      }
+
+      const todayStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      const createdItem = {
+        id: `BLK-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        name: newEntity.name,
+        pan: newEntity.pan.toUpperCase(),
+        gstin: newEntity.gstin.toUpperCase() || "N/A",
+        type: newEntity.type,
+        reason: newEntity.reason,
+        violationCategory: newEntity.violationCategory,
+        debarmentOrderNo: newEntity.debarmentOrderNo,
+        authority: newEntity.authority,
+        startDate: todayStr,
+        endDate: "Active Debarment Period",
+        duration: newEntity.duration,
+        severity: newEntity.severity,
+        status: "Active Debarment",
+        statusBg: "#fef2f2",
+        statusColor: "#dc2626",
+        contactEmail: "legal@registered-entity.in",
+        contactPhone: "+91 98000 11223",
+        investigationHash: "0x" + Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase(),
+        notes: newEntity.notes || "Debarred by central compliance authority following automated integrity flag."
+      };
+
+      setBlacklistedList([createdItem, ...blacklistedList]);
+      setShowAddModal(false);
+      setNewEntity({
+        name: "",
+        pan: "",
+        gstin: "",
+        type: "Private Limited",
+        reason: "",
+        violationCategory: "Document Forgery & Fraud",
+        debarmentOrderNo: "",
+        authority: "Central Vigilance Commission (CVC)",
+        duration: "3 Years",
+        severity: "CRITICAL",
+        notes: ""
+      });
+      setAdminPasswordInput("");
+      setModalError("");
+      triggerToast(`Entity "${createdItem.name}" successfully committed to Blacklist Registry.`);
+    };
+
+    const handleRevokeDebarment = () => {
+      if (adminPasswordInput !== "admin123" && adminPasswordInput !== "officer123" && adminPasswordInput !== "123456") {
+        setModalError("Invalid Security Password. Authorization denied.");
+        return;
+      }
+
+      setBlacklistedList(blacklistedList.filter(b => b.id !== showRevokeModal.id));
+      triggerToast(`Debarment order for "${showRevokeModal.name}" revoked & reinstated.`);
+      setShowRevokeModal(null);
+      setAdminPasswordInput("");
+      setModalError("");
+    };
+
+    const filtered = blacklistedList.filter(item => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        item.name.toLowerCase().includes(q) ||
+        item.pan.toLowerCase().includes(q) ||
+        item.gstin.toLowerCase().includes(q) ||
+        item.debarmentOrderNo.toLowerCase().includes(q) ||
+        item.id.toLowerCase().includes(q);
+      const matchesCategory = categoryFilter === "All" || item.violationCategory === categoryFilter;
+      const matchesSeverity = severityFilter === "All" || item.severity === severityFilter;
+      return matchesSearch && matchesCategory && matchesSeverity;
+    });
+
+    const criticalCount = blacklistedList.filter(i => i.severity === "CRITICAL").length;
+    const highCount = blacklistedList.filter(i => i.severity === "HIGH").length;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", background: "#f8fafc", padding: "4px" }}>
+        
+        {/* HEADER BAR */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{ padding: "2px 8px", borderRadius: "6px", fontSize: "0.7rem", fontWeight: 800, background: "#fee2e2", color: "#dc2626", textTransform: "uppercase" }}>
+                SOVEREIGN GOVERNANCE CONSOLE
+              </span>
+            </div>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+              <UserX size={24} style={{ color: "#dc2626" }} /> Blacklisted & Debarred Bidders Registry
+            </h1>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+              Central administrative registry of blacklisted entities, vigilance debarment orders, and fraud prevention locks.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              onClick={() => {
+                triggerToast("Debarment Registry exported as official PDF compliance document.");
+              }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "8px 14px", fontSize: "0.82rem", fontWeight: 700, color: "#334155", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}
+            >
+              <Download size={14} /> Export Registry (PDF)
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => { setShowAddModal(true); setModalError(""); setAdminPasswordInput(""); }}
+                style={{ display: "flex", alignItems: "center", gap: "6px", background: "#dc2626", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 16px", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 6px rgba(220,38,38,0.25)" }}
+              >
+                <Plus size={15} /> Add Entity to Blacklist
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* SUMMARY STATS GRID */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+          
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#fef2f2", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <UserX size={22} />
+            </div>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, display: "block" }}>TOTAL DEBARRED BIDDERS</span>
+              <strong style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0f172a" }}>{blacklistedList.length} Entities</strong>
+            </div>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#fef2f2", color: "#b91c1c", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ShieldAlert size={22} />
+            </div>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, display: "block" }}>CRITICAL SEVERITY OFFENSES</span>
+              <strong style={{ fontSize: "1.4rem", fontWeight: 900, color: "#dc2626" }}>{criticalCount} Severe Cases</strong>
+            </div>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#fff7ed", color: "#c2410c", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <AlertTriangle size={22} />
+            </div>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, display: "block" }}>HIGH RISK VIOLATIONS</span>
+              <strong style={{ fontSize: "1.4rem", fontWeight: 900, color: "#ea580c" }}>{highCount} Violations</strong>
+            </div>
+          </div>
+
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#f0fdf4", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, display: "block" }}>AUTOMATED BLOCK STATUS</span>
+              <strong style={{ fontSize: "1.2rem", fontWeight: 800, color: "#15803d" }}>100% Locked</strong>
+            </div>
+          </div>
+
+        </div>
+
+        {/* SEARCH & FILTERS BAR */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+          
+          <div style={{ position: "relative", flex: 1, minWidth: "260px" }}>
+            <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+            <input
+              type="text"
+              placeholder="Search by company name, PAN, GSTIN, Order No..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px 9px 36px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem", background: "#ffffff", color: "#0f172a", outline: "none" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600 }}>Violation Category:</span>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                style={{ padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", background: "#ffffff", color: "#0f172a", fontWeight: 600 }}
+              >
+                <option value="All">All Offenses</option>
+                <option value="Document Forgery & Fraud">Document Forgery & Fraud</option>
+                <option value="Cartelization & Collusion">Cartelization & Collusion</option>
+                <option value="Financial & EMD Default">Financial & EMD Default</option>
+                <option value="Misrepresentation">Misrepresentation</option>
+                <option value="Integrity Pact Violation">Integrity Pact Violation</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600 }}>Severity:</span>
+              <select
+                value={severityFilter}
+                onChange={(e) => setSeverityFilter(e.target.value)}
+                style={{ padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", background: "#ffffff", color: "#0f172a", fontWeight: 600 }}
+              >
+                <option value="All">All Severities</option>
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+              </select>
+            </div>
+
+            {(searchQuery || categoryFilter !== "All" || severityFilter !== "All") && (
+              <button
+                onClick={() => { setSearchQuery(""); setCategoryFilter("All"); setSeverityFilter("All"); }}
+                style={{ background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "8px 12px", fontSize: "0.78rem", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
+
+        </div>
+
+        {/* TABLE LISTING */}
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+              <thead>
+                <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0", fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  <th style={{ padding: "14px 16px" }}>Debarred Entity</th>
+                  <th style={{ padding: "14px 16px" }}>Statutory Identifiers</th>
+                  <th style={{ padding: "14px 16px" }}>Violation Reason & Offense</th>
+                  <th style={{ padding: "14px 16px" }}>Vigilance Order & Authority</th>
+                  <th style={{ padding: "14px 16px" }}>Duration</th>
+                  <th style={{ padding: "14px 16px" }}>Severity</th>
+                  <th style={{ padding: "14px 16px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    
+                    {/* Column 1: Entity */}
+                    <td style={{ padding: "14px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#fef2f2", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.82rem", border: "1px solid #fecaca" }}>
+                          {item.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <strong style={{ fontSize: "0.85rem", color: "#0f172a", display: "block" }}>{item.name}</strong>
+                          <span style={{ fontSize: "0.72rem", color: "#64748b" }}>ID: {item.id}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Column 2: Identifiers */}
+                    <td style={{ padding: "14px 16px", fontSize: "0.78rem", color: "#475569" }}>
+                      <div>PAN: <strong style={{ color: "#0f172a" }}>{item.pan}</strong></div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b" }}>GSTIN: {item.gstin}</div>
+                    </td>
+
+                    {/* Column 3: Offense */}
+                    <td style={{ padding: "14px 16px", maxWidth: "260px" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: "6px", fontSize: "0.68rem", fontWeight: 800, background: "#fee2e2", color: "#b91c1c", display: "inline-block", marginBottom: "4px" }}>
+                        {item.violationCategory}
+                      </span>
+                      <p style={{ margin: 0, fontSize: "0.78rem", color: "#334155", lineHeight: 1.35 }}>
+                        {item.reason}
+                      </p>
+                    </td>
+
+                    {/* Column 4: Vigilance Authority */}
+                    <td style={{ padding: "14px 16px", fontSize: "0.78rem" }}>
+                      <strong style={{ color: "#0f172a", display: "block" }}>{item.debarmentOrderNo}</strong>
+                      <span style={{ color: "#64748b", fontSize: "0.72rem" }}>{item.authority}</span>
+                    </td>
+
+                    {/* Column 5: Duration */}
+                    <td style={{ padding: "14px 16px", fontSize: "0.78rem", color: "#475569" }}>
+                      <strong style={{ color: "#dc2626", display: "block" }}>{item.duration}</strong>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b" }}>Since {item.startDate}</span>
+                    </td>
+
+                    {/* Column 6: Severity */}
+                    <td style={{ padding: "14px 16px" }}>
+                      <span style={{ padding: "3px 10px", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 800, background: item.severity === "CRITICAL" ? "#fef2f2" : "#fff7ed", color: item.severity === "CRITICAL" ? "#dc2626" : "#c2410c", border: item.severity === "CRITICAL" ? "1px solid #fecaca" : "1px solid #ffedd5" }}>
+                        ● {item.severity}
+                      </span>
+                    </td>
+
+                    {/* Column 7: Actions */}
+                    <td style={{ padding: "14px 16px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                        <button
+                          title="View Debarment Investigation Dossier"
+                          onClick={() => setSelectedDossier(item)}
+                          style={{ width: "32px", height: "32px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        >
+                          <Eye size={15} />
+                        </button>
+                        {isAdmin && (
+                          <button
+                            title="Revoke Debarment / Reinstate Entity"
+                            onClick={() => { setShowRevokeModal(item); setModalError(""); setAdminPasswordInput(""); }}
+                            style={{ width: "32px", height: "32px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          >
+                            <RotateCcw size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+
+                  </tr>
+                ))}
+
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "#64748b", fontSize: "0.85rem" }}>
+                      No blacklisted bidders found matching the specified filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* MODAL 1: INVESTIGATION DOSSIER */}
+        {selectedDossier && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(4px)" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "580px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", border: "1px solid #cbd5e1" }}>
+              
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px", marginBottom: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <ShieldAlert size={24} style={{ color: "#dc2626" }} />
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 800, color: "#0f172a" }}>Debarment Dossier: {selectedDossier.name}</h2>
+                    <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Registry Ref: {selectedDossier.id} | Order No: {selectedDossier.debarmentOrderNo}</span>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedDossier(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "14px" }}>
+                  <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>OFFENSE & VIOLATION SUMMARY</span>
+                  <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#b91c1c", margin: "2px 0 6px 0" }}>{selectedDossier.violationCategory}</h4>
+                  <p style={{ fontSize: "0.82rem", color: "#7f1d1d", margin: 0, lineHeight: 1.4 }}>{selectedDossier.reason}</p>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "0.8rem" }}>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block" }}>PAN Number</span>
+                    <strong style={{ color: "#0f172a" }}>{selectedDossier.pan}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block" }}>GSTIN Identifier</span>
+                    <strong style={{ color: "#0f172a" }}>{selectedDossier.gstin}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block" }}>Sanctioning Authority</span>
+                    <strong style={{ color: "#0f172a" }}>{selectedDossier.authority}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block" }}>Debarment Term</span>
+                    <strong style={{ color: "#dc2626" }}>{selectedDossier.duration} ({selectedDossier.startDate})</strong>
+                  </div>
+                </div>
+
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "12px" }}>
+                  <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "4px" }}>VIGILANCE AUDITOR INVESTIGATION NOTES</span>
+                  <p style={{ fontSize: "0.8rem", color: "#334155", margin: 0, lineHeight: 1.45 }}>{selectedDossier.notes}</p>
+                </div>
+
+                <div style={{ background: "#0f172a", color: "#38bdf8", padding: "10px 14px", borderRadius: "8px", fontFamily: "monospace", fontSize: "0.72rem" }}>
+                  Cryptographic Audit Hash: {selectedDossier.investigationHash}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "6px" }}>
+                  <button onClick={() => setSelectedDossier(null)} style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 20px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer" }}>
+                    Close Dossier
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 2: ADD ENTITY TO BLACKLIST (ADMIN ONLY) */}
+        {showAddModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(4px)" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "100%", maxWidth: "600px", padding: "24px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)", borderTop: "4px solid #dc2626" }}>
+              
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <UserX size={22} style={{ color: "#dc2626" }} />
+                  <h3 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 800, color: "#0f172a" }}>Blacklist New Entity</h3>
+                </div>
+                <button onClick={() => setShowAddModal(false)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer" }}>✕</button>
+              </div>
+
+              <form onSubmit={handleAddBlacklistSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                
+                {modalError && (
+                  <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "8px 12px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
+                    ⚠️ {modalError}
+                  </div>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Company / Entity Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Acme Infra Ltd"
+                      value={newEntity.name}
+                      onChange={(e) => setNewEntity({ ...newEntity, name: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>PAN Number *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. AABCA1234A"
+                      value={newEntity.pan}
+                      onChange={(e) => setNewEntity({ ...newEntity, pan: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>GSTIN Identifier</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 24AABCA1234A1Z5"
+                      value={newEntity.gstin}
+                      onChange={(e) => setNewEntity({ ...newEntity, gstin: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Violation Category</label>
+                    <select
+                      value={newEntity.violationCategory}
+                      onChange={(e) => setNewEntity({ ...newEntity, violationCategory: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    >
+                      <option value="Document Forgery & Fraud">Document Forgery & Fraud</option>
+                      <option value="Cartelization & Collusion">Cartelization & Collusion</option>
+                      <option value="Financial & EMD Default">Financial & EMD Default</option>
+                      <option value="Misrepresentation">Misrepresentation</option>
+                      <option value="Integrity Pact Violation">Integrity Pact Violation</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Vigilance Order No *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. CVC/DEBAR/2026/099"
+                      value={newEntity.debarmentOrderNo}
+                      onChange={(e) => setNewEntity({ ...newEntity, debarmentOrderNo: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Debarment Duration</label>
+                    <select
+                      value={newEntity.duration}
+                      onChange={(e) => setNewEntity({ ...newEntity, duration: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                    >
+                      <option value="1 Year">1 Year</option>
+                      <option value="2 Years">2 Years</option>
+                      <option value="3 Years">3 Years</option>
+                      <option value="5 Years">5 Years</option>
+                      <option value="Permanent">Permanent / Lifetime</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Offense Summary & Reason *</label>
+                  <textarea
+                    required
+                    placeholder="Provide specific details of the non-compliance or fraud..."
+                    value={newEntity.reason}
+                    onChange={(e) => setNewEntity({ ...newEntity, reason: e.target.value })}
+                    rows={2}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                  />
+                </div>
+
+                <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", padding: "12px", borderRadius: "8px" }}>
+                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#dc2626", marginBottom: "4px" }}>🔒 Admin Security Authorization Password *</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter Admin Password (admin123)"
+                    value={adminPasswordInput}
+                    onChange={(e) => setAdminPasswordInput(e.target.value)}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "8px" }}>
+                  <button type="button" onClick={() => setShowAddModal(false)} style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 16px", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}>Cancel</button>
+                  <button type="submit" style={{ background: "#dc2626", color: "#ffffff", border: "none", borderRadius: "6px", padding: "8px 20px", fontSize: "0.8rem", fontWeight: 800, cursor: "pointer" }}>Authorize & Commit to Blacklist</button>
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 3: REVOKE DEBARMENT CONFIRMATION */}
+        {showRevokeModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(4px)" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", width: "100%", maxWidth: "480px", padding: "24px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)", borderTop: "4px solid #0284c7" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <RotateCcw size={22} style={{ color: "#0284c7" }} />
+                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>Revoke Debarment Order?</h3>
+              </div>
+              
+              <p style={{ fontSize: "0.85rem", color: "#475569", lineHeight: 1.45, marginBottom: "14px" }}>
+                Are you sure you want to revoke the debarment order for <strong>{showRevokeModal.name}</strong> ({showRevokeModal.pan})? Reinstating this entity will restore their eligibility to participate in GeM tenders.
+              </p>
+
+              {modalError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "8px 12px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700, marginBottom: "12px" }}>
+                  ⚠️ {modalError}
+                </div>
+              )}
+
+              <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", padding: "12px", borderRadius: "8px", marginBottom: "16px" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#0284c7", marginBottom: "4px" }}>🔒 Admin Security Authorization Password *</label>
+                <input
+                  type="password"
+                  placeholder="Enter Admin Password (admin123)"
+                  value={adminPasswordInput}
+                  onChange={(e) => setAdminPasswordInput(e.target.value)}
+                  style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.8rem", background: "#ffffff", color: "#0f172a" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button onClick={() => setShowRevokeModal(null)} style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 16px", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}>Cancel</button>
+                <button onClick={handleRevokeDebarment} style={{ background: "#0284c7", color: "#ffffff", border: "none", borderRadius: "6px", padding: "8px 20px", fontSize: "0.8rem", fontWeight: 800, cursor: "pointer" }}>Confirm & Revoke Debarment</button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* TOAST FEEDBACK */}
+        {toastMessage && (
+          <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 99999, background: "#0f172a", color: "#ffffff", padding: "12px 20px", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 600, boxShadow: "0 10px 25px rgba(0,0,0,0.3)", display: "flex", alignItems: "center", gap: "10px" }}>
+            <CheckCircle2 size={18} style={{ color: "#22c55e" }} />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case "profile":
@@ -7633,6 +9568,8 @@ function Home({ role, user, onLogout }) {
         return <UserManagementView />;
       case "integrations":
         return <IntegrationsView />;
+      case "blacklistedBidders":
+        return <BlacklistedBiddersView />;
       case "auditTrail":
         return <AuditTrailView />;
       case "settings":
@@ -8132,6 +10069,30 @@ function Home({ role, user, onLogout }) {
                     >
                       <Sliders size={16} style={{ color: "#0284c7" }} />
                       <span>Integrations</span>
+                    </button>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => { setActiveSection("blacklistedBidders"); setUserDropdownOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: activeSection === "blacklistedBidders" ? "#fef2f2" : "transparent",
+                        color: activeSection === "blacklistedBidders" ? "#dc2626" : "#334155",
+                        border: "none",
+                        fontSize: "0.85rem",
+                        fontWeight: activeSection === "blacklistedBidders" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      <UserX size={16} style={{ color: "#dc2626" }} />
+                      <span>Blacklisted Bidders</span>
                     </button>
 
                     <button

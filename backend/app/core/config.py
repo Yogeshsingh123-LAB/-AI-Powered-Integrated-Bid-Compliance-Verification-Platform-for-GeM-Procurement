@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import List
 
+# pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
+# pyrefly: ignore [missing-import]
 from pydantic import Field
 
 

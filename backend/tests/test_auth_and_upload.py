@@ -2,10 +2,15 @@ import os
 import io
 import uuid
 import hashlib
+
+# pyrefly: ignore [missing-import]
 import pytest
 from datetime import datetime, timezone, timedelta
+# pyrefly: ignore [missing-import]
 from fastapi.testclient import TestClient
+# pyrefly: ignore [missing-import]
 from sqlalchemy import create_engine
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import sessionmaker
 
 # Set test environment variables BEFORE importing config/app

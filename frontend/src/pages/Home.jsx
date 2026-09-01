@@ -29,6 +29,7 @@ import {
   ArrowRight,
   TrendingUp,
   Sliders,
+  FileCheck,
   FileCheck2,
   HelpCircle,
   BookOpen,
@@ -93,257 +94,7 @@ function SectionPlaceholder({ title, description, rows }) {
   );
 }
 
-function Home({ role, user, onLogout }) {
-  const [activeSection, setActiveSection] = useState(() => {
-    if (typeof window !== "undefined" && window.location.pathname === "/bidder/profile") {
-      return "profile";
-    }
-    return "dashboard";
-  });
-
-  useEffect(() => {
-    if (activeSection === "profile") {
-      if (window.location.pathname !== "/bidder/profile") {
-        window.history.pushState(null, "", "/bidder/profile");
-      }
-    } else if (window.location.pathname === "/bidder/profile" && activeSection !== "profile") {
-      window.history.pushState(null, "", "/");
-    }
-  }, [activeSection]);
-
-  const [bids, setBids] = useState(INITIAL_BIDS);
-  const [selectedBid, setSelectedBid] = useState(null);
-  const [selectedTender, setSelectedTender] = useState(null);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-
-  const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
-  const token = typeof window !== "undefined" ? localStorage.getItem("gem_token") : null;
-
-  const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
-
-  // Fetch Tenders from backend
-  const fetchTenders = async () => {
-    try {
-      const activeToken = localStorage.getItem("gem_token") || token;
-      const res = await fetch(`${API_BASE}/api/tenders`, {
-        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setTendersList(data);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch live tenders:", err);
-    }
-  };
-
-  // Fetch Bids from backend
-  const fetchBids = async () => {
-    try {
-      if (!token) return;
-      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setBids(data);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch live bids:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchTenders();
-    fetchBids();
-  }, [role, user]);
-
-  const [announcementConfig, setAnnouncementConfig] = useState(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem("gem_announcement_config") : null;
-    return saved
-      ? JSON.parse(saved)
-      : {
-        enabled: true,
-        badgeText: "📢 LIVE ANNOUNCEMENTS",
-        text: "✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦",
-        type: "NOTICE",
-        speed: "NORMAL"
-      };
-  });
-
-  const [biddersInitialFilter, setBiddersInitialFilter] = useState({ risk: "All", verification: "All" });
-  const [selectedTenderForBidders, setSelectedTenderForBidders] = useState(null);
-  const [selectedVerificationBidder, setSelectedVerificationBidder] = useState(null);
-  const [decidedBids, setDecidedBids] = useState({});
-
-  const [editingTenderModalItem, setEditingTenderModalItem] = useState(null);
-  const [activeTenderMenuId, setActiveTenderMenuId] = useState(null);
-
-  // Security Authorization Modal State for Tender Operations
-  const [pendingTenderAction, setPendingTenderAction] = useState(null);
-  const [actionPasswordInput, setActionPasswordInput] = useState("");
-  const [actionPasswordError, setActionPasswordError] = useState("");
-
-  const verifyAndExecuteTenderAction = (e) => {
-    if (e) e.preventDefault();
-    if (!pendingTenderAction) return;
-
-    const inputPass = actionPasswordInput.trim();
-    if (!inputPass) {
-      setActionPasswordError("Password is required to authorize this tender operation.");
-      return;
-    }
-
-    const currentRoleUpper = (role || user?.role || "").toUpperCase();
-    const isUserAdmin = isAdmin || currentRoleUpper.includes("ADMIN");
-
-    if (isUserAdmin) {
-      // ADMIN Context: Only Admin Password works
-      if (inputPass !== "Admin@123") {
-        setActionPasswordError("❌ Invalid Admin Password! Please try again.");
-        return;
-      }
-    } else {
-      // PROCUREMENT OFFICER Context: Only Officer Password works
-      if (inputPass !== "officer123" && inputPass !== (user?.password || "officer123")) {
-        setActionPasswordError("❌ Invalid Procurement Officer Password! Please try again.");
-        return;
-      }
-    }
-
-    // Authorized! Execute action & sync with backend database
-    const { type, payload } = pendingTenderAction;
-    if (type === "CREATE") {
-      const newTenderData = {
-        title: payload.newTenderObj.title,
-        description: payload.newTenderObj.description || payload.newTenderObj.title,
-        category: payload.newTenderObj.category || "General Hardware & Services",
-        department: payload.newTenderObj.department || "Chennai Petroleum Corporation Limited (CPCL)",
-        budget_limit: parseFloat(String(payload.newTenderObj.value || "1000000").replace(/[^0-9.]/g, '') || "1000000"),
-        status: payload.newTenderObj.status || "Draft"
-      };
-      if (payload.newTenderObj.id) newTenderData.id = payload.newTenderObj.id;
-
-      fetch(`${API_BASE}/api/tenders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(newTenderData)
-      })
-      .then(r => r.json())
-      .then(() => fetchTenders())
-      .catch(err => console.error("Error creating tender:", err));
-
-      setTendersList(prev => [payload.newTenderObj, ...prev]);
-      if (payload.onSuccess) payload.onSuccess();
-    } else if (type === "EDIT") {
-      setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
-      setEditingTenderModalItem(null);
-    } else if (type === "STATUS") {
-      fetch(`${API_BASE}/api/tenders/${payload.tenderId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ status: payload.newStatus })
-      })
-      .then(() => fetchTenders())
-      .catch(err => console.error("Error updating status:", err));
-
-      setTendersList(prev => prev.map(t => t.id === payload.tenderId ? {
-        ...t,
-        status: payload.newStatus,
-        daysLeft: payload.newStatus === "Active" ? (t.daysLeft || "7 days left") : null
-      } : t));
-      setActiveTenderMenuId(null);
-    } else if (type === "DELETE") {
-      setTendersList(prev => prev.filter(t => t.id !== payload.tenderId));
-      setActiveTenderMenuId(null);
-    }
-
-    // Reset password state & close modal
-    setActionPasswordInput("");
-    setActionPasswordError("");
-    setPendingTenderAction(null);
-  };
-
-  const handleTenderClickFromDashboard = (tenderId) => {
-    const found = tendersList.find(t => t.id === tenderId) || tendersList[0];
-    setSelectedTenderForBidders(found);
-    setActiveSection("tenders");
-  };
-
-
-
-  const handleAddBid = (newBid) => {
-    setBids((prev) => [newBid, ...prev]);
-  };
-
-  const handleSubmitBid = (tenderId) => {
-    const targetBid = bids.find((b) => b.id === tenderId) || bids[0] || INITIAL_BIDS[0];
-    setSelectedBid(targetBid);
-  };
-
-  const handleAuditAction = (bidId, newStatus) => {
-    setBids((prevBids) =>
-      prevBids.map((bid) => {
-        if (bid.id === bidId) {
-          const timestamp = new Date().toLocaleTimeString();
-          const logEntry = `[${timestamp}] [Officer Action] Bid marked as '${newStatus}'. Notes: "${officerNotes || 'None'}"`;
-          return {
-            ...bid,
-            status: newStatus,
-            logs: [...bid.logs, logEntry]
-          };
-        }
-        return bid;
-      })
-    );
-    alert(`Success: Bid status updated to ${newStatus}`);
-    setSelectedBid(null);
-    setOfficerNotes("");
-  };
-
-  // 1. Supplier Navigation Items
-  const supplierNav = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "myBids", label: "My Bids", icon: FileCheck2 },
-    { id: "documents", label: "Documents", icon: CloudUpload },
-    { id: "tenders", label: "Tenders", icon: FolderOpen },
-    { id: "notifications", label: "Notifications", icon: Bell }
-  ];
-
-  // 2. Buyer (Officer) Navigation Items
-  const buyerNav = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "tenders", label: "Tenders" },
-    { id: "bidders", label: "Bidders" },
-    { id: "verification", label: "Verification" },
-    { id: "reports", label: "Reports" }
-  ];
-
-  // Admin role check (User Management & Integrations tabs are accessible via Profile Menu)
-  const isAdmin =
-    role === "ADMIN" ||
-    role === "Admin" ||
-    role === "Super Admin" ||
-    user?.role?.toUpperCase() === "ADMIN" ||
-    user?.role?.toUpperCase() === "SUPER ADMIN" ||
-    user?.role?.toUpperCase()?.includes("ADMIN") ||
-    user?.email === "admin@gem.gov.in";
-
-  const navigationItems = role === "Supplier" ? supplierNav : buyerNav;
-
-  // New Bidder (Supplier) Dashboard View Component
-  const BidderDashboardView = () => {
+const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSection, user, setSelectedBid }) => {
     return (
       <div className="bidder-dashboard-content">
         {/* Welcome Section */}
@@ -535,7 +286,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  const MyBidsSection = () => {
+
+const MyBidsSection = ({ bids, setActiveSection, setSelectedBid }) => {
     const [myBidsFilter, setMyBidsFilter] = useState("all");
 
     const filteredBids = bids.filter((bid) => {
@@ -641,7 +393,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  const TendersSection = () => {
+
+const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setSelectedBid, token, API_BASE, bids, fetchBids }) => {
     const [bidderSearchQuery, setBidderSearchQuery] = useState("");
     const filteredTenders = tendersList.filter((tender) => {
       if (!bidderSearchQuery.trim()) return true;
@@ -772,7 +525,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  const NotificationsSection = () => {
+
+const NotificationsSection = ({ notifications }) => {
     return (
       <div className="bidder-section-wrapper">
         {/* Unique Amber/Indigo Hero Banner for Notifications */}
@@ -817,8 +571,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Buyer (Officer) views for tabs - Matching exact enterprise dashboard layout
-  const BuyerDashboardView = () => {
+
+const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) => {
     return (
       <div className="officer-dashboard-main-wrapper" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
@@ -1350,15 +1104,26 @@ function Home({ role, user, onLogout }) {
       </div>
     );
   };
-  // Tenders Management View - Pixel perfect match to reference design
-  const TendersView = () => {
+
+
+const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSection, setSelectedTender, pendingTenderAction, setPendingTenderAction, activeTenderMenuId, setActiveTenderMenuId, editingTenderModalItem, setEditingTenderModalItem, INITIAL_BIDDERS_LIST, API_BASE, token, selectedTenderForBidders, setSelectedTenderForBidders, user, isAdmin, setSelectedVerificationBidder }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [categoryFilter, setCategoryFilter] = useState("All");
     const [departmentFilter, setDepartmentFilter] = useState("All");
     const [closingSoonOnly, setClosingSoonOnly] = useState(false);
-    const [activeKpi, setActiveKpi] = useState("ALL");
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [activeKpi, setActiveKpi] = useState("ALL");
+    const [editingRequirementsTender, setEditingRequirementsTender] = useState(null);
+    const [editingReqList, setEditingReqList] = useState([]);
+
+    useEffect(() => {
+      if (editingRequirementsTender) {
+        const currentReqs = editingRequirementsTender.requirements || [];
+        const codes = currentReqs.map(r => (r.code || "").toUpperCase());
+        setEditingReqList(codes);
+      }
+    }, [editingRequirementsTender]);
 
     const ALL_TENDERS = tendersList;
 
@@ -1372,12 +1137,14 @@ function Home({ role, user, onLogout }) {
       setActiveTenderMenuId(null);
     };
 
-    const handleDeleteTender = (tenderId) => {
+    const handleDeleteTender = (tenderItem) => {
+      const tId = typeof tenderItem === "object" ? tenderItem.id : tenderItem;
+      const tTitle = typeof tenderItem === "object" ? tenderItem.title : tId;
       setPendingTenderAction({
         type: "DELETE",
-        payload: { tenderId },
-        actionTitle: "Authorize Tender Deletion",
-        description: `Permanently delete tender '${tenderId}' from the platform. Authorization password required.`
+        payload: { tenderId: tId, tenderTitle: tTitle },
+        actionTitle: "Delete Tender?",
+        description: `Tender ID: ${tId}\nTitle: ${tTitle}\n\nThis action will remove the tender from active tender management. If the tender has submitted bids or verification records, permanent deletion will not be permitted and the tender will be CANCELLED instead to preserve statutory audit records.`
       });
       setActiveTenderMenuId(null);
     };
@@ -1451,6 +1218,43 @@ function Home({ role, user, onLogout }) {
       }
     };
 
+    const [tenderBiddersList, setTenderBiddersList] = useState([]);
+    const [loadingTenderBidders, setLoadingTenderBidders] = useState(false);
+    const [tenderBiddersError, setTenderBiddersError] = useState(null);
+
+    useEffect(() => {
+      if (!selectedTenderForBidders) return;
+      let mounted = true;
+      setLoadingTenderBidders(true);
+      setTenderBiddersError(null);
+
+      const fetchTenderBidders = async () => {
+        try {
+          const activeToken = localStorage.getItem("gem_token") || token;
+          const tenderRef = selectedTenderForBidders.id || selectedTenderForBidders.title;
+          const res = await fetch(`${API_BASE}/api/bids/tender/${encodeURIComponent(tenderRef)}`, {
+            headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (mounted) {
+              setTenderBiddersList(Array.isArray(data) ? data : []);
+            }
+          } else {
+            if (mounted) setTenderBiddersError("Failed to fetch bidder applications from database.");
+          }
+        } catch (err) {
+          console.error("Error fetching tender bidders:", err);
+          if (mounted) setTenderBiddersError("Network error loading bidder applications.");
+        } finally {
+          if (mounted) setLoadingTenderBidders(false);
+        }
+      };
+
+      fetchTenderBidders();
+      return () => { mounted = false; };
+    }, [selectedTenderForBidders, API_BASE, token]);
+
     const getStatusBadgeStyle = (status) => {
       switch (status) {
         case "Active": return { bg: "#dcfce7", color: "#15803d" };
@@ -1462,9 +1266,7 @@ function Home({ role, user, onLogout }) {
 
     // If user clicked on a tender to view bidders
     if (selectedTenderForBidders) {
-      const appliedBidders = INITIAL_BIDDERS_LIST.filter(
-        (b) => b.tender === selectedTenderForBidders.id || b.tender === selectedTenderForBidders.title
-      );
+      const appliedBidders = tenderBiddersList;
 
       return (
         <div className="section-panel" style={{ padding: "30px", background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0" }}>
@@ -1479,65 +1281,92 @@ function Home({ role, user, onLogout }) {
               </button>
               <h2 style={{ margin: "0 0 6px 0", fontSize: "1.5rem", color: "#0f172a" }}>Applied Bidders: {selectedTenderForBidders.title}</h2>
               <p className="subtitle" style={{ margin: 0, color: "#64748b" }}>
-                Tender Ref: <strong style={{ color: "#0284c7" }}>{selectedTenderForBidders.id}</strong> | Dept: <strong>{selectedTenderForBidders.department}</strong>
+                Tender Ref: <strong style={{ color: "#0284c7" }}>{selectedTenderForBidders.id}</strong> | Dept: <strong>{selectedTenderForBidders.department || "General Procurement"}</strong>
               </p>
             </div>
           </div>
 
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid #e2e8f0", background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: "0.72rem" }}>
-                  <th style={{ padding: "12px" }}>Bidder Name</th>
-                  <th style={{ padding: "12px" }}>Submitted Documents</th>
-                  <th style={{ padding: "12px" }}>Compliance Rating</th>
-                  <th style={{ padding: "12px" }}>Risk Rating</th>
-                  <th style={{ padding: "12px" }}>Verification Status</th>
-                  <th style={{ padding: "12px", textAlign: "right" }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appliedBidders.map(bidder => (
-                  <tr key={bidder.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "14px 12px", fontWeight: 700, color: "#0f172a" }}>{bidder.name}</td>
-                    <td style={{ padding: "14px 12px", color: "#64748b" }}>{bidder.documents}</td>
-                    <td style={{ padding: "14px 12px" }}>
-                      <strong style={{ color: bidder.compliance >= 90 ? "#16a34a" : bidder.compliance >= 70 ? "#d97706" : "#dc2626" }}>
-                        {bidder.compliance}%
-                      </strong>
-                    </td>
-                    <td style={{ padding: "14px 12px" }}>
-                      <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700, background: bidder.risk === "LOW" ? "#dcfce7" : bidder.risk === "MEDIUM" ? "#fef3c7" : "#fee2e2", color: bidder.risk === "LOW" ? "#15803d" : bidder.risk === "MEDIUM" ? "#b45309" : "#b91c1c" }}>
-                        {bidder.risk}
-                      </span>
-                    </td>
-                    <td style={{ padding: "14px 12px" }}>
-                      <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700, background: bidder.verification === "Verified" ? "#dcfce7" : "#fff7ed", color: bidder.verification === "Verified" ? "#15803d" : "#c2410c" }}>
-                        {bidder.verification}
-                      </span>
-                    </td>
-                    <td style={{ padding: "14px 12px", textAlign: "right" }}>
-                      <button
-                        onClick={() => {
-                          setSelectedVerificationBidder(bidder);
-                          setActiveSection("verification");
-                        }}
-                        style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
-                      >
-                        Inspect & Verify Bid →
-                      </button>
-                    </td>
+            {loadingTenderBidders ? (
+              <div style={{ padding: "40px", textAlign: "center", color: "#64748b", fontSize: "0.95rem" }}>
+                Loading bidder applications for tender {selectedTenderForBidders.id}...
+              </div>
+            ) : tenderBiddersError ? (
+              <div style={{ padding: "30px", textAlign: "center", color: "#dc2626", background: "#fef2f2", borderRadius: "8px" }}>
+                {tenderBiddersError}
+              </div>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e2e8f0", background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: "0.72rem" }}>
+                    <th style={{ padding: "12px" }}>Bidder Name</th>
+                    <th style={{ padding: "12px" }}>Submitted Documents</th>
+                    <th style={{ padding: "12px" }}>Compliance Rating</th>
+                    <th style={{ padding: "12px" }}>Risk Rating</th>
+                    <th style={{ padding: "12px" }}>Verification Status</th>
+                    <th style={{ padding: "12px", textAlign: "right" }}>Action</th>
                   </tr>
-                ))}
-                {appliedBidders.length === 0 && (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
-                      No bidder applications found for this tender.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {appliedBidders.map(bidder => {
+                    const score = bidder.compliance !== undefined ? bidder.compliance : (bidder.score || 0);
+                    const risk = bidder.risk || "LOW";
+                    const statusText = bidder.verificationStatus || bidder.verification || bidder.officer_status || bidder.status || "Under Review";
+                    return (
+                      <tr key={bidder.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "14px 12px", fontWeight: 700, color: "#0f172a" }}>
+                          {bidder.bidderName || bidder.name || "Registered Bidder"}
+                          {bidder.bidderEmail && <div style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 400 }}>{bidder.bidderEmail}</div>}
+                        </td>
+                        <td style={{ padding: "14px 12px", color: "#64748b" }}>
+                          {bidder.documents || `${bidder.documents_count || 0} Document(s)`}
+                        </td>
+                        <td style={{ padding: "14px 12px" }}>
+                          <strong style={{ color: score >= 80 ? "#16a34a" : score >= 50 ? "#d97706" : "#dc2626" }}>
+                            {score}%
+                          </strong>
+                        </td>
+                        <td style={{ padding: "14px 12px" }}>
+                          <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700, background: risk === "LOW" ? "#dcfce7" : risk === "MEDIUM" ? "#fef3c7" : "#fee2e2", color: risk === "LOW" ? "#15803d" : risk === "MEDIUM" ? "#b45309" : "#b91c1c" }}>
+                            {risk}
+                          </span>
+                        </td>
+                        <td style={{ padding: "14px 12px" }}>
+                          <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700, background: statusText === "Verified" || statusText === "Qualified" ? "#dcfce7" : "#fff7ed", color: statusText === "Verified" || statusText === "Qualified" ? "#15803d" : "#c2410c" }}>
+                            {statusText}
+                          </span>
+                        </td>
+                        <td style={{ padding: "14px 12px", textAlign: "right" }}>
+                          <button
+                            onClick={() => {
+                              setSelectedVerificationBidder({
+                                ...bidder,
+                                id: bidder.id,
+                                bid_id: bidder.id,
+                                name: bidder.bidderName || bidder.name,
+                                tenderId: selectedTenderForBidders.id,
+                                tenderName: selectedTenderForBidders.title
+                              });
+                              setActiveSection("verification");
+                            }}
+                            style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
+                          >
+                            Inspect & Verify Bid →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {appliedBidders.length === 0 && (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                        No bidder applications found for this tender.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       );
@@ -1823,8 +1652,8 @@ function Home({ role, user, onLogout }) {
                   const statusStyle = getStatusBadgeStyle(row.status);
                   return (
                     <tr key={row.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "14px 16px", fontWeight: 700, color: "#0f172a" }}>{row.id}</td>
-                      <td style={{ padding: "14px 16px", fontWeight: 600, color: "#1e293b" }}>{row.title}</td>
+                      <td style={{ padding: "14px 16px", fontWeight: 700, color: "#0284c7", cursor: "pointer" }} onClick={() => { setActiveTenderMenuId(null); setSelectedTenderForBidders(row); }}>{row.id}</td>
+                      <td style={{ padding: "14px 16px", fontWeight: 600, color: "#1e293b", cursor: "pointer" }} onClick={() => { setActiveTenderMenuId(null); setSelectedTenderForBidders(row); }}>{row.title}</td>
                       <td style={{ padding: "14px 16px" }}>
                         <span style={{ background: catStyle.bg, color: catStyle.color, padding: "4px 10px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700 }}>
                           {row.category}
@@ -1901,6 +1730,13 @@ function Home({ role, user, onLogout }) {
                               <Pencil size={14} style={{ color: "#2563eb" }} /> Edit Details
                             </button>
 
+                            <button
+                              onClick={() => { setEditingRequirementsTender(row); setActiveTenderMenuId(null); }}
+                              style={{ width: "100%", padding: "8px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#334155", cursor: "pointer", fontWeight: 600 }}
+                            >
+                              <FileCheck size={14} style={{ color: "#2563eb" }} /> Edit Requirements
+                            </button>
+
                             <div style={{ borderTop: "1px solid #f1f5f9", margin: "4px 0" }}></div>
 
                             <div style={{ padding: "4px 14px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Change Status</div>
@@ -1909,30 +1745,30 @@ function Home({ role, user, onLogout }) {
                               onClick={() => handleUpdateTenderStatus(row.id, "Active")}
                               style={{ width: "100%", padding: "6px 14px", background: row.status === "Active" ? "#f0fdf4" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#16a34a", cursor: "pointer", fontWeight: 700 }}
                             >
-                              🟢 Set to Active
+                              Set to Active
                             </button>
 
                             <button
                               onClick={() => handleUpdateTenderStatus(row.id, "Closed")}
                               style={{ width: "100%", padding: "6px 14px", background: row.status === "Closed" ? "#f1f5f9" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#64748b", cursor: "pointer", fontWeight: 700 }}
                             >
-                              ⚪ Set to Closed
+                              Set to Closed
                             </button>
 
                             <button
                               onClick={() => handleUpdateTenderStatus(row.id, "Cancelled")}
                               style={{ width: "100%", padding: "6px 14px", background: row.status === "Cancelled" ? "#fef2f2" : "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.78rem", color: "#dc2626", cursor: "pointer", fontWeight: 700 }}
                             >
-                              🔴 Set to Cancelled
+                              Set to Cancelled
                             </button>
 
                             <div style={{ borderTop: "1px solid #f1f5f9", margin: "4px 0" }}></div>
 
                             <button
-                              onClick={() => handleDeleteTender(row.id)}
+                              onClick={() => handleDeleteTender(row)}
                               style={{ width: "100%", padding: "8px 14px", background: "none", border: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", color: "#dc2626", cursor: "pointer", fontWeight: 700 }}
                             >
-                              🗑️ Delete Tender
+                              Delete Tender
                             </button>
                           </div>
                         )}
@@ -2081,12 +1917,143 @@ function Home({ role, user, onLogout }) {
             </div>
           </div>
         )}
+
+        {/* OFFICER TENDER REQUIREMENTS EDITOR MODAL */}
+        {editingRequirementsTender && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15,23,42,0.6)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+            <div style={{ background: "#ffffff", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "620px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", border: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>Tender Compliance Requirements</h2>
+                  <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Tender ID: <strong>{editingRequirementsTender.id}</strong> — {editingRequirementsTender.title}</span>
+                </div>
+                <button onClick={() => setEditingRequirementsTender(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+              </div>
+
+              <p style={{ fontSize: "0.82rem", color: "#475569", marginBottom: "16px" }}>
+                Select the exact statutory compliance documents required from bidders for this tender. Bidders will receive ONLY these selected document requirements in their Compliance Vault.
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", maxHeight: "320px", overflowY: "auto", paddingRight: "6px", marginBottom: "20px" }}>
+                {[
+                  { code: "GST", label: "GSTIN Registration Certificate (GST)", desc: "Mandatory for tax verification" },
+                  { code: "PAN", label: "PAN Card Document (PAN)", desc: "CBDT cross-matching" },
+                  { code: "UDYAM", label: "MSME Udyam Certificate (UDYAM)", desc: "EMD waiver verification" },
+                  { code: "OEM", label: "OEM Authorization Certificate (OEM)", desc: "Direct manufacturer authorization" },
+                  { code: "MAKE_IN_INDIA", label: "Make in India Declaration", desc: "Public Procurement GFR 144 compliance" },
+                  { code: "ITR", label: "Income Tax Returns (ITR)", desc: "Financial solvency verification" },
+                  { code: "EPFO", label: "EPFO Provident Fund Certificate", desc: "Labor statutory compliance" },
+                  { code: "ESIC", label: "ESIC Insurance Certificate", desc: "Employee state insurance verification" },
+                  { code: "BIS", label: "BIS Quality & Safety Certificate", desc: "Bureau of Indian Standards approval" },
+                  { code: "DECLARATION", label: "Non-Blacklisting Declaration", desc: "Self-declaration of non-debarment" },
+                  { code: "DPIIT", label: "Land Border Compliance (DPIIT)", desc: "Sovereign security clause GFR 144(xi)" },
+                  { code: "EMD", label: "EMD Deposit / Exemption Proof (EMD)", desc: "Earnest Money Deposit evidence" }
+                ].map((item) => {
+                  const isChecked = editingReqList.includes(item.code);
+                  return (
+                    <label
+                      key={item.code}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        background: isChecked ? "#eff6ff" : "#f8fafc",
+                        border: isChecked ? "1px solid #93c5fd" : "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          if (isChecked) {
+                            setEditingReqList(editingReqList.filter(c => c !== item.code));
+                          } else {
+                            setEditingReqList([...editingReqList, item.code]);
+                          }
+                        }}
+                        style={{ marginTop: "2px", width: "16px", height: "16px", accentColor: "#2563eb" }}
+                      />
+                      <div>
+                        <strong style={{ fontSize: "0.8rem", color: "#0f172a", display: "block" }}>{item.label}</strong>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{item.desc}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
+                <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                  Selected: <strong>{editingReqList.length} requirement(s)</strong>
+                </span>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => setEditingRequirementsTender(null)}
+                    style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "8px 18px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const descMap = {
+                        GST: "GST Registration Certificate (GSTIN)",
+                        PAN: "PAN Card Evidence",
+                        UDYAM: "Udyam / MSME Registration Certificate",
+                        OEM: "OEM Authorization Letter",
+                        MAKE_IN_INDIA: "Make in India / Local Content Declaration",
+                        ITR: "Income Tax Return (ITR) Evidence",
+                        EPFO: "EPFO Compliance Certificate",
+                        ESIC: "ESIC Compliance Certificate",
+                        BIS: "BIS Product Certificate",
+                        DECLARATION: "Non-Blacklisting / Debarment Declaration",
+                        EMD: "EMD Payment Receipt / Bank Guarantee",
+                        DPIIT: "Land Border Sharing (DPIIT) Declaration"
+                      };
+                      const reqPayload = editingReqList.map(code => ({
+                        code: code,
+                        description: descMap[code] || code,
+                        is_mandatory: true
+                      }));
+
+                      try {
+                        const activeToken = localStorage.getItem("gem_token") || token;
+                        const res = await fetch(`${API_BASE}/api/tenders/${editingRequirementsTender.id}/requirements`, {
+                          method: "PUT",
+                          headers: {
+                            "Content-Type": "application/json",
+                            ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+                          },
+                          body: JSON.stringify({ requirements: reqPayload })
+                        });
+                        if (res.ok) {
+                          setEditingRequirementsTender(null);
+                          if (typeof fetchTenders === "function") fetchTenders();
+                        } else {
+                          const errData = await res.json();
+                          alert(`Failed to update requirements: ${errData.detail || "Server error"}`);
+                        }
+                      } catch (err) {
+                        alert("Network error updating tender requirements.");
+                      }
+                    }}
+                    style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 20px", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}
+                  >
+                    Save Requirements
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
-  // Modern premium Bidder list view component - Matching exact reference design
-  const BiddersView = () => {
+
+const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelectedVerificationBidder, decidedBids, setDecidedBids, biddersInitialFilter, API_BASE, token }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [riskFilter, setRiskFilter] = useState("All");
@@ -2098,39 +2065,92 @@ function Home({ role, user, onLogout }) {
     const [viewingBidderDetails, setViewingBidderDetails] = useState(null);
     const [biddersActionToast, setBiddersActionToast] = useState("");
 
-    const ALL_BIDDERS = (bids && bids.length > 0) ? bids.map((b, idx) => ({
-      id: b.id || `BIDDER-${String(idx + 1).padStart(4, '0')}`,
-      initials: (b.bidderName || "BO").substring(0, 2).toUpperCase(),
-      name: b.bidderName || "Bidder Organization",
-      status: b.status || "Active",
-      statusBadgeBg: "#dcfce7",
-      statusBadgeColor: "#15803d",
-      pan: b.pan || "N/A",
-      gstin: b.gstin || "N/A",
-      type: b.enterprise_type || "Enterprise",
-      phone: b.phone || "+91 90000 00000",
-      email: b.email || `contact@bidder${idx + 1}.com`,
-      location: b.location || "India",
-      complianceScore: b.score || 0,
-      ratingText: (b.score || 0) >= 80 ? "Excellent" : (b.score || 0) >= 50 ? "Average" : "Low",
-      scoreColor: (b.score || 0) >= 80 ? "#16a34a" : (b.score || 0) >= 50 ? "#ea580c" : "#dc2626",
-      riskLevel: `${b.risk || 'LOW'} Risk`,
-      riskBg: (b.risk || '').toUpperCase() === 'HIGH' ? "#fef2f2" : "#f0fdf4",
-      riskColor: (b.risk || '').toUpperCase() === 'HIGH' ? "#dc2626" : "#15803d",
-      verificationStatus: b.status || "Under Review",
-      verificationBg: "#dcfce7",
-      verificationColor: "#15803d",
-      verificationDate: b.submittedOn || new Date().toLocaleDateString("en-GB"),
-      activeTenders: 1,
-      isNew: false
-    })) : [];
+    const [registeredBidders, setRegisteredBidders] = useState([]);
+    const [loadingBidders, setLoadingBidders] = useState(false);
+    const [biddersError, setBiddersError] = useState(null);
+
+    useEffect(() => {
+      let mounted = true;
+      setLoadingBidders(true);
+      setBiddersError(null);
+
+      const fetchBiddersData = async () => {
+        try {
+          const activeToken = localStorage.getItem("gem_token") || token;
+          const res = await fetch(`${API_BASE}/api/bidders`, {
+            headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (mounted && Array.isArray(data)) {
+              setRegisteredBidders(data);
+              setLoadingBidders(false);
+              return;
+            }
+          }
+          const bidsRes = await fetch(`${API_BASE}/api/bids`, {
+            headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+          });
+          if (bidsRes.ok) {
+            const bidsData = await bidsRes.json();
+            if (mounted && Array.isArray(bidsData)) {
+              setRegisteredBidders(bidsData);
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching bidders data:", err);
+          if (mounted) setBiddersError("Failed to connect to database.");
+        } finally {
+          if (mounted) setLoadingBidders(false);
+        }
+      };
+
+      fetchBiddersData();
+      return () => { mounted = false; };
+    }, [API_BASE, token]);
+
+    const sourceList = (registeredBidders && registeredBidders.length > 0) ? registeredBidders : (bids || []);
+
+    const ALL_BIDDERS = sourceList.map((b, idx) => {
+      const isCreatedThisMonth = b.created_at ? (new Date(b.created_at).getMonth() === new Date().getMonth()) : false;
+      const scoreVal = b.compliance !== undefined ? b.compliance : (b.score !== undefined ? b.score : 0);
+      const riskStr = (b.risk || (scoreVal >= 80 ? "LOW" : scoreVal >= 50 ? "MEDIUM" : "HIGH")).toUpperCase();
+      const verifStr = b.verification || b.verificationStatus || b.status || "Registered";
+
+      return {
+        id: b.id || `BIDDER-${String(idx + 1).padStart(4, '0')}`,
+        initials: (b.name || b.bidderName || "BO").substring(0, 2).toUpperCase(),
+        name: b.name || b.bidderName || "Bidder Organization",
+        status: b.status || "Active",
+        statusBadgeBg: b.status === "Blacklisted" ? "#fee2e2" : "#dcfce7",
+        statusBadgeColor: b.status === "Blacklisted" ? "#dc2626" : "#15803d",
+        pan: b.pan || "N/A",
+        gstin: b.gstin || "N/A",
+        type: b.type || b.enterprise_type || "Enterprise",
+        phone: b.phone || "+91 90000 00000",
+        email: b.email || b.bidderEmail || `contact@bidder${idx + 1}.com`,
+        location: b.location || "India",
+        complianceScore: scoreVal,
+        ratingText: scoreVal >= 80 ? "Excellent" : scoreVal >= 50 ? "Average" : "Low",
+        scoreColor: scoreVal >= 80 ? "#16a34a" : scoreVal >= 50 ? "#ea580c" : "#dc2626",
+        riskLevel: b.riskLevel || `${riskStr} Risk`,
+        riskBg: riskStr === 'HIGH' ? "#fef2f2" : riskStr === 'MEDIUM' ? "#fffbeb" : "#f0fdf4",
+        riskColor: riskStr === 'HIGH' ? "#dc2626" : riskStr === 'MEDIUM' ? "#d97706" : "#15803d",
+        verificationStatus: verifStr,
+        verificationBg: (verifStr === "Verified" || verifStr === "Qualified") ? "#dcfce7" : "#fff7ed",
+        verificationColor: (verifStr === "Verified" || verifStr === "Qualified") ? "#15803d" : "#c2410c",
+        verificationDate: b.submittedOn || (b.created_at ? new Date(b.created_at).toLocaleDateString("en-GB") : new Date().toLocaleDateString("en-GB")),
+        activeTenders: b.active_tenders || b.bids_count || 1,
+        isNew: isCreatedThisMonth
+      };
+    });
 
     // Dynamic KPI Calculations
     const totalCount = ALL_BIDDERS.length;
     const activeCount = ALL_BIDDERS.filter(b => b.status === "Active" || b.status === "Verified").length;
     const newCount = ALL_BIDDERS.filter(b => b.isNew).length;
-    const highRiskCount = ALL_BIDDERS.filter(b => b.riskLevel === "High Risk").length;
-    const verifiedCount = ALL_BIDDERS.filter(b => b.verificationStatus === "Verified").length;
+    const highRiskCount = ALL_BIDDERS.filter(b => b.riskLevel === "High Risk" || b.riskLevel === "HIGH Risk").length;
+    const verifiedCount = ALL_BIDDERS.filter(b => b.verificationStatus === "Verified" || b.verificationStatus === "Qualified").length;
     const blacklistedCount = ALL_BIDDERS.filter(b => b.status === "Blacklisted" || b.verificationStatus === "Blacklisted").length;
 
     const formatNum = (n) => (n < 10 ? `0${n}` : `${n}`);
@@ -2643,8 +2663,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Advanced AI Bid Verification Dashboard View component - Fully interactive matching user specs
-  const VerificationView = () => {
+
+const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelectedVerificationBidder, decidedBids, setDecidedBids, setActiveSection, API_BASE, token, user }) => {
     const [activeTab, setActiveTab] = useState("documents");
     const [officerDecision, setOfficerDecision] = useState("qualified");
 
@@ -2661,26 +2681,70 @@ function Home({ role, user, onLogout }) {
     // Document preview modal state
     const [previewDocument, setPreviewDocument] = useState(null);
 
+    // Live API Bid Details fetch
+    const [fetchedBidDetails, setFetchedBidDetails] = useState(null);
+    const [loadingBidDetails, setLoadingBidDetails] = useState(false);
+
+    useEffect(() => {
+      const targetId = selectedVerificationBidder?.bid_id || selectedVerificationBidder?.id;
+      if (!targetId || typeof targetId !== "string" || targetId.length < 10) return;
+
+      let mounted = true;
+      setLoadingBidDetails(true);
+
+      const fetchBidDetails = async () => {
+        try {
+          const activeToken = localStorage.getItem("gem_token") || token;
+          const res = await fetch(`${API_BASE}/api/bids/${targetId}`, {
+            headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (mounted) setFetchedBidDetails(data);
+          }
+        } catch (err) {
+          console.warn("Could not fetch detailed bid info:", err);
+        } finally {
+          if (mounted) setLoadingBidDetails(false);
+        }
+      };
+
+      fetchBidDetails();
+      return () => { mounted = false; };
+    }, [selectedVerificationBidder, API_BASE, token]);
+
     // Dynamic Bidder data fallback from selectedVerificationBidder or active state
-    const bidderName = selectedVerificationBidder?.name || selectedVerificationBidder?.bidderName || "Bidder Organization";
+    const bidderName = fetchedBidDetails?.bidder_name || selectedVerificationBidder?.name || selectedVerificationBidder?.bidderName || "Bidder Organization";
     const bidderLocation = selectedVerificationBidder?.location || "India";
-    const bidderStatus = selectedVerificationBidder?.verificationStatus || selectedVerificationBidder?.status || "Under Review";
+    const bidderStatus = fetchedBidDetails?.officer_status || fetchedBidDetails?.status || selectedVerificationBidder?.verificationStatus || selectedVerificationBidder?.status || "Under Review";
     const bidderPan = selectedVerificationBidder?.pan || "N/A";
     const bidderGstin = selectedVerificationBidder?.gstin || "N/A";
     const bidderType = selectedVerificationBidder?.type || selectedVerificationBidder?.enterprise_type || "Enterprise";
-    const bidderPhone = selectedVerificationBidder?.phone || "N/A";
-    const bidderEmail = selectedVerificationBidder?.email || "N/A";
-    const bidderScore = selectedVerificationBidder?.complianceScore !== undefined && selectedVerificationBidder?.complianceScore !== null ? selectedVerificationBidder.complianceScore : (selectedVerificationBidder?.score || 0);
-    const bidderRisk = selectedVerificationBidder?.riskLevel || selectedVerificationBidder?.risk || "LOW";
+    const bidderPhone = fetchedBidDetails?.bidder_email || selectedVerificationBidder?.phone || "N/A";
+    const bidderEmail = fetchedBidDetails?.bidder_email || selectedVerificationBidder?.email || "N/A";
+    const bidderScore = fetchedBidDetails?.compliance_score !== undefined ? fetchedBidDetails.compliance_score : (selectedVerificationBidder?.complianceScore !== undefined ? selectedVerificationBidder.complianceScore : (selectedVerificationBidder?.score || 0));
+    const bidderRisk = fetchedBidDetails?.risk_level || selectedVerificationBidder?.riskLevel || selectedVerificationBidder?.risk || "LOW";
 
-    const tenderId = selectedVerificationBidder?.tenderId || selectedVerificationBidder?.tender_id || "N/A";
-    const tenderName = selectedVerificationBidder?.tenderName || selectedVerificationBidder?.tender_name || "Unknown Tender";
-    const bidderId = selectedVerificationBidder?.id || selectedVerificationBidder?.bidder_id || "N/A";
-    const submissionDate = selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || "N/A";
+    const tenderId = fetchedBidDetails?.tender_id || selectedVerificationBidder?.tenderId || selectedVerificationBidder?.tender_id || "N/A";
+    const tenderName = fetchedBidDetails?.tender_title || selectedVerificationBidder?.tenderName || selectedVerificationBidder?.tender_name || "Unknown Tender";
+    const bidderId = fetchedBidDetails?.bidder_id || selectedVerificationBidder?.id || selectedVerificationBidder?.bidder_id || "N/A";
+    const submissionDate = fetchedBidDetails?.submitted_at || selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || "N/A";
     const bidValue = selectedVerificationBidder?.bidValue || selectedVerificationBidder?.bid_value || "N/A";
     
     const extractedFields = selectedVerificationBidder?.extractedFields || [];
-    const initialSubmittedDocuments = selectedVerificationBidder?.documents || [];
+    
+    const initialSubmittedDocuments = (fetchedBidDetails && fetchedBidDetails.documents && fetchedBidDetails.documents.length > 0)
+      ? fetchedBidDetails.documents.map(d => ({
+          id: d.id,
+          name: d.original_filename || d.document_type || "Compliance Document",
+          type: d.document_type || "PDF",
+          size: d.file_size ? `${(d.file_size / 1024).toFixed(1)} KB` : "1.2 MB",
+          status: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "Verified" : "Pending",
+          statusBg: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "#dcfce7" : "#fff7ed",
+          statusColor: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "#15803d" : "#c2410c",
+          issues: d.document_status === "REJECTED" ? ["Verification Rejected"] : []
+        }))
+      : (selectedVerificationBidder?.documents || []);
 
     const submittedDocuments = initialSubmittedDocuments.map((doc) => {
       if (verifiedDocMap[doc.id]) {
@@ -3727,8 +3791,7 @@ function Home({ role, user, onLogout }) {
   };
 
 
-  // Government Portal Integrations View for Procurement Admin
-  const IntegrationsView = () => {
+const IntegrationsView = ({ API_BASE, token }) => {
     const initialIntegrations = [
       { id: 1, name: "Udyam / MSME", key: "udyam", category: "Statutory", status: "Connected", lastSync: "2 mins ago", requests: "42,850", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.udyamregistration.gov.in/v1/verify", icon: "🏢" },
       { id: 2, name: "GSTN", key: "gstn", category: "Taxation", status: "Connected", lastSync: "5 mins ago", requests: "128,420", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://api.gst.gov.in/taxpayer/v1/search", icon: "🏛️" },
@@ -4118,8 +4181,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Admin "User Management" View Component
-  const UserManagementView = () => {
+
+const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const initialUsers = [];
 
     const allAvailablePermissions = [
@@ -5188,7 +5251,7 @@ function Home({ role, user, onLogout }) {
   };
 
 
-  const AuditTrailView = () => {
+const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
     const initialAuditLogs = [];
 
     // Generate dynamic audit logs from bids state in real-time
@@ -5944,8 +6007,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Fully Functional Multi-Step Create Tender View
-  const CreateTenderView = () => {
+
+const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActiveSection, API_BASE, token, user, bids }) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [aiAnalyzing, setAiAnalyzing] = useState(false);
     const [aiExtracted, setAiExtracted] = useState(false);
@@ -5962,40 +6025,83 @@ function Home({ role, user, onLogout }) {
       return candidate;
     };
 
-    // Form State
-    const [formData, setFormData] = useState(() => ({
+    const getBlankFormData = () => ({
       tenderId: getNextUniqueTenderId(),
-      title: "Supply of Industrial Pumps & High-Pressure Valves",
-      organization: "Chennai Petroleum Corporation Limited",
-      department: "Procurement & Refineries Division",
-      category: "Industrial Equipment & Heavy Machinery",
-      estimatedValue: "₹50,00,000",
-      submissionDeadline: "2026-09-30",
-      description: "Procurement of heavy-duty centrifugal industrial pumps, control valves, and statutory pressure safety assemblies.",
-      contactEmail: "procurement@cpcl.gov.in",
+      title: "",
+      organization: "",
+      department: "",
+      category: "",
+      estimatedValue: "",
+      submissionDeadline: "",
+      description: "",
+      contactEmail: "",
 
-      // Step 2: Requirements
-      minTurnover: "50",
-      minExperienceYears: "3",
-      minLocalContent: "50",
-      oemAuthorizationRequired: true,
+      // Step 2: Requirements (Blank by default)
+      minTurnover: "",
+      minExperienceYears: "",
+      minLocalContent: "",
+      oemAuthorizationRequired: false,
       gstinMandatory: true,
       panMandatory: true,
       startupExemption: true,
       msmeExemption: true,
 
-      // Step 3: Required Documents
+      // Step 3: Required Documents (Officer must explicitly check requirements for tender)
       documents: {
-        gstCertificate: true,
-        panCard: true,
-        itrReturns: true,
-        oemAuthorization: true,
+        gstCertificate: false,
+        panCard: false,
+        itrReturns: false,
+        oemAuthorization: false,
         msmeUdyam: false,
-        landBorderDeclaration: true,
-        emdReceipt: true
+        landBorderDeclaration: false,
+        emdReceipt: false,
+        epfoCompliance: false,
+        esicCompliance: false,
+        bisCertificate: false,
+        makeInIndia: false,
+        nonBlacklisting: false
       },
-      customDocs: ["ISO 9001:2015 Quality Management Certificate"]
-    }));
+      customDocs: []
+    });
+
+    // Form State starts 100% BLANK
+    const [formData, setFormData] = useState(getBlankFormData);
+
+    const buildSelectedRequirementsList = (fData) => {
+      const mapDocKeyToReq = {
+        gstCertificate: { code: "GST", description: "GST Registration Certificate (GSTIN)" },
+        panCard: { code: "PAN", description: "PAN Card Evidence" },
+        msmeUdyam: { code: "UDYAM", description: "Udyam / MSME Registration Certificate" },
+        oemAuthorization: { code: "OEM", description: "OEM Authorization Letter" },
+        makeInIndia: { code: "MAKE_IN_INDIA", description: "Make in India / Local Content Declaration" },
+        itrReturns: { code: "ITR", description: "Income Tax Return (ITR) Evidence" },
+        epfoCompliance: { code: "EPFO", description: "EPFO Compliance Certificate" },
+        esicCompliance: { code: "ESIC", description: "ESIC Compliance Certificate" },
+        bisCertificate: { code: "BIS", description: "BIS Product Certificate" },
+        nonBlacklisting: { code: "DECLARATION", description: "Non-Blacklisting / Debarment Declaration" },
+        emdReceipt: { code: "EMD", description: "EMD Payment Receipt / Bank Guarantee" },
+        landBorderDeclaration: { code: "DPIIT", description: "Land Border Sharing (DPIIT) Declaration" }
+      };
+
+      const selected = [];
+      Object.keys(fData.documents || {}).forEach(k => {
+        if (fData.documents[k] && mapDocKeyToReq[k]) {
+          selected.push({
+            code: mapDocKeyToReq[k].code,
+            description: mapDocKeyToReq[k].description,
+            is_mandatory: true
+          });
+        }
+      });
+      (fData.customDocs || []).forEach(cName => {
+        selected.push({
+          code: "CUSTOM",
+          description: cName,
+          is_mandatory: true
+        });
+      });
+      return selected;
+    };
 
     const handleInputChange = (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -6061,7 +6167,8 @@ function Home({ role, user, onLogout }) {
         department: formData.department || "Procurement & Refineries Division",
         budget_limit: budgetVal,
         closing_date: formData.submissionDeadline || "2026-09-30",
-        status: "Draft"
+        status: "Draft",
+        selected_requirements: buildSelectedRequirementsList(formData)
       };
 
       try {
@@ -6097,6 +6204,16 @@ function Home({ role, user, onLogout }) {
         finalTenderId = `${finalTenderId}-REV${tendersList.length + 1}`;
       }
 
+      if (formData.submissionDeadline) {
+        const selectedDate = new Date(formData.submissionDeadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+          showToast("⚠️ Closing date must be later than the publication/start date.");
+          return;
+        }
+      }
+
       const budgetVal = parseFloat(String(formData.estimatedValue || "5000000").replace(/[^0-9.]/g, '') || "5000000");
 
       const publishPayload = {
@@ -6107,7 +6224,8 @@ function Home({ role, user, onLogout }) {
         department: formData.department || "Procurement & Refineries Division",
         budget_limit: budgetVal,
         closing_date: formData.submissionDeadline || "2026-09-30",
-        status: "Active"
+        status: "Active",
+        selected_requirements: buildSelectedRequirementsList(formData)
       };
 
       try {
@@ -6124,7 +6242,10 @@ function Home({ role, user, onLogout }) {
         if (res.ok) {
           await fetchTenders();
           setCurrentStep(5);
-          showToast(`🚀 Tender ${finalTenderId} Successfully Published to GeM Procurement Network & Supabase Database!`);
+          showToast(`🚀 Tender ${finalTenderId} Successfully Published to GeM Procurement Network! Redirecting to Tenders List...`);
+          setTimeout(() => {
+            setActiveSection("tenders");
+          }, 1500);
         } else {
           const errData = await res.json();
           alert(`Error publishing tender: ${errData.detail || "Database creation error"}`);
@@ -6148,7 +6269,10 @@ function Home({ role, user, onLogout }) {
         };
         setTendersList((prev) => [newTenderObj, ...prev]);
         setCurrentStep(5);
-        showToast(`🚀 Tender ${finalTenderId} Published locally!`);
+        showToast(`🚀 Tender ${finalTenderId} Published locally! Redirecting to Tenders List...`);
+        setTimeout(() => {
+          setActiveSection("tenders");
+        }, 1500);
       }
     };
 
@@ -6335,6 +6459,7 @@ function Home({ role, user, onLogout }) {
                       type="text"
                       value={formData.organization}
                       onChange={(e) => handleInputChange("organization", e.target.value)}
+                      placeholder="e.g. Chennai Petroleum Corporation Limited"
                     />
                   </div>
 
@@ -6344,6 +6469,7 @@ function Home({ role, user, onLogout }) {
                       type="text"
                       value={formData.department}
                       onChange={(e) => handleInputChange("department", e.target.value)}
+                      placeholder="e.g. Procurement & Refineries Division"
                     />
                   </div>
 
@@ -6353,15 +6479,17 @@ function Home({ role, user, onLogout }) {
                       type="text"
                       value={formData.estimatedValue}
                       onChange={(e) => handleInputChange("estimatedValue", e.target.value)}
+                      placeholder="e.g. ₹50,00,000"
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Submission Deadline</label>
+                    <label>Submission Deadline (Choose by Calendar) *</label>
                     <input
-                      type="text"
+                      type="date"
                       value={formData.submissionDeadline}
                       onChange={(e) => handleInputChange("submissionDeadline", e.target.value)}
+                      style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a", backgroundColor: "#ffffff" }}
                     />
                   </div>
 
@@ -6371,6 +6499,7 @@ function Home({ role, user, onLogout }) {
                       rows={3}
                       value={formData.description}
                       onChange={(e) => handleInputChange("description", e.target.value)}
+                      placeholder="Enter detailed scope of work, technical specifications, and project requirements..."
                       style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a", backgroundColor: "#ffffff", fontFamily: "inherit" }}
                     />
                   </div>
@@ -6573,13 +6702,18 @@ function Home({ role, user, onLogout }) {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {[
-                    { key: "gstCertificate", label: "GSTIN Registration Certificate", desc: "Mandatory for tax verification" },
-                    { key: "panCard", label: "Standalone PAN Card Document", desc: "CBDT cross-matching" },
-                    { key: "itrReturns", label: "Income Tax Returns (Last 3 Financial Yrs)", desc: "Financial solvency verification" },
-                    { key: "oemAuthorization", label: "OEM Authorization & Warranty Certificate", desc: "Technical authenticity" },
-                    { key: "msmeUdyam", label: "MSME Udyam Registration Certificate", desc: "EMD waiver verification" },
-                    { key: "landBorderDeclaration", label: "Land Border Compliance Declaration (GFR Rule 144)", desc: "Sovereign security clause" },
-                    { key: "emdReceipt", label: "EMD Deposit / Exemption Proof", desc: "Financial commitment" }
+                    { key: "gstCertificate", label: "GSTIN Registration Certificate (GST)", desc: "Mandatory for GSTIN tax verification" },
+                    { key: "panCard", label: "PAN Card Document (PAN)", desc: "CBDT cross-matching and identity verification" },
+                    { key: "msmeUdyam", label: "MSME Udyam Registration Certificate (UDYAM)", desc: "EMD waiver and MSME classification" },
+                    { key: "oemAuthorization", label: "OEM Authorization Certificate (OEM)", desc: "Direct manufacturer authorization & warranty" },
+                    { key: "makeInIndia", label: "Make in India (Local Content) Declaration", desc: "Public Procurement GFR Rule 144 compliance" },
+                    { key: "itrReturns", label: "Income Tax Returns (ITR)", desc: "Financial solvency verification" },
+                    { key: "epfoCompliance", label: "EPFO Provident Fund Certificate", desc: "Labor statutory compliance" },
+                    { key: "esicCompliance", label: "ESIC Insurance Certificate", desc: "Employee state insurance verification" },
+                    { key: "bisCertificate", label: "BIS Quality & Safety Certificate", desc: "Bureau of Indian Standards approval" },
+                    { key: "nonBlacklisting", label: "Non-Blacklisting / Debarment Declaration", desc: "Self-declaration of non-debarment" },
+                    { key: "landBorderDeclaration", label: "Land Border Compliance Declaration (DPIIT)", desc: "Sovereign security clause GFR 144(xi)" },
+                    { key: "emdReceipt", label: "EMD Deposit / Exemption Proof (EMD)", desc: "Earnest Money Deposit evidence" }
                   ].map((docItem) => (
                     <label
                       key={docItem.key}
@@ -6739,7 +6873,7 @@ function Home({ role, user, onLogout }) {
             <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
               <button
                 type="button"
-                onClick={() => { setCurrentStep(1); setFormData((prev) => ({ ...prev, tenderId: getNextUniqueTenderId(), title: "" })); }}
+                onClick={() => { setCurrentStep(1); setFormData(getBlankFormData()); }}
                 style={{ padding: "10px 20px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer" }}
               >
                 + Create Another Tender
@@ -6813,8 +6947,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Reports & Analysis View for Procurement Admin
-  const ReportsView = () => {
+
+const ReportsView = ({ bids, tendersList, setActiveSection }) => {
     const [selectedDateRange, setSelectedDateRange] = useState("01 May 2026 – 31 May 2026");
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -7353,8 +7487,8 @@ function Home({ role, user, onLogout }) {
     );
   };
 
-  // Admin "System Settings" View Component
-  const SettingsView = () => {
+
+const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, notifications }) => {
     const [activeTab, setActiveTab] = useState("general");
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -8260,6 +8394,343 @@ function Home({ role, user, onLogout }) {
     );
   };
 
+
+function Home({ role, user, onLogout }) {
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window !== "undefined" && window.location.pathname === "/bidder/profile") {
+      return "profile";
+    }
+    return "dashboard";
+  });
+
+  useEffect(() => {
+    if (activeSection === "profile") {
+      if (window.location.pathname !== "/bidder/profile") {
+        window.history.pushState(null, "", "/bidder/profile");
+      }
+    } else if (window.location.pathname === "/bidder/profile" && activeSection !== "profile") {
+      window.history.pushState(null, "", "/");
+    }
+  }, [activeSection]);
+
+  const [bids, setBids] = useState(INITIAL_BIDS);
+  const [selectedBid, setSelectedBid] = useState(null);
+  const [selectedTender, setSelectedTender] = useState(null);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [deleteNoticeModal, setDeleteNoticeModal] = useState({ open: false, title: "", message: "" });
+
+  const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  const token = typeof window !== "undefined" ? localStorage.getItem("gem_token") : null;
+
+  const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
+
+  // Fetch Tenders from backend
+  const fetchTenders = async () => {
+    try {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      const res = await fetch(`${API_BASE}/api/tenders`, {
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setTendersList(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch live tenders:", err);
+    }
+  };
+
+  // Fetch Bids from backend
+  const fetchBids = async () => {
+    try {
+      if (!token) return;
+      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setBids(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch live bids:", err);
+    }
+  };
+
+  // Fetch persistent notifications from backend DB
+  const fetchNotifications = async () => {
+    try {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      if (!activeToken) return;
+      const res = await fetch(`${API_BASE}/api/notifications`, {
+        headers: { Authorization: `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setNotifications(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch persistent notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTenders();
+    fetchBids();
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(interval);
+  }, [role, user]);
+
+
+  const [announcementConfig, setAnnouncementConfig] = useState(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("gem_announcement_config") : null;
+    return saved
+      ? JSON.parse(saved)
+      : {
+        enabled: true,
+        badgeText: "📢 LIVE ANNOUNCEMENTS",
+        text: "✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦",
+        type: "NOTICE",
+        speed: "NORMAL"
+      };
+  });
+
+  const [biddersInitialFilter, setBiddersInitialFilter] = useState({ risk: "All", verification: "All" });
+  const [selectedTenderForBidders, setSelectedTenderForBidders] = useState(null);
+  const [selectedVerificationBidder, setSelectedVerificationBidder] = useState(null);
+  const [decidedBids, setDecidedBids] = useState({});
+
+  const [editingTenderModalItem, setEditingTenderModalItem] = useState(null);
+  const [activeTenderMenuId, setActiveTenderMenuId] = useState(null);
+
+  // Security Authorization Modal State for Tender Operations
+  const [pendingTenderAction, setPendingTenderAction] = useState(null);
+  const [actionPasswordInput, setActionPasswordInput] = useState("");
+  const [actionPasswordError, setActionPasswordError] = useState("");
+
+  const verifyAndExecuteTenderAction = (e) => {
+    if (e) e.preventDefault();
+    if (!pendingTenderAction) return;
+
+    const inputPass = actionPasswordInput.trim();
+    if (!inputPass) {
+      setActionPasswordError("Password is required to authorize this tender operation.");
+      return;
+    }
+
+    const currentRoleUpper = (role || user?.role || "").toUpperCase();
+    const isUserAdmin = isAdmin || currentRoleUpper.includes("ADMIN");
+
+    if (isUserAdmin) {
+      // ADMIN Context: Only Admin Password works
+      if (inputPass !== "Admin@123") {
+        setActionPasswordError("❌ Invalid Admin Password! Please try again.");
+        return;
+      }
+    } else {
+      // PROCUREMENT OFFICER Context: Only Officer Password works
+      if (inputPass !== "officer123" && inputPass !== (user?.password || "officer123")) {
+        setActionPasswordError("❌ Invalid Procurement Officer Password! Please try again.");
+        return;
+      }
+    }
+
+    // Authorized! Execute action & sync with backend database
+    const { type, payload } = pendingTenderAction;
+    if (type === "CREATE") {
+      const newTenderData = {
+        title: payload.newTenderObj.title,
+        description: payload.newTenderObj.description || payload.newTenderObj.title,
+        category: payload.newTenderObj.category || "General Hardware & Services",
+        department: payload.newTenderObj.department || "Chennai Petroleum Corporation Limited (CPCL)",
+        budget_limit: parseFloat(String(payload.newTenderObj.value || "1000000").replace(/[^0-9.]/g, '') || "1000000"),
+        status: payload.newTenderObj.status || "Draft"
+      };
+      if (payload.newTenderObj.id) newTenderData.id = payload.newTenderObj.id;
+
+      fetch(`${API_BASE}/api/tenders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(newTenderData)
+      })
+      .then(r => r.json())
+      .then(() => fetchTenders())
+      .catch(err => console.error("Error creating tender:", err));
+
+      setTendersList(prev => [payload.newTenderObj, ...prev]);
+      if (payload.onSuccess) payload.onSuccess();
+    } else if (type === "EDIT") {
+      setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
+      setEditingTenderModalItem(null);
+    } else if (type === "STATUS") {
+      fetch(`${API_BASE}/api/tenders/${payload.tenderId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status: payload.newStatus })
+      })
+      .then(() => fetchTenders())
+      .catch(err => console.error("Error updating status:", err));
+
+      setTendersList(prev => prev.map(t => t.id === payload.tenderId ? {
+        ...t,
+        status: payload.newStatus,
+        daysLeft: payload.newStatus === "Active" ? (t.daysLeft || "7 days left") : null
+      } : t));
+      setActiveTenderMenuId(null);
+    } else if (type === "DELETE") {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      fetch(`${API_BASE}/api/tenders/${encodeURIComponent(payload.tenderId)}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+        }
+      })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          throw new Error(data.detail || "Failed to delete tender.");
+        }
+        return data;
+      })
+      .then((data) => {
+        fetchTenders();
+        if (data.action === "CANCELLED") {
+          setDeleteNoticeModal({
+            open: true,
+            title: "Tender Cancelled (Audit Preserved)",
+            message: data.message || `Tender '${payload.tenderId}' contains bidder activity and cannot be permanently deleted. It has been CANCELLED instead to preserve audit records.`
+          });
+        } else {
+          setDeleteNoticeModal({
+            open: true,
+            title: "Tender Deleted",
+            message: data.message || `Tender '${payload.tenderId}' deleted successfully.`
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Error deleting tender:", err);
+        setDeleteNoticeModal({
+          open: true,
+          title: "Delete Tender Failed",
+          message: err.message || `Unable to delete tender '${payload.tenderId}'.`
+        });
+      });
+      setActiveTenderMenuId(null);
+    }
+
+    // Reset password state & close modal
+    setActionPasswordInput("");
+    setActionPasswordError("");
+    setPendingTenderAction(null);
+  };
+
+  const handleTenderClickFromDashboard = (tenderId) => {
+    const found = tendersList.find(t => t.id === tenderId) || tendersList[0];
+    setSelectedTenderForBidders(found);
+    setActiveSection("tenders");
+  };
+
+
+
+  const handleAddBid = (newBid) => {
+    setBids((prev) => [newBid, ...prev]);
+  };
+
+  const handleSubmitBid = (tenderId) => {
+    const targetBid = bids.find((b) => b.id === tenderId) || bids[0] || INITIAL_BIDS[0];
+    setSelectedBid(targetBid);
+  };
+
+  const handleAuditAction = (bidId, newStatus) => {
+    setBids((prevBids) =>
+      prevBids.map((bid) => {
+        if (bid.id === bidId) {
+          const timestamp = new Date().toLocaleTimeString();
+          const logEntry = `[${timestamp}] [Officer Action] Bid marked as '${newStatus}'. Notes: "${officerNotes || 'None'}"`;
+          return {
+            ...bid,
+            status: newStatus,
+            logs: [...bid.logs, logEntry]
+          };
+        }
+        return bid;
+      })
+    );
+    alert(`Success: Bid status updated to ${newStatus}`);
+    setSelectedBid(null);
+    setOfficerNotes("");
+  };
+
+  // 1. Supplier Navigation Items
+  const supplierNav = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "myBids", label: "My Bids", icon: FileCheck2 },
+    { id: "documents", label: "Documents", icon: CloudUpload },
+    { id: "tenders", label: "Tenders", icon: FolderOpen },
+    { id: "notifications", label: "Notifications", icon: Bell }
+  ];
+
+  // 2. Buyer (Officer) Navigation Items
+  const buyerNav = [
+    { id: "dashboard", label: "Dashboard" },
+    { id: "tenders", label: "Tenders" },
+    { id: "bidders", label: "Bidders" },
+    { id: "verification", label: "Verification" },
+    { id: "reports", label: "Reports" }
+  ];
+
+  // Admin role check (User Management & Integrations tabs are accessible via Profile Menu)
+  const isAdmin =
+    role === "ADMIN" ||
+    role === "Admin" ||
+    role === "Super Admin" ||
+    user?.role?.toUpperCase() === "ADMIN" ||
+    user?.role?.toUpperCase() === "SUPER ADMIN" ||
+    user?.role?.toUpperCase()?.includes("ADMIN") ||
+    user?.email === "admin@gem.gov.in";
+
+  const navigationItems = role === "Supplier" ? supplierNav : buyerNav;
+
+  // New Bidder (Supplier) Dashboard View Component
+
+
+
+
+  // Buyer (Officer) views for tabs - Matching exact enterprise dashboard layout
+  // Tenders Management View - Pixel perfect match to reference design
+
+  // Modern premium Bidder list view component - Matching exact reference design
+
+  // Advanced AI Bid Verification Dashboard View component - Fully interactive matching user specs
+
+
+  // Government Portal Integrations View for Procurement Admin
+
+  // Admin "User Management" View Component
+
+
+
+  // Fully Functional Multi-Step Create Tender View
+
+  // Reports & Analysis View for Procurement Admin
+
+  // Admin "System Settings" View Component
+
   const renderContent = () => {
     switch (activeSection) {
       case "profile":
@@ -8278,29 +8749,83 @@ function Home({ role, user, onLogout }) {
           <BidderProfile user={user} />
         );
       case "documents":
-        return <DocumentUploadPage onAddBid={handleAddBid} user={user} />;
+        return <DocumentUploadPage onAddBid={handleAddBid} user={user} selectedTender={selectedTender} selectedBid={selectedBid} />;
       case "myBids":
-        return <MyBidsSection />;
+        return <MyBidsSection bids={bids} setActiveSection={setActiveSection} setSelectedBid={setSelectedBid} />;
       case "tenders":
-        return role === "Buyer" ? <TendersView /> : <TendersSection />;
+        return role === "Buyer" ? (
+          <TendersView
+            tendersList={tendersList}
+            setTendersList={setTendersList}
+            fetchTenders={fetchTenders}
+            setActiveSection={setActiveSection}
+            setSelectedTender={setSelectedTender}
+            pendingTenderAction={pendingTenderAction}
+            setPendingTenderAction={setPendingTenderAction}
+            activeTenderMenuId={activeTenderMenuId}
+            setActiveTenderMenuId={setActiveTenderMenuId}
+            editingTenderModalItem={editingTenderModalItem}
+            setEditingTenderModalItem={setEditingTenderModalItem}
+            INITIAL_BIDDERS_LIST={INITIAL_BIDDERS_LIST}
+            API_BASE={API_BASE}
+            token={token}
+            selectedTenderForBidders={selectedTenderForBidders}
+            setSelectedTenderForBidders={setSelectedTenderForBidders}
+            user={user}
+            isAdmin={isAdmin}
+            setSelectedVerificationBidder={setSelectedVerificationBidder}
+          />
+        ) : (
+          <TendersSection tendersList={tendersList} setActiveSection={setActiveSection} setSelectedTender={setSelectedTender} setSelectedBid={setSelectedBid} token={token} API_BASE={API_BASE} bids={bids} fetchBids={fetchBids} />
+        );
       case "createTender":
-        return isAdmin ? <TendersSection /> : <CreateTenderView />;
+        return isAdmin ? (
+          <TendersSection tendersList={tendersList} setActiveSection={setActiveSection} setSelectedTender={setSelectedTender} setSelectedBid={setSelectedBid} token={token} API_BASE={API_BASE} bids={bids} fetchBids={fetchBids} />
+        ) : (
+          <CreateTenderView tendersList={tendersList} setTendersList={setTendersList} fetchTenders={fetchTenders} setActiveSection={setActiveSection} API_BASE={API_BASE} token={token} user={user} bids={bids} />
+        );
       case "bidders":
-        return <BiddersView />;
+        return (
+          <BiddersView
+            bids={bids}
+            setBids={setBids}
+            tendersList={tendersList}
+            setActiveSection={setActiveSection}
+            setSelectedVerificationBidder={setSelectedVerificationBidder}
+            decidedBids={decidedBids}
+            setDecidedBids={setDecidedBids}
+            biddersInitialFilter={biddersInitialFilter}
+            API_BASE={API_BASE}
+            token={token}
+          />
+        );
       case "verification":
-        return <VerificationView />;
+        return (
+          <VerificationView
+            bids={bids}
+            setBids={setBids}
+            selectedVerificationBidder={selectedVerificationBidder}
+            setSelectedVerificationBidder={setSelectedVerificationBidder}
+            decidedBids={decidedBids}
+            setDecidedBids={setDecidedBids}
+            setActiveSection={setActiveSection}
+            API_BASE={API_BASE}
+            token={token}
+            user={user}
+          />
+        );
       case "reports":
-        return <ReportsView />;
+        return <ReportsView bids={bids} tendersList={tendersList} setActiveSection={setActiveSection} />;
       case "userManagement":
-        return <UserManagementView />;
+        return <UserManagementView user={user} role={role} isAdmin={isAdmin} API_BASE={API_BASE} token={token} />;
       case "integrations":
-        return <IntegrationsView />;
+        return <IntegrationsView API_BASE={API_BASE} token={token} />;
       case "auditTrail":
-        return <AuditTrailView />;
+        return <AuditTrailView bids={bids} tendersList={tendersList} notifications={notifications} user={user} role={role} />;
       case "settings":
-        return <SettingsView />;
+        return <SettingsView user={user} announcementConfig={announcementConfig} setAnnouncementConfig={setAnnouncementConfig} bids={bids} notifications={notifications} />;
       case "notifications":
-        return <NotificationsSection />;
+        return <NotificationsSection notifications={notifications} />;
       case "support":
         return (
           <SectionPlaceholder
@@ -8316,7 +8841,11 @@ function Home({ role, user, onLogout }) {
         );
       case "dashboard":
       default:
-        return role === "Buyer" ? <BuyerDashboardView /> : <BidderDashboardView />;
+        return role === "Buyer" ? (
+          <BuyerDashboardView tendersList={tendersList} bids={bids} setActiveSection={setActiveSection} isAdmin={isAdmin} />
+        ) : (
+          <BidderDashboardView tendersList={tendersList} bids={bids} notifications={notifications} setActiveSection={setActiveSection} user={user} setSelectedBid={setSelectedBid} />
+        );
     }
   };
 
@@ -9175,6 +9704,37 @@ function Home({ role, user, onLogout }) {
       )}
 
       {/* Security Authorization Modal for Tender Operations (Status / Delete / Override) */}
+      {/* Delete / Cancellation Notice Modal */}
+      {deleteNoticeModal.open && (
+        <div className="drawer-overlay" onClick={() => setDeleteNoticeModal({ open: false, title: "", message: "" })} style={{ zIndex: 999999 }}>
+          <div className="studio-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px", padding: "28px", borderRadius: "16px", background: "#ffffff", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+              <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Info size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>{deleteNoticeModal.title}</h3>
+                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Tender Management Governance</span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: "0.88rem", color: "#475569", marginBottom: "20px", lineHeight: 1.5 }}>
+              {deleteNoticeModal.message}
+            </p>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => setDeleteNoticeModal({ open: false, title: "", message: "" })}
+                style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 20px", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer" }}
+              >
+                Acknowledge & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingTenderAction && (
         <div className="drawer-overlay" onClick={() => setPendingTenderAction(null)} style={{ zIndex: 999999 }}>
           <div className="studio-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px", padding: "28px", borderRadius: "16px", background: "#ffffff", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>

@@ -30,12 +30,23 @@ class EntityExtractor:
 
     @classmethod
     def extract_identifiers(cls, text: str) -> Dict[str, List[str]]:
-        """Extracts GSTIN, PAN, Udyam, and Aadhaar registration numbers using Regex."""
+        """Extracts GSTIN, PAN, Udyam, and Aadhaar registration numbers using OCR-tolerant Regex."""
         if not text:
             return {"gstin": [], "pan": [], "udyam": [], "aadhaar": []}
             
+        # 0. Text Normalization Pre-pass (Merge OCR spaces, hyphens, periods inside identifiers)
+        norm_text = text
+        # Fix split GSTINs e.g. 27 AAPCS 1234M 1 Z 5
+        norm_text = re.sub(r'\b(\d{2})[\s.-]*([A-Z]{5}\d{4}[A-Z]{1})[\s.-]*([A-Z\d]{1})[\s.-]*([Z2])[\s.-]*([A-Z\d]{1})\b', r'\1\2\3\4\5', norm_text, flags=re.IGNORECASE)
+        # Fix split PANs e.g. DBKPJ 6832F, DBKPJ-6832F, DBKPJ.6832F, DBKPJ 6832 F
+        norm_text = re.sub(r'\b([A-Z]{5})[\s.-]+(\d{4})[\s.-]+([A-Z]{1})\b', r'\1\2\3', norm_text, flags=re.IGNORECASE)
+        norm_text = re.sub(r'\b([A-Z]{5}\d{4})[\s.-]+([A-Z]{1})\b', r'\1\2', norm_text, flags=re.IGNORECASE)
+        norm_text = re.sub(r'\b([A-Z]{5})[\s.-]+(\d{4}[A-Z]{1})\b', r'\1\2', norm_text, flags=re.IGNORECASE)
+        # Fix split Udyams e.g. UDYAM - MH - 12 - 0012345
+        norm_text = re.sub(r'\bUDYAM[\s.-]*([A-Z]{2})[\s.-]*(\d{2})[\s.-]*(\d{7})\b', r'UDYAM-\1-\2-\3', norm_text, flags=re.IGNORECASE)
+
         # 1. GSTIN
-        gstin_matches = cls.GSTIN_PATTERN.findall(text)
+        gstin_matches = cls.GSTIN_PATTERN.findall(norm_text)
         gstins = set()
         embedded_pans = set()
         for match in gstin_matches:
@@ -45,21 +56,40 @@ class EntityExtractor:
             embedded_pans.add(embedded_pan)
             
         # 2. PAN
-        pan_matches = cls.PAN_PATTERN.findall(text)
+        pan_matches = cls.PAN_PATTERN.findall(norm_text)
         raw_pans = {pan.upper() for pan in pan_matches}
+
+        # Additional OCR Repair pass for PANs (Handling digit-letter confusion in 4-digit middle block e.g. O->0, I->1, Z->2, S->5, B->8, G->6)
+        confused_pan_pattern = re.compile(r'\b([A-Z]{5})([A-Z0-9]{4})([A-Z]{1})\b', re.IGNORECASE)
+        digit_map = {'O': '0', 'I': '1', 'Z': '2', 'S': '5', 'B': '8', 'G': '6', 'T': '7'}
+        for match in confused_pan_pattern.finditer(norm_text):
+            prefix, num_part, suffix = match.groups()
+            repaired_num = ""
+            is_valid = True
+            for ch in num_part.upper():
+                if ch.isdigit():
+                    repaired_num += ch
+                elif ch in digit_map:
+                    repaired_num += digit_map[ch]
+                else:
+                    is_valid = False
+                    break
+            if is_valid and len(repaired_num) == 4:
+                candidate = f"{prefix.upper()}{repaired_num}{suffix.upper()}"
+                raw_pans.add(candidate)
+
         standalone_pans = raw_pans - embedded_pans
         
         # 3. Udyam
-        udyam_matches = cls.UDYAM_PATTERN.findall(text)
+        udyam_matches = cls.UDYAM_PATTERN.findall(norm_text)
         udyam_numbers = {udyam.upper() for udyam in udyam_matches}
         
         # 4. Aadhaar
-        aadhaar_matches = cls.AADHAAR_PATTERN.findall(text)
+        aadhaar_matches = cls.AADHAAR_PATTERN.findall(norm_text)
         aadhaar_numbers = set()
         for match in aadhaar_matches:
             clean_aadhaar = re.sub(r"[\s-]", "", match)
             if len(clean_aadhaar) == 12:
-                # Format as XXXX XXXX XXXX
                 formatted = f"{clean_aadhaar[:4]} {clean_aadhaar[4:8]} {clean_aadhaar[8:]}"
                 aadhaar_numbers.add(formatted)
         

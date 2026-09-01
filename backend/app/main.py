@@ -36,8 +36,9 @@ from app.api.mobile_officer import router as mobile_officer_router
 from app.api.benchmark import router as benchmark_router
 # pyrefly: ignore [missing-import]
 from app.api.sync import router as sync_router
-# pyrefly: ignore [missing-import]
+from app.api.notifications import router as notifications_router
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router, aadhaar_router
+
 
 from contextlib import asynccontextmanager
 
@@ -92,6 +93,7 @@ app.include_router(blockchain_audit_router, prefix="/api")
 app.include_router(mobile_officer_router, prefix="/api")
 app.include_router(benchmark_router, prefix="/api")
 app.include_router(sync_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 
 app.include_router(gst_router)

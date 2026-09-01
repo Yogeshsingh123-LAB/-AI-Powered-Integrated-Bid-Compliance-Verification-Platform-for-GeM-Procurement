@@ -74,10 +74,44 @@ class OCRParser:
             processed_image = cls.preprocess_image(image)
             
             try:
-                ocr_text = pytesseract.image_to_string(processed_image)
+                # Dual-pass OCR: Extract from both original image and preprocessed image
+                ocr_text_orig = ""
+                ocr_text_proc = ""
+                try:
+                    ocr_text_orig = pytesseract.image_to_string(image, config='--psm 6') or ""
+                except Exception:
+                    try:
+                        ocr_text_orig = pytesseract.image_to_string(image) or ""
+                    except Exception:
+                        pass
+
+                try:
+                    ocr_text_proc = pytesseract.image_to_string(processed_image, config='--psm 6') or ""
+                except Exception:
+                    try:
+                        ocr_text_proc = pytesseract.image_to_string(processed_image) or ""
+                    except Exception:
+                        pass
+
+                # Combine text from both passes so no tokens (PAN, GST, etc.) are missed
+                combined_text = f"{ocr_text_orig}\n{ocr_text_proc}".strip()
+
+                # If Tesseract produced empty text, try Gemini Vision OCR fallback
+                if len(combined_text) < 10:
+                    gem_text = cls._gemini_vision_ocr(image_bytes)
+                    if gem_text:
+                        return {
+                            "success": True,
+                            "text": gem_text,
+                            "ocr_engine": "gemini_vision",
+                            "ocr_confidence": 0.95,
+                            "page_count": 1,
+                            "error": None
+                        }
+
                 return {
                     "success": True,
-                    "text": ocr_text.strip(),
+                    "text": combined_text.strip(),
                     "ocr_engine": "tesseract",
                     "ocr_confidence": 0.85,
                     "page_count": 1,
@@ -85,6 +119,16 @@ class OCRParser:
                 }
             except Exception as tess_err:
                 logger.warning(f"OCRParser: Tesseract execution failed: {tess_err}")
+                gem_text = cls._gemini_vision_ocr(image_bytes)
+                if gem_text:
+                    return {
+                        "success": True,
+                        "text": gem_text,
+                        "ocr_engine": "gemini_vision",
+                        "ocr_confidence": 0.95,
+                        "page_count": 1,
+                        "error": None
+                    }
                 return {
                     "success": True,
                     "text": "",
@@ -103,3 +147,26 @@ class OCRParser:
                 "page_count": 0,
                 "error": str(e)
             }
+
+    @classmethod
+    def _gemini_vision_ocr(cls, image_bytes: bytes) -> str:
+        """Fallback to Gemini Vision model to extract all text from image when Tesseract is unavailable/empty."""
+        try:
+            from app.core.config import settings
+            api_key = settings.effective_gemini_api_key or os.getenv("GEMINI_API_KEY")
+            if not api_key or api_key in {"YOUR_KEY", "your_gemini_api_key_here"}:
+                return ""
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel(settings.AI_MODEL)
+            
+            image = Image.open(io.BytesIO(image_bytes))
+            prompt = (
+                "Transcribe all text from this official government/business document image verbatim. "
+                "Ensure all numbers, names, PAN card numbers (e.g. DBKPJ6832F), GSTIN numbers, dates, and details are included accurately."
+            )
+            response = model.generate_content([prompt, image])
+            return response.text.strip() if response and response.text else ""
+        except Exception as e:
+            logger.warning(f"OCRParser: Gemini Vision OCR fallback failed: {e}")
+            return ""

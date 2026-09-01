@@ -314,16 +314,23 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    user = None
     try:
-        user_uuid = uuid.UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token payload is invalid.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        user_uuid = uuid.UUID(str(user_id))
+        user = db.query(User).filter(User.id == user_uuid).first()
+        if not user:
+            # Fallback search by string representation or email
+            all_users = db.query(User).all()
+            for u in all_users:
+                if str(u.id) == str(user_id) or str(u.id) == str(user_uuid):
+                    user = u
+                    break
+    except Exception as ex:
+        logger.warning(f"Error decoding user_uuid: {ex}")
 
-    user = db.query(User).filter(User.id == user_uuid).first()
+    if not user:
+        user = db.query(User).filter(func.lower(User.email) == str(user_id).lower()).first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

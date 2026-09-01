@@ -171,6 +171,32 @@ def generate_databases(n=60):
     blacklist_records[seed_gst_global] = blacklist_records[seed_pan_global].copy()
     blacklist_records[seed_gst_global]["identifier"] = seed_gst_global
 
+    # Seed 4: ARNAV SUNIL JAISWAL (User Provided Real PAN Verification Entry)
+    seed_pan_arnav = "DBKPJ6832F"
+    arnav_name = "ARNAV SUNIL JAISWAL"
+    arnav_father = "SUNILKUMAR GUPTA"
+    arnav_dob = "22/06/2006"
+    
+    pan_records[seed_pan_arnav] = {
+        "pan": seed_pan_arnav,
+        "name": arnav_name,
+        "father_name": arnav_father,
+        "dob": arnav_dob,
+        "date_of_birth": "2006-06-22",
+        "status": "Active",
+        "category": "Individual",
+        "date_of_issue": "2024-08-05"
+    }
+    blacklist_records[seed_pan_arnav] = {
+        "identifier": seed_pan_arnav,
+        "name": arnav_name,
+        "blacklisting_status": "Not Blacklisted",
+        "authority": None,
+        "order_number": None,
+        "order_date": None,
+        "valid_until": None
+    }
+
     # 2. Generate random records
     for i in range(n):
         # Determine taxpayer category and company names

@@ -1,3 +1,4 @@
+import re
 import logging
 from datetime import datetime, timezone
 import uuid
@@ -132,18 +133,82 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
             new_value=f"Fields extracted for schema: {detected_type}"
         )
 
-        # 7. Transition to VALIDATION
+        # 7. Transition to VALIDATION & Expected Requirement Verification
         doc.document_status = "VALIDATION"
         db.commit()
 
-        # Determine overall confidence and final status
-        overall_conf = extraction_res.get("confidence", 0.90)
-        requires_review = extraction_res.get("requires_review", False)
+        # Fetch Requirement record for expected document type comparison
+        from app.models.requirement import Requirement
+        from app.models.bid import Bid
+        from app.services.notification_service import create_notification
         
-        if overall_conf < 0.60 or requires_review:
-            final_status = "REQUIRES_REVIEW"
+        req = db.query(Requirement).filter(Requirement.id == doc.requirement_id).first()
+        bid = db.query(Bid).filter(Bid.id == doc.bid_id).first()
+        req_code = req.code.upper() if req and req.code else "GENERAL"
+        req_title = req.description or req.code or "Required Document"
+
+        text_lower = extracted_text.lower()
+        EXPECTED_DOC_TYPES = {
+            "GST": ["GST_CERTIFICATE", "GST_RETURN"],
+            "PAN": ["PAN", "INCOME_TAX"],
+            "UDYAM": ["UDYAM"],
+            "MSME": ["UDYAM"],
+            "ITR": ["INCOME_TAX", "PAN"],
+            "EPFO": ["EPFO"],
+            "ESIC": ["ESIC"],
+            "STARTUP_INDIA": ["STARTUP_INDIA"],
+            "NSIC": ["NSIC"],
+            "OEM": ["OEM_AUTHORIZATION"],
+            "MAKE_IN_INDIA": ["MAKE_IN_INDIA"],
+            "BIS": ["BIS"],
+            "AADHAAR": ["AADHAAR"],
+            "EMD": ["EMD", "BANK_GUARANTEE"],
+            "EPBG": ["EPBG", "BANK_GUARANTEE"],
+            "DECLARATION": ["BLACKLIST_DECLARATION", "MAKE_IN_INDIA"],
+            "NON_BLACKLISTING": ["BLACKLIST_DECLARATION"]
+        }
+
+        allowed_types = EXPECTED_DOC_TYPES.get(req_code, [req_code, "OTHER"])
+        is_valid_type = False
+        rejection_reason = None
+
+        if detected_type in allowed_types:
+            is_valid_type = True
         else:
-            final_status = "PROCESSED"
+            # Keyword/Identifier fallback checks specific to req_code
+            if req_code == "GST" and (re.search(r"\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z0-9]{3}", extracted_text) or any(k in text_lower for k in ["gstin", "goods and services tax", "form gst-reg"])):
+                is_valid_type = True
+            elif req_code == "PAN" and (re.search(r"\b[A-Z]{5}\d{4}[A-Z]{1}\b", extracted_text) or any(k in text_lower for k in ["permanent account number", "income tax department", "pan card"])):
+                is_valid_type = True
+            elif req_code in {"UDYAM", "MSME"} and (re.search(r"udyam-[a-z]{2}-\d{2}-\d{7}", text_lower) or any(k in text_lower for k in ["udyam", "msme", "micro, small"])):
+                is_valid_type = True
+            elif req_code == "OEM" and any(k in text_lower for k in ["oem", "authorization", "manufacturer", "authorized bidder"]):
+                is_valid_type = True
+            elif req_code == "MAKE_IN_INDIA" and any(k in text_lower for k in ["make in india", "local content", "class-i", "class-ii"]):
+                is_valid_type = True
+            elif req_code == "EPFO" and any(k in text_lower for k in ["epfo", "provident fund"]):
+                is_valid_type = True
+            elif req_code == "ESIC" and any(k in text_lower for k in ["esic", "state insurance"]):
+                is_valid_type = True
+            elif req_code in {"DECLARATION", "NON_BLACKLISTING"} and any(k in text_lower for k in ["blacklisted", "debarred", "declaration"]):
+                is_valid_type = True
+
+        if not is_valid_type:
+            # Document classification mismatch -> REJECTED
+            final_status = "REJECTED"
+            rejection_reason = f"Uploaded document ({doc.original_filename}) appears to be a {detected_type.replace('_', ' ').title()}, which does not match the required {req_title} requirement."
+        else:
+            # Document type matches! Evaluate OCR extraction confidence
+            overall_conf = extraction_res.get("confidence", 0.85)
+            requires_review = extraction_res.get("requires_review", False)
+            
+            # If text extraction was empty or low confidence, mark as REQUIRES_REVIEW (NOT REJECTED!)
+            if len(extracted_text.strip()) < 15 or overall_conf < 0.65 or requires_review:
+                final_status = "REQUIRES_REVIEW"
+                rejection_reason = None
+            else:
+                final_status = "VERIFIED"
+                rejection_reason = None
 
         # 8. Save structured extraction
         extraction_record = DocumentExtraction(
@@ -157,25 +222,64 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
         )
         db.add(extraction_record)
         
-        # 9. Update final document status
+        # 9. Update final document status & rejection reason
         doc.document_status = final_status
+        doc.rejection_reason = rejection_reason
 
-        # 10. Recalculate and update associated bid's compliance score based on actual verified documents
+        # 10. Generate persistent database notification for bidder
         try:
-            from app.models.bid import Bid
-            from app.models.requirement import Requirement
-            bid = db.query(Bid).filter(Bid.id == doc.bid_id).first()
+            target_user_id = user_id or doc.uploaded_by or (bid.bidder_id if bid else None)
+            tender_num = bid.tender.id if (bid and bid.tender) else "CPCL/2026/003"
+            if target_user_id:
+                if final_status == "REJECTED":
+                    create_notification(
+                        db=db,
+                        user_id=target_user_id,
+                        tender_id=bid.tender_id if bid else None,
+                        bid_id=doc.bid_id,
+                        document_id=doc.id,
+                        type="DOCUMENT_REJECTED",
+                        title="Document Rejected",
+                        message=f"Your {req_title} submission ({doc.original_filename}) for Tender {tender_num} was rejected because the uploaded file does not match the required document type."
+                    )
+                elif final_status == "VERIFIED":
+                    create_notification(
+                        db=db,
+                        user_id=target_user_id,
+                        tender_id=bid.tender_id if bid else None,
+                        bid_id=doc.bid_id,
+                        document_id=doc.id,
+                        type="DOCUMENT_VERIFIED",
+                        title="Document Verified",
+                        message=f"Your {req_title} submission ({doc.original_filename}) for Tender {tender_num} was verified successfully."
+                    )
+                elif final_status == "REQUIRES_REVIEW":
+                    create_notification(
+                        db=db,
+                        user_id=target_user_id,
+                        tender_id=bid.tender_id if bid else None,
+                        bid_id=doc.bid_id,
+                        document_id=doc.id,
+                        type="DOCUMENT_REQUIRES_REVIEW",
+                        title="Document Pending Manual Review",
+                        message=f"Your {req_title} submission ({doc.original_filename}) for Tender {tender_num} requires manual review by the procurement officer."
+                    )
+        except Exception as notif_err:
+            logger.warning(f"Failed to generate persistent notification: {notif_err}")
+
+        # 11. Recalculate and update associated bid's compliance score based on actual verified documents
+        try:
             if bid:
                 total_reqs = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).count()
-                valid_docs = db.query(Document).filter(
+                verified_docs = db.query(Document).filter(
                     Document.bid_id == bid.id,
-                    Document.document_status.in_(["PROCESSED", "VERIFIED", "VALIDATION", "REQUIRES_REVIEW", "UPLOADED"])
+                    Document.document_status.in_(["VERIFIED", "PROCESSED"])
                 ).count()
                 if total_reqs > 0:
-                    score = min(100.0, round((valid_docs / max(1, total_reqs)) * 100.0, 2))
+                    score = min(100.0, round((verified_docs / max(1, total_reqs)) * 100.0, 2))
                     bid.compliance_score = score
                 else:
-                    bid.compliance_score = 100.0 if valid_docs > 0 else 0.0
+                    bid.compliance_score = 100.0 if verified_docs > 0 else 0.0
         except Exception as score_err:
             logger.warning(f"Failed to calculate bid compliance score: {score_err}")
 

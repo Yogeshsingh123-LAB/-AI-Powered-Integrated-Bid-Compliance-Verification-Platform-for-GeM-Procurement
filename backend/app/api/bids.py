@@ -148,21 +148,56 @@ def get_my_bids(
 
     return results
 
-@router.get("/tender/{tender_id}", response_model=List[Dict[str, Any]])
+@router.get("", response_model=List[Dict[str, Any]])
+@router.get("/all", response_model=List[Dict[str, Any]])
+def list_all_bids(
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all bids across all tenders for Officer / Admin portals."""
+    bids = db.query(Bid).order_by(Bid.submitted_at.desc()).all()
+
+    results = []
+    for b in bids:
+        bidder = db.query(User).filter(User.id == b.bidder_id).first()
+        tender = db.query(Tender).filter(Tender.id == b.tender_id).first()
+        score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
+        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+
+        doc_count = db.query(Document).filter(Document.bid_id == b.id, Document.document_status != "REPLACED").count()
+
+        results.append({
+            "id": str(b.id),
+            "tender_id": b.tender_id,
+            "tender_title": tender.title if tender else "Procurement Bid",
+            "bidder_id": str(b.bidder_id),
+            "bidderName": bidder.full_name if bidder else "Registered Bidder",
+            "bidderEmail": bidder.email if bidder else "",
+            "submittedOn": b.submitted_at.strftime("%d %b %Y, %H:%M") if b.submitted_at else "N/A",
+            "score": score_val,
+            "compliance": score_val,
+            "risk": risk_level,
+            "status": b.officer_status if b.officer_status and b.officer_status != "Pending" else b.status,
+            "officer_status": b.officer_status or "Pending",
+            "is_locked": b.is_locked,
+            "documents_count": doc_count,
+            "documents": f"{doc_count} Documents"
+        })
+
+    return results
+
+@router.get("/tender/{tender_id:path}", response_model=List[Dict[str, Any]])
 def list_bids_for_tender(
     tender_id: str,
     current_user: User = Depends(require_role("OFFICER", "ADMIN")),
     db: Session = Depends(get_db)
 ):
     """Retrieve all bidders who applied to a specific tender (Officer / Admin access)."""
-    tender = db.query(Tender).filter(Tender.id == tender_id).first()
-    if not tender:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tender '{tender_id}' not found."
-        )
+    # Look up by exact tender_id or title
+    tender = db.query(Tender).filter((Tender.id == tender_id) | (Tender.title == tender_id)).first()
+    target_tender_id = tender.id if tender else tender_id
 
-    bids = db.query(Bid).filter(Bid.tender_id == tender_id).order_by(Bid.submitted_at.desc()).all()
+    bids = db.query(Bid).filter(Bid.tender_id == target_tender_id).order_by(Bid.submitted_at.desc()).all()
 
     results = []
     for b in bids:
@@ -178,25 +213,40 @@ def list_bids_for_tender(
             "bidder_id": str(b.bidder_id),
             "bidderName": bidder.full_name if bidder else "Registered Bidder",
             "bidderEmail": bidder.email if bidder else "",
-            "submittedOn": b.submitted_at.strftime("%d %b %Y, %H:%M"),
+            "submittedOn": b.submitted_at.strftime("%d %b %Y, %H:%M") if b.submitted_at else "N/A",
             "score": score_val,
+            "compliance": score_val,
             "risk": risk_level,
             "status": b.officer_status if b.officer_status and b.officer_status != "Pending" else b.status,
             "officer_status": b.officer_status or "Pending",
             "is_locked": b.is_locked,
-            "documents_count": doc_count
+            "documents_count": doc_count,
+            "documents": f"{doc_count} Documents"
         })
 
     return results
 
 @router.get("/{bid_id}", response_model=Dict[str, Any])
 def get_bid_details(
-    bid_id: uuid.UUID,
+    bid_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Retrieve detailed verification status of a specific bid."""
-    bid = db.query(Bid).filter(Bid.id == bid_id).first()
+    bid = None
+    try:
+        b_uuid = uuid.UUID(str(bid_id))
+        bid = db.query(Bid).filter(Bid.id == b_uuid).first()
+    except Exception:
+        pass
+
+    if not bid:
+        all_bids = db.query(Bid).all()
+        for b in all_bids:
+            if str(b.id) == str(bid_id):
+                bid = b
+                break
+
     if not bid:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -218,6 +268,51 @@ def get_bid_details(
     score_val = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
     risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
 
+    # Map requirement items to uploaded documents
+    doc_map = {str(d.requirement_id): d for d in documents}
+
+    compliance_matrix = []
+    uploaded_cnt = 0
+    verified_cnt = 0
+    missing_cnt = 0
+
+    for r in requirements:
+        req_id_str = str(r.id)
+        d_obj = doc_map.get(req_id_str)
+        if not d_obj:
+            # Fallback: check matching code if requirement_id UUID didn't match directly
+            d_obj = next((doc for doc in documents if doc.document_type.upper() == r.code.upper()), None)
+
+        if d_obj:
+            uploaded_cnt += 1
+            if d_obj.document_status.upper() == "VERIFIED":
+                verified_cnt += 1
+            status_text = d_obj.document_status
+            compliance_matrix.append({
+                "requirement_id": req_id_str,
+                "code": r.code,
+                "description": r.description,
+                "is_mandatory": r.is_mandatory,
+                "uploaded": True,
+                "document_id": str(d_obj.id),
+                "file_name": d_obj.original_filename,
+                "status": status_text,
+                "uploaded_at": d_obj.uploaded_at.isoformat()
+            })
+        else:
+            missing_cnt += 1
+            compliance_matrix.append({
+                "requirement_id": req_id_str,
+                "code": r.code,
+                "description": r.description,
+                "is_mandatory": r.is_mandatory,
+                "uploaded": False,
+                "document_id": None,
+                "file_name": None,
+                "status": "MISSING",
+                "uploaded_at": None
+            })
+
     return {
         "id": str(bid.id),
         "tender_id": bid.tender_id,
@@ -233,7 +328,15 @@ def get_bid_details(
         "reviewed_at": bid.reviewed_at.isoformat() if bid.reviewed_at else None,
         "compliance_score": score_val,
         "risk_level": risk_level,
-        "submitted_at": bid.submitted_at.isoformat(),
+        "submitted_at": bid.submitted_at.isoformat() if bid.submitted_at else None,
+        "summary_counts": {
+            "required": len(requirements),
+            "uploaded": uploaded_cnt,
+            "verified": verified_cnt,
+            "missing": missing_cnt,
+            "pending_verification": uploaded_cnt - verified_cnt
+        },
+        "compliance_matrix": compliance_matrix,
         "documents": [
             {
                 "id": str(d.id),
@@ -242,7 +345,7 @@ def get_bid_details(
                 "original_filename": d.original_filename,
                 "file_size": d.file_size,
                 "document_status": d.document_status,
-                "uploaded_at": d.uploaded_at.isoformat()
+                "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None
             }
             for d in documents
         ],
@@ -256,3 +359,104 @@ def get_bid_details(
             for r in requirements
         ]
     }
+
+
+@router.post("/{bid_id}/submit", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+def submit_bid_documents(
+    bid_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Submit bid compliance package after verifying mandatory document completeness.
+    """
+    ip_address = request.client.host if request.client else None
+
+    # 1. Enforce BIDDER role
+    if current_user.role.upper() != "BIDDER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only bidders are authorized to submit bid documents."
+        )
+
+    # 2. Verify bid exists
+    bid = db.query(Bid).filter(Bid.id == bid_id).first()
+    if not bid:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bid not found."
+        )
+
+    # 3. Check ownership
+    if bid.bidder_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to submit documents for another bidder's bid."
+        )
+
+    # 4. Fetch tender requirements
+    requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
+    documents = db.query(Document).filter(
+        Document.bid_id == bid.id,
+        Document.document_status != "REPLACED"
+    ).all()
+
+    uploaded_req_ids = {str(d.requirement_id) for d in documents}
+    missing_mandatory = []
+
+    for r in requirements:
+        if r.is_mandatory and str(r.id) not in uploaded_req_ids:
+            missing_mandatory.append(r.description or r.code)
+
+    if len(missing_mandatory) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{len(missing_mandatory)} mandatory document(s) are still missing: {', '.join(missing_mandatory)}"
+        )
+
+    # 5. Update bid status
+    bid.status = "DOCUMENTS_SUBMITTED"
+    bid.submitted_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(bid)
+
+    # 6. Log audit
+    create_audit_record(
+        db=db,
+        action="DOCUMENTS_SUBMITTED",
+        user_id=current_user.id,
+        entity_type="Bid",
+        entity_id=bid.id,
+        bid_id=bid.id,
+        new_value=f"Submitted all compliance documents for bid {bid.id}",
+        ip_address=ip_address
+    )
+
+    # 7. Create persistent DB notification
+    try:
+        from app.services.notification_service import create_notification
+        tender = db.query(Tender).filter(Tender.id == bid.tender_id).first()
+        tender_num = tender.id if tender else "CPCL/2026/003"
+        create_notification(
+            db=db,
+            user_id=current_user.id,
+            tender_id=bid.tender_id,
+            bid_id=bid.id,
+            type="BID_SUBMISSION_REQUIRED",
+            title="Documents Submitted Successfully",
+            message=f"All {len(requirements)} compliance documents for Tender {tender_num} have been submitted for official verification."
+        )
+    except Exception as notif_err:
+        pass
+
+    return {
+        "success": True,
+        "message": "Bid compliance documents submitted successfully for verification.",
+        "bid": {
+            "id": str(bid.id),
+            "status": bid.status,
+            "submitted_at": bid.submitted_at.isoformat()
+        }
+    }
+

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   CloudUpload,
   Terminal,
@@ -11,7 +11,7 @@ import {
   BadgeCheck
 } from "lucide-react";
 
-function DocumentUploadPage({ onAddBid }) {
+function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -26,6 +26,58 @@ function DocumentUploadPage({ onAddBid }) {
   const fileInputRef = useRef(null);
   const terminalEndRef = useRef(null);
 
+  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
+  const [requirementsList, setRequirementsList] = useState([]);
+  const [docFilter, setDocFilter] = useState("all");
+
+  // Submit Modal States
+  const [submitModalOpen, setSubmitModalOpen] = useState(false);
+  const [submittingBidGroup, setSubmittingBidGroup] = useState(null);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
+
+  const handleSubmitDocuments = (bidGroup) => {
+    const missingMandatory = bidGroup.documents.filter(d => (d.status || "").toUpperCase() === "MISSING");
+    if (missingMandatory.length > 0) {
+      const missingNames = missingMandatory.map(d => d.name).join(", ");
+      alert(`${missingMandatory.length} mandatory document(s) are still missing:\n- ${missingNames}\n\nPlease upload all required documents before submitting.`);
+      return;
+    }
+    setSubmittingBidGroup(bidGroup);
+    setSubmitError("");
+    setSubmitSuccess("");
+    setSubmitModalOpen(true);
+  };
+
+  const confirmSubmitDocuments = async () => {
+    if (!submittingBidGroup) return;
+    const activeToken = localStorage.getItem("gem_token");
+    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/bids/${submittingBidGroup.bidId}/submit`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${activeToken}`,
+          "Content-Type": "application/json"
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSubmitError(data.detail || "Document submission failed.");
+        return;
+      }
+      setSubmitSuccess("Documents submitted successfully for official verification!");
+      setTimeout(() => {
+        setSubmitModalOpen(false);
+        fetchMyBidsAndRequirements();
+      }, 1500);
+    } catch (err) {
+      setSubmitError("Server connection error during document submission.");
+    }
+  };
+
+
   const addLog = (text, type = "info") => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs((prev) => [...prev, { text: `[${timestamp}] ${text}`, type }]);
@@ -37,6 +89,57 @@ function DocumentUploadPage({ onAddBid }) {
       }
     }, 50);
   };
+
+  const fetchMyBidsAndRequirements = async () => {
+    const activeToken = localStorage.getItem("gem_token");
+    if (!activeToken) return;
+    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
+        headers: { "Authorization": `Bearer ${activeToken}` }
+      });
+      if (!res.ok) return;
+      const myBidsData = await res.json();
+      if (!Array.isArray(myBidsData) || myBidsData.length === 0) {
+        setRequirementsList([]);
+        return;
+      }
+
+      const groups = [];
+      for (const b of myBidsData) {
+        const detailsRes = await fetch(`${API_BASE}/api/bids/${b.id}`, {
+          headers: { "Authorization": `Bearer ${activeToken}` }
+        });
+        if (detailsRes.ok) {
+          const details = await detailsRes.json();
+          const matrix = details.compliance_matrix || [];
+          groups.push({
+            bidId: details.id,
+            tenderId: details.tender_id,
+            bidTitle: details.tender_title,
+            org: "Chennai Petroleum Corporation Limited (CPCL)",
+            summaryCounts: details.summary_counts || {},
+            documents: matrix.map(m => ({
+              requirementId: m.requirement_id,
+              code: m.code,
+              name: m.description || m.code,
+              file: m.file_name,
+              status: m.status, // "MISSING", "UPLOADED", "PROCESSING", "VERIFIED", "REJECTED"
+              uploadedAt: m.uploaded_at
+            }))
+          });
+        }
+      }
+      setRequirementsList(groups);
+    } catch (err) {
+      console.error("Failed to fetch bidder compliance matrix:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyBidsAndRequirements();
+  }, [selectedBid, selectedTender]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -76,7 +179,6 @@ function DocumentUploadPage({ onAddBid }) {
   };
 
   const triggerComplianceAnalysis = async (uploadedFile) => {
-    // 1. File Validation Checks
     const MAX_SIZE_MB = 16;
     if (uploadedFile.size > MAX_SIZE_MB * 1024 * 1024) {
       alert(`Verification System Error: File too large. Maximum allowed size is ${MAX_SIZE_MB}MB.`);
@@ -84,10 +186,14 @@ function DocumentUploadPage({ onAddBid }) {
       return;
     }
 
-    const isPDF = uploadedFile.type === "application/pdf" ||
-      uploadedFile.name.toLowerCase().endsWith(".pdf");
-    if (!isPDF) {
-      alert("Verification System Error: Only PDF files (.pdf) are permitted.");
+    const fileExt = (uploadedFile.name || "").split('.').pop().toLowerCase();
+    const allowedExts = ["pdf", "jpg", "jpeg", "png", "bmp", "tiff"];
+    const isAllowed = uploadedFile.type === "application/pdf" ||
+      uploadedFile.type.startsWith("image/") ||
+      allowedExts.includes(fileExt);
+
+    if (!isAllowed) {
+      alert("Verification System Error: Only PDF (.pdf) and Image files (.jpg, .jpeg, .png) are permitted.");
       setFile(null);
       return;
     }
@@ -100,7 +206,6 @@ function DocumentUploadPage({ onAddBid }) {
     addLog(`System initialized. Loaded file: ${uploadedFile.name}`, "info");
     addLog("Connecting to smart text extraction pipeline...", "info");
 
-    // Start a verification log sequence to trace server OCR parsing steps while waiting for fetch
     const logIntervals = [
       { text: "SmartPDFHandler: Analyzing PDF byte signature...", type: "info", delay: 800 },
       { text: "SmartPDFHandler: Page structure verified. Initializing page-by-page parser...", type: "info", delay: 1800 },
@@ -120,7 +225,6 @@ function DocumentUploadPage({ onAddBid }) {
       timeouts.push(t);
     });
 
-    // Make live FastAPI API call using env configuration
     const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
     const formData = new FormData();
     formData.append("file", uploadedFile);
@@ -129,9 +233,8 @@ function DocumentUploadPage({ onAddBid }) {
       const response = await fetchWithTimeout(`${API_BASE}/api/analyze`, {
         method: "POST",
         body: formData
-      }, 30000); // 30 second timeout
+      }, 30000);
 
-      // Clear any remaining logs timeouts
       timeouts.forEach(clearTimeout);
 
       if (!response.ok) {
@@ -141,10 +244,7 @@ function DocumentUploadPage({ onAddBid }) {
 
       const data = await response.json();
 
-      // Print final extraction success logs
       addLog("SmartPDFHandler: Successfully extracted document string data.", "success");
-
-      // Handle page extraction method logs format details
       const extractionMethod = data.analysis.ocr_used
         ? `OCR (${data.analysis.ocr_engine.toUpperCase()})`
         : "Digital text extraction";
@@ -156,7 +256,6 @@ function DocumentUploadPage({ onAddBid }) {
       addLog("GovtRegistryVerifier: Batch queries complete. Registry alignment scores computed.", "success");
       addLog(`ScoringEngine: Final compliance score is: ${data.compliance.score}/100. Risk Tier: ${data.compliance.risk_level}`, "success");
 
-      // Adapt key fields to format required by report card components
       const adaptedData = {
         success: data.analysis.success,
         text_extraction: {
@@ -177,7 +276,6 @@ function DocumentUploadPage({ onAddBid }) {
       setReport(adaptedData);
       setParsingProgress(2);
 
-      // Create new bid log array
       const terminalLogsList = [
         `[System] Initialized cryptographic inspection for uploaded document: ${uploadedFile.name}`,
         `[SmartPDFHandler] Text extraction completed using page summary: ${extractionMethod}`,
@@ -186,7 +284,6 @@ function DocumentUploadPage({ onAddBid }) {
         ...data.compliance.recommendations.map(r => `[ScoringEngine] Analysis: ${r}`)
       ];
 
-      // Format a clean object to sync to Home.jsx state array
       const bidId = `GEM-BID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const bidderName = data.verification?.gstin?.[0]?.data?.legal_name || data.verification?.pan?.[0]?.data?.name || data.verification?.udyam?.[0]?.data?.enterprise_name || "Unknown Bidder Org";
 
@@ -207,7 +304,6 @@ function DocumentUploadPage({ onAddBid }) {
         logs: terminalLogsList
       };
 
-      // Add to main state list
       if (onAddBid) {
         onAddBid(newBid);
       }
@@ -222,76 +318,55 @@ function DocumentUploadPage({ onAddBid }) {
     }
   };
 
-  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
-
-  const [requirementsList, setRequirementsList] = useState([]);
-
-  const [docFilter, setDocFilter] = useState("all");
-
-  const triggerRowUpload = (bidId, docCode) => {
-    setActiveTargetDoc({ bidId, docCode });
+  const triggerRowUpload = (bidId, requirementId, docCode) => {
+    setActiveTargetDoc({ bidId, requirementId, docCode });
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  const handleRowFileChange = (e) => {
+  const handleRowFileChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const uploadedFile = e.target.files[0];
-      const fileNameLower = uploadedFile.name.toLowerCase();
+      const activeToken = localStorage.getItem("gem_token");
+      const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-      if (activeTargetDoc) {
-        const code = activeTargetDoc.docCode.toLowerCase();
-        let isWrong = false;
+      if (activeTargetDoc && activeTargetDoc.bidId && activeTargetDoc.requirementId) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+        formData.append("bid_id", activeTargetDoc.bidId);
+        formData.append("requirement_id", activeTargetDoc.requirementId);
 
-        // Check if uploaded file name is mismatched / wrong type
-        if (fileNameLower.includes("wrong") || fileNameLower.includes("invalid") || fileNameLower.includes("dummy") || fileNameLower.includes("other") || fileNameLower.includes("sample")) {
-          isWrong = true;
-        } else if (code === "gstin" && !fileNameLower.includes("gst")) {
-          isWrong = true;
-        } else if (code === "pan" && !fileNameLower.includes("pan")) {
-          isWrong = true;
-        } else if (code === "msme" && (!fileNameLower.includes("udyam") && !fileNameLower.includes("msme"))) {
-          isWrong = true;
-        }
+        try {
+          addLog(`Uploading document '${uploadedFile.name}' for requirement '${activeTargetDoc.docCode}'...`, "info");
+          const uploadRes = await fetch(`${API_BASE}/api/documents/upload`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${activeToken}`
+            },
+            body: formData
+          });
 
-        setRequirementsList((prev) =>
-          prev.map((bid) => {
-            if (bid.bidId === activeTargetDoc.bidId) {
-              return {
-                ...bid,
-                documents: bid.documents.map((d) => {
-                  if (d.code === activeTargetDoc.docCode) {
-                    if (isWrong) {
-                      return {
-                        ...d,
-                        status: "Mismatch",
-                        file: uploadedFile.name,
-                        updated: "Just now",
-                        errorMsg: `Uploaded file '${uploadedFile.name}' does not match required '${d.name}' certificate pattern.`
-                      };
-                    } else {
-                      return {
-                        ...d,
-                        status: "Verified",
-                        file: uploadedFile.name,
-                        updated: "Just now",
-                        errorMsg: null
-                      };
-                    }
-                  }
-                  return d;
-                })
-              };
-            }
-            return bid;
-          })
-        );
+          if (!uploadRes.ok) {
+            const errData = await uploadRes.json().catch(() => ({}));
+            throw new Error(errData.detail || `Upload failed with HTTP ${uploadRes.status}`);
+          }
 
-        if (isWrong) {
-          alert(`⚠️ Document Validation Warning: '${uploadedFile.name}' does not match the required certificate format for '${activeTargetDoc.docCode}'. Please upload the correct PDF certificate.`);
+          const uploadData = await uploadRes.json();
+          addLog(`Document '${uploadedFile.name}' uploaded successfully to Supabase Storage. ID: ${uploadData.document_id}`, "success");
+
+          // Refresh requirements matrix from backend database
+          await fetchMyBidsAndRequirements();
+        } catch (err) {
+          console.error("Document upload error:", err);
+          alert(`Upload Error: ${err.message}`);
+          addLog(`Upload error: ${err.message}`, "danger");
+        } finally {
+          setUploading(false);
         }
       }
+
       triggerComplianceAnalysis(uploadedFile);
     }
   };
@@ -302,7 +377,7 @@ function DocumentUploadPage({ onAddBid }) {
         type="file"
         ref={fileInputRef}
         className="file-input"
-        accept=".pdf"
+        accept=".pdf,.jpg,.jpeg,.png,.bmp,.tiff,image/png,image/jpeg,image/jpg"
         onChange={handleRowFileChange}
         style={{ display: "none" }}
       />
@@ -344,116 +419,217 @@ function DocumentUploadPage({ onAddBid }) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            {requirementsList.map((bidGroup) => {
-              const filteredDocs = bidGroup.documents.filter((doc) => {
-                if (docFilter === "pending") return doc.status === "Pending" || doc.status === "Mismatch";
-                if (docFilter === "completed") return doc.status === "Verified";
-                return true;
-              });
+            {requirementsList.length === 0 ? (
+              <div style={{ padding: "30px", textAlign: "center", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+                <FileText size={40} style={{ color: "#94a3b8", marginBottom: "12px" }} />
+                <h4 style={{ fontSize: "1.1rem", color: "#1e293b", marginBottom: "6px" }}>No Active Tender Submissions Found</h4>
+                <p style={{ color: "#64748b", fontSize: "0.9rem", maxWidth: "500px", margin: "0 auto" }}>
+                  Please go to <strong>Available Tenders</strong>, select a tender, and click <strong>Apply</strong> to generate a bid submission and load its required compliance documents.
+                </p>
+              </div>
+            ) : (
+              requirementsList.map((bidGroup) => {
+                const filteredDocs = bidGroup.documents.filter((doc) => {
+                  const s = (doc.status || "").toUpperCase();
+                  if (docFilter === "pending") return s === "MISSING" || s === "PENDING" || s === "UPLOADED" || s === "REJECTED" || s === "MISMATCH";
+                  if (docFilter === "completed") return s === "VERIFIED";
+                  return true;
+                });
 
-              if (filteredDocs.length === 0) return null;
+                if (filteredDocs.length === 0 && docFilter !== "all") return null;
 
-              return (
-                <div key={bidGroup.bidId} style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", background: "#f8fafc" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", borderBottom: "1px solid #cbd5e1", paddingBottom: "10px" }}>
-                    <div>
-                      <span className="id-badge" style={{ marginRight: "10px" }}>{bidGroup.bidId}</span>
-                      <strong style={{ fontSize: "1.05rem", color: "#0f172a" }}>{bidGroup.bidTitle}</strong>
-                      <span style={{ fontSize: "0.8rem", color: "#64748b", marginLeft: "10px" }}>({bidGroup.org})</span>
+                const reqCount = bidGroup.documents.length;
+                const verifiedCount = bidGroup.documents.filter(d => (d.status || "").toUpperCase() === "VERIFIED").length;
+                const uploadedCount = bidGroup.documents.filter(d => d.file && (d.status || "").toUpperCase() !== "MISSING").length;
+                const rejectedCount = bidGroup.documents.filter(d => (d.status || "").toUpperCase() === "REJECTED" || (d.status || "").toUpperCase() === "MISMATCH").length;
+                const missingCount = bidGroup.documents.filter(d => (d.status || "").toUpperCase() === "MISSING").length;
+                const pendingCount = uploadedCount - verifiedCount - rejectedCount;
+
+                return (
+                  <div key={bidGroup.bidId} style={{ border: "1px solid #cbd5e1", borderRadius: "12px", padding: "24px", background: "#ffffff", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "2px solid #e2e8f0", paddingBottom: "14px" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+                          <span className="id-badge" style={{ background: "#0f172a", color: "#fff", padding: "4px 10px", borderRadius: "6px", fontSize: "0.82rem", fontWeight: "700" }}>Tender {bidGroup.tenderId}</span>
+                          <span style={{ background: "#e0f2fe", color: "#0369a1", padding: "4px 10px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: "600" }}>Bid ID: {bidGroup.bidId.substring(0, 8)}...</span>
+                          <strong style={{ fontSize: "1.1rem", color: "#0f172a" }}>{bidGroup.bidTitle}</strong>
+                        </div>
+                        <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Organization: {bidGroup.org} | Logged-in Bidder: {user?.full_name || "Authorized Representative"}</span>
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          style={{
+                            background: "#10b981",
+                            color: "#ffffff",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontWeight: "700",
+                            padding: "10px 20px",
+                            fontSize: "0.9rem",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px"
+                          }}
+                          onClick={() => handleSubmitDocuments(bidGroup)}
+                        >
+                          <BadgeCheck size={18} /> Submit Documents
+                        </button>
+                      </div>
                     </div>
-                    <span style={{ fontSize: "0.8rem", fontWeight: "700", color: "#0284c7" }}>
-                      {bidGroup.documents.filter(d => d.status === "Verified").length} / {bidGroup.documents.length} Completed
-                    </span>
-                  </div>
 
-                  <table className="studio-table">
-                    <thead>
-                      <tr>
-                        <th>Requirement Name</th>
-                        <th>Document Code</th>
-                        <th>File Name</th>
-                        <th>Submission Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDocs.map((req, idx) => (
-                        <tr key={idx}>
-                          <td><strong>{req.name}</strong></td>
-                          <td><span className="cat-tag">{req.code}</span></td>
-                          <td>
-                            {req.file ? (
-                              <div>
-                                <span className="date-text" style={{ fontWeight: 600, color: req.status === "Mismatch" ? "#dc2626" : "#0f172a" }}>📄 {req.file}</span>
-                                {req.errorMsg && <div style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "2px" }}>⚠️ {req.errorMsg}</div>}
-                              </div>
-                            ) : (
-                              <em style={{ color: "#94a3b8" }}>No file uploaded</em>
-                            )}
-                          </td>
-                          <td>
-                            {req.status === "Verified" ? (
-                              <span className="status-badge verified">● Completed & Verified</span>
-                            ) : req.status === "Mismatch" ? (
-                              <span className="status-badge error" style={{ background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5" }}>
-                                ⚠️ Wrong Document Uploaded
-                              </span>
-                            ) : (
-                              <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309" }}>
-                                ⏳ Pending Upload
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            {req.status === "Verified" ? (
-                              <span style={{ color: "#10b981", fontWeight: 700, fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                                ✓ Verified & Locked
-                              </span>
-                            ) : req.status === "Mismatch" ? (
-                              <button
-                                type="button"
-                                style={{
-                                  background: "#dc2626",
-                                  color: "#ffffff",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontWeight: "600",
-                                  padding: "6px 14px",
-                                  fontSize: "0.82rem",
-                                  cursor: "pointer",
-                                  boxShadow: "0 2px 6px rgba(220, 38, 38, 0.3)"
-                                }}
-                                onClick={() => triggerRowUpload(bidGroup.bidId, req.code)}
-                              >
-                                Fix & Re-upload ⚠️
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                style={{
-                                  background: "#0284c7",
-                                  color: "#ffffff",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontWeight: "600",
-                                  padding: "6px 16px",
-                                  fontSize: "0.82rem",
-                                  cursor: "pointer",
-                                  boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)"
-                                }}
-                                onClick={() => triggerRowUpload(bidGroup.bidId, req.code)}
-                              >
-                                + Upload Document
-                              </button>
-                            )}
-                          </td>
+                    {/* Summary Counts Bar */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "12px", marginBottom: "20px", background: "#f8fafc", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700", textTransform: "uppercase" }}>Required</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#0f172a" }}>{reqCount}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#0284c7", fontWeight: "700", textTransform: "uppercase" }}>Uploaded</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#0284c7" }}>{uploadedCount}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#10b981", fontWeight: "700", textTransform: "uppercase" }}>Verified</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#10b981" }}>{verifiedCount}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#d97706", fontWeight: "700", textTransform: "uppercase" }}>Pending</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#d97706" }}>{pendingCount < 0 ? 0 : pendingCount}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "700", textTransform: "uppercase" }}>Rejected</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#dc2626" }}>{rejectedCount}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "700", textTransform: "uppercase" }}>Missing</span>
+                        <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "#64748b" }}>{missingCount}</div>
+                      </div>
+                    </div>
+
+                    <table className="studio-table">
+                      <thead>
+                        <tr>
+                          <th>Requirement Name</th>
+                          <th>Code</th>
+                          <th>Uploaded File</th>
+                          <th>Submission Status</th>
+                          <th>Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              );
-            })}
+                      </thead>
+                      <tbody>
+                        {filteredDocs.map((req, idx) => {
+                          const statusUpper = (req.status || "").toUpperCase();
+                          return (
+                            <tr key={idx} style={{ verticalAlign: "top" }}>
+                              <td style={{ padding: "14px 12px" }}><strong>{req.name}</strong></td>
+                              <td style={{ padding: "14px 12px" }}><span className="cat-tag" style={{ background: "#f1f5f9", color: "#334155", fontWeight: "700" }}>{req.code}</span></td>
+                              <td style={{ padding: "14px 12px" }}>
+                                {req.file ? (
+                                  <div>
+                                    <span style={{ fontWeight: 600, color: statusUpper === "REJECTED" ? "#dc2626" : "#0f172a", display: "inline-flex", alignItems: "center", gap: "6px", wordBreak: "break-all" }}>
+                                      <FileText size={15} style={{ color: statusUpper === "REJECTED" ? "#dc2626" : "#0284c7" }} />
+                                      {req.file}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <em style={{ color: "#94a3b8" }}>No file uploaded</em>
+                                )}
+                              </td>
+                              <td style={{ padding: "14px 12px" }}>
+                                {statusUpper === "VERIFIED" ? (
+                                  <span className="status-badge verified" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                    <CheckCircle2 size={14} /> VERIFIED
+                                  </span>
+                                ) : statusUpper === "UPLOADED" || statusUpper === "PROCESSING" ? (
+                                  <span className="status-badge pending" style={{ background: "#e0f2fe", color: "#0369a1", border: "1px solid #7dd3fc", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                    <Loader2 size={14} className="spin" /> PROCESSING / PENDING
+                                  </span>
+                                ) : statusUpper === "REJECTED" || statusUpper === "MISMATCH" ? (
+                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+                                    <span className="status-badge error" style={{ background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5", display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                      <XCircle size={14} /> REJECTED (Wrong Document)
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", color: "#b91c1c", fontWeight: "600", maxWidth: "260px", lineHeight: "1.3" }}>
+                                      {req.rejectionReason || `Does not match ${req.code} requirements.`}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                    <AlertTriangle size={14} /> MISSING
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                {statusUpper === "VERIFIED" ? (
+                                  <span style={{ color: "#10b981", fontWeight: 700, fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                    <CheckCircle2 size={15} /> Verified
+                                  </span>
+                                ) : statusUpper === "UPLOADED" || statusUpper === "PROCESSING" ? (
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: "#0284c7",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      borderRadius: "6px",
+                                      fontWeight: "600",
+                                      padding: "6px 14px",
+                                      fontSize: "0.82rem",
+                                      cursor: "pointer"
+                                    }}
+                                    onClick={() => triggerRowUpload(bidGroup.bidId, req.requirementId, req.code)}
+                                  >
+                                    Replace File
+                                  </button>
+                                ) : statusUpper === "REJECTED" || statusUpper === "MISMATCH" ? (
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: "#dc2626",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      borderRadius: "6px",
+                                      fontWeight: "600",
+                                      padding: "6px 14px",
+                                      fontSize: "0.82rem",
+                                      cursor: "pointer",
+                                      boxShadow: "0 2px 6px rgba(220, 38, 38, 0.3)"
+                                    }}
+                                    onClick={() => triggerRowUpload(bidGroup.bidId, req.requirementId, req.code)}
+                                  >
+                                    Upload Correct Document
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: "#0284c7",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      borderRadius: "6px",
+                                      fontWeight: "600",
+                                      padding: "6px 16px",
+                                      fontSize: "0.82rem",
+                                      cursor: "pointer",
+                                      boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)"
+                                    }}
+                                    onClick={() => triggerRowUpload(bidGroup.bidId, req.requirementId, req.code)}
+                                  >
+                                    Upload Document
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -509,7 +685,7 @@ function DocumentUploadPage({ onAddBid }) {
                 />
               </svg>
               <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{report.compliance_report.score}%</span>
+                <span style={{ fontSize: "1.5rem", fontWeight: "900", color: report.compliance_report.score >= 80 ? "#10b981" : report.compliance_report.score >= 50 ? "#d97706" : "#dc2626", lineHeight: 1 }}>{report.compliance_report.score}%</span>
                 <span style={{ fontSize: "0.65rem", fontWeight: "700", color: report.compliance_report.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
               </div>
             </div>
@@ -541,8 +717,26 @@ function DocumentUploadPage({ onAddBid }) {
 
           {/* Cards with verified statuses */}
           <div className="registry-cards">
-            {/* AI PDF Forgery & Tampering Inspection Card */}
-            {report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
+            {/* Document Rejection Alert Card */}
+            {(report.compliance_report.score === 0 || report.compliance_report.risk_level === "HIGH" || report.document_status === "REJECTED") && (
+              <div className="registry-card" style={{ borderColor: '#ef4444', background: '#fff5f5', marginBottom: '20px' }}>
+                <div className="reg-header" style={{ borderBottom: '1px solid #fee2e2', paddingBottom: '10px' }}>
+                  <h3 style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.05rem', fontWeight: '800' }}>
+                    <XCircle size={20} /> Document Verification Rejected
+                  </h3>
+                  <span className="reg-label" style={{ background: '#dc2626', color: '#fff', fontWeight: '700' }}>REJECTED</span>
+                </div>
+                <div style={{ padding: '14px 0 4px 0', color: '#991b1b', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                  <div style={{ fontWeight: '700', marginBottom: '6px', textTransform: 'uppercase', fontSize: '0.78rem', letterSpacing: '0.04em' }}>Reason for Rejection / Non-Compliance:</div>
+                  <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '8px', border: '1px solid #fca5a5', color: '#b91c1c', fontWeight: '600', fontSize: '0.88rem' }}>
+                    {report.rejection_reason || report.compliance_report?.recommendations?.[0] || `Uploaded document does not match mandatory requirement and contains no valid government compliance evidence.`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI PDF Forgery & Tampering Inspection Card - Only visible to ADMIN/OFFICER */}
+            {report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (user?.role === "ADMIN" || user?.role === "OFFICER") && (
               <div className="registry-card" style={{ borderColor: report.forgery_analysis.forgery_score >= 80 ? '#10b981' : '#f59e0b' }}>
                 <div className="reg-header">
                   <h3>AI PDF Tampering & Structural Forensics</h3>
@@ -573,8 +767,8 @@ function DocumentUploadPage({ onAddBid }) {
               </div>
             )}
 
-            {/* Multi-Bidder Fraud & Collusion Alert Card */}
-            {report.fraud_analysis && (
+            {/* Multi-Bidder Fraud & Collusion Alert Card - Hidden for Bidder role */}
+            {report.fraud_analysis && (user?.role === "ADMIN" || user?.role === "OFFICER") && (
               <div className="registry-card" style={{ borderColor: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
                 <div className="reg-header">
                   <h3>Multi-Bidder Collusion & Entity Verification</h3>
@@ -749,8 +943,109 @@ function DocumentUploadPage({ onAddBid }) {
           )}
         </div>
       )}
+
+      {/* Submit Confirmation Modal */}
+      {submitModalOpen && submittingBidGroup && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(15, 23, 42, 0.6)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          backdropFilter: "blur(4px)"
+        }}>
+          <div style={{
+            background: "#ffffff",
+            borderRadius: "16px",
+            width: "90%",
+            maxWidth: "520px",
+            padding: "28px",
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+              <div style={{ background: "#e0f2fe", color: "#0284c7", padding: "10px", borderRadius: "12px" }}>
+                <BadgeCheck size={28} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "#0f172a", margin: 0 }}>Submit Compliance Package?</h3>
+                <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Tender #{submittingBidGroup.tenderId}</span>
+              </div>
+            </div>
+
+            <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "0.9rem" }}>
+                <span style={{ color: "#64748b" }}>Required Documents:</span>
+                <strong style={{ color: "#0f172a" }}>{submittingBidGroup.documents.length}</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "0.9rem" }}>
+                <span style={{ color: "#64748b" }}>Uploaded Files:</span>
+                <strong style={{ color: "#0284c7" }}>{submittingBidGroup.documents.filter(d => d.file).length}</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+                <span style={{ color: "#64748b" }}>Missing Documents:</span>
+                <strong style={{ color: "#10b981" }}>0 (All Complete)</strong>
+              </div>
+            </div>
+
+            <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.5, marginBottom: "24px" }}>
+              Once confirmed, your uploaded document package will be submitted for official procurement audit and verification.
+            </p>
+
+            {submitError && (
+              <div style={{ background: "#fee2e2", color: "#dc2626", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "16px" }}>
+                {submitError}
+              </div>
+            )}
+
+            {submitSuccess && (
+              <div style={{ background: "#dcfce7", color: "#15803d", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "16px", fontWeight: "700" }}>
+                {submitSuccess}
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+              <button
+                type="button"
+                style={{
+                  background: "#f1f5f9",
+                  color: "#475569",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  padding: "10px 18px",
+                  cursor: "pointer"
+                }}
+                onClick={() => setSubmitModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                style={{
+                  background: "#0284c7",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "700",
+                  padding: "10px 22px",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(2, 132, 199, 0.3)"
+                }}
+                onClick={confirmSubmitDocuments}
+              >
+                Confirm Submission
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-export default DocumentUploadPage;
+export default DocumentUploadPage;

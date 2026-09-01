@@ -93,24 +93,57 @@ class ComplianceScorer:
         if has_udyam: presence_score += 10
         if has_aadhaar: presence_score += 10
         presence_score = min(30, presence_score)
+
+        # Check if wrong document or requirement mismatch is flagged
+        is_wrong_document = verification_results.get("is_wrong_document", False) or verification_results.get("status") == "REJECTED"
         
-        # 2. Database Verification Check (Max 40)
-        verification_score = 0
-        gstin_verified = any(item.get("verified", False) for item in gstin_list)
-        pan_verified = any(item.get("verified", False) for item in pan_list)
-        udyam_verified = any(item.get("verified", False) for item in udyam_list)
-        aadhaar_verified = any(item.get("verified", False) for item in aadhaar_list)
-        
-        if gstin_verified: verification_score += 15
-        if pan_verified: verification_score += 15
-        if udyam_verified: verification_score += 10
-        if aadhaar_verified: verification_score += 10
-        verification_score = min(40, verification_score)
+        # Check document structural authenticity
+        is_authentic = forgery_analysis.get("authentic", True) if forgery_analysis else True
+        forgery_score = forgery_analysis.get("forgery_score", 100) if forgery_analysis else 100
+        has_valid_doc = is_authentic and (forgery_score >= 70) and not is_wrong_document
+
+        if is_wrong_document:
+            presence_score = 0
+            verification_score = 0
+            integrity_score = 0
+            deductions = ["Uploaded document does not match requirement type (WRONG DOCUMENT) (-100 pts)"]
+            status_issues = ["Requirement Mismatch: Uploaded document rejected"]
+            compliance_issues = ["Invalid document type for requirement"]
+            has_status_issue = True
+            blacklisted = False
+            legal_names = []
+            name_mismatch_desc = None
+            has_name_mismatch = False
+        else:
+            if has_valid_doc and (has_gstin or has_pan or has_udyam or has_aadhaar):
+                presence_score = 30
+            elif not (has_gstin or has_pan or has_udyam or has_aadhaar):
+                presence_score = 0
+            
+            # 2. Database Verification Check (Max 40)
+            verification_score = 0
+            gstin_verified = any(item.get("verified", False) for item in gstin_list)
+            pan_verified = any(item.get("verified", False) for item in pan_list)
+            udyam_verified = any(item.get("verified", False) for item in udyam_list)
+            aadhaar_verified = any(item.get("verified", False) for item in aadhaar_list)
+            
+            if gstin_verified: verification_score += 15
+            if pan_verified: verification_score += 15
+            if udyam_verified: verification_score += 10
+            if aadhaar_verified: verification_score += 10
+
+            if (gstin_verified or pan_verified or udyam_verified or aadhaar_verified):
+                verification_score = 40
+            elif has_valid_doc and (has_gstin or has_pan or has_udyam or has_aadhaar):
+                verification_score = 25
+            else:
+                verification_score = 0
+
         
         # 3. Risk & Integrity Checks (Max 30 baseline, apply deductions)
-        if not (has_gstin or has_pan or has_udyam or has_aadhaar):
+        if not (has_gstin or has_pan or has_udyam or has_aadhaar or has_valid_doc):
             integrity_score = 0
-            deductions = ["No government compliance identifiers (GSTIN, PAN, Udyam, Aadhaar) found in document (-30 pts)"]
+            deductions = ["No government compliance identifiers or readable bid document content found (-30 pts)"]
             status_issues = []
             compliance_issues = []
             has_status_issue = True
@@ -125,8 +158,8 @@ class ComplianceScorer:
             compliance_issues = []
             has_status_issue = False
             
-            # Heavy penalty if primary mandatory procurement identifiers (GSTIN & PAN) are both missing
-            if not (has_gstin or has_pan):
+            # Penalty if primary mandatory procurement identifiers (GSTIN & PAN) are both missing and document structure lacks identifiers
+            if not (has_gstin or has_pan) and not has_valid_doc:
                 integrity_score = max(0, integrity_score - 15)
                 deductions.append("Missing primary mandatory procurement identifiers (GSTIN/PAN) (-15 pts)")
 
@@ -138,6 +171,7 @@ class ComplianceScorer:
             )
             if blacklisted:
                 integrity_score = 0
+                has_status_issue = True
                 deductions.append("Vendor is blacklisted (-30 pts)")
                 
             legal_names: List[Tuple[str, str]] = []

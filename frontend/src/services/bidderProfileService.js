@@ -7,108 +7,70 @@
  * - GET /api/bidders/me/profile
  */
 
-export const MOCK_BIDDER_PROFILE = {
-  id: "BID-2026-000123",
-  bidderId: "BID-2026-000123",
-  memberSince: "January 2026",
+export const EMPTY_BIDDER_PROFILE = {
+  id: "BID-REG-0001",
+  bidderId: "BID-REG-0001",
+  memberSince: "Active Account",
   companyLogo: null,
   
   // 1. Company Overview
-  legalName: "ABC Industries Pvt. Ltd.",
-  tradeName: "ABC Equipment & Tools",
-  businessType: "Industrial Equipment Supplier",
-  location: "Ahmedabad, Gujarat",
-  verificationBadge: "Verified Bidder",
-  isVerified: true,
+  legalName: "Registered Bidder",
+  tradeName: "",
+  businessType: "Registered Supplier",
+  location: "India",
+  verificationBadge: "Unverified Bidder",
+  isVerified: false,
 
   // 3. Company Information Fields
-  registrationNumber: "CIN-U29100GJ2020PTC114589",
-  pan: "AABCA1234F",
-  panVerificationStatus: "VERIFIED",
-  gstin: "24AABCA1234F1Z5",
-  gstinVerificationStatus: "VERIFIED",
-  udyamNumber: "UDYAM-GJ-01-0012345",
-  udyamVerificationStatus: "PENDING",
-  yearEstablished: "2018",
-  state: "Gujarat",
-  district: "Ahmedabad",
+  registrationNumber: "",
+  pan: "",
+  panVerificationStatus: "NOT_VERIFIED",
+  gstin: "",
+  gstinVerificationStatus: "NOT_VERIFIED",
+  udyamNumber: "",
+  udyamVerificationStatus: "NOT_VERIFIED",
+  yearEstablished: "",
+  state: "",
+  district: "",
 
   // 4. Contact Information Fields
-  email: "contact@abcindustries.in",
+  email: "",
   emailVerified: true,
-  phone: "+91 98765 43210",
-  phoneVerified: true,
-  website: "https://www.abcindustries.in",
-  address: "Plot 42, GIDC Industrial Estate, Naroda",
-  city: "Ahmedabad",
-  pincode: "382330",
+  phone: "",
+  phoneVerified: false,
+  website: "",
+  address: "",
+  city: "",
+  pincode: "",
 
   // 5. Registration & Compliance Matrix
   complianceStatuses: [
-    { key: "pan", label: "PAN", status: "VERIFIED" },
-    { key: "gst", label: "GST", status: "VERIFIED" },
-    { key: "udyam", label: "Udyam / MSME", status: "VERIFIED" },
-    { key: "startupIndia", label: "Startup India", status: "PENDING" },
+    { key: "pan", label: "PAN", status: "NOT_VERIFIED" },
+    { key: "gst", label: "GST", status: "NOT_VERIFIED" },
+    { key: "udyam", label: "Udyam / MSME", status: "NOT_VERIFIED" },
+    { key: "startupIndia", label: "Startup India", status: "NOT_VERIFIED" },
     { key: "nsic", label: "NSIC", status: "NOT_APPLICABLE" },
     { key: "oemAuthorization", label: "OEM Authorization", status: "NOT_VERIFIED" }
   ],
 
   // 6. My Documents (Uploaded Compliance Documents)
-  documents: [
-    {
-      id: "doc-1",
-      name: "GST Registration Certificate",
-      type: "GSTIN",
-      uploadedDate: "26 Aug 2026",
-      status: "VERIFIED",
-      fileUrl: "#"
-    },
-    {
-      id: "doc-2",
-      name: "PAN Card / Income Tax Certificate",
-      type: "PAN",
-      uploadedDate: "26 Aug 2026",
-      status: "VERIFIED",
-      fileUrl: "#"
-    },
-    {
-      id: "doc-3",
-      name: "Udyam MSME Exemption Certificate",
-      type: "MSME",
-      uploadedDate: "26 Aug 2026",
-      status: "VERIFIED",
-      fileUrl: "#"
-    },
-    {
-      id: "doc-4",
-      name: "Income Tax Returns (Last 3 Years)",
-      type: "Financial",
-      uploadedDate: "15 Aug 2026",
-      status: "VERIFIED",
-      fileUrl: "#"
-    },
-    {
-      id: "doc-5",
-      name: "OEM Authorization Letter",
-      type: "OEM",
-      uploadedDate: "10 Aug 2026",
-      status: "PENDING",
-      fileUrl: "#"
-    }
-  ],
+  documents: [],
 
   // Incomplete Items for Profile Completion Card
   missingItems: [
-    "GST verification",
-    "Company documentation",
-    "OEM authorization renewal"
+    "Legal Company Name",
+    "GSTIN registration number",
+    "PAN details",
+    "Registered business address"
   ],
 
   // 7. Account Security Information
-  lastLogin: "Today, 10:32 AM",
-  passwordLastChanged: "30 days ago",
-  passwordStatus: "Active (Last changed 30 days ago)"
+  lastLogin: "Active Session",
+  passwordLastChanged: "Default",
+  passwordStatus: "Active"
 };
+
+export const MOCK_BIDDER_PROFILE = EMPTY_BIDDER_PROFILE;
 
 /**
  * Calculates profile completion percentage dynamically based on completed key profile fields.
@@ -143,7 +105,7 @@ export function calculateProfileCompletion(profile) {
   fields.forEach((item) => {
     totalScore += item.weight;
     const val = profile[item.key];
-    if (val !== undefined && val !== null && String(val).trim() !== "") {
+    if (val !== undefined && val !== null && String(val).trim() !== "" && String(val) !== "Registered Bidder") {
       earnedScore += item.weight;
     }
   });
@@ -158,11 +120,11 @@ export function calculateProfileCompletion(profile) {
   return rawPercentage;
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 /**
  * Service function to fetch bidder profile.
- * Connects to API endpoints when available, falling back to mock structure.
+ * Connects to API endpoints when available, falling back to clean profile structure.
  */
 export async function getBidderProfile(token = null) {
   if (token) {
@@ -172,12 +134,19 @@ export async function getBidderProfile(token = null) {
       });
       if (response.ok) {
         const data = await response.json();
-        return { ...MOCK_BIDDER_PROFILE, ...data };
+        return {
+          ...EMPTY_BIDDER_PROFILE,
+          id: data.id || EMPTY_BIDDER_PROFILE.id,
+          bidderId: `BID-${(data.id || "").substring(0, 8)}`,
+          legalName: data.full_name || "Registered Bidder",
+          email: data.email || "",
+          ...data
+        };
       }
     } catch (err) {
-      console.warn("Failed to fetch live bidder profile, using mock fallback:", err);
+      console.warn("Failed to fetch live bidder profile, using clean fallback:", err);
     }
   }
-  return MOCK_BIDDER_PROFILE;
+  return EMPTY_BIDDER_PROFILE;
 }
 

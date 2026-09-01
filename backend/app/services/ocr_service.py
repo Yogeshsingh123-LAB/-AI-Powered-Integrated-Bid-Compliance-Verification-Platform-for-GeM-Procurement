@@ -27,7 +27,7 @@ class OCRService:
         """Dispatch text extraction based on MIME type."""
         if mime_type == "application/pdf":
             return cls.extract_text_from_pdf(file_bytes)
-        elif mime_type in {"image/jpeg", "image/jpg", "image/png"}:
+        elif mime_type in {"image/jpeg", "image/jpg", "image/png", "image/tiff", "image/bmp"}:
             return cls.extract_text_from_image(file_bytes)
         else:
             return {

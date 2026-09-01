@@ -253,24 +253,34 @@ def _generate_groq_answer(
         "temperature": 0.2,
         "max_completion_tokens": 700,
     }
-    if web_search_requested and _contains_any(
-        _normalize(message), ("gem", "government e-marketplace")
-    ):
-        request_payload["search_settings"] = {
-            "include_domains": ["gem.gov.in"],
-            "country": "india",
-        }
 
-    response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json=request_payload,
-        timeout=18,
-    )
-    response.raise_for_status()
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=request_payload,
+            timeout=18,
+        )
+        response.raise_for_status()
+    except Exception as err:
+        logger.warning("Groq web search model attempt failed, falling back to standard model: %s", err)
+        request_payload["model"] = settings.GROQ_MODEL
+        if "search_settings" in request_payload:
+            del request_payload["search_settings"]
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=request_payload,
+            timeout=18,
+        )
+        response.raise_for_status()
+
     payload = response.json()
     response_message = payload.get("choices", [{}])[0].get("message", {})
     answer = (response_message.get("content") or "").strip()

@@ -159,6 +159,26 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
         
         # 9. Update final document status
         doc.document_status = final_status
+
+        # 10. Recalculate and update associated bid's compliance score based on actual verified documents
+        try:
+            from app.models.bid import Bid
+            from app.models.requirement import Requirement
+            bid = db.query(Bid).filter(Bid.id == doc.bid_id).first()
+            if bid:
+                total_reqs = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).count()
+                valid_docs = db.query(Document).filter(
+                    Document.bid_id == bid.id,
+                    Document.document_status.in_(["PROCESSED", "VERIFIED", "VALIDATION", "REQUIRES_REVIEW", "UPLOADED"])
+                ).count()
+                if total_reqs > 0:
+                    score = min(100.0, round((valid_docs / max(1, total_reqs)) * 100.0, 2))
+                    bid.compliance_score = score
+                else:
+                    bid.compliance_score = 100.0 if valid_docs > 0 else 0.0
+        except Exception as score_err:
+            logger.warning(f"Failed to calculate bid compliance score: {score_err}")
+
         db.commit()
         db.refresh(doc)
         

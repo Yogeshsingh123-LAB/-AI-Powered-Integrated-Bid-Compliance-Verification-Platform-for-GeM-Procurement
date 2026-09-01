@@ -25,8 +25,8 @@ from app.models.document_extraction import DocumentExtraction
 
 router = APIRouter(prefix="/documents", tags=["Document Storage & Verification"])
 
-ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
-ALLOWED_MIMES = {"application/pdf", "image/jpeg", "image/png"}
+ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".tiff", ".bmp"}
+ALLOWED_MIMES = {"application/pdf", "image/jpeg", "image/png", "image/tiff", "image/bmp"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 def get_safe_filename(filename: str) -> str:
@@ -42,14 +42,14 @@ def validate_file(file: UploadFile) -> bytes:
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Unsupported file extension. Only PDF, JPG, JPEG, and PNG are allowed."
+            detail="Unsupported file extension. Only PDF, JPG, JPEG, PNG, TIFF, and BMP are allowed."
         )
 
     # Validate MIME type
     if file.content_type not in ALLOWED_MIMES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Unsupported MIME type. Only PDF, JPG, JPEG, and PNG are allowed."
+            detail="Unsupported MIME type. Only PDF, JPG, JPEG, PNG, TIFF, and BMP are allowed."
         )
 
     # Validate size safely

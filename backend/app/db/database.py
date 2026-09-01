@@ -31,26 +31,152 @@ except Exception as e:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# If we are using SQLite, auto-create tables and apply missing columns so it works out-of-the-box
-if is_sqlite:
+def apply_schema_migrations():
+    """Self-healing migration: Ensure all tables and columns exist in PostgreSQL or SQLite."""
     try:
-        # Import models so they register with Base.metadata
-        import app.models
-        
+        import app.models  # Ensure models register with Base.metadata
         Base.metadata.create_all(bind=engine)
-        logger.info("Auto-created model tables in SQLite database.")
         
-        # Self-healing migration for SQLite fallback DB schema updates
         with engine.connect() as conn:
-            # pyrefly: ignore [missing-import]
             from sqlalchemy import text
+            
+            # Columns to add to users table
+            user_columns = [
+                ("department", "VARCHAR(100) DEFAULT 'Procurement'"),
+                ("status", "VARCHAR(20) DEFAULT 'Active'"),
+                ("permissions", "VARCHAR(500)"),
+                ("last_login", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("auth_user_id", "VARCHAR(100)")
+            ]
+            
+            for col_name, col_type in user_columns:
+                try:
+                    if not is_sqlite:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+            
+            # Audit log columns
             try:
-                conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
+                if not is_sqlite:
+                    conn.execute(text("ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS blockchain_hash VARCHAR(64)"))
+                else:
+                    conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
                 conn.commit()
             except Exception:
                 pass
+
+            # Tender columns self-healing migrations
+            tender_columns = [
+                ("description", "TEXT"),
+                ("category", "VARCHAR(100) DEFAULT 'General Procurement'"),
+                ("department", "VARCHAR(255) DEFAULT 'Chennai Petroleum Corporation Limited (CPCL)'"),
+                ("tender_type", "VARCHAR(100) DEFAULT 'Custom Bid'"),
+                ("budget_limit", "NUMERIC(15, 2) DEFAULT 5000000.0"),
+                ("status", "VARCHAR(50) DEFAULT 'Draft'"),
+                ("eligibility_requirements", "TEXT"),
+                ("custom_rules", "JSONB" if not is_sqlite else "JSON"),
+                ("scoring_weights", "JSONB" if not is_sqlite else "JSON"),
+                ("created_by", "UUID"),
+                ("created_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("published_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("closing_date", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME")
+            ]
+
+            for col_name, col_type in tender_columns:
+                try:
+                    if not is_sqlite:
+                        conn.execute(text(f"ALTER TABLE tenders ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE tenders ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            # Bids table self-healing migrations
+            bid_columns = [
+                ("compliance_score", "NUMERIC(5, 2) DEFAULT 0.0"),
+                ("status", "VARCHAR(50) DEFAULT 'Pending'"),
+                ("is_locked", "BOOLEAN DEFAULT FALSE"),
+                ("submitted_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("officer_status", "VARCHAR(50) DEFAULT 'Pending'"),
+                ("deviation_justification", "TEXT"),
+                ("deviation_category", "VARCHAR(100)"),
+                ("officer_id", "UUID"),
+                ("reviewed_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME")
+            ]
+
+            for col_name, col_type in bid_columns:
+                try:
+                    if not is_sqlite:
+                        conn.execute(text(f"ALTER TABLE bids ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE bids ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+        logger.info("Schema migrations applied successfully.")
     except Exception as create_err:
-        logger.error(f"Failed to auto-create tables in SQLite: {create_err}")
+        logger.error(f"Failed to apply database migrations: {create_err}")
+
+# Auto-apply migrations when database module loads
+try:
+    apply_schema_migrations()
+except Exception as err:
+    logger.warning(f"Database migration load error: {err}")
+
+def init_admin_user():
+    """Ensure that ONLY the primary platform Admin user (admin@gem.gov.in) exists in the initial database."""
+    db = SessionLocal()
+    try:
+        from app.models.user import User
+        from app.core.security import get_password_hash
+        
+        admin_email = "admin@gem.gov.in"
+        existing_admin = db.query(User).filter(User.email.ilike(admin_email)).first()
+        if not existing_admin:
+            # Check if any admin exists
+            existing_admin = db.query(User).filter(User.role == "ADMIN").first()
+            
+        if not existing_admin:
+            logger.info("Initializing primary Admin user account...")
+            admin_user = User(
+                full_name="Platform Administrator",
+                email=admin_email,
+                password_hash=get_password_hash("Admin@123"),
+                role="ADMIN",
+                status="Active",
+                department="Procurement",
+                is_active=True
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Primary Admin user (admin@gem.gov.in) initialized successfully.")
+        else:
+            # Ensure email and active status are correct
+            existing_admin.email = admin_email
+            existing_admin.is_active = True
+            existing_admin.role = "ADMIN"
+            if not existing_admin.status:
+                existing_admin.status = "Active"
+            if not existing_admin.department:
+                existing_admin.department = "Procurement"
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to initialize primary admin user: {e}")
+    finally:
+        db.close()
+
+# Auto-run admin init when database module is loaded
+try:
+    init_admin_user()
+except Exception:
+    pass
 
 def get_db():
     db = SessionLocal()
@@ -58,3 +184,4 @@ def get_db():
         yield db
     finally:
         db.close()
+

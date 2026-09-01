@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 # pyrefly: ignore [missing-import]
-from sqlalchemy import Column, String, Text, ForeignKey, Numeric, DateTime, UUID
+from sqlalchemy import Column, String, Text, ForeignKey, Numeric, DateTime, UUID, Boolean
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -14,6 +14,8 @@ class Bid(Base):
     bidder_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     compliance_score = Column(Numeric(5, 2), nullable=True)
     status = Column(String(50), nullable=False, default="Pending")  # "Pending", "Compliant", "Non-Compliant"
+    is_locked = Column(Boolean, nullable=False, default=False)  # Prevents decision double-submission
+    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Officer Override Fields
     officer_status = Column(String(50), nullable=True, default="Pending")  # "Approved", "Rejected", "Approved with Deviation"
@@ -29,3 +31,4 @@ class Bid(Base):
     documents = relationship("Document", back_populates="bid", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="bid", cascade="all, delete-orphan")
     annotations = relationship("OfficerAnnotation", back_populates="bid", cascade="all, delete-orphan")
+

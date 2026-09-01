@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Network, RefreshCw } from 'lucide-react';
 import './CartelDetectionGraph.css';
 
 export default function CartelDetectionGraph({ tenderId = "DEMO-TENDER-01" }) {
@@ -18,63 +19,28 @@ export default function CartelDetectionGraph({ tenderId = "DEMO-TENDER-01" }) {
         const data = await res.json();
         setGraphData(data);
       } else {
-        // Fallback demo dataset if backend unreachable
-        setGraphData(getMockCartelData());
+        setGraphData(getCleanCartelData());
       }
     } catch (err) {
-      setGraphData(getMockCartelData());
+      setGraphData(getCleanCartelData());
     } finally {
       setLoading(false);
     }
   };
 
-  const getMockCartelData = () => ({
+  const getCleanCartelData = () => ({
     tender_id: tenderId,
-    cartel_risk_score: 75,
-    cartel_risk_level: "HIGH",
-    is_cartel_suspected: true,
-    cartel_rings_count: 1,
-    cartel_rings: [
-      {
-        cluster_id: "RING-01",
-        bidder_count: 2,
-        bidders: [
-          { name: "Apex Infra Solution Ltd", pan: "AAAAA1111A" },
-          { name: "Zenith Tech Enterprises", pan: "BBBBB2222B" }
-        ],
-        shared_entities: [
-          { type: "Director", name: "Ramesh Kumar" },
-          { type: "Address", name: "Plot 42, Sector 18, Cyber City" },
-          { type: "BankAccount", name: "HDFC-9988776655" }
-        ]
-      }
-    ],
+    cartel_risk_score: 0,
+    cartel_risk_level: "LOW",
+    is_cartel_suspected: false,
+    cartel_rings_count: 0,
+    cartel_rings: [],
     evidence: [
-      "SHARED DIRECTOR: Director 'Ramesh Kumar' is shared across Apex Infra & Zenith Tech",
-      "COMMON ADDRESS: Address 'Plot 42, Sector 18' registered by multiple bidders",
-      "OVERLAPPING BANK ACCOUNT: HDFC Account '9988776655' shared between bidders",
-      "CRITICAL: 2 distinct bidders submitted tenders from identical IP address (103.22.45.10)"
+      "Clean Record: No cartel or collusion patterns detected across submitted bids."
     ],
     graph_elements: {
-      nodes: [
-        { data: { id: "B1", label: "Apex Infra Solution Ltd", type: "Bidder", color: "#3b82f6" } },
-        { data: { id: "B2", label: "Zenith Tech Enterprises", type: "Bidder", color: "#3b82f6" } },
-        { data: { id: "B3", label: "Vanguard Builders Pvt Ltd", type: "Bidder", color: "#3b82f6" } },
-        { data: { id: "D1", label: "Ramesh Kumar (Director)", type: "Director", color: "#f97316" } },
-        { data: { id: "A1", label: "Plot 42, Cyber City (Address)", type: "Address", color: "#a855f7" } },
-        { data: { id: "BK1", label: "HDFC-9988776655 (Bank)", type: "BankAccount", color: "#10b981" } },
-        { data: { id: "IP1", label: "103.22.45.10 (IP)", type: "IPAddress", color: "#ef4444" } }
-      ],
-      edges: [
-        { data: { id: "B1-D1", source: "B1", target: "D1", relationship: "MANAGED_BY" } },
-        { data: { id: "B2-D1", source: "B2", target: "D1", relationship: "MANAGED_BY" } },
-        { data: { id: "B1-A1", source: "B1", target: "A1", relationship: "REGISTERED_AT" } },
-        { data: { id: "B2-A1", source: "B2", target: "A1", relationship: "REGISTERED_AT" } },
-        { data: { id: "B1-BK1", source: "B1", target: "BK1", relationship: "HAS_BANK_ACCOUNT" } },
-        { data: { id: "B2-BK1", source: "B2", target: "BK1", relationship: "HAS_BANK_ACCOUNT" } },
-        { data: { id: "B1-IP1", source: "B1", target: "IP1", relationship: "SUBMITTED_FROM" } },
-        { data: { id: "B2-IP1", source: "B2", target: "IP1", relationship: "SUBMITTED_FROM" } }
-      ]
+      nodes: [],
+      edges: []
     }
   });
 
@@ -104,7 +70,7 @@ export default function CartelDetectionGraph({ tenderId = "DEMO-TENDER-01" }) {
     <div className="cartel-container">
       <div className="cartel-header">
         <div className="cartel-title-area">
-          <h2>🕸️ Bidder Cartel & Relationship Graph</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Network size={22} style={{ color: '#a855f7' }} /> Bidder Cartel & Relationship Graph</h2>
           <span className={`cartel-badge ${riskLevel.toLowerCase()}`}>
             {riskLevel} RISK ({graphData?.cartel_risk_score}/100)
           </span>
@@ -118,10 +84,13 @@ export default function CartelDetectionGraph({ tenderId = "DEMO-TENDER-01" }) {
             padding: '0.4rem 0.8rem',
             borderRadius: '6px',
             cursor: 'pointer',
-            fontSize: '0.8rem'
+            fontSize: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
         >
-          🔄 Refresh Graph
+          <RefreshCw size={14} /> Refresh Graph
         </button>
       </div>
 

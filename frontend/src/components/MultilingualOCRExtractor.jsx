@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Globe, Zap, FileText, CheckCircle2 } from 'lucide-react';
 import './MultilingualOCRExtractor.css';
 
 export default function MultilingualOCRExtractor() {
@@ -67,7 +68,7 @@ export default function MultilingualOCRExtractor() {
     <div className="multilingual-container">
       <div className="multilingual-header">
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>🌐 Pan-India Regional Language OCR & Translation</h2>
+          <h2 style={{ margin: 0, fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Globe size={22} style={{ color: '#60a5fa' }} /> Pan-India Regional Language OCR & Translation</h2>
           <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
             Hindi, Gujarati, Marathi, Tamil, Bengali, Telugu Statutory Extraction
           </span>
@@ -95,10 +96,13 @@ export default function MultilingualOCRExtractor() {
               padding: '0.5rem 1rem',
               borderRadius: '8px',
               fontWeight: '600',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            {loading ? "Extracting..." : "⚡ Extract & Translate"}
+            <Zap size={15} /> {loading ? "Extracting..." : "Extract & Translate"}
           </button>
         </div>
       </div>
@@ -106,8 +110,8 @@ export default function MultilingualOCRExtractor() {
       <div className="dual-panel-grid">
         {/* Left Panel: Regional Text Input */}
         <div className="ocr-box">
-          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#38bdf8' }}>
-            📄 Regional Document OCR Text ({selectedLang.toUpperCase()})
+          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <FileText size={16} /> Regional Document OCR Text ({selectedLang.toUpperCase()})
           </h3>
 
           <textarea
@@ -120,8 +124,8 @@ export default function MultilingualOCRExtractor() {
 
         {/* Right Panel: Auto-Translated English Summary & Entities */}
         <div className="ocr-box">
-          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#34d399' }}>
-            🇬🇧 Standardized English Compliance Summary
+          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <CheckCircle2 size={16} /> Standardized English Compliance Summary
           </h3>
 
           {result ? (

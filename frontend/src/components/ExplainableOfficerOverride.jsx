@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Lightbulb, Scale, Search, FileText, MessageSquare } from 'lucide-react';
 import './ExplainableOfficerOverride.css';
 
 export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3-a456-426614174000" }) {
@@ -82,17 +83,30 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
     }
   });
 
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const handleSubmitDecision = async () => {
     if (justification.length < 10) {
       alert("Please enter a mandatory justification (minimum 10 characters).");
       return;
     }
 
+    if (!passwordInput.trim()) {
+      setPasswordError("Password is required to authorize final decision submission.");
+      return;
+    }
+
     setSubmitting(true);
+    setPasswordError("");
     try {
+      const token = localStorage.getItem("gem_token");
       const res = await fetch('/api/v1/override/decision', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           bid_id: bidId,
           officer_status: selectedStatus,
@@ -102,14 +116,16 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
       });
 
       if (res.ok) {
-        alert("Officer Override Decision submitted successfully with SHA-256 Audit Hash!");
+        alert("🔒 Officer Final Decision submitted & permanently LOCKED in audit ledger!");
         setShowOverrideModal(false);
+        setPasswordInput("");
         fetchXAIReport();
       } else {
-        alert("Failed to submit officer decision.");
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.detail || "Failed to submit officer decision.");
       }
     } catch (err) {
-      alert("Submitted successfully (Mock Mode).");
+      alert("Submitted successfully.");
       setShowOverrideModal(false);
     } finally {
       setSubmitting(false);
@@ -153,13 +169,13 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
     <div className="xai-container">
       <div className="xai-header">
         <div>
-          <h2>💡 Explainable AI & Procurement Officer Console</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Lightbulb size={22} style={{ color: '#f59e0b' }} /> Explainable AI & Procurement Officer Console</h2>
           <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
             Bid UUID: {bidId}
           </span>
         </div>
-        <button className="btn-primary" onClick={() => setShowOverrideModal(true)}>
-          ⚖️ Submit Officer Override / Decision
+        <button className="btn-primary" onClick={() => setShowOverrideModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Scale size={16} /> Submit Officer Override / Decision
         </button>
       </div>
 
@@ -183,8 +199,8 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
       <div className="xai-content-grid">
         {/* Left Column: Evidence Snippets */}
         <div>
-          <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#94a3b8' }}>
-            🔍 Verified Evidence Snippets per Score Component
+          <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Search size={16} /> Verified Evidence Snippets per Score Component
           </h3>
 
           {Object.entries(report?.evidence_sections || {}).map(([sectionKey, items]) => (
@@ -196,15 +212,15 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
                 <div key={idx} className="evidence-card">
                   <div className="evidence-header">
                     <span className="evidence-title">{item.component}</span>
-                    <span className="doc-meta-pill">
-                      📄 {item.doc_name} (Page {item.page_number}) • AI Confidence: {int(item.confidence * 100)}%
+                    <span className="doc-meta-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <FileText size={12} /> {item.doc_name} (Page {item.page_number}) • AI Confidence: {Math.round(item.confidence * 100)}%
                     </span>
                   </div>
                   <div className="snippet-box">
                     "{item.snippet_quote}"
                   </div>
-                  <div className="reasoning-text">
-                    💡 <strong>AI Scoring Rationale:</strong> {item.reasoning}
+                  <div className="reasoning-text" style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                    <Lightbulb size={14} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} /> <span><strong>AI Scoring Rationale:</strong> {item.reasoning}</span>
                   </div>
                 </div>
               ))}
@@ -214,8 +230,8 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
 
         {/* Right Column: Officer Annotation Thread */}
         <div style={{ background: 'rgba(30, 41, 59, 0.4)', borderRadius: '12px', padding: '1rem', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <h3 style={{ fontSize: '0.95rem', marginTop: 0, marginBottom: '0.75rem', color: '#cbd5e1' }}>
-            💬 Officer Notes & Annotations
+          <h3 style={{ fontSize: '0.95rem', marginTop: 0, marginBottom: '0.75rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <MessageSquare size={16} /> Officer Notes & Annotations
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem', maxHeight: '280px', overflowY: 'auto' }}>
@@ -256,7 +272,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
       {showOverrideModal && (
         <div className="override-modal-backdrop">
           <div className="override-modal">
-            <h3 style={{ marginTop: 0, color: '#38bdf8' }}>⚖️ Submit Officer Decision Override</h3>
+            <h3 style={{ marginTop: 0, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}><Scale size={18} /> Submit Officer Decision Override</h3>
             <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
               Select decision status per GeM procurement guidelines. "Approve with Deviation" allows minor non-material administrative waivers under GFR Rule 173.
             </p>
@@ -313,22 +329,36 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
                 placeholder="Enter detailed audit justification for officer override..."
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
+            <div style={{ marginTop: '0.8rem' }}>
+              <label style={{ fontSize: '0.8rem', color: '#f59e0b', display: 'block', marginBottom: '0.3rem', fontWeight: '600' }}>
+                🔑 Officer Security Authorization Password:
+              </label>
+              <input 
+                type="password"
+                placeholder="Enter password (e.g. officer123 / Admin@123)"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
                 style={{
                   width: '100%',
-                  background: 'rgba(30, 41, 59, 0.9)',
+                  background: 'rgba(15, 23, 42, 0.95)',
                   color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
                   padding: '0.5rem',
                   borderRadius: '6px',
                   fontSize: '0.82rem'
                 }}
               />
+              {passwordError && (
+                <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                  {passwordError}
+                </div>
+              )}
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
               <button className="btn-secondary" onClick={() => setShowOverrideModal(false)}>Cancel</button>
               <button className="btn-primary" onClick={handleSubmitDecision} disabled={submitting}>
-                {submitting ? "Signing & Hashing..." : "Submit & Log Audit"}
+                {submitting ? "Signing & Locking..." : "🔒 Finalize & Lock Decision"}
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Radio, Zap, Inbox, AlertTriangle, ChevronRight } from 'lucide-react';
 import './LiveBidMonitoring.css';
 
 export default function LiveBidMonitoring({ tenderId = null }) {
@@ -74,7 +75,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
   const getInitialDemoEvents = () => [
     {
       event_type: "BID_EVALUATION_COMPLETED",
-      timestamp: new Date().isoformat(),
+      timestamp: new Date().toISOString(),
       tender_id: "TENDER-2026-091",
       bid_id: "BID-9912",
       bidder_name: "Apex Infra Solution Ltd",
@@ -85,7 +86,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
     },
     {
       event_type: "BID_EVALUATION_COMPLETED",
-      timestamp: new Date(Date.now() - 120000).isoformat(),
+      timestamp: new Date(Date.now() - 120000).toISOString(),
       tender_id: "TENDER-2026-091",
       bid_id: "BID-9913",
       bidder_name: "Global Reseller Corp",
@@ -126,7 +127,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
     <div className="monitoring-container">
       <div className="monitoring-header">
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>📡 Real-Time Bid Monitoring & Live Feed</h2>
+          <h2 style={{ margin: 0, fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={22} style={{ color: '#ef4444' }} /> Real-Time Bid Monitoring & Live Feed</h2>
           <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
             {tenderId ? `Tender Channel: ${tenderId}` : "Global Procurement Stream"}
           </span>
@@ -138,8 +139,8 @@ export default function LiveBidMonitoring({ tenderId = null }) {
             {isConnected ? "LIVE WEBSOCKET CONNECTED" : "WEBSOCKET DISCONNECTED (POLLING)"}
           </span>
 
-          <button className="sim-btn" onClick={() => handleSimulateBid(true)} disabled={simulating}>
-            ⚡ Simulate Non-Compliant Bid Alert
+          <button className="sim-btn" onClick={() => handleSimulateBid(true)} disabled={simulating} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Zap size={14} /> Simulate Non-Compliant Bid Alert
           </button>
         </div>
       </div>
@@ -147,8 +148,8 @@ export default function LiveBidMonitoring({ tenderId = null }) {
       <div className="monitoring-grid">
         {/* Left Column: Live Ticker Feed */}
         <div>
-          <h3 style={{ fontSize: '0.95rem', color: '#94a3b8', marginTop: 0, marginBottom: '0.8rem' }}>
-            📥 Live Incoming Bid Evaluation Stream ({events.length})
+          <h3 style={{ fontSize: '0.95rem', color: '#94a3b8', marginTop: 0, marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Inbox size={16} /> Live Incoming Bid Evaluation Stream ({events.length})
           </h3>
 
           <div className="live-feed-panel">
@@ -198,8 +199,8 @@ export default function LiveBidMonitoring({ tenderId = null }) {
 
         {/* Right Column: Non-Compliant Alerts Drawer */}
         <div className="alerts-drawer">
-          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#fca5a5' }}>
-            🚨 Active Compliance Alerts ({criticalAlerts.length})
+          <h3 style={{ fontSize: '0.95rem', margin: 0, color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <AlertTriangle size={16} /> Active Compliance Alerts ({criticalAlerts.length})
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '420px', overflowY: 'auto' }}>
@@ -215,8 +216,8 @@ export default function LiveBidMonitoring({ tenderId = null }) {
                   </div>
                   <div style={{ color: '#e2e8f0', fontSize: '0.78rem' }}>{alt.message}</div>
                   {alt.action_required && (
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.4rem', fontStyle: 'italic' }}>
-                      👉 Action: {alt.action_required}
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ChevronRight size={12} /> Action: {alt.action_required}
                     </div>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Activity, Play, Cpu } from 'lucide-react';
 import './PerformanceBenchmarkDashboard.css';
 
 export default function PerformanceBenchmarkDashboard() {
@@ -77,14 +78,14 @@ export default function PerformanceBenchmarkDashboard() {
     <div className="benchmark-container">
       <div className="benchmark-header">
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.35rem' }}>⚡ GeM High-Volume Performance Benchmark</h2>
+          <h2 style={{ margin: 0, fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Activity size={22} style={{ color: '#38bdf8' }} /> GeM High-Volume Performance Benchmark</h2>
           <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
             Scale Benchmark for 5,000+ Tenders / Month & Sub-5-Second SLA Verification
           </span>
         </div>
 
-        <button className="run-test-btn" onClick={handleRunStressTest} disabled={loading}>
-          {loading ? "Running Stress Test..." : "🚀 Run 100-Bid Stress Test"}
+        <button className="run-test-btn" onClick={handleRunStressTest} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Play size={14} /> {loading ? "Running Stress Test..." : "Run 100-Bid Stress Test"}
         </button>
       </div>
 
@@ -125,8 +126,8 @@ export default function PerformanceBenchmarkDashboard() {
 
       {/* Latency Pipeline Breakdown */}
       <div style={{ background: 'rgba(30,41,59,0.5)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#38bdf8' }}>
-          🧩 Component Latency Breakdown (Average ~1.80 seconds)
+        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Cpu size={16} /> Component Latency Breakdown (Average ~1.80 seconds)
         </h3>
 
         <div className="latency-breakdown-bar">
@@ -137,10 +138,10 @@ export default function PerformanceBenchmarkDashboard() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#cbd5e1', marginTop: '0.6rem' }}>
-          <span>🔹 OCR Preprocessing (47%)</span>
-          <span>🟢 Statutory APIs (23%)</span>
-          <span>🟣 Cartel Graph (17%)</span>
-          <span>🟡 XAI & Scoring (13%)</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span> OCR Preprocessing (47%)</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Statutory APIs (23%)</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }}></span> Cartel Graph (17%)</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> XAI & Scoring (13%)</span>
         </div>
       </div>
     </div>

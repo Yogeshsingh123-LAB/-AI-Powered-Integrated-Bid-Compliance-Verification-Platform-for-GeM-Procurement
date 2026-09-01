@@ -87,137 +87,26 @@ function FieldVerificationBadge({ status }) {
   );
 }
 
-function BidderProfile({ user }) {
-  const isDemoUser = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
-
-  const getNewBidderProfile = (userObj) => ({
-    id: `BID-${Date.now().toString().slice(-6)}`,
-    bidderId: `BID-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-    memberSince: "August 2026",
-    companyLogo: null,
-    
-    // 1. Company Overview
-    legalName: userObj?.full_name || userObj?.organization || userObj?.name || "New Registered Bidder Enterprise",
-    tradeName: userObj?.organization || userObj?.full_name || "New Enterprise",
-    businessType: "Industrial Goods & Services Supplier",
-    location: "Registered Supplier Location",
-    verificationBadge: "Pending Document Verification",
-    isVerified: false,
-
-    // 3. Company Information Fields
-    registrationNumber: "Pending Submission",
-    pan: "Not Uploaded",
-    panVerificationStatus: "PENDING",
-    gstin: "Not Uploaded",
-    gstinVerificationStatus: "PENDING",
-    udyamNumber: "Not Uploaded",
-    udyamVerificationStatus: "PENDING",
-    yearEstablished: "2026",
-    state: "India",
-    district: "Central",
-
-    // 4. Contact Information Fields
-    email: userObj?.email || "bidder@company.com",
-    emailVerified: true,
-    phone: "+91 98000 00000",
-    phoneVerified: false,
-    website: "https://www.company-portal.in",
-    address: "Enterprise Office Address",
-    city: "New Delhi",
-    pincode: "110001",
-
-    // 5. Registration & Compliance Matrix
-    complianceStatuses: [
-      { key: "pan", label: "PAN", status: "PENDING" },
-      { key: "gst", label: "GST", status: "PENDING" },
-      { key: "udyam", label: "Udyam / MSME", status: "PENDING" },
-      { key: "startupIndia", label: "Startup India", status: "PENDING" },
-      { key: "nsic", label: "NSIC", status: "NOT_APPLICABLE" },
-      { key: "oemAuthorization", label: "OEM Authorization", status: "PENDING" }
-    ],
-
-    // 6. My Documents (Uploaded Compliance Documents)
-    documents: [
-      {
-        id: "doc-1",
-        name: "GST Registration Certificate",
-        type: "GSTIN",
-        uploadedDate: "Not Uploaded",
-        status: "NOT_VERIFIED",
-        fileUrl: "#"
-      },
-      {
-        id: "doc-2",
-        name: "PAN Card / Income Tax Certificate",
-        type: "PAN",
-        uploadedDate: "Not Uploaded",
-        status: "NOT_VERIFIED",
-        fileUrl: "#"
-      },
-      {
-        id: "doc-3",
-        name: "Udyam MSME Exemption Certificate",
-        type: "MSME",
-        uploadedDate: "Not Uploaded",
-        status: "NOT_VERIFIED",
-        fileUrl: "#"
-      },
-      {
-        id: "doc-4",
-        name: "Income Tax Returns (Last 3 Years)",
-        type: "Financial",
-        uploadedDate: "Not Uploaded",
-        status: "NOT_VERIFIED",
-        fileUrl: "#"
-      },
-      {
-        id: "doc-5",
-        name: "OEM Authorization Letter",
-        type: "OEM",
-        uploadedDate: "Not Uploaded",
-        status: "NOT_VERIFIED",
-        fileUrl: "#"
-      }
-    ],
-
-    // Incomplete Items for Profile Completion Card
-    missingItems: [
-      "Upload GST Registration Certificate",
-      "Upload PAN Card Verification",
-      "Upload Udyam MSME Certificate",
-      "Upload Income Tax Returns"
-    ],
-
-    lastLogin: "Today, Just now",
-    passwordLastChanged: "Today",
-    passwordStatus: "Active"
-  });
-
-  const [profile, setProfile] = useState(() => {
-    return isDemoUser ? MOCK_BIDDER_PROFILE : getNewBidderProfile(user);
-  });
+function BidderProfile() {
+  const [profile, setProfile] = useState(MOCK_BIDDER_PROFILE);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    if (!isDemoUser && user) {
-      setProfile(getNewBidderProfile(user));
-    } else {
-      const token = localStorage.getItem("gem_token");
-      setLoading(true);
-      getBidderProfile(token)
-        .then((data) => {
-          setProfile(data);
-        })
-        .catch((err) => {
-          console.warn("Profile fetch fallback:", err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [user]);
+    const token = localStorage.getItem("gem_token");
+    setLoading(true);
+    getBidderProfile(token)
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.warn("Profile fetch fallback:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   // Compute profile completion percentage dynamically
   const completionPercentage = calculateProfileCompletion(profile);
@@ -250,9 +139,30 @@ function BidderProfile({ user }) {
     }));
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    
+
+    const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+    const token = localStorage.getItem("gem_token");
+
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/api/users/me`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            full_name: formData.legalName,
+            phone: formData.phone
+          })
+        });
+      } catch (err) {
+        console.warn("Backend user profile sync warning:", err);
+      }
+    }
+
     // Dynamically calculate missing items list
     const newMissingItems = [];
     if (!formData.gstin) {
@@ -271,13 +181,13 @@ function BidderProfile({ user }) {
     if (!formData.address || !formData.city || !formData.state || !formData.pincode) {
       newMissingItems.push("Registered address fields");
     }
-    
+
     const updatedProfile = {
       ...profile,
       ...formData,
       missingItems: newMissingItems
     };
-    
+
     setProfile(updatedProfile);
     setIsEditing(false);
   };
@@ -396,10 +306,10 @@ function BidderProfile({ user }) {
 
       {/* TWO COLUMN GRID FOR SECTIONS 2, 3, 4, 5, 7 */}
       <div className="profile-grid-layout">
-        
+
         {/* LEFT COLUMN */}
         <div className="profile-left-col">
-          
+
           {/* 2. PROFILE COMPLETION */}
           <div className="profile-card completion-card">
             <div className="completion-top-row">
@@ -620,7 +530,7 @@ function BidderProfile({ user }) {
 
         {/* RIGHT COLUMN */}
         <div className="profile-right-col">
-          
+
           {/* 5. REGISTRATION & COMPLIANCE */}
           <div className="profile-card">
             <div className="card-title-row">
@@ -692,7 +602,7 @@ function BidderProfile({ user }) {
               <h2>Edit Bidder Profile</h2>
               <button className="modal-close-btn" onClick={() => setIsEditing(false)}>✕</button>
             </div>
-            
+
             <form onSubmit={handleSaveProfile} className="modal-form">
               <div className="modal-scroll-area">
                 <div className="form-section-title">Company Details</div>

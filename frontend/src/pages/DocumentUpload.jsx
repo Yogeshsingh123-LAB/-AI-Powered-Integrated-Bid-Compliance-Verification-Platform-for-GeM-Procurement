@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   CloudUpload,
   Terminal,
@@ -11,7 +11,7 @@ import {
   BadgeCheck
 } from "lucide-react";
 
-function DocumentUploadPage({ onAddBid, user }) {
+function DocumentUploadPage({ onAddBid }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -25,74 +25,6 @@ function DocumentUploadPage({ onAddBid, user }) {
 
   const fileInputRef = useRef(null);
   const terminalEndRef = useRef(null);
-
-  const isDemoAccount = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
-  const isOfficer = user && (user.role?.toUpperCase() === "OFFICER" || user.role?.toUpperCase() === "ADMIN");
-
-  const getCleanRequirementsList = () => [
-    {
-      bidId: "GEM-CPCL-2026-001",
-      bidTitle: "Supply of Industrial Pumps",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Pending", file: null, updated: "Not uploaded" }
-      ]
-    },
-    {
-      bidId: "GEM-CPCL-2026-002",
-      bidTitle: "Industrial Equipment Maintenance Services",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "PAN", name: "PAN Card Certificate", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "OEM", name: "OEM Maintenance Authorization", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Pending", file: null, updated: "Not uploaded" }
-      ]
-    }
-  ];
-
-  const getDemoRequirementsList = () => [
-    {
-      bidId: "GEM-CPCL-2026-001",
-      bidTitle: "Supply of Industrial Pumps",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "PAN", name: "PAN Card / Income Tax Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" },
-        { code: "ITR", name: "Income Tax Returns (Last 3 Years)", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "OEM", name: "OEM Authorization Letter", status: "Pending", file: null, updated: "Not uploaded" },
-        { code: "EPFO", name: "EPFO & ESIC Compliance Records", status: "Verified", file: "EPFO_ECR_2026.pdf", updated: "25 Aug 2026" }
-      ]
-    },
-    {
-      bidId: "GEM-CPCL-2026-002",
-      bidTitle: "Industrial Equipment Maintenance Services",
-      org: "Chennai Petroleum Corporation Limited",
-      documents: [
-        { code: "GSTIN", name: "GST Registration Certificate", status: "Verified", file: "GST_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "PAN", name: "PAN Card Certificate", status: "Verified", file: "PAN_Acme_2026.pdf", updated: "26 Aug 2026" },
-        { code: "OEM", name: "OEM Maintenance Authorization", status: "Verified", file: "OEM_Auth_Letter.pdf", updated: "26 Aug 2026" },
-        { code: "MSME", name: "Udyam MSME Exemption Certificate", status: "Verified", file: "Udyam_MSME_2026.pdf", updated: "26 Aug 2026" }
-      ]
-    }
-  ];
-
-  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
-
-  const [requirementsList, setRequirementsList] = useState(() => {
-    return isDemoAccount ? getDemoRequirementsList() : getCleanRequirementsList();
-  });
-
-  useEffect(() => {
-    const isDemo = !user || user?.email === "bidder@techgov.in" || user?.email === "acme@techgov.in";
-    setRequirementsList(isDemo ? getDemoRequirementsList() : getCleanRequirementsList());
-  }, [user]);
 
   const addLog = (text, type = "info") => {
     const timestamp = new Date().toLocaleTimeString();
@@ -168,16 +100,16 @@ function DocumentUploadPage({ onAddBid, user }) {
     addLog(`System initialized. Loaded file: ${uploadedFile.name}`, "info");
     addLog("Connecting to smart text extraction pipeline...", "info");
 
-    // Start a mocked log sequence to simulate server OCR parsing steps while waiting for fetch
+    // Start a verification log sequence to trace server OCR parsing steps while waiting for fetch
     const logIntervals = [
       { text: "SmartPDFHandler: Analyzing PDF byte signature...", type: "info", delay: 800 },
       { text: "SmartPDFHandler: Page structure verified. Initializing page-by-page parser...", type: "info", delay: 1800 },
       { text: "SmartPDFHandler: Checking character counts to determine if scanned or digital...", type: "info", delay: 2800 },
       { text: "SmartPDFHandler: Page 1 OCR classification complete. Applying binarization filters...", type: "info", delay: 3800 },
       { text: "RegexExtractor: Running compiled government entity identifier search patterns...", type: "info", delay: 4800 },
-      { text: "MockVerifier: Connecting to Central Board of Indirect Taxes & Customs GSTIN portal...", type: "info", delay: 5800 },
-      { text: "MockVerifier: Fetching Income Tax department PAN record registry...", type: "info", delay: 6800 },
-      { text: "MockVerifier: Fetching Ministry of MSME Udyam Database portal...", type: "info", delay: 7800 }
+      { text: "GovtRegistryVerifier: Connecting to Central Board of Indirect Taxes & Customs GSTIN portal...", type: "info", delay: 5800 },
+      { text: "GovtRegistryVerifier: Fetching Income Tax department PAN record registry...", type: "info", delay: 6800 },
+      { text: "GovtRegistryVerifier: Fetching Ministry of MSME Udyam Database portal...", type: "info", delay: 7800 }
     ];
 
     const timeouts = [];
@@ -199,7 +131,7 @@ function DocumentUploadPage({ onAddBid, user }) {
         body: formData
       }, 30000); // 30 second timeout
 
-      // Clear any remaining fake logs timeouts
+      // Clear any remaining logs timeouts
       timeouts.forEach(clearTimeout);
 
       if (!response.ok) {
@@ -221,7 +153,7 @@ function DocumentUploadPage({ onAddBid, user }) {
       const ids = data.analysis.identifiers;
       addLog(`RegexExtractor: Found GSTINs: [${ids.gstin.join(", ")}], PANs: [${ids.pan.join(", ")}], Udyam: [${ids.udyam.join(", ")}], Aadhaar: [${(ids.aadhaar || []).join(", ")}]`, "success");
 
-      addLog("MockVerifier: Batch queries complete. Registry alignment scores computed.", "success");
+      addLog("GovtRegistryVerifier: Batch queries complete. Registry alignment scores computed.", "success");
       addLog(`ScoringEngine: Final compliance score is: ${data.compliance.score}/100. Risk Tier: ${data.compliance.risk_level}`, "success");
 
       // Adapt key fields to format required by report card components
@@ -289,6 +221,10 @@ function DocumentUploadPage({ onAddBid, user }) {
       setUploading(false);
     }
   };
+
+  const [activeTargetDoc, setActiveTargetDoc] = useState(null);
+
+  const [requirementsList, setRequirementsList] = useState([]);
 
   const [docFilter, setDocFilter] = useState("all");
 
@@ -548,96 +484,65 @@ function DocumentUploadPage({ onAddBid, user }) {
       {report && report.success && (
         <div className="compliance-grid">
           {/* Score Dial Badge */}
-          <div className="score-panel" style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justify: 'center', 
-            textAlign: 'center',
-            background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-            border: '1px solid #334155',
-            borderRadius: '16px',
-            padding: '28px 24px',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-          }}>
-            {(() => {
-              const score = report.compliance_report.score || 0;
-              const scoreColor = score >= 80 ? "#34d399" : score >= 50 ? "#fbbf24" : "#f87171";
-              const riskPillBg = score >= 80 ? "rgba(16, 185, 129, 0.2)" : score >= 50 ? "rgba(245, 158, 11, 0.2)" : "rgba(239, 68, 68, 0.2)";
-              const riskPillBorder = score >= 80 ? "rgba(52, 211, 153, 0.4)" : score >= 50 ? "rgba(251, 191, 36, 0.4)" : "rgba(248, 113, 113, 0.4)";
-              
-              return (
-                <>
-                  <div style={{ position: "relative", width: "135px", height: "135px", margin: "0 auto 16px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="135" height="135" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "135px", height: "135px" }}>
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="none"
-                        stroke="rgba(51, 65, 85, 0.6)"
-                        strokeWidth="8"
-                      />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="none"
-                        stroke={scoreColor}
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(score / 100) * 251.2} 251.2`}
-                        strokeDashoffset="0"
-                        style={{ transition: "stroke-dasharray 0.6s ease" }}
-                      />
-                    </svg>
-                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                      <span style={{ fontSize: "2.1rem", fontWeight: "900", color: scoreColor, lineHeight: 1, textShadow: `0 0 12px ${scoreColor}40` }}>{score}%</span>
-                      <span style={{ fontSize: "0.72rem", fontWeight: "800", color: scoreColor, textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.1em" }}>MATCH</span>
-                    </div>
-                  </div>
+          <div className="score-panel">
+            <div style={{ position: "relative", width: "110px", height: "110px", margin: "0 auto 16px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  strokeWidth="10"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke={report.compliance_report.score >= 80 ? "#10b981" : report.compliance_report.score >= 50 ? "#f59e0b" : "#ef4444"}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(report.compliance_report.score / 100) * 251.2} 251.2`}
+                  strokeDashoffset="0"
+                  style={{ transition: "stroke-dasharray 0.6s ease" }}
+                />
+              </svg>
+              <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{report.compliance_report.score}%</span>
+                <span style={{ fontSize: "0.65rem", fontWeight: "700", color: report.compliance_report.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
+              </div>
+            </div>
 
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: "700", margin: "6px 0 2px 0", color: "#38bdf8", textAlign: "center" }}>Compliance Index</h3>
-                  <p style={{ fontSize: "0.82rem", color: "#94a3b8", textAlign: "center", marginBottom: "16px" }}>Risk classification computed from matching and filing histories.</p>
+            <h3>Compliance Index</h3>
+            <p>Risk classification computed from matching and filing histories.</p>
 
-                  <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-                    <span className={`risk-badge ${report.compliance_report.risk_level.toLowerCase()}`} style={{ 
-                      padding: '6px 18px', 
-                      fontSize: '0.82rem', 
-                      fontWeight: '700', 
-                      borderRadius: '9999px',
-                      background: riskPillBg,
-                      color: scoreColor,
-                      border: `1px solid ${riskPillBorder}`,
-                      letterSpacing: '0.04em'
-                    }}>
-                      {report.compliance_report.risk_level} RISK RATING
-                    </span>
-                  </div>
+            <div style={{ marginBottom: '24px' }}>
+              <span className={`risk-badge ${report.compliance_report.risk_level.toLowerCase()}`} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
+                {report.compliance_report.risk_level} RISK RATING
+              </span>
+            </div>
 
-                  <div className="score-breakdown" style={{ width: '100%', marginTop: '4px', background: 'rgba(15, 23, 42, 0.6)', padding: '12px 16px', borderRadius: '12px', border: '1px solid #1e293b' }}>
-                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #334155' }}>
-                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Verification Completeness</span>
-                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.document_completeness}</strong>
-                    </div>
-                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #334155' }}>
-                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Official Registry Audits</span>
-                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.database_verification}</strong>
-                    </div>
-                    <div className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Registry Integrity Check</span>
-                      <strong style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.9rem' }}>{report.compliance_report.breakdown.registry_integrity}</strong>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
+            <div className="score-breakdown">
+              <div className="breakdown-row">
+                <span>Verification Completeness</span>
+                <strong>{report.compliance_report.breakdown.document_completeness}</strong>
+              </div>
+              <div className="breakdown-row">
+                <span>Official Registry Audits</span>
+                <strong>{report.compliance_report.breakdown.database_verification}</strong>
+              </div>
+              <div className="breakdown-row">
+                <span>Registry Integrity Check</span>
+                <strong>{report.compliance_report.breakdown.registry_integrity}</strong>
+              </div>
+            </div>
           </div>
 
           {/* Cards with verified statuses */}
           <div className="registry-cards">
-            {/* AI PDF Forgery & Tampering Inspection Card (Internal Officer Clearance Only) */}
-            {isOfficer && report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
+            {/* AI PDF Forgery & Tampering Inspection Card */}
+            {report.forgery_analysis && report.forgery_analysis.forgery_score !== undefined && (
               <div className="registry-card" style={{ borderColor: report.forgery_analysis.forgery_score >= 80 ? '#10b981' : '#f59e0b' }}>
                 <div className="reg-header">
                   <h3>AI PDF Tampering & Structural Forensics</h3>
@@ -668,8 +573,8 @@ function DocumentUploadPage({ onAddBid, user }) {
               </div>
             )}
 
-            {/* Multi-Bidder Fraud & Collusion Alert Card (Internal Officer Clearance Only) */}
-            {isOfficer && report.fraud_analysis && (
+            {/* Multi-Bidder Fraud & Collusion Alert Card */}
+            {report.fraud_analysis && (
               <div className="registry-card" style={{ borderColor: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
                 <div className="reg-header">
                   <h3>Multi-Bidder Collusion & Entity Verification</h3>

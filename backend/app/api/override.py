@@ -110,6 +110,12 @@ def submit_officer_decision(
             detail=f"Bid '{payload.bid_id}' not found."
         )
 
+    if getattr(bid, "is_locked", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Decision has already been finalized and locked for this bid. Submitting a second decision is blocked."
+        )
+
     old_status = bid.officer_status or "Pending"
     new_status = payload.officer_status
 
@@ -119,13 +125,14 @@ def submit_officer_decision(
             detail="Invalid officer_status. Must be 'Approved', 'Rejected', or 'Approved with Deviation'."
         )
 
-    # Update Bid Model
+    # Update Bid Model & Lock Decision
     bid.officer_status = new_status
     bid.status = "Compliant" if "Approved" in new_status else "Non-Compliant"
     bid.deviation_category = payload.deviation_category if "Deviation" in new_status else None
     bid.deviation_justification = payload.justification
     bid.officer_id = current_user.id
     bid.reviewed_at = datetime.now(timezone.utc)
+    bid.is_locked = True  # Decision locked permanently
 
     # Record Cryptographic Blockchain-Hashed Audit Log
     create_audit_record(

@@ -16,6 +16,11 @@ class UserResponse(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
     role: str
+    department: Optional[str] = "Procurement"
+    status: Optional[str] = "Active"
+    permissions: Optional[str] = None
+    last_login: Optional[datetime] = None
+    auth_user_id: Optional[str] = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -29,4 +34,17 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=20)
 
 class UserStatusUpdate(BaseModel):
-    is_active: bool
+    is_active: Optional[bool] = None
+    status: Optional[str] = None
+
+class AdminUserCreate(BaseModel):
+    full_name: str = Field(..., max_length=100)
+    email: EmailStr
+    phone: Optional[str] = Field(None, max_length=20)
+    department: Optional[str] = "Procurement"
+    role: Optional[str] = "OFFICER"
+    status: Optional[str] = "Active"
+    password: str = Field(..., min_length=4)
+    permissions: Optional[list[str]] = []
+    admin_authorization_password: Optional[str] = None
+

@@ -87,10 +87,10 @@ function Login({ onLogin }) {
         }
       }
 
-      // Access control rule: Admin/Officer do not login to supplier terminal
+      // Access control rule: Admin/Officer portal tab clearance
       if (selectedPortal === "Supplier") {
-        if (user.role.toUpperCase() !== "BIDDER") {
-          setAuthError("Access Denied: Administrative accounts are not permitted to log in through the Supplier Terminal. Please switch to the Administrative Portal.");
+        if (user.role.toUpperCase() !== "BIDDER" && user.role.toUpperCase() !== "ADMIN") {
+          setAuthError("Access Denied: Administrative accounts should log in through the Audit Console Portal.");
           setLoading(false);
           generateCaptcha();
           return;

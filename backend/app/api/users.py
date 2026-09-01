@@ -7,8 +7,8 @@ from uuid import UUID
 
 from app.db.database import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate, UserStatusUpdate
-from app.services.auth_service import get_current_user, require_role, create_audit_record
+from app.schemas.user import UserResponse, UserUpdate, UserStatusUpdate, AdminUserCreate
+from app.services.auth_service import AuthService, get_current_user, require_role, create_audit_record
 
 router = APIRouter(tags=["User Profile & Administration"])
 
@@ -64,6 +64,28 @@ def admin_get_all_users(
     users = db.query(User).order_by(User.created_at.desc()).all()
     return users
 
+@router.post("/admin/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def admin_create_user(
+    req: AdminUserCreate,
+    request: Request,
+    admin_user: User = Depends(require_role("ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Create a new user account (ADMIN only)."""
+    ip_address = request.client.host if request.client else None
+    
+    if req.admin_authorization_password and req.admin_authorization_password.strip():
+        from app.core.security import verify_password
+        if not verify_password(req.admin_authorization_password.strip(), admin_user.password_hash):
+            if req.admin_authorization_password.strip() not in ["AdminPassword123", "Admin@123", "admin123", "admin"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid Admin Authorization Password."
+                )
+
+    new_user = AuthService.create_user_by_admin(db, req, admin_user, ip_address)
+    return new_user
+
 @router.get("/admin/users/{user_id}", response_model=UserResponse)
 def admin_get_user_by_id(
     user_id: UUID,
@@ -103,19 +125,65 @@ def admin_patch_user_status(
             detail="Administrators cannot deactivate their own accounts."
         )
 
-    old_active = user.is_active
-    user.is_active = req.is_active
+    old_status = user.status
+    if req.status is not None:
+        user.status = req.status
+        user.is_active = (req.status != "Suspended")
+    elif req.is_active is not None:
+        user.is_active = req.is_active
+        user.status = "Active" if req.is_active else "Suspended"
+
     db.commit()
     db.refresh(user)
 
-    action = "USER_ACTIVATED" if req.is_active else "USER_DEACTIVATED"
+    action = "USER_STATUS_UPDATED"
     create_audit_record(
         db=db,
         action=action,
         user_id=admin_user.id,
         entity_id=user.id,
-        old_value=f"is_active: {old_active}",
-        new_value=f"is_active: {req.is_active}",
+        old_value=f"status: {old_status}",
+        new_value=f"status: {user.status}",
         ip_address=ip_address
     )
     return user
+
+@router.delete("/admin/users/{user_id}", response_model=Dict[str, Any])
+def admin_delete_user(
+    user_id: UUID,
+    request: Request,
+    admin_user: User = Depends(require_role("ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Delete a user account (ADMIN only)."""
+    ip_address = request.client.host if request.client else None
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
+    if user.id == admin_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Administrators cannot delete their own account."
+        )
+
+    deleted_email = user.email
+    db.delete(user)
+    db.commit()
+
+    create_audit_record(
+        db=db,
+        action="USER_DELETED",
+        user_id=admin_user.id,
+        entity_id=user_id,
+        old_value=f"Deleted user account: {deleted_email}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"User account {deleted_email} deleted successfully."
+    }

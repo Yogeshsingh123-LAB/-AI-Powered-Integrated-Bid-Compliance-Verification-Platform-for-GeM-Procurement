@@ -1,0 +1,323 @@
+import uuid
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional
+# pyrefly: ignore [missing-import]
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+# pyrefly: ignore [missing-import]
+from sqlalchemy.orm import Session
+
+from app.db.database import get_db
+from app.models.user import User
+from app.models.tender import Tender
+from app.models.requirement import Requirement
+from app.models.bid import Bid
+from app.schemas.tender import TenderCreate, TenderUpdate, TenderResponse
+from app.services.auth_service import get_current_user, require_role, create_audit_record
+
+router = APIRouter(prefix="/tenders", tags=["Tender Management"])
+
+@router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+def create_tender(
+    req: TenderCreate,
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new tender (Procurement Officer / Admin only).
+    Can be saved as 'Draft' or 'Active'.
+    Automatically attaches mandatory compliance requirements (GST, PAN, Udyam, OEM, MII).
+    """
+    ip_address = request.client.host if request.client else None
+
+    # Generate tender ID if not specified
+    tender_id = req.id
+    if not tender_id:
+        existing_count = db.query(Tender).count()
+        tender_id = f"GEM/CPCL/2026/{(existing_count + 1):03d}"
+
+    # Check ID conflict
+    existing = db.query(Tender).filter(Tender.id == tender_id).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Tender with ID '{tender_id}' already exists."
+        )
+
+    initial_status = req.status or "Draft"
+    published_at = datetime.now(timezone.utc) if initial_status.upper() in {"ACTIVE", "PUBLISHED"} else None
+
+    closing_date_dt = None
+    if req.closing_date:
+        try:
+            if "T" in req.closing_date or "Z" in req.closing_date:
+                closing_date_dt = datetime.fromisoformat(req.closing_date.replace("Z", "+00:00"))
+            else:
+                closing_date_dt = datetime.strptime(req.closing_date, "%Y-%m-%d")
+        except Exception:
+            pass
+
+    new_tender = Tender(
+        id=tender_id,
+        title=req.title,
+        description=req.description,
+        category=req.category or "General Procurement",
+        department=req.department or "Chennai Petroleum Corporation Limited (CPCL)",
+        tender_type=req.tender_type or "Custom Bid",
+        budget_limit=req.budget_limit,
+        status=initial_status,
+        eligibility_requirements=req.eligibility_requirements or "GST Registration, PAN Card, Udyam MSME Certificate, OEM Authorization Certificate, Make in India Declaration",
+        created_by=current_user.id,
+        published_at=published_at,
+        closing_date=closing_date_dt
+    )
+    db.add(new_tender)
+    db.commit()
+    db.refresh(new_tender)
+
+    # Attach default statutory compliance requirements
+    default_requirements = [
+        {"code": "GST", "desc": "Valid GST Registration Certificate (GSTIN)"},
+        {"code": "PAN", "desc": "Permanent Account Number (PAN) Card Evidence"},
+        {"code": "UDYAM", "desc": "Udyam MSME Registration Certificate"},
+        {"code": "OEM", "desc": "Original Equipment Manufacturer (OEM) Authorization Letter"},
+        {"code": "MAKE_IN_INDIA", "desc": "Make in India (Local Content) Declaration"}
+    ]
+
+    for req_item in default_requirements:
+        req_obj = Requirement(
+            id=uuid.uuid4(),
+            tender_id=new_tender.id,
+            code=req_item["code"],
+            description=req_item["desc"],
+            is_mandatory=True
+        )
+        db.add(req_obj)
+
+    db.commit()
+
+    create_audit_record(
+        db=db,
+        action="TENDER_CREATED",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=None,
+        new_value=f"Tender ID: {new_tender.id}, Status: {new_tender.status}, Title: {new_tender.title}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Tender '{new_tender.id}' created successfully as '{new_tender.status}'.",
+        "tender": {
+            "id": new_tender.id,
+            "title": new_tender.title,
+            "status": new_tender.status,
+            "category": new_tender.category,
+            "department": new_tender.department,
+            "budget_limit": float(new_tender.budget_limit)
+        }
+    }
+
+@router.get("", response_model=List[Dict[str, Any]])
+@router.get("/", response_model=List[Dict[str, Any]])
+def list_tenders(
+    status_filter: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    List tenders in system:
+    - BIDDER role: ONLY sees Published/Active tenders. Draft tenders are strictly hidden.
+    - OFFICER/ADMIN role: Sees all tenders (Draft, Active, Closed, Cancelled).
+    """
+    # pyrefly: ignore [missing-import]
+    from sqlalchemy import func
+
+    query = db.query(Tender)
+
+    is_bidder = current_user.role.upper() == "BIDDER"
+
+    if is_bidder:
+        # Strict security rule: Bidders only see Active or Published tenders (case-insensitive)
+        query = query.filter(func.lower(Tender.status).in_(["active", "published"]))
+    elif status_filter and status_filter.upper() != "ALL":
+        query = query.filter(Tender.status.ilike(status_filter))
+
+    tenders = query.order_by(Tender.created_at.desc()).all()
+
+    results = []
+    for t in tenders:
+        # Count bids and pending verification count dynamically
+        bids_count = db.query(Bid).filter(Bid.tender_id == t.id).count()
+        pending_count = db.query(Bid).filter(
+            Bid.tender_id == t.id,
+            func.lower(Bid.officer_status) == "pending"
+        ).count()
+
+        pub_date_str = t.published_at.strftime("%d %b %Y") if t.published_at else (t.created_at.strftime("%d %b %Y") if t.created_at else "01 Sept 2026")
+        closing_date_str = t.closing_date.strftime("%d %b %Y") if t.closing_date else "30 Sep 2026"
+
+        results.append({
+            "id": t.id,
+            "title": t.title,
+            "description": t.description or "",
+            "category": t.category or "Industrial Equipment & Heavy Machinery",
+            "department": t.department or "Chennai Petroleum Corporation Limited (CPCL)",
+            "tender_type": t.tender_type or "Custom Bid",
+            "value": f"₹{float(t.budget_limit):,.2f}" if t.budget_limit else "₹50,00,000",
+            "budget_limit": float(t.budget_limit) if t.budget_limit else 5000000.0,
+            "status": t.status,
+            "eligibility_requirements": t.eligibility_requirements or "GST, PAN, Udyam, OEM",
+            "published_at": t.published_at.isoformat() if t.published_at else None,
+            "publishedDate": pub_date_str,
+            "closingDate": closing_date_str,
+            "deadline": closing_date_str,
+            "daysLeft": "30 days left" if t.status == "Active" else "Closed",
+            "bids_count": bids_count,
+            "bidders": bids_count,
+            "pending": pending_count
+        })
+
+    return results
+
+@router.get("/{tender_id}", response_model=Dict[str, Any])
+def get_tender_details(
+    tender_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get full details of a specific tender and its statutory requirements."""
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    # BIDDER check: cannot view Draft tender
+    if current_user.role.upper() == "BIDDER" and tender.status.upper() == "DRAFT":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Draft tenders are not accessible to bidders."
+        )
+
+    reqs = db.query(Requirement).filter(Requirement.tender_id == tender.id).all()
+
+    return {
+        "id": tender.id,
+        "title": tender.title,
+        "description": tender.description,
+        "category": tender.category,
+        "department": tender.department,
+        "tender_type": tender.tender_type,
+        "budget_limit": float(tender.budget_limit),
+        "status": tender.status,
+        "eligibility_requirements": tender.eligibility_requirements,
+        "published_at": tender.published_at.isoformat() if tender.published_at else None,
+        "requirements": [
+            {
+                "id": str(r.id),
+                "code": r.code,
+                "description": r.description,
+                "is_mandatory": r.is_mandatory
+            }
+            for r in reqs
+        ]
+    }
+
+@router.post("/{tender_id}/publish", response_model=Dict[str, Any])
+def publish_tender(
+    tender_id: str,
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Publish a draft tender so it becomes active and visible to eligible bidders."""
+    ip_address = request.client.host if request.client else None
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    old_status = tender.status
+    tender.status = "Active"
+    tender.published_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(tender)
+
+    create_audit_record(
+        db=db,
+        action="TENDER_PUBLISHED",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=None,
+        old_value=old_status,
+        new_value=f"Status: Active, Published At: {tender.published_at}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Tender '{tender.id}' is now PUBLISHED and live on the Bidder Portal.",
+        "tender": {
+            "id": tender.id,
+            "status": tender.status,
+            "published_at": tender.published_at.isoformat()
+        }
+    }
+
+@router.patch("/{tender_id}/status", response_model=Dict[str, Any])
+def update_tender_status(
+    tender_id: str,
+    payload: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Update tender status (Active, Closed, Cancelled, Draft)."""
+    ip_address = request.client.host if request.client else None
+    new_status = payload.get("status")
+
+    if not new_status or new_status not in {"Active", "Closed", "Cancelled", "Draft"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid status. Must be 'Active', 'Closed', 'Cancelled', or 'Draft'."
+        )
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    old_status = tender.status
+    tender.status = new_status
+    if new_status == "Active" and not tender.published_at:
+        tender.published_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(tender)
+
+    create_audit_record(
+        db=db,
+        action=f"TENDER_STATUS_{new_status.upper()}",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=None,
+        old_value=old_status,
+        new_value=new_status,
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Tender '{tender.id}' status updated to '{new_status}'.",
+        "tender_id": tender.id,
+        "status": tender.status
+    }

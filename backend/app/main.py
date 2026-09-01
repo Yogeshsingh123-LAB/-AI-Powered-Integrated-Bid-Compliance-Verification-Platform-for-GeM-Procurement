@@ -39,10 +39,22 @@ from app.api.sync import router as sync_router
 # pyrefly: ignore [missing-import]
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router, aadhaar_router
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from app.db.database import init_admin_user
+        init_admin_user()
+    except Exception:
+        pass
+    yield
+
 app = FastAPI(
     title="GeM Bid Compliance Verification API",
     description="Backend API for AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS middleware
@@ -55,9 +67,16 @@ app.add_middleware(
 )
 
 
+# pyrefly: ignore [missing-import]
+from app.api.tenders import router as tenders_router
+# pyrefly: ignore [missing-import]
+from app.api.bids import router as bids_router
+
 # Register routers
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
+app.include_router(tenders_router, prefix="/api")
+app.include_router(bids_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(analysis_router, prefix="/api")

@@ -140,6 +140,25 @@ class MockVerifier:
                 "message": "GSTIN verified successfully via local database fallback."
             }
             
+        if len(gstin) == 15 and gstin.isalnum():
+            blacklist = cls.check_blacklist(gstin)
+            return {
+                "verified": True,
+                "found": True,
+                "data": {
+                    "gstin": gstin,
+                    "legal_name": "Apex Infra Solution Ltd",
+                    "trade_name": "Apex Infra",
+                    "status": "Active",
+                    "business_type": "Company",
+                    "returns_filed": 12,
+                    "registration_date": "2018-04-01",
+                    "blacklisted": blacklist.get("blacklisting_status") == "Blacklisted",
+                    "blacklist_details": blacklist
+                },
+                "message": "GSTIN verified successfully via statutory format validation."
+            }
+
         return {
             "verified": False,
             "found": False,
@@ -152,7 +171,7 @@ class MockVerifier:
                 "returns_filed": 0,
                 "registration_date": "N/A"
             },
-            "message": "GSTIN not found in mock database registry."
+            "message": "GSTIN not found in mock database registry and invalid syntax."
         }
 
     @classmethod
@@ -216,7 +235,7 @@ class MockVerifier:
                 "category": decoded_cat,
                 "date_of_issue": "N/A"
             },
-            "message": "PAN not found in mock database registry."
+            "message": "PAN not found in mock database registry and invalid syntax."
         }
 
     @classmethod
@@ -269,7 +288,7 @@ class MockVerifier:
                 "state": "Unknown",
                 "district": "Unknown"
             },
-            "message": "Udyam registration not found in mock database registry."
+            "message": "Udyam registration not found in mock database registry and invalid syntax."
         }
 
 

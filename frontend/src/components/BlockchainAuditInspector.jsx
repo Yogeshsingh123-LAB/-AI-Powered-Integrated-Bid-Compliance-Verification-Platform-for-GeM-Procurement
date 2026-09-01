@@ -51,7 +51,7 @@ export default function BlockchainAuditInspector({ bidId = "123e4567-e89b-12d3-a
         },
         {
           index: 1,
-          timestamp: new Date().isoformat(),
+          timestamp: new Date().toISOString(),
           previous_hash: "f85c1e2d3c4b5a697889900aabbccddeeff00112233445566778899aabbccdde",
           merkle_root: "99887766554433221100fedcba9876543210fedcba9876543210fedcba987654",
           tx_count: 4,

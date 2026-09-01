@@ -22,8 +22,8 @@ else:
     logger.warning("EntityExtractor: spaCy is not installed. Named Entity Recognition features will be disabled/mocked.")
 
 class EntityExtractor:
-    # Regex Patterns for Indian Govt Identifiers
-    GSTIN_PATTERN = re.compile(r"\b(\d{2}([A-Z]{5}\d{4}[A-Z]{1})[A-Z\d]{1}Z[A-Z\d]{1})\b", re.IGNORECASE)
+    # Regex Patterns for Indian Govt Identifiers (OCR tolerant)
+    GSTIN_PATTERN = re.compile(r"\b(\d{2}([A-Z]{5}\d{4}[A-Z]{1})[A-Z\d]{1}[Z2][A-Z\d]{1})\b", re.IGNORECASE)
     PAN_PATTERN = re.compile(r"\b([A-Z]{5}\d{4}[A-Z]{1})\b", re.IGNORECASE)
     UDYAM_PATTERN = re.compile(r"\b(UDYAM-[A-Z]{2}-\d{2}-\d{7})\b", re.IGNORECASE)
     AADHAAR_PATTERN = re.compile(r"\b([2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4})\b")

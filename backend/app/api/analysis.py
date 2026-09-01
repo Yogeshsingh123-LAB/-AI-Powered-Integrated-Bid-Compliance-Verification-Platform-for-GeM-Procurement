@@ -183,9 +183,14 @@ async def analyze_document(
 
 @router.post("/analyze/semantic-comparator", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def evaluate_semantic_rfp_comparator(
-    payload: Dict[str, Any] = Body(..., example={
-        "bid_text": "We are ABC Tech Solutions. Our GSTIN is 27AAPCS1234M1Z5 and PAN is AAPCS1234M. We hold MSME Udyam UDYAM-MH-12-0012345.",
-        "rfp_clauses": None
+    payload: Dict[str, Any] = Body(..., openapi_examples={
+        "normal": {
+            "summary": "Sample RFP text evaluation",
+            "value": {
+                "bid_text": "We are ABC Tech Solutions. Our GSTIN is 27AAPCS1234M1Z5 and PAN is AAPCS1234M. We hold MSME Udyam UDYAM-MH-12-0012345.",
+                "rfp_clauses": None
+            }
+        }
     })
 ):
     """
@@ -215,18 +220,23 @@ async def evaluate_semantic_rfp_comparator(
 
 @router.post("/analyze/techno-commercial-loading", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def evaluate_techno_commercial_loading(
-    payload: Dict[str, Any] = Body(..., example={
-        "tender_value": 5000000.0,
-        "is_reverse_auction": False,
-        "bid_amount": 4800000.0,
-        "gstin": "27AAACA12341Z5",
-        "pan": "AAACA1234A",
-        "technical_score": 85.0,
-        "standard_delivery_weeks": 4,
-        "offered_delivery_weeks": 6,
-        "payment_terms": "Milestone",
-        "required_warranty_years": 3,
-        "offered_warranty_years": 2
+    payload: Dict[str, Any] = Body(..., openapi_examples={
+        "normal": {
+            "summary": "Sample loading payload",
+            "value": {
+                "tender_value": 5000000.0,
+                "is_reverse_auction": False,
+                "bid_amount": 4800000.0,
+                "gstin": "27AAACA12341Z5",
+                "pan": "AAACA1234A",
+                "technical_score": 85.0,
+                "standard_delivery_weeks": 4,
+                "offered_delivery_weeks": 6,
+                "payment_terms": "Milestone",
+                "required_warranty_years": 3,
+                "offered_warranty_years": 2
+            }
+        }
     })
 ):
     """
@@ -254,9 +264,14 @@ async def evaluate_techno_commercial_loading(
 
 @router.post("/analyze/validate-emd", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def validate_emd_endpoint(
-    payload: Dict[str, Any] = Body(..., example={
-        "text": "EARNEST MONEY DEPOSIT (EMD) - State Bank of India Amount: ₹ 50,000.00",
-        "tender_value": 2000000.0
+    payload: Dict[str, Any] = Body(..., openapi_examples={
+        "normal": {
+            "summary": "Sample e-EMD validation payload",
+            "value": {
+                "text": "EARNEST MONEY DEPOSIT (EMD) - State Bank of India Amount: ₹ 50,000.00",
+                "tender_value": 2000000.0
+            }
+        }
     })
 ):
     """
@@ -279,9 +294,14 @@ async def validate_emd_endpoint(
 
 @router.post("/analyze/validate-epbg", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
 async def validate_epbg_endpoint(
-    payload: Dict[str, Any] = Body(..., example={
-        "text": "PERFORMANCE BANK GUARANTEE (e-PBG) - HDFC Bank Amount: ₹ 150,000.00",
-        "tender_value": 3000000.0
+    payload: Dict[str, Any] = Body(..., openapi_examples={
+        "normal": {
+            "summary": "Sample e-PBG validation payload",
+            "value": {
+                "text": "PERFORMANCE BANK GUARANTEE (e-PBG) - HDFC Bank Amount: ₹ 150,000.00",
+                "tender_value": 3000000.0
+            }
+        }
     })
 ):
     """

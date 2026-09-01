@@ -1,3 +1,7 @@
+---
+trigger: manual
+---
+
 # Git Workflow & Push Command Rule
 
 ## Trigger Keyword

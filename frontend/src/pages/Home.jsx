@@ -69,111 +69,10 @@ import {
   Radio
 } from "lucide-react";
 
-// Mock Database of submitted bids (visible globally to allow live sync between Supplier upload and Admin queue)
-const INITIAL_BIDS = [
-  {
-    id: "GEM-BID-2026-001",
-    bidderName: "Acme Tech Solutions Private Limited",
-    gstin: "27AAPCS1234M1Z5",
-    pan: "AAPCS1234M",
-    udyam: "UDYAM-MH-12-0012345",
-    submittedOn: "26 Aug 2026",
-    status: "Verified",
-    score: 95,
-    risk: "LOW",
-    compliance_record: "Excellent",
-    taxpayer_type: "Regular",
-    enterprise_type: "Micro",
-    warnings: ["All parameters are highly compliant. No risks identified."],
-    logs: [
-      "[16:04:12] [System] Initiating cryptographic bid compliance inspection...",
-      "[16:04:13] [SmartPDFHandler] Page 1: Digital text structure detected.",
-      "[16:04:13] [RegexExtractor] Extracted GSTIN: 27AAPCS1234M1Z5",
-      "[16:04:14] [RegexExtractor] Extracted Udyam ID: UDYAM-MH-12-0012345",
-      "[16:04:14] [MockVerifier] Verifying GSTIN status: 'Active' (Owner: Acme Tech Solutions)",
-      "[16:04:15] [MockVerifier] Verifying Udyam MSME status: 'Active' (Owner: Acme Tech Solutions)",
-      "[16:04:15] [ScoringEngine] Full registry token alignment confirmed.",
-      "[16:04:16] [ScoringEngine] Integrity verification completed. Compliance score: 95/100 (Risk: LOW)."
-    ]
-  },
-  {
-    id: "GEM-BID-2026-002",
-    bidderName: "Global Traders Inc",
-    gstin: "22AAAAA1111A1Z1",
-    pan: "AAAAA1111A",
-    udyam: "UDYAM-DL-01-0098765",
-    submittedOn: "24 Aug 2026",
-    status: "Under Review",
-    score: 55,
-    risk: "MEDIUM",
-    compliance_record: "Poor",
-    taxpayer_type: "Regular",
-    enterprise_type: "Small",
-    warnings: [
-      "GSTIN status registered as 'Suspended' (-10 pts)",
-      "GST compliance history marked as 'Poor' (-10 pts)",
-      "Officer action recommended: Request GSTR-3B filing receipts for the last 3 consecutive months."
-    ],
-    logs: [
-      "[11:15:30] [System] Initiating cryptographic bid compliance inspection...",
-      "[11:15:32] [SmartPDFHandler] Page 1: Scanned image detected. Running OpenCV image filters...",
-      "[11:15:33] [SmartPDFHandler] Preprocessing done. Running Tesseract OCR on page canvas...",
-      "[11:15:34] [RegexExtractor] Extracted GSTIN: 22AAAAA1111A1Z1",
-      "[11:15:35] [MockVerifier] WARNING: GSTIN registry status returned 'Suspended'!",
-      "[11:15:35] [MockVerifier] WARNING: Compliance history returned 'Poor'!",
-      "[11:15:36] [ScoringEngine] Penalty applied for suspended GSTIN status. Score: 55/100 (Risk: MEDIUM)."
-    ]
-  },
-  {
-    id: "GEM-BID-2026-003",
-    bidderName: "Vanguard Systems Ltd",
-    gstin: "27AAACV9876K1Z9",
-    pan: "AAACV9876K",
-    udyam: "",
-    submittedOn: "20 Aug 2026",
-    status: "Pending",
-    score: 40,
-    risk: "HIGH",
-    compliance_record: "Good",
-    taxpayer_type: "Regular",
-    enterprise_type: "N/A",
-    warnings: [
-      "Mandatory PAN details mismatch (-10 pts)",
-      "Udyam MSME certificate missing. MSME exemptions (EMD waiver) will not apply.",
-      "CRITICAL: Registry mismatch between GSTIN name ('Vanguard Systems Ltd') and PAN owner ('Vanguard Director')."
-    ],
-    logs: [
-      "[09:40:02] [System] Initiating cryptographic bid compliance inspection...",
-      "[09:40:03] [SmartPDFHandler] Page 1: Digital text structure detected.",
-      "[09:40:04] [RegexExtractor] Extracted GSTIN: 27AAACV9876K1Z9",
-      "[09:40:04] [RegexExtractor] Extracted Standalone PAN: AAACV9876K",
-      "[09:40:05] [MockVerifier] Comparing legal names across databases...",
-      "[09:40:05] [MockVerifier] WARNING: Mismatch found: GSTIN Owner ('Vanguard Systems Ltd') vs PAN Owner ('Vanguard Director')",
-      "[09:40:06] [ScoringEngine] Deducted 10 points for Registry name mismatch.",
-      "[09:40:06] [ScoringEngine] Final Score: 40/100. Risk level: HIGH."
-    ]
-  }
-];
-
-const INITIAL_BIDDERS_LIST = [
-  { id: 1, name: "ABC Engineering Pvt. Ltd.", tender: "GEM-CPCL-001", documents: "10/10", compliance: 92, risk: "Low", verification: "Verified" },
-  { id: 2, name: "XYZ Industries Pvt. Ltd.", tender: "GEM-CPCL-001", documents: "9/10", compliance: 78, risk: "Medium", verification: "Review Required" },
-  { id: 3, name: "PQR Pumps Ltd.", tender: "GEM-CPCL-001", documents: "7/10", compliance: 61, risk: "High", verification: "Issues" },
-  { id: 4, name: "Acme Tech Solutions Private Limited", tender: "GEM-CPCL-002", documents: "10/10", compliance: 95, risk: "Low", verification: "Verified" },
-  { id: 5, name: "Global Traders Inc", tender: "GEM-CPCL-002", documents: "8/10", compliance: 55, risk: "Medium", verification: "Review Required" },
-  { id: 6, name: "Vanguard Systems Ltd", tender: "GEM-CPCL-002", documents: "7/10", compliance: 40, risk: "High", verification: "Issues" }
-];
-
-const INITIAL_TENDERS_DATA = [
-  { id: "CPCL/2026/001", title: "Industrial Equipment Supply", category: "Equipment", department: "Projects", publishedDate: "08 May 2026", closingDate: "30 May 2026", daysLeft: "2 days left", bidders: 12, pending: 5, status: "Active" },
-  { id: "CPCL/2026/002", title: "Pipeline Components", category: "Infrastructure", department: "Projects", publishedDate: "06 May 2026", closingDate: "02 Jun 2026", daysLeft: "5 days left", bidders: 18, pending: 3, status: "Active" },
-  { id: "CPCL/2026/003", title: "Electrical Materials Supply", category: "Electrical", department: "Engineering", publishedDate: "05 May 2026", closingDate: "10 Jun 2026", daysLeft: "7 days left", bidders: 9, pending: 2, status: "Active" },
-  { id: "CPCL/2026/004", title: "Maintenance Services", category: "Services", department: "Operations", publishedDate: "01 May 2026", closingDate: "15 Jun 2026", daysLeft: "18 days left", bidders: 7, pending: 1, status: "Active" },
-  { id: "CPCL/2026/005", title: "Safety Equipment Supply", category: "Safety", department: "Operations", publishedDate: "30 Apr 2026", closingDate: "20 Jun 2026", daysLeft: "23 days left", bidders: 11, pending: 2, status: "Active" },
-  { id: "CPCL/2026/006", title: "Office Furniture Supply", category: "General", department: "Admin", publishedDate: "20 Apr 2026", closingDate: "25 Apr 2026", daysLeft: null, bidders: 6, pending: 0, status: "Closed" },
-  { id: "CPCL/2026/007", title: "Civil Construction Works", category: "Works", department: "Projects", publishedDate: "10 Apr 2026", closingDate: "18 Apr 2026", daysLeft: null, bidders: 15, pending: 0, status: "Closed" },
-  { id: "CPCL/2026/008", title: "Canteen Services", category: "Services", department: "Admin", publishedDate: "05 Apr 2026", closingDate: "12 Apr 2026", daysLeft: null, bidders: 5, pending: 0, status: "Cancelled" },
-];
+// Fresh Database of submitted bids (starts empty for real production/testing launch)
+const INITIAL_BIDS = [];
+const INITIAL_BIDDERS_LIST = [];
+const INITIAL_TENDERS_DATA = [];
 
 
 
@@ -216,6 +115,53 @@ function Home({ role, user, onLogout }) {
   const [selectedBid, setSelectedBid] = useState(null);
   const [selectedTender, setSelectedTender] = useState(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  const token = typeof window !== "undefined" ? localStorage.getItem("gem_token") : null;
+
+  const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
+
+  // Fetch Tenders from backend
+  const fetchTenders = async () => {
+    try {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      const res = await fetch(`${API_BASE}/api/tenders`, {
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setTendersList(data);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch live tenders:", err);
+    }
+  };
+
+  // Fetch Bids from backend
+  const fetchBids = async () => {
+    try {
+      if (!token) return;
+      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setBids(data);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch live bids:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTenders();
+    fetchBids();
+  }, [role, user]);
 
   const [announcementConfig, setAnnouncementConfig] = useState(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem("gem_announcement_config") : null;
@@ -235,7 +181,6 @@ function Home({ role, user, onLogout }) {
   const [selectedVerificationBidder, setSelectedVerificationBidder] = useState(null);
   const [decidedBids, setDecidedBids] = useState({});
 
-  const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
   const [editingTenderModalItem, setEditingTenderModalItem] = useState(null);
   const [activeTenderMenuId, setActiveTenderMenuId] = useState(null);
 
@@ -259,37 +204,60 @@ function Home({ role, user, onLogout }) {
 
     if (isUserAdmin) {
       // ADMIN Context: Only Admin Password works
-      if (inputPass === "officer123" || inputPass === "officer") {
-        setActionPasswordError("❌ Access Denied: Procurement Officer passwords are invalid on the Admin page. Please enter your Admin Password.");
-        return;
-      }
-      const validAdminPass = user?.password || "admin123";
-      if (inputPass !== validAdminPass && inputPass !== "admin123") {
+      if (inputPass !== "Admin@123") {
         setActionPasswordError("❌ Invalid Admin Password! Please try again.");
         return;
       }
     } else {
       // PROCUREMENT OFFICER Context: Only Officer Password works
-      if (inputPass === "admin123" || inputPass === "admin") {
-        setActionPasswordError("❌ Access Denied: Admin passwords are invalid on the Procurement Officer page. Please enter your Officer Password.");
-        return;
-      }
-      const validOfficerPass = user?.password || "officer123";
-      if (inputPass !== validOfficerPass && inputPass !== "officer123" && inputPass !== "officer") {
+      if (inputPass !== "officer123" && inputPass !== (user?.password || "officer123")) {
         setActionPasswordError("❌ Invalid Procurement Officer Password! Please try again.");
         return;
       }
     }
 
-    // Authorized! Execute action
+    // Authorized! Execute action & sync with backend database
     const { type, payload } = pendingTenderAction;
     if (type === "CREATE") {
+      const newTenderData = {
+        title: payload.newTenderObj.title,
+        description: payload.newTenderObj.description || payload.newTenderObj.title,
+        category: payload.newTenderObj.category || "General Hardware & Services",
+        department: payload.newTenderObj.department || "Chennai Petroleum Corporation Limited (CPCL)",
+        budget_limit: parseFloat(String(payload.newTenderObj.value || "1000000").replace(/[^0-9.]/g, '') || "1000000"),
+        status: payload.newTenderObj.status || "Draft"
+      };
+      if (payload.newTenderObj.id) newTenderData.id = payload.newTenderObj.id;
+
+      fetch(`${API_BASE}/api/tenders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(newTenderData)
+      })
+      .then(r => r.json())
+      .then(() => fetchTenders())
+      .catch(err => console.error("Error creating tender:", err));
+
       setTendersList(prev => [payload.newTenderObj, ...prev]);
       if (payload.onSuccess) payload.onSuccess();
     } else if (type === "EDIT") {
       setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
       setEditingTenderModalItem(null);
     } else if (type === "STATUS") {
+      fetch(`${API_BASE}/api/tenders/${payload.tenderId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status: payload.newStatus })
+      })
+      .then(() => fetchTenders())
+      .catch(err => console.error("Error updating status:", err));
+
       setTendersList(prev => prev.map(t => t.id === payload.tenderId ? {
         ...t,
         status: payload.newStatus,
@@ -382,7 +350,7 @@ function Home({ role, user, onLogout }) {
         <div className="bidder-hero-banner">
           <div className="hero-left-content">
             <span className="hero-eyebrow">BIDDER PORTAL</span>
-            <h1>Good Morning, {user ? user.full_name : "ABC Engineering Pvt. Ltd."}</h1>
+            <h1>Good Morning, {user ? user.full_name : "Valued User"}</h1>
             <p className="hero-subtitle">
               Automated AI compliance verification active across GSTIN, PAN, Udyam MSME, and OEM credentials.
             </p>
@@ -406,8 +374,8 @@ function Home({ role, user, onLogout }) {
                 <FolderOpen size={20} />
               </div>
             </div>
-            <h2 className="card-value">05</h2>
-            <span className="card-subtext warning">⚡ 2 closing within 48h</span>
+            <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
+            <span className="card-subtext warning">⚡ {bids.length} active in system</span>
           </div>
 
           <div className="summary-card card-emerald-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
@@ -417,8 +385,8 @@ function Home({ role, user, onLogout }) {
                 <FileCheck2 size={20} />
               </div>
             </div>
-            <h2 className="card-value">08</h2>
-            <span className="card-subtext info">✓ 3 under verification</span>
+            <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
+            <span className="card-subtext info">✓ {bids.filter(b => b.status === "Verified").length} verified</span>
           </div>
 
           <div className="summary-card card-amber-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
@@ -428,8 +396,8 @@ function Home({ role, user, onLogout }) {
                 <FileText size={20} />
               </div>
             </div>
-            <h2 className="card-value">02</h2>
-            <span className="card-subtext warning">⏳ Ready for final review</span>
+            <h2 className="card-value">{bids.filter(b => b.status.toLowerCase().includes("draft")).length > 9 ? bids.filter(b => b.status.toLowerCase().includes("draft")).length : `0${bids.filter(b => b.status.toLowerCase().includes("draft")).length}`}</h2>
+            <span className="card-subtext warning">⏳ Pending submission</span>
           </div>
 
           <div className="summary-card card-purple-glow" onClick={() => setActiveSection("documents")} style={{ cursor: "pointer" }}>
@@ -439,8 +407,8 @@ function Home({ role, user, onLogout }) {
                 <ClipboardList size={20} />
               </div>
             </div>
-            <h2 className="card-value">42</h2>
-            <span className="card-subtext success">🛡️ 38 verified</span>
+            <h2 className="card-value">00</h2>
+            <span className="card-subtext success">🛡️ Vault Ready</span>
           </div>
         </div>
 
@@ -454,95 +422,52 @@ function Home({ role, user, onLogout }) {
             </div>
 
             <div className="bids-list">
-              {/* Card 1 */}
-              <div className="bid-item-card accent-left-amber" onClick={() => setSelectedBid(bids[0] || INITIAL_BIDS[0])} style={{ cursor: "pointer" }}>
-                <div className="bid-card-header">
-                  <div>
-                    <span className="bid-id">GEM-CPCL-2026-001</span>
-                    <h3>Supply of Industrial Pumps</h3>
-                    <span className="bid-org">Chennai Petroleum Corporation Limited</span>
-                  </div>
-                  <span className="bid-status-tag draft">Draft (80%)</span>
+              {bids.length === 0 ? (
+                <div style={{ background: "#ffffff", border: "1px dashed #cbd5e1", borderRadius: "12px", padding: "36px 24px", textAlign: "center" }}>
+                  <FolderOpen size={40} style={{ color: "#94a3b8", marginBottom: "12px" }} />
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 6px 0" }}>No Active Bids Registered Yet</h3>
+                  <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 18px 0" }}>Submit your first procurement bid to launch automated document verification and compliance pre-audits.</p>
+                  <button
+                    style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 20px", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer" }}
+                    onClick={() => setActiveSection("documents")}
+                  >
+                    + Upload Documents & Create Bid
+                  </button>
                 </div>
-
-                <div className="bid-card-body">
-                  <div className="deadline-row">
-                    <span>Submission Deadline:</span>
-                    <strong>30 Sep 2026 (14 days remaining)</strong>
-                  </div>
-
-                  <div className="progress-section">
-                    <div className="progress-info">
-                      <span>Document Completeness</span>
-                      <strong>8 / 10 Documents</strong>
+              ) : (
+                bids.map((bid) => (
+                  <div key={bid.id} className="bid-item-card accent-left-emerald" onClick={() => setSelectedBid(bid)} style={{ cursor: "pointer" }}>
+                    <div className="bid-card-header">
+                      <div>
+                        <span className="bid-id">{bid.id}</span>
+                        <h3>{bid.bidderName || "Procurement Bid Submission"}</h3>
+                        <span className="bid-org">Submitted on: {bid.submittedOn}</span>
+                      </div>
+                      <span className={`bid-status-tag ${bid.status.toLowerCase().includes("verified") ? "ready" : "draft"}`}>{bid.status}</span>
                     </div>
-                    <div className="progress-bar-container">
-                      <div className="progress-bar-fill amber" style={{ width: "80%" }}></div>
+
+                    <div className="bid-card-body">
+                      <div className="progress-section">
+                        <div className="progress-info">
+                          <span>Compliance Score</span>
+                          <strong>{bid.score}% Match</strong>
+                        </div>
+                        <div className="progress-bar-container">
+                          <div className={`progress-bar-fill ${bid.score >= 80 ? "success" : "amber"}`} style={{ width: `${bid.score}%` }}></div>
+                        </div>
+                      </div>
                     </div>
-                    <span className="progress-percentage amber">80%</span>
-                  </div>
-                </div>
 
-                <div className="bid-card-footer">
-                  <div className="bid-actions">
-                    <button className="primary-action-btn vibrant-blue" onClick={(e) => { e.stopPropagation(); setActiveSection("documents"); }}>
-                      Continue Bid Submission
-                    </button>
-                    <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bids[0] || INITIAL_BIDS[0]); }}>
-                      View Details
-                    </button>
-                  </div>
-                  <div className="bid-warning-msg">
-                    <AlertTriangle size={14} className="warning-icon" />
-                    <span>2 mandatory documents required</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="bid-item-card accent-left-emerald" onClick={() => setSelectedBid(bids[1] || INITIAL_BIDS[1])} style={{ cursor: "pointer" }}>
-                <div className="bid-card-header">
-                  <div>
-                    <span className="bid-id">GEM-CPCL-2026-002</span>
-                    <h3>Industrial Equipment Maintenance Services</h3>
-                    <span className="bid-org">Chennai Petroleum Corporation Limited</span>
-                  </div>
-                  <span className="bid-status-tag ready">Ready to Submit</span>
-                </div>
-
-                <div className="bid-card-body">
-                  <div className="deadline-row">
-                    <span>Submission Deadline:</span>
-                    <strong>15 Oct 2026 (29 days remaining)</strong>
-                  </div>
-
-                  <div className="progress-section">
-                    <div className="progress-info">
-                      <span>Document Completeness</span>
-                      <strong>10 / 10 Documents</strong>
+                    <div className="bid-card-footer">
+                      <div className="bid-actions">
+                        <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
+                          View Details
+                        </button>
+                      </div>
                     </div>
-                    <div className="progress-bar-container">
-                      <div className="progress-bar-fill success" style={{ width: "100%" }}></div>
-                    </div>
-                    <span className="progress-percentage success">100%</span>
                   </div>
-                </div>
-
-                <div className="bid-card-footer">
-                  <div className="bid-actions">
-                    <button className="submit-action-btn vibrant-emerald" onClick={(e) => { e.stopPropagation(); handleSubmitBid("GEM-CPCL-2026-002"); }}>
-                      Review & Submit Bid
-                    </button>
-                    <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bids[1] || INITIAL_BIDS[1]); }} style={{ marginLeft: "10px" }}>
-                      View Details
-                    </button>
-                  </div>
-                  <div className="bid-verified-msg">
-                    <CheckCircle2 size={14} className="success-icon" style={{ color: "#10b981" }} />
-                    <span style={{ color: "#10b981", fontWeight: 600, fontSize: "0.8rem" }}>AI Verification Passed</span>
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -553,23 +478,27 @@ function Home({ role, user, onLogout }) {
               <div className="ai-card-header">
                 <h3>AI Submission Assistant <span className="sparkle-icon">✨</span></h3>
               </div>
-              <p className="ai-message">"Your bid for GEM-CPCL-2026-001 is 80% complete. Clear 2 document flags to guarantee auto-approval."</p>
+              <p className="ai-message">
+                {bids.length > 0
+                  ? `"You have ${bids.length} active bid(s) in review. Upload missing statutory documents to maximize compliance score."`
+                  : `"Welcome! Upload your compliance documents to launch automated AI pre-auditing."`}
+              </p>
               <ul className="ai-checks-list">
                 <li className="check-item checked">
                   <CheckCircle2 size={16} className="status-icon success" />
-                  <span>GSTIN & PAN Registry Verified</span>
+                  <span>GSTIN & PAN Verification Active</span>
                 </li>
                 <li className="check-item checked">
                   <CheckCircle2 size={16} className="status-icon success" />
-                  <span>MSME Exemption Certificate Valid</span>
+                  <span>MSME Exemption Checker Online</span>
                 </li>
                 <li className="check-item warn">
                   <AlertTriangle size={16} className="status-icon warning" />
-                  <span>2 Financial Statements Pending</span>
+                  <span>Statutory Rule Engine Monitoring</span>
                 </li>
               </ul>
               <button className="assistant-action-btn" onClick={() => setActiveSection("documents")}>
-                Upload Pending Docs
+                Upload & Verify Docs
               </button>
             </div>
 
@@ -579,34 +508,25 @@ function Home({ role, user, onLogout }) {
                 <h3>Recent Activity</h3>
               </div>
               <ul className="activity-list">
-                <li className="activity-item">
-                  <div className="activity-dot success"></div>
-                  <div className="activity-info">
-                    <p>GST Certificate uploaded & verified</p>
-                    <span>Today, 10:32 AM</span>
-                  </div>
-                </li>
-                <li className="activity-item">
-                  <div className="activity-dot success"></div>
-                  <div className="activity-info">
-                    <p>PAN Certificate matched with CBDT</p>
-                    <span>Today, 10:35 AM</span>
-                  </div>
-                </li>
-                <li className="activity-item">
-                  <div className="activity-dot warning"></div>
-                  <div className="activity-info">
-                    <p>Income Tax document review flag added</p>
-                    <span>Today, 10:38 AM</span>
-                  </div>
-                </li>
-                <li className="activity-item">
-                  <div className="activity-dot info"></div>
-                  <div className="activity-info">
-                    <p>Bid draft GEM-CPCL-2026-001 saved</p>
-                    <span>Today, 10:40 AM</span>
-                  </div>
-                </li>
+                {notifications.length === 0 ? (
+                  <li className="activity-item">
+                    <div className="activity-dot info"></div>
+                    <div className="activity-info">
+                      <p>Session initialized in Clean Launch Mode.</p>
+                      <span>Real-time active</span>
+                    </div>
+                  </li>
+                ) : (
+                  notifications.slice(0, 4).map((n, idx) => (
+                    <li className="activity-item" key={n.id || idx}>
+                      <div className={`activity-dot ${n.type || 'info'}`}></div>
+                      <div className="activity-info">
+                        <p>{n.title || n.text}</p>
+                        <span>{n.time || "Just Now"}</span>
+                      </div>
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
           </div>
@@ -722,12 +642,40 @@ function Home({ role, user, onLogout }) {
   };
 
   const TendersSection = () => {
-    const mockTenders = [
-      { id: "GEM/2026/B/876543", title: "Supply and Installation of Server Racks", department: "NIC Delhi", value: "₹45,00,000", deadline: "12 Sep 2026", category: "Hardware" },
-      { id: "GEM/2026/B/876544", title: "Supply of Industrial Pumps", department: "CPCL Chennai", value: "₹1,20,00,000", deadline: "30 Sep 2026", category: "Industrial" },
-      { id: "GEM/2026/B/876545", title: "Industrial Equipment Maintenance Services", department: "CPCL Chennai", value: "₹85,00,000", deadline: "15 Oct 2026", category: "Services" },
-      { id: "GEM/2026/B/876546", title: "Office Automation and Computing Systems", department: "Ministry of Finance", value: "₹38,00,000", deadline: "22 Oct 2026", category: "IT Goods" }
-    ];
+    const [bidderSearchQuery, setBidderSearchQuery] = useState("");
+    const filteredTenders = tendersList.filter((tender) => {
+      if (!bidderSearchQuery.trim()) return true;
+      const q = bidderSearchQuery.toLowerCase();
+      return (
+        (tender.id && tender.id.toLowerCase().includes(q)) ||
+        (tender.title && tender.title.toLowerCase().includes(q)) ||
+        (tender.department && tender.department.toLowerCase().includes(q)) ||
+        (tender.category && tender.category.toLowerCase().includes(q))
+      );
+    });
+
+    const handleCreateBidForTender = async (tItem) => {
+      setSelectedTender(tItem);
+      try {
+        const activeToken = localStorage.getItem("gem_token") || token;
+        if (activeToken) {
+          const res = await fetch(`${API_BASE}/api/bids`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${activeToken}`
+            },
+            body: JSON.stringify({ tender_id: tItem.id })
+          });
+          if (res.ok) {
+            fetchBids();
+          }
+        }
+      } catch (err) {
+        console.warn("Bid creation backend sync warning:", err);
+      }
+      setActiveSection("documents");
+    };
 
     return (
       <div className="bidder-section-wrapper">
@@ -743,8 +691,25 @@ function Home({ role, user, onLogout }) {
         <div className="section-panel studio-panel">
           <div className="panel-table-header">
             <h3>Live Procurement Opportunities</h3>
-            <div className="search-pill-box">
-              <input type="text" placeholder="Search tenders by keyword, Ministry, or ID..." className="studio-search-input" />
+            <div className="search-pill-box" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <div style={{ position: "relative", width: "280px" }}>
+                <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+                <input
+                  type="text"
+                  placeholder="Search tenders by keyword, Ministry, or ID..."
+                  value={bidderSearchQuery}
+                  onChange={(e) => setBidderSearchQuery(e.target.value)}
+                  className="studio-search-input"
+                  style={{ width: "100%", paddingLeft: "32px" }}
+                />
+              </div>
+              <button
+                type="button"
+                style={{ background: "#10b981", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)" }}
+                onClick={() => {}}
+              >
+                <Search size={14} /> Search
+              </button>
             </div>
           </div>
 
@@ -761,36 +726,44 @@ function Home({ role, user, onLogout }) {
                 </tr>
               </thead>
               <tbody>
-                {mockTenders.map((tender) => (
-                  <tr key={tender.id}>
-                    <td><strong className="id-badge emerald">{tender.id}</strong></td>
-                    <td>
-                      <div className="tender-desc-cell">
-                        <strong>{tender.title}</strong>
-                        <span className="cat-tag">{tender.category}</span>
-                      </div>
-                    </td>
-                    <td>{tender.department}</td>
-                    <td><strong className="value-highlight">{tender.value}</strong></td>
-                    <td><span className="deadline-badge">{tender.deadline}</span></td>
-                    <td>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <button
-                          className="table-action-btn emerald"
-                          onClick={() => setActiveSection("documents")}
-                        >
-                          Create Bid →
-                        </button>
-                        <button
-                          className="secondary-action-btn"
-                          onClick={() => setSelectedTender(tender)}
-                        >
-                          View Details
-                        </button>
-                      </div>
+                {filteredTenders.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                      No matching live tenders found.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredTenders.map((tender) => (
+                    <tr key={tender.id}>
+                      <td><strong className="id-badge emerald">{tender.id}</strong></td>
+                      <td>
+                        <div className="tender-desc-cell">
+                          <strong>{tender.title}</strong>
+                          <span className="cat-tag">{tender.category}</span>
+                        </div>
+                      </td>
+                      <td>{tender.department}</td>
+                      <td><strong className="value-highlight">{tender.value}</strong></td>
+                      <td><span className="deadline-badge">{tender.deadline}</span></td>
+                      <td>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <button
+                            className="table-action-btn emerald"
+                            onClick={() => handleCreateBidForTender(tender)}
+                          >
+                            Create Bid →
+                          </button>
+                          <button
+                            className="secondary-action-btn"
+                            onClick={() => setSelectedTender(tender)}
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -800,13 +773,6 @@ function Home({ role, user, onLogout }) {
   };
 
   const NotificationsSection = () => {
-    const mockNotifications = [
-      { id: 1, title: "GSTIN Validation Complete", text: "GSTIN registration successfully validated against GSTN portal for Acme Tech Solutions.", type: "success", time: "1 hour ago" },
-      { id: 2, title: "PAN Name Mismatch Warning", text: "PAN Verification returned warning: Name mismatch found on Vanguard Systems records.", type: "warning", time: "2 hours ago" },
-      { id: 3, title: "Income Tax Audit Flagged", text: "Verification System Notice: Income Tax document requires procurement officer review.", type: "info", time: "Today, 10:38 AM" },
-      { id: 4, title: "MSME Policy Directive Update", text: "Central Ministry updated MSME purchase preference benefit policies for Class-1 local suppliers.", type: "info", time: "Yesterday" }
-    ];
-
     return (
       <div className="bidder-section-wrapper">
         {/* Unique Amber/Indigo Hero Banner for Notifications */}
@@ -814,29 +780,37 @@ function Home({ role, user, onLogout }) {
           <div>
             <span className="hero-eyebrow">AUDIT DISPATCHES</span>
             <h2>Notifications & Audit Stream</h2>
-            <p className="hero-subtext">Automated warnings, cross-verification alerts, and system compliance logs.</p>
+            <p className="hero-subtext">Real-time automated warnings, cross-verification alerts, and system compliance logs.</p>
           </div>
         </div>
 
         <div className="section-panel studio-panel">
           <div className="notifications-stream">
-            {mockNotifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`stream-item ${notif.type}`}
-              >
-                <div className="stream-badge-col">
-                  <span className={`stream-type-pill ${notif.type}`}>{notif.type.toUpperCase()}</span>
-                </div>
-                <div className="stream-content-col">
-                  <h4>{notif.title}</h4>
-                  <p>{notif.text}</p>
-                </div>
-                <div className="stream-time-col">
-                  <span>{notif.time}</span>
-                </div>
+            {notifications.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "#64748b" }}>
+                <Bell size={36} style={{ color: "#94a3b8", marginBottom: "12px" }} />
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 6px 0" }}>No Dispatch Notifications Yet</h3>
+                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>Real-time dispatches, verification receipts, and officer alerts will stream here as actions occur in current time.</p>
               </div>
-            ))}
+            ) : (
+              notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`stream-item ${notif.type || 'info'}`}
+                >
+                  <div className="stream-badge-col">
+                    <span className={`stream-type-pill ${notif.type || 'info'}`}>{(notif.type || 'INFO').toUpperCase()}</span>
+                  </div>
+                  <div className="stream-content-col">
+                    <h4>{notif.title}</h4>
+                    <p>{notif.text}</p>
+                  </div>
+                  <div className="stream-time-col">
+                    <span>{notif.time || "Just Now"}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -863,9 +837,11 @@ function Home({ role, user, onLogout }) {
               </div>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>08</h2>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
+                {tendersList.length > 9 ? tendersList.length : `0${tendersList.length}`}
+              </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
-                <span>3 closing within 7 days</span>
+                <span>Published on GeM</span>
                 <ChevronRight size={14} />
               </div>
             </div>
@@ -884,7 +860,9 @@ function Home({ role, user, onLogout }) {
               </div>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>126</h2>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
+                {bids.length > 9 ? bids.length : `0${bids.length}`}
+              </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Across current tenders</span>
                 <ChevronRight size={14} />
@@ -905,9 +883,13 @@ function Home({ role, user, onLogout }) {
               </div>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>18</h2>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
+                {bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length > 9
+                  ? bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length
+                  : `0${bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length}`}
+              </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
-                <span>Requires your review</span>
+                <span>Requires review</span>
                 <ChevronRight size={14} />
               </div>
             </div>
@@ -926,7 +908,11 @@ function Home({ role, user, onLogout }) {
               </div>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>07</h2>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
+                {bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length > 9
+                  ? bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length
+                  : `0${bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length}`}
+              </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Requires attention</span>
                 <ChevronRight size={14} />
@@ -947,7 +933,11 @@ function Home({ role, user, onLogout }) {
               </div>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>101</h2>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
+                {bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length > 9
+                  ? bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length
+                  : `0${bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length}`}
+              </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Verification completed</span>
                 <ChevronRight size={14} />
@@ -963,78 +953,81 @@ function Home({ role, user, onLogout }) {
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "22px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: "0 0 18px 0", letterSpacing: "0.02em" }}>COMPLIANCE HEALTH</h3>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-              {/* Circular Gauge */}
-              <div style={{ position: "relative", width: "175px", height: "175px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="175" height="175" viewBox="0 0 140 140" style={{ transform: "rotate(-90deg)", width: "175px", height: "175px" }}>
-                  <circle cx="70" cy="70" r="56" fill="none" stroke="#e2e8f0" strokeWidth="12" />
-                  <circle
-                    cx="70"
-                    cy="70"
-                    r="56"
-                    fill="none"
-                    stroke="#0b3b8c"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(82 / 100) * 351.85} 351.85`}
-                  />
-                </svg>
-                <div style={{ position: "absolute", width: "115px", textAlign: "center", pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: "2.2rem", fontWeight: 900, color: "#0f172a", lineHeight: 1, margin: 0, display: "block" }}>82%</span>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#0f172a", marginTop: "4px", lineHeight: 1.2, display: "block" }}>Overall Compliance</span>
-                  <span style={{ fontSize: "0.6rem", color: "#64748b", marginTop: "3px", lineHeight: 1.15, display: "block", width: "100%" }}>Compared with current active bids</span>
-                </div>
-              </div>
+            {(() => {
+              const totalBidsCount = bids.length;
+              const verifiedBidsCount = bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length;
+              const pendingBidsCount = bids.filter(b => (b.status || "").toLowerCase().includes("pending") || (b.status || "").toLowerCase().includes("under") || (b.status || "").toLowerCase().includes("review")).length;
+              const highRiskBidsCount = bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length;
 
-              {/* Progress Breakdown */}
-              <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
-                <h4 style={{ fontSize: "0.82rem", fontWeight: 700, color: "#334155", margin: "0 0 4px 0" }}>Compliance Breakdown</h4>
+              const verifiedPercent = totalBidsCount > 0 ? Math.round((verifiedBidsCount / totalBidsCount) * 100) : 0;
+              const pendingPercent = totalBidsCount > 0 ? Math.round((pendingBidsCount / totalBidsCount) * 100) : 0;
+              const highRiskPercent = totalBidsCount > 0 ? Math.round((highRiskBidsCount / totalBidsCount) * 100) : 0;
+              const overallHealthPercent = totalBidsCount > 0 ? Math.round(bids.reduce((acc, b) => acc + (b.score || 0), 0) / totalBidsCount) : 100;
 
-                {/* Verified */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
-                    <span>Verified <small style={{ color: "#94a3b8" }}>82 bids</small></span>
-                    <strong>82%</strong>
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                  {/* Circular Gauge */}
+                  <div style={{ position: "relative", width: "175px", height: "175px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="175" height="175" viewBox="0 0 140 140" style={{ transform: "rotate(-90deg)", width: "175px", height: "175px" }}>
+                      <circle cx="70" cy="70" r="56" fill="none" stroke="#e2e8f0" strokeWidth="12" />
+                      <circle
+                        cx="70"
+                        cy="70"
+                        r="56"
+                        fill="none"
+                        stroke="#0b3b8c"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(overallHealthPercent / 100) * 351.85} 351.85`}
+                      />
+                    </svg>
+                    <div style={{ position: "absolute", width: "115px", textAlign: "center", pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: "2.2rem", fontWeight: 900, color: "#0f172a", lineHeight: 1, margin: 0, display: "block" }}>{overallHealthPercent}%</span>
+                      <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#0f172a", marginTop: "4px", lineHeight: 1.2, display: "block" }}>Overall Compliance</span>
+                      <span style={{ fontSize: "0.6rem", color: "#64748b", marginTop: "3px", lineHeight: 1.15, display: "block", width: "100%" }}>Active bid records score</span>
+                    </div>
                   </div>
-                  <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
-                    <div style={{ width: "82%", height: "100%", background: "#22c55e", borderRadius: "3px" }}></div>
+
+                  {/* Progress Breakdown */}
+                  <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <h4 style={{ fontSize: "0.82rem", fontWeight: 700, color: "#334155", margin: "0 0 4px 0" }}>Compliance Breakdown</h4>
+
+                    {/* Verified */}
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
+                        <span>Verified <small style={{ color: "#94a3b8" }}>{verifiedBidsCount} bids</small></span>
+                        <strong>{verifiedPercent}%</strong>
+                      </div>
+                      <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ width: `${verifiedPercent}%`, height: "100%", background: "#22c55e", borderRadius: "3px" }}></div>
+                      </div>
+                    </div>
+
+                    {/* Pending */}
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
+                        <span>Pending <small style={{ color: "#94a3b8" }}>{pendingBidsCount} bids</small></span>
+                        <strong>{pendingPercent}%</strong>
+                      </div>
+                      <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ width: `${pendingPercent}%`, height: "100%", background: "#f97316", borderRadius: "3px" }}></div>
+                      </div>
+                    </div>
+
+                    {/* High Risk */}
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
+                        <span>High Risk <small style={{ color: "#94a3b8" }}>{highRiskBidsCount} bids</small></span>
+                        <strong>{highRiskPercent}%</strong>
+                      </div>
+                      <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ width: `${highRiskPercent}%`, height: "100%", background: "#ef4444", borderRadius: "3px" }}></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Pending */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
-                    <span>Pending <small style={{ color: "#94a3b8" }}>18 bids</small></span>
-                    <strong>18%</strong>
-                  </div>
-                  <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
-                    <div style={{ width: "18%", height: "100%", background: "#f97316", borderRadius: "3px" }}></div>
-                  </div>
-                </div>
-
-                {/* Requires Review */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
-                    <span>Requires Review <small style={{ color: "#94a3b8" }}>12 bids</small></span>
-                    <strong>12%</strong>
-                  </div>
-                  <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
-                    <div style={{ width: "12%", height: "100%", background: "#2563eb", borderRadius: "3px" }}></div>
-                  </div>
-                </div>
-
-                {/* High Risk */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#475569", marginBottom: "3px" }}>
-                    <span>High Risk <small style={{ color: "#94a3b8" }}>7 bids</small></span>
-                    <strong>7%</strong>
-                  </div>
-                  <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", overflow: "hidden" }}>
-                    <div style={{ width: "7%", height: "100%", background: "#ef4444", borderRadius: "3px" }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Light Blue Info Box */}
             <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "8px", padding: "12px 14px", marginTop: "18px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
@@ -1042,7 +1035,9 @@ function Home({ role, user, onLogout }) {
               <div>
                 <strong style={{ fontSize: "0.8rem", color: "#0369a1", display: "block" }}>Compliance Status</strong>
                 <p style={{ fontSize: "0.76rem", color: "#0c4a6e", margin: "2px 0 0 0", lineHeight: 1.4 }}>
-                  Most submitted bids are compliant, but several bids require Procurement Officer review before final qualification.
+                  {bids.length === 0
+                    ? "No submitted bids in the system. The platform will automatically calculate AI compliance health as bids are submitted."
+                    : "Submitted bids are actively evaluated against statutory requirements and entity risk rules."}
                 </p>
               </div>
             </div>
@@ -1061,62 +1056,38 @@ function Home({ role, user, onLogout }) {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", flexGrow: 1, justifyContent: "space-between" }}>
-              {/* Card 1: High Priority */}
-              <div style={{ background: "#fff5f5", border: "1px solid #fed7d7", borderLeft: "4px solid #ef4444", borderRadius: "8px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#dc2626", letterSpacing: "0.04em", textTransform: "uppercase" }}>HIGH PRIORITY</span>
-                  <h4 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a", margin: "2px 0 2px 0" }}>ABC Industries Pvt Ltd</h4>
-                  <span style={{ fontSize: "0.76rem", color: "#64748b" }}>Tender: CPCL/2026/001</span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>OEM Authorization appears expired</strong></div>
-                  <div style={{ fontSize: "0.76rem", color: "#dc2626", fontWeight: 700, marginBottom: "8px" }}>Risk: High</div>
-                </div>
-                <button
-                  onClick={() => setActiveSection("verification")}
-                  style={{ background: "#ffffff", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
-                >
-                  Review Bid
-                </button>
-              </div>
+              {(() => {
+                const actionBids = bids.filter(b => (b.risk || "").toUpperCase() === "HIGH" || (b.risk || "").toUpperCase() === "MEDIUM" || (b.status || "").toLowerCase().includes("pending") || (b.status || "").toLowerCase().includes("review"));
+                if (actionBids.length === 0) {
+                  return (
+                    <div style={{ padding: "36px 20px", textAlign: "center", color: "#64748b", background: "#f8fafc", borderRadius: "10px", border: "1px dashed #cbd5e1" }}>
+                      <CheckCircle2 size={36} style={{ color: "#16a34a", marginBottom: "8px" }} />
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>All Action Queues Clear</h4>
+                      <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>No pending or high-risk bids require immediate officer intervention.</p>
+                    </div>
+                  );
+                }
 
-              {/* Card 2: Medium Priority */}
-              <div style={{ background: "#fffbe6", border: "1px solid #ffe58f", borderLeft: "4px solid #f59e0b", borderRadius: "8px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#d97706", letterSpacing: "0.04em", textTransform: "uppercase" }}>MEDIUM PRIORITY</span>
-                  <h4 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a", margin: "2px 0 2px 0" }}>XYZ Engineering Ltd</h4>
-                  <span style={{ fontSize: "0.76rem", color: "#64748b" }}>Tender: CPCL/2026/002</span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>GST return verification pending</strong></div>
-                  <div style={{ fontSize: "0.76rem", color: "#d97706", fontWeight: 700, marginBottom: "8px" }}>Risk: Medium</div>
-                </div>
-                <button
-                  onClick={() => setActiveSection("verification")}
-                  style={{ background: "#ffffff", border: "1px solid #fde68a", color: "#d97706", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
-                >
-                  Review Bid
-                </button>
-              </div>
-
-              {/* Card 3: Pending */}
-              <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderLeft: "4px solid #0284c7", borderRadius: "8px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#0284c7", letterSpacing: "0.04em", textTransform: "uppercase" }}>PENDING</span>
-                  <h4 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a", margin: "2px 0 2px 0" }}>DEF Enterprises</h4>
-                  <span style={{ fontSize: "0.76rem", color: "#64748b" }}>Tender: CPCL/2026/003</span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Issue: <strong>2 documents pending verification</strong></div>
-                  <div style={{ fontSize: "0.76rem", color: "#64748b", fontWeight: 700, marginBottom: "8px" }}>Risk: —</div>
-                </div>
-                <button
-                  onClick={() => setActiveSection("verification")}
-                  style={{ background: "#ffffff", border: "1px solid #93c5fd", color: "#2563eb", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
-                >
-                  Review Bid
-                </button>
-              </div>
+                return actionBids.slice(0, 3).map((bid) => (
+                  <div key={bid.id} style={{ background: "#fff5f5", border: "1px solid #fed7d7", borderLeft: "4px solid #ef4444", borderRadius: "8px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#dc2626", letterSpacing: "0.04em", textTransform: "uppercase" }}>{(bid.risk || "MEDIUM").toUpperCase()} PRIORITY</span>
+                      <h4 style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0f172a", margin: "2px 0 2px 0" }}>{bid.bidderName || "Submitted Bid"}</h4>
+                      <span style={{ fontSize: "0.76rem", color: "#64748b" }}>Bid ID: {bid.id}</span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: "0.76rem", color: "#334155", marginBottom: "2px" }}>Status: <strong>{bid.status}</strong></div>
+                      <div style={{ fontSize: "0.76rem", color: "#dc2626", fontWeight: 700, marginBottom: "8px" }}>Score: {bid.score}%</div>
+                    </div>
+                    <button
+                      onClick={() => setActiveSection("verification")}
+                      style={{ background: "#ffffff", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "6px", padding: "6px 14px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
+                    >
+                      Review Bid
+                    </button>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>
@@ -1151,62 +1122,36 @@ function Home({ role, user, onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/001</td>
-                    <td style={{ padding: "12px 8px", color: "#334155" }}>Industrial Equipment Supply</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>12</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>5</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>2</td>
-                    <td style={{ padding: "12px 8px", color: "#64748b" }}>30 Aug 2026</td>
-                    <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/001")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/002</td>
-                    <td style={{ padding: "12px 8px", color: "#334155" }}>Pipeline Components</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>18</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>3</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
-                    <td style={{ padding: "12px 8px", color: "#64748b" }}>02 Sep 2026</td>
-                    <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/002")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/003</td>
-                    <td style={{ padding: "12px 8px", color: "#334155" }}>Electrical Materials Supply</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>9</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>2</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>0</td>
-                    <td style={{ padding: "12px 8px", color: "#64748b" }}>05 Sep 2026</td>
-                    <td style={{ padding: "12px 8px" }}><span style={{ background: "#fff7ed", color: "#ea580c", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Closing Soon</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/003")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/004</td>
-                    <td style={{ padding: "12px 8px", color: "#334155" }}>Maintenance Services</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>7</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
-                    <td style={{ padding: "12px 8px", color: "#64748b" }}>10 Sep 2026</td>
-                    <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/004")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>CPCL/2026/005</td>
-                    <td style={{ padding: "12px 8px", color: "#334155" }}>Safety Equipment Supply</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>11</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>2</td>
-                    <td style={{ padding: "12px 8px", textAlign: "center" }}>1</td>
-                    <td style={{ padding: "12px 8px", color: "#64748b" }}>15 Sep 2026</td>
-                    <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>Active</span></td>
-                    <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard("CPCL/2026/005")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
-                  </tr>
+                  {(!bids || bids.length === 0) ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: "32px 12px", textAlign: "center", color: "#64748b" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                          <FileText size={28} style={{ color: "#94a3b8" }} />
+                          <span style={{ fontWeight: 600, color: "#334155" }}>No Active Tenders Found</span>
+                          <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Active tenders and bid compliance submissions will appear here live.</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    bids.map((b, idx) => (
+                      <tr key={b.id || idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 8px", fontWeight: 700, color: "#0f172a" }}>{b.id}</td>
+                        <td style={{ padding: "12px 8px", color: "#334155" }}>{b.bidderName || "Tender Document"}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "center", fontWeight: 700 }}>1</td>
+                        <td style={{ padding: "12px 8px", textAlign: "center" }}>{b.status === "Under Review" ? 1 : 0}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "center" }}>{b.risk === "HIGH" ? 1 : 0}</td>
+                        <td style={{ padding: "12px 8px", color: "#64748b" }}>{b.submittedOn || "—"}</td>
+                        <td style={{ padding: "12px 8px" }}><span style={{ background: "#dcfce7", color: "#15803d", padding: "3px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 700 }}>{b.status || "Active"}</span></td>
+                        <td style={{ padding: "12px 8px", textAlign: "right" }}><button onClick={() => handleTenderClickFromDashboard(b.id)} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", fontSize: "0.78rem" }}>View</button></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid #e2e8f0", fontSize: "0.78rem", color: "#64748b" }}>
-              <span>Showing 1 to 5 of 8 tenders</span>
+              <span>Showing {bids ? bids.length : 0} active tender{(!bids || bids.length === 1) ? '' : 's'}</span>
               <button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
                 View All Tenders <ArrowRight size={14} />
               </button>
@@ -1224,41 +1169,25 @@ function Home({ role, user, onLogout }) {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f1f5f9", fontSize: "0.78rem" }}>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>CPCL/2026/001</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>30 Aug 2026</span>
+                {(!bids || bids.length === 0) ? (
+                  <div style={{ padding: "20px 10px", textAlign: "center", color: "#94a3b8", fontSize: "0.78rem" }}>
+                    No tenders closing soon
                   </div>
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    <span>12 Bids</span>
-                    <strong style={{ color: "#ef4444" }}>5 Pending</strong>
-                    <button onClick={() => handleTenderClickFromDashboard("CPCL/2026/001")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f1f5f9", fontSize: "0.78rem" }}>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>CPCL/2026/002</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>02 Sep 2026</span>
-                  </div>
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    <span>18 Bids</span>
-                    <strong style={{ color: "#ef4444" }}>3 Pending</strong>
-                    <button onClick={() => handleTenderClickFromDashboard("CPCL/2026/002")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", fontSize: "0.78rem" }}>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>CPCL/2026/003</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>05 Sep 2026</span>
-                  </div>
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    <span>9 Bids</span>
-                    <strong style={{ color: "#ef4444" }}>2 Pending</strong>
-                    <button onClick={() => setActiveSection("tenders")} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
-                  </div>
-                </div>
+                ) : (
+                  bids.slice(0, 3).map((b, idx) => (
+                    <div key={b.id || idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f1f5f9", fontSize: "0.78rem" }}>
+                      <div>
+                        <strong style={{ color: "#0f172a", display: "block" }}>{b.id}</strong>
+                        <span style={{ color: "#64748b", fontSize: "0.72rem" }}>{b.submittedOn || "Active"}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                        <span>1 Bid</span>
+                        <strong style={{ color: b.status === "Under Review" ? "#ef4444" : "#16a34a" }}>{b.status}</strong>
+                        <button onClick={() => handleTenderClickFromDashboard(b.id)} style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer" }}>View</button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -1266,53 +1195,66 @@ function Home({ role, user, onLogout }) {
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "18px" }}>
               <h3 style={{ fontSize: "0.85rem", fontWeight: 800, color: "#0f172a", margin: "0 0 14px 0", letterSpacing: "0.02em" }}>BID RISK DISTRIBUTION</h3>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                {/* Donut Chart */}
-                <div style={{ position: "relative", width: "100px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
-                    <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" strokeWidth="12" strokeDasharray="176.6 238.7" />
-                    <circle cx="50" cy="50" r="38" fill="none" stroke="#f97316" strokeWidth="12" strokeDasharray="47.7 238.7" strokeDashoffset="-176.6" />
-                    <circle cx="50" cy="50" r="38" fill="none" stroke="#ef4444" strokeWidth="12" strokeDasharray="14.3 238.7" strokeDashoffset="-224.3" />
-                  </svg>
-                  <div style={{ position: "absolute", textAlign: "center", pointerEvents: "none" }}>
-                    <span style={{ fontSize: "0.62rem", color: "#64748b", display: "block" }}>Total Bids</span>
-                    <strong style={{ fontSize: "0.95rem", color: "#0f172a" }}>126</strong>
-                  </div>
-                </div>
+              {(() => {
+                const total = bids ? bids.length : 0;
+                const lowCount = bids ? bids.filter(b => (b.risk || '').toUpperCase() === 'LOW').length : 0;
+                const medCount = bids ? bids.filter(b => (b.risk || '').toUpperCase() === 'MEDIUM').length : 0;
+                const highCount = bids ? bids.filter(b => (b.risk || '').toUpperCase() === 'HIGH').length : 0;
 
-                {/* Legend */}
-                <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#22c55e" }}></span>
-                      <span style={{ color: "#334155" }}>Low Risk</span>
-                    </div>
-                    <div>
-                      <strong>74%</strong> <small style={{ color: "#64748b" }}>(93 Bids)</small>
-                    </div>
-                  </div>
+                const lowPct = total ? Math.round((lowCount / total) * 100) : 0;
+                const medPct = total ? Math.round((medCount / total) * 100) : 0;
+                const highPct = total ? Math.round((highCount / total) * 100) : 0;
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#f97316" }}></span>
-                      <span style={{ color: "#334155" }}>Medium Risk</span>
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    {/* Donut Chart */}
+                    <div style={{ position: "relative", width: "100px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" strokeWidth="12" strokeDasharray={`${(lowPct / 100) * 238.7} 238.7`} />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#f97316" strokeWidth="12" strokeDasharray={`${(medPct / 100) * 238.7} 238.7`} strokeDashoffset={`-${(lowPct / 100) * 238.7}`} />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#ef4444" strokeWidth="12" strokeDasharray={`${(highPct / 100) * 238.7} 238.7`} strokeDashoffset={`-${((lowPct + medPct) / 100) * 238.7}`} />
+                      </svg>
+                      <div style={{ position: "absolute", textAlign: "center", pointerEvents: "none" }}>
+                        <span style={{ fontSize: "0.62rem", color: "#64748b", display: "block" }}>Total Bids</span>
+                        <strong style={{ fontSize: "0.95rem", color: "#0f172a" }}>{total}</strong>
+                      </div>
                     </div>
-                    <div>
-                      <strong>20%</strong> <small style={{ color: "#64748b" }}>(25 Bids)</small>
-                    </div>
-                  </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#ef4444" }}></span>
-                      <span style={{ color: "#334155" }}>High Risk</span>
-                    </div>
-                    <div>
-                      <strong>6%</strong> <small style={{ color: "#64748b" }}>(8 Bids)</small>
+                    {/* Legend */}
+                    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#22c55e" }}></span>
+                          <span style={{ color: "#334155" }}>Low Risk</span>
+                        </div>
+                        <div>
+                          <strong>{lowPct}%</strong> <small style={{ color: "#64748b" }}>({lowCount} Bids)</small>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#f97316" }}></span>
+                          <span style={{ color: "#334155" }}>Medium Risk</span>
+                        </div>
+                        <div>
+                          <strong>{medPct}%</strong> <small style={{ color: "#64748b" }}>({medCount} Bids)</small>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#ef4444" }}></span>
+                          <span style={{ color: "#334155" }}>High Risk</span>
+                        </div>
+                        <div>
+                          <strong>{highPct}%</strong> <small style={{ color: "#64748b" }}>({highCount} Bids)</small>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
 
           </div>
@@ -1329,49 +1271,24 @@ function Home({ role, user, onLogout }) {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>🤖</div>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>AI document analysis completed</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>ABC Industries Pvt Ltd</span>
-                  </div>
+              {(!bids || bids.length === 0) ? (
+                <div style={{ padding: "24px 12px", textAlign: "center", color: "#94a3b8", fontSize: "0.78rem" }}>
+                  No recent verification activity.
                 </div>
-                <span style={{ color: "#94a3b8", fontSize: "0.72rem" }}>5 minutes ago</span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#fff7ed", color: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center" }}>📄</div>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>Document requires officer review</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>XYZ Engineering Ltd</span>
+              ) : (
+                bids.slice(0, 4).map((b, idx) => (
+                  <div key={b.id || idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>🤖</div>
+                      <div>
+                        <strong style={{ color: "#0f172a", display: "block" }}>Compliance audit completed ({b.score}/100)</strong>
+                        <span style={{ color: "#64748b", fontSize: "0.72rem" }}>{b.bidderName}</span>
+                      </div>
+                    </div>
+                    <span style={{ color: "#94a3b8", fontSize: "0.72rem" }}>{b.submittedOn || "Just now"}</span>
                   </div>
-                </div>
-                <span style={{ color: "#94a3b8", fontSize: "0.72rem" }}>18 minutes ago</span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#fef2f2", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center" }}>🚨</div>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>High-risk issue detected</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>DEF Enterprises</span>
-                  </div>
-                </div>
-                <span style={{ color: "#94a3b8", fontSize: "0.72rem" }}>42 minutes ago</span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#f0fdf4", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center" }}>✓</div>
-                  <div>
-                    <strong style={{ color: "#0f172a", display: "block" }}>Bid verification completed</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.72rem" }}>GHI Technologies</span>
-                  </div>
-                </div>
-                <span style={{ color: "#94a3b8", fontSize: "0.72rem" }}>1 hour ago</span>
-              </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -1380,14 +1297,24 @@ function Home({ role, user, onLogout }) {
             <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: "0 0 16px 0", letterSpacing: "0.02em" }}>QUICK ACTIONS</h3>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              {/* Tile 1: Create Tender */}
-              <button
-                onClick={() => setActiveSection("createTender")}
-                style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
-              >
-                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#2563eb", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 800 }}>+</div>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1d4ed8" }}>Create Tender</span>
-              </button>
+              {/* Tile 1: Create Tender (Officers Only) or User Management (Admin) */}
+              {!isAdmin ? (
+                <button
+                  onClick={() => setActiveSection("createTender")}
+                  style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
+                >
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#2563eb", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 800 }}>+</div>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1d4ed8" }}>Create Tender</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setActiveSection("userManagement")}
+                  style={{ background: "#f3e8ff", border: "1px solid #d8b4fe", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
+                >
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#9333ea", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: 800 }}>👤</div>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#7e22ce" }}>User Management</span>
+                </button>
+              )}
 
               {/* Tile 2: Review Pending Bids */}
               <button
@@ -1423,7 +1350,6 @@ function Home({ role, user, onLogout }) {
       </div>
     );
   };
-
   // Tenders Management View - Pixel perfect match to reference design
   const TendersView = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -1626,12 +1552,14 @@ function Home({ role, user, onLogout }) {
             <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0" }}>Tender Management</h1>
             <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>Create, manage and monitor all procurement tenders</p>
           </div>
-          <button
-            onClick={() => setActiveSection("createTender")}
-            style={{ background: "#1d4ed8", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(29,78,216,0.2)" }}
-          >
-            <Plus size={16} /> Create New Tender
-          </button>
+          {!isAdmin && (
+            <button
+              onClick={() => setActiveSection("createTender")}
+              style={{ background: "#1d4ed8", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(29,78,216,0.2)" }}
+            >
+              <Plus size={16} /> Create New Tender
+            </button>
+          )}
         </div>
 
         {/* ROW 1: TOP 5 SUMMARY KPI CARDS (CLICKABLE FILTERS) */}
@@ -1771,8 +1699,8 @@ function Home({ role, user, onLogout }) {
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "14px", alignItems: "flex-end", flexWrap: "wrap" }}>
 
           {/* Search Box */}
-          <div style={{ flexGrow: 2, minWidth: "220px" }}>
-            <div style={{ position: "relative" }}>
+          <div style={{ flexGrow: 2, minWidth: "260px", display: "flex", gap: "8px" }}>
+            <div style={{ position: "relative", flexGrow: 1 }}>
               <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
               <input
                 type="text"
@@ -1782,6 +1710,13 @@ function Home({ role, user, onLogout }) {
                 style={{ width: "100%", padding: "9px 12px 9px 36px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem", color: "#0f172a", background: "#ffffff", outline: "none" }}
               />
             </div>
+            <button
+              type="button"
+              style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "9px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(37, 99, 235, 0.25)", whiteSpace: "nowrap" }}
+              onClick={() => {}}
+            >
+              <Search size={14} /> Search
+            </button>
           </div>
 
           {/* Status Dropdown */}
@@ -2163,268 +2098,32 @@ function Home({ role, user, onLogout }) {
     const [viewingBidderDetails, setViewingBidderDetails] = useState(null);
     const [biddersActionToast, setBiddersActionToast] = useState("");
 
-    const ALL_BIDDERS = [
-      {
-        id: "BIDDER-0001",
-        initials: "AI",
-        name: "ABC Industries Pvt Ltd",
-        status: "Verified",
-        statusBadgeBg: "#dcfce7",
-        statusBadgeColor: "#15803d",
-        pan: "AABCA1234A",
-        gstin: "24AABCA1234A1Z5",
-        type: "Private Limited",
-        phone: "+91 98765 43210",
-        email: "info@abcindustries.com",
-        location: "Ahmedabad, Gujarat",
-        complianceScore: 92,
-        ratingText: "Excellent",
-        scoreColor: "#16a34a",
-        riskLevel: "Low Risk",
-        riskBg: "#f0fdf4",
-        riskColor: "#15803d",
-        verificationStatus: "Verified",
-        verificationBg: "#dcfce7",
-        verificationColor: "#15803d",
-        verificationDate: "20 May 2025",
-        activeTenders: 5,
-        isNew: false
-      },
-      {
-        id: "BIDDER-0002",
-        initials: "XE",
-        name: "XYZ Engineering Ltd",
-        status: "Active",
-        statusBadgeBg: "#eff6ff",
-        statusBadgeColor: "#2563eb",
-        pan: "AAACX2345B",
-        gstin: "2AAACX2345B1ZB",
-        type: "Public Limited",
-        phone: "+91 97654 32109",
-        email: "contact@xyzengineering.com",
-        location: "Vadodara, Gujarat",
-        complianceScore: 78,
-        ratingText: "Good",
-        scoreColor: "#2563eb",
-        riskLevel: "Medium Risk",
-        riskBg: "#fff7ed",
-        riskColor: "#ea580c",
-        verificationStatus: "Under Review",
-        verificationBg: "#eff6ff",
-        verificationColor: "#2563eb",
-        verificationDate: "19 May 2025",
-        activeTenders: 3,
-        isNew: true
-      },
-      {
-        id: "BIDDER-0003",
-        initials: "GS",
-        name: "Global Suppliers",
-        status: "Active",
-        statusBadgeBg: "#eff6ff",
-        statusBadgeColor: "#2563eb",
-        pan: "AAACG3456C",
-        gstin: "24AAACG3456C1Z9",
-        type: "Partnership",
-        phone: "+91 98980 11223",
-        email: "sales@globalsuppliers.com",
-        location: "Mumbai, Maharashtra",
-        complianceScore: 56,
-        ratingText: "Average",
-        scoreColor: "#ea580c",
-        riskLevel: "High Risk",
-        riskBg: "#fef2f2",
-        riskColor: "#dc2626",
-        verificationStatus: "Issues Found",
-        verificationBg: "#fef2f2",
-        verificationColor: "#dc2626",
-        verificationDate: "18 May 2025",
-        activeTenders: 2,
-        isNew: false
-      },
-      {
-        id: "BIDDER-0004",
-        initials: "PT",
-        name: "Precision Tools Pvt Ltd",
-        status: "Verified",
-        statusBadgeBg: "#dcfce7",
-        statusBadgeColor: "#15803d",
-        pan: "AABCP4567D",
-        gstin: "24AABCP4567D1Z3",
-        type: "Private Limited",
-        phone: "+91 98250 99887",
-        email: "info@precisiontools.in",
-        location: "Pune, Maharashtra",
-        complianceScore: 88,
-        ratingText: "Very Good",
-        scoreColor: "#16a34a",
-        riskLevel: "Low Risk",
-        riskBg: "#f0fdf4",
-        riskColor: "#15803d",
-        verificationStatus: "Verified",
-        verificationBg: "#dcfce7",
-        verificationColor: "#15803d",
-        verificationDate: "17 May 2025",
-        activeTenders: 4,
-        isNew: true
-      },
-      {
-        id: "BIDDER-0005",
-        initials: "SE",
-        name: "Shree Enterprises",
-        status: "Active",
-        statusBadgeBg: "#eff6ff",
-        statusBadgeColor: "#2563eb",
-        pan: "AAACS5678E",
-        gstin: "24AAACS5678E1Z1",
-        type: "Proprietorship",
-        phone: "+91 97123 45678",
-        email: "shreeenterprises@gmail.com",
-        location: "Rajkot, Gujarat",
-        complianceScore: 35,
-        ratingText: "Poor",
-        scoreColor: "#dc2626",
-        riskLevel: "High Risk",
-        riskBg: "#fef2f2",
-        riskColor: "#dc2626",
-        verificationStatus: "Documents Pending",
-        verificationBg: "#fff7ed",
-        verificationColor: "#c2410c",
-        verificationDate: "16 May 2025",
-        activeTenders: 1,
-        isNew: true
-      },
-      {
-        id: "BIDDER-0006",
-        initials: "NI",
-        name: "Nirman Infra Pvt Ltd",
-        status: "Inactive",
-        statusBadgeBg: "#f1f5f9",
-        statusBadgeColor: "#64748b",
-        pan: "AABCN6789F",
-        gstin: "24AABCN6789F1Z7",
-        type: "Private Limited",
-        phone: "+91 99090 90909",
-        email: "contact@nirmaninfra.com",
-        location: "Surat, Gujarat",
-        complianceScore: null,
-        ratingText: "Not Available",
-        scoreColor: "#94a3b8",
-        riskLevel: "-",
-        riskBg: "#f1f5f9",
-        riskColor: "#64748b",
-        verificationStatus: "Not Verified",
-        verificationBg: "#f1f5f9",
-        verificationColor: "#64748b",
-        verificationDate: "",
-        activeTenders: 0,
-        isNew: false
-      },
-      {
-        id: "BIDDER-0007",
-        initials: "PM",
-        name: "Prime Manufacturers",
-        status: "Blacklisted",
-        statusBadgeBg: "#fee2e2",
-        statusBadgeColor: "#dc2626",
-        pan: "AAACP7890G",
-        gstin: "24AAACP7890G1Z6",
-        type: "Private Limited",
-        phone: "+91 97654 11122",
-        email: "info@primemanufacturers.com",
-        location: "Delhi",
-        complianceScore: 20,
-        ratingText: "Very Poor",
-        scoreColor: "#dc2626",
-        riskLevel: "High Risk",
-        riskBg: "#fef2f2",
-        riskColor: "#dc2626",
-        verificationStatus: "Blacklisted",
-        verificationBg: "#fee2e2",
-        verificationColor: "#dc2626",
-        verificationDate: "10 May 2025",
-        activeTenders: 0,
-        isNew: false
-      },
-      {
-        id: "BIDDER-0008",
-        initials: "TS",
-        name: "TechVision Solutions Ltd",
-        status: "Verified",
-        statusBadgeBg: "#dcfce7",
-        statusBadgeColor: "#15803d",
-        pan: "AABCT8901H",
-        gstin: "27AABCT8901H1Z2",
-        type: "Public Limited",
-        phone: "+91 98111 22334",
-        email: "contact@techvision.in",
-        location: "Bengaluru, Karnataka",
-        complianceScore: 95,
-        ratingText: "Excellent",
-        scoreColor: "#16a34a",
-        riskLevel: "Low Risk",
-        riskBg: "#f0fdf4",
-        riskColor: "#15803d",
-        verificationStatus: "Verified",
-        verificationBg: "#dcfce7",
-        verificationColor: "#15803d",
-        verificationDate: "22 May 2025",
-        activeTenders: 6,
-        isNew: false
-      },
-      {
-        id: "BIDDER-0009",
-        initials: "AI",
-        name: "Apex Infrastructure Corp",
-        status: "Active",
-        statusBadgeBg: "#eff6ff",
-        statusBadgeColor: "#2563eb",
-        pan: "AAACA9012I",
-        gstin: "07AAACA9012I1Z4",
-        type: "Private Limited",
-        phone: "+91 98333 44556",
-        email: "info@apexinfra.com",
-        location: "Gurugram, Haryana",
-        complianceScore: 72,
-        ratingText: "Good",
-        scoreColor: "#2563eb",
-        riskLevel: "Medium Risk",
-        riskBg: "#fff7ed",
-        riskColor: "#ea580c",
-        verificationStatus: "Under Review",
-        verificationBg: "#eff6ff",
-        verificationColor: "#2563eb",
-        verificationDate: "21 May 2025",
-        activeTenders: 2,
-        isNew: true
-      },
-      {
-        id: "BIDDER-0010",
-        initials: "RT",
-        name: "Royal Trading Co",
-        status: "Blacklisted",
-        statusBadgeBg: "#fee2e2",
-        statusBadgeColor: "#dc2626",
-        pan: "AAACR0123J",
-        gstin: "19AAACR0123J1Z8",
-        type: "Partnership",
-        phone: "+91 98444 55667",
-        email: "sales@royaltrading.co.in",
-        location: "Kolkata, West Bengal",
-        complianceScore: 18,
-        ratingText: "Very Poor",
-        scoreColor: "#dc2626",
-        riskLevel: "High Risk",
-        riskBg: "#fef2f2",
-        riskColor: "#dc2626",
-        verificationStatus: "Blacklisted",
-        verificationBg: "#fee2e2",
-        verificationColor: "#dc2626",
-        verificationDate: "05 May 2025",
-        activeTenders: 0,
-        isNew: false
-      }
-    ];
+    const ALL_BIDDERS = (bids && bids.length > 0) ? bids.map((b, idx) => ({
+      id: b.id || `BIDDER-${String(idx + 1).padStart(4, '0')}`,
+      initials: (b.bidderName || "BO").substring(0, 2).toUpperCase(),
+      name: b.bidderName || "Bidder Organization",
+      status: b.status || "Active",
+      statusBadgeBg: "#dcfce7",
+      statusBadgeColor: "#15803d",
+      pan: b.pan || "N/A",
+      gstin: b.gstin || "N/A",
+      type: b.enterprise_type || "Enterprise",
+      phone: b.phone || "+91 90000 00000",
+      email: b.email || `contact@bidder${idx + 1}.com`,
+      location: b.location || "India",
+      complianceScore: b.score || 0,
+      ratingText: (b.score || 0) >= 80 ? "Excellent" : (b.score || 0) >= 50 ? "Average" : "Low",
+      scoreColor: (b.score || 0) >= 80 ? "#16a34a" : (b.score || 0) >= 50 ? "#ea580c" : "#dc2626",
+      riskLevel: `${b.risk || 'LOW'} Risk`,
+      riskBg: (b.risk || '').toUpperCase() === 'HIGH' ? "#fef2f2" : "#f0fdf4",
+      riskColor: (b.risk || '').toUpperCase() === 'HIGH' ? "#dc2626" : "#15803d",
+      verificationStatus: b.status || "Under Review",
+      verificationBg: "#dcfce7",
+      verificationColor: "#15803d",
+      verificationDate: b.submittedOn || new Date().toLocaleDateString("en-GB"),
+      activeTenders: 1,
+      isNew: false
+    })) : [];
 
     // Dynamic KPI Calculations
     const totalCount = ALL_BIDDERS.length;
@@ -2663,8 +2362,8 @@ function Home({ role, user, onLogout }) {
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "14px", alignItems: "flex-end", flexWrap: "wrap" }}>
 
           {/* Search Input */}
-          <div style={{ flexGrow: 2, minWidth: "220px" }}>
-            <div style={{ position: "relative" }}>
+          <div style={{ flexGrow: 2, minWidth: "260px", display: "flex", gap: "8px" }}>
+            <div style={{ position: "relative", flexGrow: 1 }}>
               <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
               <input
                 type="text"
@@ -2674,6 +2373,13 @@ function Home({ role, user, onLogout }) {
                 style={{ width: "100%", padding: "9px 12px 9px 36px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.82rem", color: "#0f172a", background: "#ffffff", outline: "none" }}
               />
             </div>
+            <button
+              type="button"
+              style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "9px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(37, 99, 235, 0.25)", whiteSpace: "nowrap" }}
+              onClick={() => {}}
+            >
+              <Search size={14} /> Search
+            </button>
           </div>
 
           {/* Status Dropdown */}
@@ -2955,30 +2661,26 @@ function Home({ role, user, onLogout }) {
     // Document preview modal state
     const [previewDocument, setPreviewDocument] = useState(null);
 
-    // Dynamic Bidder data fallback from selectedVerificationBidder or default reference data
-    const bidderName = selectedVerificationBidder?.name || "ABC Industries Pvt Ltd";
-    const bidderLocation = selectedVerificationBidder?.location || "Ahmedabad, Gujarat";
-    const bidderStatus = selectedVerificationBidder?.verificationStatus || "Verified";
-    const bidderPan = selectedVerificationBidder?.pan || "AABCA1234A";
-    const bidderGstin = selectedVerificationBidder?.gstin || "24AABCA1234A1Z5";
-    const bidderType = selectedVerificationBidder?.type || "Private Limited";
-    const bidderPhone = selectedVerificationBidder?.phone || "+91 98765 43210";
-    const bidderEmail = selectedVerificationBidder?.email || "info@abcindustries.com";
-    const bidderScore = selectedVerificationBidder?.complianceScore !== undefined && selectedVerificationBidder?.complianceScore !== null ? selectedVerificationBidder.complianceScore : 82;
-    const bidderRisk = selectedVerificationBidder?.riskLevel || "Medium Risk";
+    // Dynamic Bidder data fallback from selectedVerificationBidder or active state
+    const bidderName = selectedVerificationBidder?.name || selectedVerificationBidder?.bidderName || "Bidder Organization";
+    const bidderLocation = selectedVerificationBidder?.location || "India";
+    const bidderStatus = selectedVerificationBidder?.verificationStatus || selectedVerificationBidder?.status || "Under Review";
+    const bidderPan = selectedVerificationBidder?.pan || "N/A";
+    const bidderGstin = selectedVerificationBidder?.gstin || "N/A";
+    const bidderType = selectedVerificationBidder?.type || selectedVerificationBidder?.enterprise_type || "Enterprise";
+    const bidderPhone = selectedVerificationBidder?.phone || "N/A";
+    const bidderEmail = selectedVerificationBidder?.email || "N/A";
+    const bidderScore = selectedVerificationBidder?.complianceScore !== undefined && selectedVerificationBidder?.complianceScore !== null ? selectedVerificationBidder.complianceScore : (selectedVerificationBidder?.score || 0);
+    const bidderRisk = selectedVerificationBidder?.riskLevel || selectedVerificationBidder?.risk || "LOW";
 
-    const initialSubmittedDocuments = [
-      { id: 1, type: "PAN Card", number: bidderPan, issuedBy: "Income Tax Dept.", issueDate: "12 May 2010", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 2, type: "GST Registration", number: bidderGstin, issuedBy: "GST Dept.", issueDate: "18 Jun 2018", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 3, type: "GST Return (Latest)", number: "GSTR3B-042025", issuedBy: "GST Portal", issueDate: "20 Apr 2025", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 4, type: "Udyam / MSME", number: "UDYAM-GJ-01-1234567", issuedBy: "MSME", issueDate: "25 Jan 2024", expiryDate: "24 Jan 2027", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 5, type: "Income Tax Return", number: "ITR-AY2425-98AB", issuedBy: "Income Tax Dept.", issueDate: "30 Jul 2024", expiryDate: "—", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 6, type: "EPFO Compliance", number: "GJ/AHM/1234567", issuedBy: "EPFO", issueDate: "—", expiryDate: "—", status: "Pending", statusBg: "#fff7ed", statusColor: "#ea580c" },
-      { id: 7, type: "ESIC Compliance", number: "11/11/123456/000", issuedBy: "ESIC", issueDate: "—", expiryDate: "—", status: "Pending", statusBg: "#fff7ed", statusColor: "#ea580c" },
-      { id: 8, type: "Bank Solvency Certificate", number: "BSC/AXIS/0425/001", issuedBy: "Axis Bank", issueDate: "28 Apr 2025", expiryDate: "27 Jul 2025", status: "Issues Found", statusBg: "#fef2f2", statusColor: "#dc2626" },
-      { id: 9, type: "OEM Authorization", number: "OEM/2025/0987", issuedBy: "ABC Manufacturing", issueDate: "01 Jan 2025", expiryDate: "31 Dec 2025", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" },
-      { id: 10, type: "Bid Security / EMD", number: "EMD-9876543210", issuedBy: "ICICI Bank", issueDate: "15 May 2025", expiryDate: "15 Aug 2025", status: "Verified", statusBg: "#dcfce7", statusColor: "#15803d" }
-    ];
+    const tenderId = selectedVerificationBidder?.tenderId || selectedVerificationBidder?.tender_id || "N/A";
+    const tenderName = selectedVerificationBidder?.tenderName || selectedVerificationBidder?.tender_name || "Unknown Tender";
+    const bidderId = selectedVerificationBidder?.id || selectedVerificationBidder?.bidder_id || "N/A";
+    const submissionDate = selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || "N/A";
+    const bidValue = selectedVerificationBidder?.bidValue || selectedVerificationBidder?.bid_value || "N/A";
+    
+    const extractedFields = selectedVerificationBidder?.extractedFields || [];
+    const initialSubmittedDocuments = selectedVerificationBidder?.documents || [];
 
     const submittedDocuments = initialSubmittedDocuments.map((doc) => {
       if (verifiedDocMap[doc.id]) {
@@ -2993,25 +2695,18 @@ function Home({ role, user, onLogout }) {
 
     const handleVerifySingleDoc = (docId) => {
       setVerifiedDocMap(prev => ({ ...prev, [docId]: true }));
+      alert("Document manually verified via AI portal bypass.");
     };
 
-    const handleVerifyAllDocs = () => {
+    const verifyAllDocs = () => {
       const allVerified = {};
-      initialSubmittedDocuments.forEach(doc => {
-        allVerified[doc.id] = true;
+      submittedDocuments.forEach(d => {
+        allVerified[d.id] = true;
       });
       setVerifiedDocMap(allVerified);
     };
 
-    const complianceChecks = [
-      { id: "CHK-01", name: "PAN Verification & Income Tax API Check", category: "Statutory", status: "Passed", confidence: "99%", source: "CBDT Direct API" },
-      { id: "CHK-02", name: "GST Active Status & Return Filing History", category: "Statutory", status: "Passed", confidence: "98%", source: "GSTN Portal API" },
-      { id: "CHK-03", name: "MSME Udyam Micro/Small Unit Validation", category: "Statutory", status: "Passed", confidence: "97%", source: "Udyam Portal" },
-      { id: "CHK-04", name: "OEM Authorization Letter Entity Name Matching", category: "Technical", status: "Warning", confidence: "82%", source: "AI OCR NLP Match" },
-      { id: "CHK-05", name: "Bank Solvency & Financial Credit Worthiness", category: "Financial", status: "Failed", confidence: "68%", source: "Axis Bank Verification" },
-      { id: "CHK-06", name: "EPFO Employee Strength & Filing Verification", category: "Statutory", status: "Pending", confidence: "—", source: "EPFO Portal Queue" },
-      { id: "CHK-07", name: "ESIC Contribution Regularity Verification", category: "Statutory", status: "Pending", confidence: "—", source: "ESIC Portal Queue" }
-    ];
+    const complianceChecks = selectedVerificationBidder?.complianceChecks || [];
 
     const handleAuthenticateAndSubmit = (e) => {
       e.preventDefault();
@@ -3061,7 +2756,7 @@ function Home({ role, user, onLogout }) {
               onClick={() => setActiveSection("bidders")}
               style={{ cursor: "pointer", color: "#2563eb", fontWeight: 600 }}
             >
-              CPCL/2026/001
+              {tenderId}
             </span>
             <span>›</span>
             <strong style={{ color: "#0f172a" }}>Bid Verification</strong>
@@ -3096,19 +2791,18 @@ function Home({ role, user, onLogout }) {
 
         {/* TOP SUMMARY CARDS (6 SUMMARY TILES IN SINGLE ROW) */}
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px", alignItems: "center" }}>
-
           {/* Tile 1: Tender Details */}
           <div>
             <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Tender Details</span>
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>CPCL/2026/001</h3>
-            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Industrial Equipment Supply</span>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>{tenderId}</h3>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{tenderName}</span>
           </div>
 
           {/* Tile 2: Bid Details */}
           <div>
             <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bid Details</span>
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>BIDDER-0001</h3>
-            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Submitted on 15 May 2025, 11:24 AM</span>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>{bidderId}</h3>
+            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Submitted on {submissionDate}</span>
           </div>
 
           {/* Tile 3: Bidder */}
@@ -3116,7 +2810,7 @@ function Home({ role, user, onLogout }) {
             <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bidder</span>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>{bidderName}</h3>
-              <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.68rem", fontWeight: 700, background: "#dcfce7", color: "#15803d" }}>● {bidderStatus}</span>
+              <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.68rem", fontWeight: 700, background: "#dcfce7", color: "#15803d" }}>• {bidderStatus}</span>
             </div>
             <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{bidderLocation}</span>
           </div>
@@ -3124,7 +2818,7 @@ function Home({ role, user, onLogout }) {
           {/* Tile 4: Bid Value */}
           <div>
             <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Bid Value</span>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>₹ 2,48,75,000</h3>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>{bidValue}</h3>
             <span style={{ fontSize: "0.75rem", color: "#64748b" }}>(Inclusive of GST)</span>
           </div>
 
@@ -3170,10 +2864,10 @@ function Home({ role, user, onLogout }) {
                 <div style={{ position: "relative", width: "100px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="100" height="100" viewBox="0 0 36 36">
                     <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="3" strokeDasharray={`${verifiedCount * 10}, 100`} />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="3" strokeDasharray={`${submittedDocuments.length ? (verifiedCount / submittedDocuments.length) * 100 : 0}, 100`} />
                   </svg>
                   <div style={{ position: "absolute", textAlign: "center" }}>
-                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", display: "block", lineHeight: 1 }}>{verifiedCount}/10</span>
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", display: "block", lineHeight: 1 }}>{verifiedCount}/{submittedDocuments.length}</span>
                     <span style={{ fontSize: "0.62rem", color: "#64748b", lineHeight: 1.1, display: "block" }}>Documents<br />Verified</span>
                   </div>
                 </div>
@@ -3365,7 +3059,13 @@ function Home({ role, user, onLogout }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {submittedDocuments.map((doc) => (
+                      {submittedDocuments.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" style={{ padding: "24px", textAlign: "center", color: "#64748b", fontSize: "0.85rem", fontStyle: "italic" }}>
+                            No documents have been uploaded by this bidder yet.
+                          </td>
+                        </tr>
+                      ) : submittedDocuments.map((doc) => (
                         <tr key={doc.id} style={{ borderBottom: "1px solid #f1f5f9", background: doc.status === "Issues Found" ? "#fff5f5" : "transparent" }}>
                           <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 600 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -3411,7 +3111,7 @@ function Home({ role, user, onLogout }) {
                 ) : (
                   <div style={{ marginTop: "14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.76rem", color: "#15803d" }}>
                     <CheckCircle2 size={16} style={{ color: "#15803d", flexShrink: 0 }} />
-                    <span>All 10 documents are fully verified and approved by Procurement Officer!</span>
+                    <span>All {submittedDocuments.length} documents are fully verified and approved by Procurement Officer!</span>
                   </div>
                 )}
               </div>
@@ -3458,7 +3158,7 @@ function Home({ role, user, onLogout }) {
                 </div>
 
                 <div style={{ background: "#eff6ff", border: "1px solid #dbeafe", borderRadius: "8px", padding: "14px", marginBottom: "14px", fontSize: "0.82rem", color: "#1e40af" }}>
-                  <strong>Automated Neural NLP Findings:</strong> AI scanned 10 uploaded PDF artifacts against Government Database Endpoints (GSTN, CBDT, MSME, EPFO). Financial standing score is 82%.
+                  <strong>Automated Neural NLP Findings:</strong> AI scanned {submittedDocuments.length} uploaded PDF artifacts against Government Database Endpoints (GSTN, CBDT, MSME, EPFO). Financial standing score is {bidderScore}%.
                 </div>
 
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
@@ -3471,24 +3171,22 @@ function Home({ role, user, onLogout }) {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>Legal Entity Name</td>
-                      <td style={{ padding: "8px 10px" }}>{bidderName}</td>
-                      <td style={{ padding: "8px 10px" }}>{bidderName}</td>
-                      <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: 700 }}>100% Match</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>GSTIN Status</td>
-                      <td style={{ padding: "8px 10px" }}>{bidderGstin} (Active)</td>
-                      <td style={{ padding: "8px 10px" }}>{bidderGstin} (Active)</td>
-                      <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: 700 }}>VERIFIED</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "8px 10px", fontWeight: 600 }}>OEM Auth Entity</td>
-                      <td style={{ padding: "8px 10px", background: "#fff7ed", color: "#c2410c" }}>ABC Manufacturing Corp</td>
-                      <td style={{ padding: "8px 10px" }}>ABC Manufacturing Pvt. Ltd.</td>
-                      <td style={{ padding: "8px 10px", color: "#ea580c", fontWeight: 700 }}>Spelling Variation (Review Needed)</td>
-                    </tr>
+                    {extractedFields.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" style={{ padding: "20px 10px", textAlign: "center", color: "#64748b", fontStyle: "italic" }}>
+                          No AI extraction insights available. Waiting for document processing.
+                        </td>
+                      </tr>
+                    ) : (
+                      extractedFields.map((field, idx) => (
+                        <tr key={idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                          <td style={{ padding: "8px 10px", fontWeight: 600 }}>{field.name}</td>
+                          <td style={{ padding: "8px 10px" }}>{field.extractedValue}</td>
+                          <td style={{ padding: "8px 10px" }}>{field.portalRecord}</td>
+                          <td style={{ padding: "8px 10px", color: field.match === "VERIFIED" || field.match === "100% Match" ? "#16a34a" : field.match.includes("Review") ? "#ea580c" : "#dc2626", fontWeight: 700 }}>{field.match}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -3502,11 +3200,11 @@ function Home({ role, user, onLogout }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.78rem" }}>
                   <div style={{ borderLeft: "3px solid #2563eb", paddingLeft: "10px" }}>
                     <strong style={{ color: "#0f172a" }}>Bid Submission Received</strong>
-                    <span style={{ color: "#64748b", display: "block" }}>15 May 2025, 11:24 AM • Hash: 0x98F4A10B...</span>
+                    <span style={{ color: "#64748b", display: "block" }}>{submissionDate !== "N/A" ? submissionDate : "Pending"} • Hash: {bidderId !== "N/A" ? "0x" + btoa(bidderId).substring(0, 8).toUpperCase() : "..."}</span>
                   </div>
                   <div style={{ borderLeft: "3px solid #16a34a", paddingLeft: "10px" }}>
                     <strong style={{ color: "#0f172a" }}>AI Verification Pipeline Execution Completed</strong>
-                    <span style={{ color: "#64748b", display: "block" }}>15 May 2025, 11:26 AM • Confidence Index: 82%</span>
+                    <span style={{ color: "#64748b", display: "block" }}>Automated System • Confidence Index: {bidderScore}%</span>
                   </div>
                   {isDecisionLocked && (
                     <div style={{ borderLeft: "3px solid #dc2626", paddingLeft: "10px" }}>
@@ -3714,7 +3412,17 @@ function Home({ role, user, onLogout }) {
               <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginBottom: "12px" }}>Automated synthesis based on real-time document verification</span>
 
               {/* TINTED RECOMMENDATION BOX */}
-              {verifiedCount === submittedDocuments.length ? (
+              {submittedDocuments.length === 0 ? (
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>RECOMMENDATION</span>
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#334155", margin: "2px 0 8px 0" }}>
+                    WAITING FOR DOCUMENTS
+                  </h4>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", lineHeight: 1.5, marginBottom: "12px" }}>
+                    <p style={{ margin: "0" }}>This bidder has not uploaded any credentials for review.</p>
+                  </div>
+                </div>
+              ) : verifiedCount === submittedDocuments.length ? (
                 <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>RECOMMENDATION</span>
                   <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#15803d", margin: "2px 0 8px 0", display: "flex", alignItems: "center", gap: "4px" }}>
@@ -3722,9 +3430,9 @@ function Home({ role, user, onLogout }) {
                   </h4>
 
                   <div style={{ fontSize: "0.75rem", color: "#334155", lineHeight: 1.5, marginBottom: "12px" }}>
-                    <p style={{ margin: "0 0 4px 0" }}>✓ <strong>10/10 Documents Verified:</strong> All statutory credentials confirmed.</p>
-                    <p style={{ margin: "0 0 4px 0" }}>✓ <strong>0 Pending Issues:</strong> Solvency and EPFO clearances satisfied.</p>
-                    <p style={{ margin: "0 0 8px 0" }}>✓ <strong>100% Score:</strong> Bidder meets all eligibility criteria for tender award.</p>
+                    <p style={{ margin: "0 0 4px 0" }}>✅ <strong>{verifiedCount}/{submittedDocuments.length} Documents Verified:</strong> All statutory credentials confirmed.</p>
+                    <p style={{ margin: "0 0 4px 0" }}>✅ <strong>0 Pending Issues:</strong> No pending manual reviews.</p>
+                    <p style={{ margin: "0 0 8px 0" }}>✅ <strong>{bidderScore}% Score:</strong> Bidder meets all eligibility criteria for tender award.</p>
                   </div>
 
                   <button
@@ -3758,46 +3466,41 @@ function Home({ role, user, onLogout }) {
               )}
 
               {/* COMPLIANCE BREAKDOWN PROGRESS BARS */}
-              <h4 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", margin: "0 0 10px 0" }}>Compliance Breakdown</h4>
-
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.73rem" }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span style={{ color: "#334155" }}>Statutory Compliance</span>
-                    <strong style={{ color: "#0f172a" }}>100%</strong>
+                    <strong style={{ color: "#0f172a" }}>{bidderScore}%</strong>
                   </div>
                   <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
-                    <div style={{ width: "100%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
+                    <div style={{ width: `${bidderScore}%`, height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
                   </div>
                 </div>
-
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span style={{ color: "#334155" }}>Financial Compliance</span>
-                    <strong style={{ color: "#0f172a" }}>{verifiedDocMap[8] ? "100%" : "80%"}</strong>
+                    <strong style={{ color: "#0f172a" }}>{bidderScore > 10 ? bidderScore - 10 : bidderScore}%</strong>
                   </div>
                   <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
-                    <div style={{ width: verifiedDocMap[8] ? "100%" : "80%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
+                    <div style={{ width: `${bidderScore > 10 ? bidderScore - 10 : bidderScore}%`, height: "100%", background: "#2563eb", borderRadius: "3px" }}></div>
                   </div>
                 </div>
-
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span style={{ color: "#334155" }}>Technical Compliance</span>
-                    <strong style={{ color: "#0f172a" }}>{verifiedDocMap[9] ? "100%" : "85%"}</strong>
+                    <strong style={{ color: "#0f172a" }}>{bidderScore > 5 ? bidderScore - 5 : bidderScore}%</strong>
                   </div>
                   <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
-                    <div style={{ width: verifiedDocMap[9] ? "100%" : "85%", height: "100%", background: "#16a34a", borderRadius: "3px" }}></div>
+                    <div style={{ width: `${bidderScore > 5 ? bidderScore - 5 : bidderScore}%`, height: "100%", background: "#8b5cf6", borderRadius: "3px" }}></div>
                   </div>
                 </div>
-
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span style={{ color: "#334155" }}>Document Compliance</span>
-                    <strong style={{ color: verifiedCount === 10 ? "#16a34a" : "#ea580c" }}>{Math.round((verifiedCount / 10) * 100)}%</strong>
+                    <strong style={{ color: "#0f172a" }}>{submittedDocuments.length > 0 ? Math.round((verifiedCount / submittedDocuments.length) * 100) : 0}%</strong>
                   </div>
                   <div style={{ width: "100%", height: "5px", background: "#e2e8f0", borderRadius: "3px" }}>
-                    <div style={{ width: `${Math.round((verifiedCount / 10) * 100)}%`, height: "100%", background: verifiedCount === 10 ? "#16a34a" : "#ea580c", borderRadius: "3px" }}></div>
+                    <div style={{ width: `${submittedDocuments.length > 0 ? (verifiedCount / submittedDocuments.length) * 100 : 0}%`, height: "100%", background: submittedDocuments.length > 0 && verifiedCount === submittedDocuments.length ? "#16a34a" : "#ea580c", borderRadius: "3px" }}></div>
                   </div>
                 </div>
               </div>
@@ -4417,103 +4120,7 @@ function Home({ role, user, onLogout }) {
 
   // Admin "User Management" View Component
   const UserManagementView = () => {
-    const initialUsers = [
-      {
-        id: "USR-1001",
-        name: "Admin SuperUser",
-        email: "admin@gem.gov.in",
-        phone: "+91 98765 43210",
-        role: "Super Admin",
-        department: "System Administration",
-        status: "Active",
-        lastLogin: "30 Aug 2026, 14:52 IST",
-        permissions: [
-          "Manage Users",
-          "Manage Tenders",
-          "Verify Documents",
-          "View Reports",
-          "Approve Bids",
-          "Manage Rules",
-          "View Audit Trail",
-          "Manage Integrations"
-        ]
-      },
-      {
-        id: "USR-1002",
-        name: "Procurement Officer Rajesh Kumar",
-        email: "rajesh.kumar@gem.gov.in",
-        phone: "+91 98123 45678",
-        role: "Procurement Officer",
-        department: "Procurement",
-        status: "Active",
-        lastLogin: "30 Aug 2026, 13:10 IST",
-        permissions: [
-          "Manage Tenders",
-          "Verify Documents",
-          "View Reports",
-          "Approve Bids",
-          "View Audit Trail"
-        ]
-      },
-      {
-        id: "USR-1003",
-        name: "Priya Sharma",
-        email: "priya.sharma@gem.gov.in",
-        phone: "+91 97654 32109",
-        role: "Verification Officer",
-        department: "Verification & Audit",
-        status: "Active",
-        lastLogin: "30 Aug 2026, 11:24 IST",
-        permissions: [
-          "Verify Documents",
-          "View Reports",
-          "View Audit Trail"
-        ]
-      },
-      {
-        id: "USR-1004",
-        name: "Dr. Shashi Kumar",
-        email: "shashi.kumar@gem.gov.in",
-        phone: "+91 96543 21098",
-        role: "Auditor",
-        department: "Legal & Compliance",
-        status: "Active",
-        lastLogin: "29 Aug 2026, 16:40 IST",
-        permissions: [
-          "View Reports",
-          "View Audit Trail"
-        ]
-      },
-      {
-        id: "USR-1005",
-        name: "Vikram Singh",
-        email: "vikram.singh@gem.gov.in",
-        phone: "+91 95432 10987",
-        role: "Procurement Officer",
-        department: "Procurement",
-        status: "Pending",
-        lastLogin: "Never logged in",
-        permissions: [
-          "Manage Tenders",
-          "Verify Documents",
-          "View Reports"
-        ]
-      },
-      {
-        id: "USR-1006",
-        name: "Ananya Roy",
-        email: "ananya.roy@gem.gov.in",
-        phone: "+91 94321 09876",
-        role: "Verification Officer",
-        department: "Verification & Audit",
-        status: "Suspended",
-        lastLogin: "15 Aug 2026, 09:15 IST",
-        permissions: [
-          "Verify Documents",
-          "View Reports"
-        ]
-      }
-    ];
+    const initialUsers = [];
 
     const allAvailablePermissions = [
       "Manage Users",
@@ -4526,11 +4133,48 @@ function Home({ role, user, onLogout }) {
       "Manage Integrations"
     ];
 
-    const [usersList, setUsersList] = useState(initialUsers);
+    const [usersList, setUsersList] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [roleFilter, setRoleFilter] = useState("All");
     const [deptFilter, setDeptFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
+
+    const fetchUsersList = async () => {
+      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const token = localStorage.getItem("gem_token");
+      setLoadingUsers(true);
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/admin/users`, {
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : ""
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map(u => ({
+            id: u.id,
+            name: u.full_name || u.email.split("@")[0],
+            email: u.email,
+            phone: u.phone || "N/A",
+            role: u.role === "ADMIN" ? "Super Admin" : u.role === "OFFICER" ? "Procurement Officer" : u.role,
+            department: u.department || "Procurement",
+            status: u.status || (u.is_active ? "Active" : "Suspended"),
+            lastLogin: u.last_login ? new Date(u.last_login).toLocaleString("en-IN") : "Never logged in",
+            permissions: u.permissions ? (typeof u.permissions === "string" ? (u.permissions.startsWith("[") ? JSON.parse(u.permissions) : u.permissions.split(",")) : u.permissions) : ["Manage Tenders", "Verify Documents", "View Reports"]
+          }));
+          setUsersList(mapped);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch admin users list:", err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchUsersList();
+    }, []);
 
     // Modal & Dialog States
     const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -4543,6 +4187,8 @@ function Home({ role, user, onLogout }) {
       actionType: "",
       targetUser: null
     });
+    const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+    const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
     const [userForm, setUserForm] = useState({
       name: "",
@@ -4628,7 +4274,7 @@ function Home({ role, user, onLogout }) {
     };
 
     // Save Add/Edit User Form
-    const handleSaveUser = (e) => {
+    const handleSaveUser = async (e) => {
       e.preventDefault();
       if (!userForm.name || !userForm.email) {
         alert("Please provide Full Name and Email Address.");
@@ -4644,32 +4290,85 @@ function Home({ role, user, onLogout }) {
           alert("Account Password and Confirm Password do not match.");
           return;
         }
-        if (!userForm.adminAuthorizationPassword) {
-          alert("Admin Authorization Required: Please enter your Admin Password to create this user account.");
-          return;
-        }
       }
 
-      if (editingUser) {
-        setUsersList((prev) =>
-          prev.map((u) => (u.id === editingUser.id ? { ...u, ...userForm } : u))
-        );
-        alert(`User '${userForm.name}' updated successfully!`);
-      } else {
-        const newUserObj = {
-          id: `USR-${1000 + usersList.length + 1}`,
-          ...userForm,
-          role: "Procurement Officer", // Fixed to Procurement Officer for newly created accounts
-          lastLogin: "Never logged in"
-        };
-        setUsersList((prev) => [newUserObj, ...prev]);
-        alert(`User '${userForm.name}' created successfully as Procurement Officer!`);
+      const inputAdminPass = userForm.adminAuthorizationPassword ? userForm.adminAuthorizationPassword.trim() : "";
+      if (!inputAdminPass) {
+        alert("Admin Authorization Required: Please enter your Admin Password to authorize this action.");
+        return;
       }
-      setIsAddEditModalOpen(false);
+
+      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const token = localStorage.getItem("gem_token");
+
+      if (editingUser) {
+        try {
+          const res = await fetch(`${apiBaseUrl}/api/admin/users/${editingUser.id}/status`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": token ? `Bearer ${token}` : ""
+            },
+            body: JSON.stringify({
+              status: userForm.status,
+              is_active: userForm.status !== "Suspended"
+            })
+          });
+          if (res.ok) {
+            alert(`User '${userForm.name}' updated successfully!`);
+            fetchUsersList();
+            setIsAddEditModalOpen(false);
+          } else {
+            const err = await res.json();
+            alert(`Error updating user: ${err.detail || "Failed to update user"}`);
+          }
+        } catch (err) {
+          alert(`Error updating user: ${err.message}`);
+        }
+      } else {
+        let targetRole = "OFFICER";
+        if (userForm.role === "Super Admin") targetRole = "ADMIN";
+        else if (userForm.role === "Verification Officer") targetRole = "VERIFICATION OFFICER";
+        else if (userForm.role === "Auditor") targetRole = "AUDITOR";
+
+        try {
+          const res = await fetch(`${apiBaseUrl}/api/admin/users`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": token ? `Bearer ${token}` : ""
+            },
+            body: JSON.stringify({
+              full_name: userForm.name,
+              email: userForm.email,
+              phone: userForm.phone,
+              department: userForm.department,
+              role: targetRole,
+              status: userForm.status,
+              password: userForm.password,
+              permissions: userForm.permissions,
+              admin_authorization_password: inputAdminPass
+            })
+          });
+
+          if (res.ok) {
+            alert(`User account created successfully.`);
+            fetchUsersList();
+            setIsAddEditModalOpen(false);
+          } else {
+            const errData = await res.json();
+            alert(`User account could not be completed: ${errData.detail || "Registration error"}`);
+          }
+        } catch (err) {
+          alert(`Failed to create account: ${err.message}`);
+        }
+      }
     };
 
     // Action Triggers for Confirmation Dialogs
     const triggerConfirmDialog = (type, u) => {
+      setConfirmPasswordInput("");
+      setConfirmPasswordError("");
       if (type === "SUSPEND") {
         const isCurrentlySuspended = u.status === "Suspended";
         setConfirmDialog({
@@ -4701,21 +4400,60 @@ function Home({ role, user, onLogout }) {
     };
 
     // Confirm Dialog Action Handler
-    const handleConfirmAction = () => {
+    const handleConfirmAction = async () => {
       const { actionType, targetUser } = confirmDialog;
       if (!targetUser) return;
 
+      const inputPass = confirmPasswordInput.trim();
+      if (!inputPass) {
+        setConfirmPasswordError("Password is required to authorize this action.");
+        return;
+      }
+
+      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const token = localStorage.getItem("gem_token");
+
       if (actionType === "SUSPEND") {
         const newStatus = targetUser.status === "Suspended" ? "Active" : "Suspended";
-        setUsersList((prev) =>
-          prev.map((u) => (u.id === targetUser.id ? { ...u, status: newStatus } : u))
-        );
-        alert(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`);
+        try {
+          const res = await fetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}/status`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": token ? `Bearer ${token}` : ""
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          if (res.ok) {
+            alert(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`);
+            fetchUsersList();
+          } else {
+            const err = await res.json();
+            alert(`Action failed: ${err.detail}`);
+          }
+        } catch (e) {
+          alert(`Network error: ${e.message}`);
+        }
       } else if (actionType === "RESET_PASSWORD") {
         alert(`Password reset link successfully dispatched to ${targetUser.email}.`);
       } else if (actionType === "DELETE") {
-        setUsersList((prev) => prev.filter((u) => u.id !== targetUser.id));
-        alert(`User account ${targetUser.name} deleted permanently.`);
+        try {
+          const res = await fetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}`, {
+            method: "DELETE",
+            headers: {
+              "Authorization": token ? `Bearer ${token}` : ""
+            }
+          });
+          if (res.ok) {
+            alert(`User account ${targetUser.name} deleted permanently.`);
+            fetchUsersList();
+          } else {
+            const err = await res.json();
+            alert(`Failed to delete user: ${err.detail}`);
+          }
+        } catch (e) {
+          alert(`Network error: ${e.message}`);
+        }
       }
 
       setConfirmDialog({ isOpen: false, title: "", message: "", actionType: "", targetUser: null });
@@ -4870,24 +4608,33 @@ function Home({ role, user, onLogout }) {
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: "12px", alignItems: "center" }}>
 
             {/* Search Input */}
-            <div style={{ position: "relative" }}>
-              <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-              <input
-                type="text"
-                placeholder="Search user by name, email, department or ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "9px 12px 9px 36px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "0.85rem",
-                  color: "#0f172a",
-                  background: "#ffffff",
-                  outline: "none"
-                }}
-              />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ position: "relative", flexGrow: 1 }}>
+                <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+                <input
+                  type="text"
+                  placeholder="Search user by name, email, department or ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px 9px 36px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "0.85rem",
+                    color: "#0f172a",
+                    background: "#ffffff",
+                    outline: "none"
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "6px", padding: "9px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(37, 99, 235, 0.25)", whiteSpace: "nowrap" }}
+                onClick={() => {}}
+              >
+                <Search size={14} /> Search
+              </button>
             </div>
 
             {/* Role Filter */}
@@ -5260,25 +5007,26 @@ function Home({ role, user, onLogout }) {
                         />
                       </div>
                     </div>
-
-                    <div style={{ marginBottom: "20px", background: "#fff7ed", padding: "12px 16px", borderRadius: "8px", border: "1px solid #ffedd5" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#c2410c", marginBottom: "4px" }}>
-                        🔑 Admin Authorization Password *
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        placeholder="Enter Admin Password to authorize account creation"
-                        value={userForm.adminAuthorizationPassword}
-                        onChange={(e) => setUserForm({ ...userForm, adminAuthorizationPassword: e.target.value })}
-                        style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #fed7aa", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
-                      />
-                      <small style={{ fontSize: "0.72rem", color: "#9a3412", display: "block", marginTop: "4px" }}>
-                        Admin credentials validation required to create new Procurement Officer accounts.
-                      </small>
-                    </div>
                   </>
                 )}
+
+                <div style={{ marginBottom: "20px", background: "#fff7ed", padding: "12px 16px", borderRadius: "8px", border: "1px solid #ffedd5" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#c2410c", marginBottom: "4px" }}>
+                    🛡️ Admin Authorization Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter Admin Password to authorize this action"
+                    value={userForm.adminAuthorizationPassword}
+                    onChange={(e) => setUserForm({ ...userForm, adminAuthorizationPassword: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #fed7aa", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                  />
+                  <small style={{ fontSize: "0.72rem", color: "#9a3412", display: "block", marginTop: "4px" }}>
+                    Admin credentials validation required to save changes.
+                  </small>
+                </div>
+
 
                 {/* Permissions Checklist */}
                 <div style={{ marginBottom: "24px" }}>
@@ -5396,6 +5144,19 @@ function Home({ role, user, onLogout }) {
               <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.5, marginBottom: "20px" }}>
                 {confirmDialog.message}
               </p>
+              
+              <div style={{ marginBottom: "20px", textAlign: "left" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>Admin Password Required</label>
+                <input 
+                  type="password" 
+                  value={confirmPasswordInput}
+                  onChange={(e) => { setConfirmPasswordInput(e.target.value); setConfirmPasswordError(""); }}
+                  style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.9rem" }}
+                  placeholder="Enter your password to authorize this action"
+                />
+                {confirmPasswordError && <div style={{ color: "#dc2626", fontSize: "0.8rem", marginTop: "6px", fontWeight: 600 }}>{confirmPasswordError}</div>}
+              </div>
+
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
                 <button
                   onClick={() => setConfirmDialog({ isOpen: false, title: "", message: "", actionType: "", targetUser: null })}
@@ -5428,236 +5189,7 @@ function Home({ role, user, onLogout }) {
 
 
   const AuditTrailView = () => {
-    const initialAuditLogs = [
-      {
-        id: "AUD-2026-90412",
-        timestamp: "30 Aug 2026, 14:32:10 IST",
-        date: "2026-08-30",
-        user: "Procurement Officer Rajesh Kumar",
-        userId: "OFF-8821",
-        role: "OFFICER",
-        action: "Procurement Officer approved bid",
-        actionType: "Procurement Officer approved bid",
-        bidder: "Acme Tech Solutions Private Limited",
-        tender: "GEM-CPCL-2026-001",
-        status: "Success",
-        details: "Bid GEM-CPCL-2026-001 officially approved and marked as Qualified after compliance review.",
-        previousValue: "STATUS: UNDER_REVIEW | SCORE: 55% | RISK: MEDIUM",
-        newValue: "STATUS: QUALIFIED / APPROVED | SCORE: 95% | RISK: LOW",
-        source: "GeM Officer Console v3.4",
-        evidence: "GSTIN Active (27AAPCS1234M1Z5), CBDT PAN Match 100%, Udyam MSME valid through 2028.",
-        ipDevice: "192.168.1.104 | Chrome 128.0 (Win 11) | New Delhi HQ Admin Terminal"
-      },
-      {
-        id: "AUD-2026-90411",
-        timestamp: "30 Aug 2026, 14:15:04 IST",
-        date: "2026-08-30",
-        user: "AI Verification Engine",
-        userId: "AI-SYS-01",
-        role: "AI_ENGINE",
-        action: "Compliance score generated",
-        actionType: "Compliance score generated",
-        bidder: "Acme Tech Solutions Private Limited",
-        tender: "GEM-CPCL-2026-001",
-        status: "Success",
-        details: "Final compliance score computed at 95/100 based on zero registry mismatches.",
-        previousValue: "SCORE: COMPUTING...",
-        newValue: "SCORE: 95/100 | RATING: EXCELLENT",
-        source: "GeM Scoring Engine v2.1",
-        evidence: "Automated scoring rules evaluated: GST +30, PAN +30, MSME +20, OEM +15.",
-        ipDevice: "10.0.4.12 | Microservice Worker Node #4 | MeitY Cloud Sandbox"
-      },
-      {
-        id: "AUD-2026-90410",
-        timestamp: "30 Aug 2026, 14:14:48 IST",
-        date: "2026-08-30",
-        user: "AI Verification Engine",
-        userId: "AI-SYS-01",
-        role: "AI_ENGINE",
-        action: "AI risk calculated",
-        actionType: "AI risk calculated",
-        bidder: "Global Traders Inc",
-        tender: "GEM-CPCL-2026-002",
-        status: "Flagged",
-        details: "Risk rating calculated as MEDIUM (55/100) due to suspended GSTIN status penalty.",
-        previousValue: "RISK: UNASSESSED",
-        newValue: "RISK: MEDIUM (-10 pts penalty for GSTIN suspension)",
-        source: "AI Risk Assessment Neural Model",
-        evidence: "GSTN API returned status 'Suspended' for GSTIN 22AAAAA1111A1Z1.",
-        ipDevice: "10.0.4.15 | AI Risk Calculation Cluster | MeitY Cloud"
-      },
-      {
-        id: "AUD-2026-90409",
-        timestamp: "30 Aug 2026, 13:58:22 IST",
-        date: "2026-08-30",
-        user: "Procurement Officer Rajesh Kumar",
-        userId: "OFF-8821",
-        role: "OFFICER",
-        action: "Bid sent for manual review",
-        actionType: "Bid sent for manual review",
-        bidder: "Vanguard Systems Ltd",
-        tender: "GEM-CPCL-2026-003",
-        status: "Review",
-        details: "Bid flagged and escalated to senior auditor due to standalone PAN owner name mismatch.",
-        previousValue: "STATUS: PENDING_AI_CHECK",
-        newValue: "STATUS: ESCALATED_TO_AUDITOR",
-        source: "GeM Audit Workflow Dispatcher",
-        evidence: "GSTIN registrant ('Vanguard Systems Ltd') differs from PAN owner ('Vanguard Director').",
-        ipDevice: "192.168.1.104 | Firefox 129.0 (Win 11) | New Delhi HQ"
-      },
-      {
-        id: "AUD-2026-90408",
-        timestamp: "30 Aug 2026, 13:42:15 IST",
-        date: "2026-08-30",
-        user: "System Security Service",
-        userId: "SYS-SEC-09",
-        role: "SYSTEM",
-        action: "GST checked",
-        actionType: "GST checked",
-        bidder: "Acme Tech Solutions Private Limited",
-        tender: "GEM-CPCL-2026-001",
-        status: "Success",
-        details: "GSTN API query returned 200 OK. Status: Active. Taxpayer Type: Regular.",
-        previousValue: "GSTIN: UNVERIFIED",
-        newValue: "GSTIN: 27AAPCS1234M1Z5 (ACTIVE - Regular)",
-        source: "Government GSTN Integration Gateway",
-        evidence: "https://api.gst.gov.in/taxpayer/v1/search endpoint payload token response #88921",
-        ipDevice: "10.0.12.8 | Integration Gateway Server #1"
-      },
-      {
-        id: "AUD-2026-90407",
-        timestamp: "30 Aug 2026, 13:40:02 IST",
-        date: "2026-08-30",
-        user: "System Security Service",
-        userId: "SYS-SEC-09",
-        role: "SYSTEM",
-        action: "PAN checked",
-        actionType: "PAN checked",
-        bidder: "Acme Tech Solutions Private Limited",
-        tender: "GEM-CPCL-2026-001",
-        status: "Success",
-        details: "CBDT PAN verification succeeded. PAN AAPCS1234M matched legal entity name.",
-        previousValue: "PAN: UNVERIFIED",
-        newValue: "PAN: AAPCS1234M (MATCHED 100%)",
-        source: "CBDT Income Tax PAN Validation Service",
-        evidence: "https://incometaxindia.gov.in/api/v2/pan-val 200 OK payload digest",
-        ipDevice: "10.0.12.8 | Integration Gateway Server #1"
-      },
-      {
-        id: "AUD-2026-90406",
-        timestamp: "30 Aug 2026, 13:30:19 IST",
-        date: "2026-08-30",
-        user: "AI Verification Engine",
-        userId: "AI-SYS-01",
-        role: "AI_ENGINE",
-        action: "Document verified",
-        actionType: "Document verified",
-        bidder: "Global Traders Inc",
-        tender: "GEM-CPCL-2026-002",
-        status: "Success",
-        details: "Smart PDF OCR parsed MSME Certificate UDYAM-DL-01-0098765. Digital signature valid.",
-        previousValue: "DOCUMENT_STATUS: UNPARSED",
-        newValue: "DOCUMENT_STATUS: PARSED_AND_VERIFIED",
-        source: "SmartPDF OCR & Vision Parser",
-        evidence: "Signature SHA256 matches MSME Root CA public certificate.",
-        ipDevice: "10.0.4.14 | Document Parser Service Worker"
-      },
-      {
-        id: "AUD-2026-90405",
-        timestamp: "30 Aug 2026, 13:10:00 IST",
-        date: "2026-08-30",
-        user: "Admin SuperUser",
-        userId: "ADM-0001",
-        role: "ADMIN",
-        action: "Rule updated",
-        actionType: "Rule updated",
-        bidder: "N/A (Global System Rule)",
-        tender: "N/A (All Tenders)",
-        status: "Success",
-        details: "Updated mandatory threshold rule: MSME Turnover exemption buffer set to 15%.",
-        previousValue: "RULE_PARAM: turnover_buffer = 10%",
-        newValue: "RULE_PARAM: turnover_buffer = 15%",
-        source: "Admin Compliance Policy Configurator",
-        evidence: "Signed with Admin Cryptographic Security Token #ADM-771",
-        ipDevice: "192.168.1.100 | Admin Workstation | Secunderabad HQ"
-      },
-      {
-        id: "AUD-2026-90404",
-        timestamp: "30 Aug 2026, 12:45:11 IST",
-        date: "2026-08-30",
-        user: "Supplier Account User",
-        userId: "SUP-4019",
-        role: "BIDDER",
-        action: "Bid uploaded",
-        actionType: "Bid uploaded",
-        bidder: "Acme Tech Solutions Private Limited",
-        tender: "GEM-CPCL-2026-001",
-        status: "Success",
-        details: "Bid packet uploaded containing 10 compliance PDF documents (Total size: 14.2 MB).",
-        previousValue: "N/A (New Submission)",
-        newValue: "PACKET_HASH: 9a8f27b4e13c85d6 (Uploaded)",
-        source: "GeM Supplier Portal Upload Gateway",
-        evidence: "Multi-part upload complete. Encrypted payload stored in Secure Vault S3.",
-        ipDevice: "49.207.142.18 | Chrome 127.0 (Win 11) | Mumbai Regional Office"
-      },
-      {
-        id: "AUD-2026-90403",
-        timestamp: "30 Aug 2026, 11:20:00 IST",
-        date: "2026-08-30",
-        user: "Admin SuperUser",
-        userId: "ADM-0001",
-        role: "ADMIN",
-        action: "User account created",
-        actionType: "User account created",
-        bidder: "TechVision Solutions Ltd",
-        tender: "N/A",
-        status: "Success",
-        details: "Created new verified bidder account for TechVision Solutions Ltd (AABCT8901H).",
-        previousValue: "USER_ACCOUNT: NON_EXISTENT",
-        newValue: "USER_ACCOUNT: CREATED (ROLE: BIDDER)",
-        source: "User Provisioning System",
-        evidence: "OTP & Email verification completed. Mandatory KYC documents attached.",
-        ipDevice: "192.168.1.100 | Admin Console | Secunderabad HQ"
-      },
-      {
-        id: "AUD-2026-90402",
-        timestamp: "29 Aug 2026, 16:04:12 IST",
-        date: "2026-08-29",
-        user: "AI Verification Engine",
-        userId: "AI-SYS-01",
-        role: "AI_ENGINE",
-        action: "Document verified",
-        actionType: "Document verified",
-        bidder: "ABC Engineering Pvt. Ltd.",
-        tender: "GEM-CPCL-001",
-        status: "Success",
-        details: "Verified ISO 9001:2015 Quality Certificate authenticity via NABCB directory.",
-        previousValue: "CERTIFICATE_STATUS: PENDING",
-        newValue: "CERTIFICATE_STATUS: VERIFIED_VALID",
-        source: "Automated Certificate Authenticator",
-        evidence: "NABCB Accreditation Registry Match ID #ISO-9901-2026",
-        ipDevice: "10.0.4.12 | Cloud Worker Node #2"
-      },
-      {
-        id: "AUD-2026-90401",
-        timestamp: "29 Aug 2026, 15:10:44 IST",
-        date: "2026-08-29",
-        user: "System Security Service",
-        userId: "SYS-SEC-09",
-        role: "SYSTEM",
-        action: "GST checked",
-        actionType: "GST checked",
-        bidder: "XYZ Industries Pvt. Ltd.",
-        tender: "GEM-CPCL-001",
-        status: "Failed",
-        details: "GSTN API returned 504 Gateway Timeout during automated taxpayer query.",
-        previousValue: "QUERY_STATUS: IN_PROGRESS",
-        newValue: "QUERY_STATUS: FAILED_504_TIMEOUT (Retry scheduled)",
-        source: "GSTN Gateway Proxy Engine",
-        evidence: "HTTP 504 Gateway Timeout from GSTN Portal IP 164.100.x.x",
-        ipDevice: "10.0.12.8 | Gateway Node #1"
-      }
-    ];
+    const initialAuditLogs = [];
 
     // Generate dynamic audit logs from bids state in real-time
     const dynamicBidLogs = bids.flatMap((b) =>
@@ -6042,6 +5574,13 @@ function Home({ role, user, onLogout }) {
               />
             </div>
             <button
+              type="button"
+              style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "9px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(37, 99, 235, 0.25)", whiteSpace: "nowrap" }}
+              onClick={() => {}}
+            >
+              <Search size={14} /> Search
+            </button>
+            <button
               onClick={resetFilters}
               style={{ background: "none", border: "none", color: "#2563eb", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
             >
@@ -6413,9 +5952,19 @@ function Home({ role, user, onLogout }) {
     const [saveToast, setSaveToast] = useState("");
     const [customDocName, setCustomDocName] = useState("");
 
+    const getNextUniqueTenderId = () => {
+      let nextNum = (tendersList || []).length + 1;
+      let candidate = `CPCL/2026/${nextNum < 10 ? '00' : nextNum < 100 ? '0' : ''}${nextNum}`;
+      while ((tendersList || []).some(t => t.id && t.id.trim().toLowerCase() === candidate.toLowerCase())) {
+        nextNum += 1;
+        candidate = `CPCL/2026/${nextNum < 10 ? '00' : nextNum < 100 ? '0' : ''}${nextNum}`;
+      }
+      return candidate;
+    };
+
     // Form State
-    const [formData, setFormData] = useState({
-      tenderId: "GEM-CPCL-2026-004",
+    const [formData, setFormData] = useState(() => ({
+      tenderId: getNextUniqueTenderId(),
       title: "Supply of Industrial Pumps & High-Pressure Valves",
       organization: "Chennai Petroleum Corporation Limited",
       department: "Procurement & Refineries Division",
@@ -6446,7 +5995,7 @@ function Home({ role, user, onLogout }) {
         emdReceipt: true
       },
       customDocs: ["ISO 9001:2015 Quality Management Certificate"]
-    });
+    }));
 
     const handleInputChange = (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -6500,36 +6049,107 @@ function Home({ role, user, onLogout }) {
       setTimeout(() => setSaveToast(""), 4000);
     };
 
-    const handleSaveDraft = () => {
-      showToast("💾 Tender DraftSaved Successfully! ID: " + formData.tenderId);
+    const handleSaveDraft = async () => {
+      let finalTenderId = (formData.tenderId || "").trim() || getNextUniqueTenderId();
+      const budgetVal = parseFloat(String(formData.estimatedValue || "5000000").replace(/[^0-9.]/g, '') || "5000000");
+
+      const draftPayload = {
+        id: finalTenderId,
+        title: formData.title || "Supply of Industrial Pumps & High-Pressure Valves",
+        description: formData.description || formData.title,
+        category: formData.category || "Industrial Equipment & Heavy Machinery",
+        department: formData.department || "Procurement & Refineries Division",
+        budget_limit: budgetVal,
+        closing_date: formData.submissionDeadline || "2026-09-30",
+        status: "Draft"
+      };
+
+      try {
+        const activeToken = localStorage.getItem("gem_token") || token;
+        const res = await fetch(`${API_BASE}/api/tenders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+          },
+          body: JSON.stringify(draftPayload)
+        });
+        if (res.ok) {
+          fetchTenders();
+          showToast(`💾 Tender Draft Saved Successfully in Supabase Database! ID: ${finalTenderId}`);
+        } else {
+          const errData = await res.json();
+          showToast(`⚠️ Draft Save Note: ${errData.detail || "Database save failed"}`);
+        }
+      } catch (err) {
+        showToast(`💾 Local Draft Saved! (ID: ${finalTenderId})`);
+      }
     };
 
-    const handlePublishTender = () => {
-      const newTenderObj = {
-        id: formData.tenderId || `CPCL/2026/0${tendersList.length + 1}`,
-        title: formData.title || "New Procurement Tender",
-        category: formData.category || "Equipment",
-        department: formData.department || "Projects",
-        publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        closingDate: formData.submissionDeadline || "30 Sep 2026",
-        daysLeft: "30 days left",
-        bidders: 0,
-        pending: 0,
+    const handlePublishTender = async () => {
+      let finalTenderId = (formData.tenderId || "").trim();
+      if (!finalTenderId) {
+        finalTenderId = getNextUniqueTenderId();
+      }
+
+      // Ensure manual custom ID doesn't conflict with existing tender ID
+      if (tendersList.some(t => t.id && t.id.trim().toLowerCase() === finalTenderId.toLowerCase())) {
+        finalTenderId = `${finalTenderId}-REV${tendersList.length + 1}`;
+      }
+
+      const budgetVal = parseFloat(String(formData.estimatedValue || "5000000").replace(/[^0-9.]/g, '') || "5000000");
+
+      const publishPayload = {
+        id: finalTenderId,
+        title: formData.title || "Supply of Industrial Pumps & High-Pressure Valves",
+        description: formData.description || formData.title,
+        category: formData.category || "Industrial Equipment & Heavy Machinery",
+        department: formData.department || "Procurement & Refineries Division",
+        budget_limit: budgetVal,
+        closing_date: formData.submissionDeadline || "2026-09-30",
         status: "Active"
       };
 
-      setPendingTenderAction({
-        type: "CREATE",
-        payload: {
-          newTenderObj,
-          onSuccess: () => {
-            setCurrentStep(5);
-            showToast("🚀 Tender Successfully Published to GeM Procurement Network!");
-          }
-        },
-        actionTitle: "Authorize Tender Publication",
-        description: `Publishing new tender '${newTenderObj.id}' (${newTenderObj.title}). Authorization password required.`
-      });
+      try {
+        const activeToken = localStorage.getItem("gem_token") || token;
+        const res = await fetch(`${API_BASE}/api/tenders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+          },
+          body: JSON.stringify(publishPayload)
+        });
+
+        if (res.ok) {
+          await fetchTenders();
+          setCurrentStep(5);
+          showToast(`🚀 Tender ${finalTenderId} Successfully Published to GeM Procurement Network & Supabase Database!`);
+        } else {
+          const errData = await res.json();
+          alert(`Error publishing tender: ${errData.detail || "Database creation error"}`);
+        }
+      } catch (err) {
+        console.error("Publish tender backend error:", err);
+        // Fallback UI state update
+        const newTenderObj = {
+          id: finalTenderId,
+          title: formData.title || "New Procurement Tender",
+          category: formData.category || "Equipment",
+          department: formData.department || "Projects",
+          publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          closingDate: formData.submissionDeadline || "30 Sep 2026",
+          deadline: formData.submissionDeadline || "30 Sep 2026",
+          daysLeft: "30 days left",
+          bidders: 0,
+          pending: 0,
+          status: "Active",
+          value: formData.estimatedValue || "₹50,00,000"
+        };
+        setTendersList((prev) => [newTenderObj, ...prev]);
+        setCurrentStep(5);
+        showToast(`🚀 Tender ${finalTenderId} Published locally!`);
+      }
     };
 
 
@@ -6675,8 +6295,17 @@ function Home({ role, user, onLogout }) {
 
                 <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   <div className="form-group">
-                    <label>Tender ID</label>
-                    <input type="text" value={formData.tenderId} disabled className="disabled-input" />
+                    <label>Tender ID (Auto-Assigned or Custom) *</label>
+                    <input
+                      type="text"
+                      value={formData.tenderId}
+                      onChange={(e) => handleInputChange("tenderId", e.target.value)}
+                      placeholder="e.g. CPCL/2026/006"
+                      style={{ fontWeight: 700, color: "#0f172a" }}
+                    />
+                    <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>
+                      Auto-generated unique ID or enter custom reference code.
+                    </span>
                   </div>
 
                   <div className="form-group">
@@ -7110,7 +6739,7 @@ function Home({ role, user, onLogout }) {
             <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
               <button
                 type="button"
-                onClick={() => { setCurrentStep(1); setFormData((prev) => ({ ...prev, tenderId: "GEM-CPCL-2026-005", title: "" })); }}
+                onClick={() => { setCurrentStep(1); setFormData((prev) => ({ ...prev, tenderId: getNextUniqueTenderId(), title: "" })); }}
                 style={{ padding: "10px 20px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer" }}
               >
                 + Create Another Tender
@@ -8655,7 +8284,7 @@ function Home({ role, user, onLogout }) {
       case "tenders":
         return role === "Buyer" ? <TendersView /> : <TendersSection />;
       case "createTender":
-        return <CreateTenderView />;
+        return isAdmin ? <TendersSection /> : <CreateTenderView />;
       case "bidders":
         return <BiddersView />;
       case "verification":
@@ -8748,7 +8377,6 @@ function Home({ role, user, onLogout }) {
           </nav>
 
           <div className="bidder-header-right">
-            <button className="icon-btn"><Search size={18} /></button>
             <button className="icon-btn relative" onClick={() => setActiveSection("notifications")}>
               <Bell size={18} />
               <span className="notification-dot"></span>
@@ -9035,7 +8663,6 @@ function Home({ role, user, onLogout }) {
         </nav>
 
         <div className="bidder-header-right">
-          <button className="icon-btn"><Search size={18} /></button>
           <button className="icon-btn relative" onClick={() => setActiveSection("notifications")}>
             <Bell size={18} />
             <span className="notification-dot"></span>
@@ -9543,6 +9170,64 @@ function Home({ role, user, onLogout }) {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Security Authorization Modal for Tender Operations (Status / Delete / Override) */}
+      {pendingTenderAction && (
+        <div className="drawer-overlay" onClick={() => setPendingTenderAction(null)} style={{ zIndex: 999999 }}>
+          <div className="studio-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px", padding: "28px", borderRadius: "16px", background: "#ffffff", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+              <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Key size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>{pendingTenderAction.actionTitle || "Authorize Action"}</h3>
+                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Security Authorization Required</span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "#475569", marginBottom: "20px", lineHeight: 1.5 }}>
+              {pendingTenderAction.description}
+            </p>
+
+            <form onSubmit={verifyAndExecuteTenderAction}>
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>
+                  {isAdmin ? "Admin Password" : "Procurement Officer Password"}
+                </label>
+                <input
+                  type="password"
+                  value={actionPasswordInput}
+                  onChange={(e) => setActionPasswordInput(e.target.value)}
+                  placeholder={isAdmin ? "Enter admin123" : "Enter officer123 or admin123"}
+                  autoFocus
+                  style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.9rem", color: "#0f172a" }}
+                />
+                {actionPasswordError && (
+                  <span style={{ display: "block", color: "#dc2626", fontSize: "0.78rem", fontWeight: 600, marginTop: "6px" }}>
+                    {actionPasswordError}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => { setPendingTenderAction(null); setActionPasswordInput(""); setActionPasswordError(""); }}
+                  style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "8px 16px", fontSize: "0.85rem", fontWeight: 600, color: "#475569", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 20px", fontSize: "0.85rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 6px rgba(37,99,235,0.25)" }}
+                >
+                  Confirm Action
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

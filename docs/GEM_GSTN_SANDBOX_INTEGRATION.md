@@ -12,41 +12,57 @@ While the hackathon prototype executes rapid validation via compliant local regi
 
 ```mermaid
 flowchart TD
-    subgraph GeM Procurement Platform
+    subgraph GEM["GeM Procurement Platform"]
         GeM_Portal["GeM Vendor Bidding Portal"]
         GeM_Webhook["GeM Bid Webhook Listener"]
     end
 
-    subgraph Verification Platform Engine
+    subgraph VERIFY["Verification Platform Engine"]
         API_Gateway["FastAPI API Gateway"]
         Auth_Service["OAuth2 / JWT Manager"]
         Doc_Pipeline["Document Processing Engine (PyMuPDF + OCR)"]
-        Forgery_Engine["AI PDF Forgery & Tampering Detector"]
-        Scoring_Engine["Weighted Compliance & Fraud Scorer"]
+        Forgery_Engine["AI PDF Forgery and Tampering Detector"]
+        Scoring_Engine["Weighted Compliance and Fraud Scorer"]
         Audit_DB[("Immutable Cryptographic Audit Trail (PostgreSQL/Supabase)")]
     end
 
-    subgraph External Sandbox Gateways
+    subgraph EXTERNAL["External Sandbox Gateways"]
         GSTN_Gateway["CBIC GSTN Public API Sandbox v2.0"]
         PAN_Gateway["NSDL Income Tax PAN API"]
         Udyam_Gateway["Ministry of MSME Udyam Portal API"]
         UIDAI_Gateway["UIDAI Aadhaar e-KYC Vault"]
     end
 
-    GeM_Portal -->|Upload Bid Document| GeM_Webhook
-    GeM_Webhook -->|Trigger Verification| API_Gateway
+    GeM_Portal -->|"Upload bid document"| GeM_Webhook
+    GeM_Webhook -->|"Trigger verification"| API_Gateway
     API_Gateway --> Auth_Service
     API_Gateway --> Doc_Pipeline
     Doc_Pipeline --> Forgery_Engine
-    Doc_Pipeline -->|Extracted Identifiers| Scoring_Engine
+    Doc_Pipeline -->|"Extracted identifiers"| Scoring_Engine
     
-    Scoring_Engine -->|Verify GSTIN| GSTN_Gateway
-    Scoring_Engine -->|Verify PAN| PAN_Gateway
-    Scoring_Engine -->|Verify MSME Status| Udyam_Gateway
-    Scoring_Engine -->|Verify Aadhaar Hash| UIDAI_Gateway
+    Scoring_Engine -->|"Verify GSTIN"| GSTN_Gateway
+    Scoring_Engine -->|"Verify PAN"| PAN_Gateway
+    Scoring_Engine -->|"Verify MSME status"| Udyam_Gateway
+    Scoring_Engine -->|"Verify Aadhaar hash"| UIDAI_Gateway
     
-    Scoring_Engine -->|Write Hash Chain Audit Log| Audit_DB
-    Scoring_Engine -->|Return Compliance Score & Risk Tier| GeM_Portal
+    Scoring_Engine -->|"Write hash-chain audit log"| Audit_DB
+    Scoring_Engine -->|"Return compliance score and risk tier"| GeM_Portal
+
+    classDef portal fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
+    classDef gateway fill:#E0E7FF,stroke:#4F46E5,color:#312E81,stroke-width:2px
+    classDef processing fill:#F3E8FF,stroke:#9333EA,color:#581C87,stroke-width:2px
+    classDef risk fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px
+    classDef score fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:3px
+    classDef external fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+    classDef audit fill:#CFFAFE,stroke:#0891B2,color:#164E63,stroke-width:2px
+
+    class GeM_Portal,GeM_Webhook portal
+    class API_Gateway,Auth_Service gateway
+    class Doc_Pipeline processing
+    class Forgery_Engine risk
+    class Scoring_Engine score
+    class GSTN_Gateway,PAN_Gateway,Udyam_Gateway,UIDAI_Gateway external
+    class Audit_DB audit
 ```
 
 ---

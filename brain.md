@@ -12,21 +12,37 @@ The goal of this platform is to automate compliance verification for bids submit
 ## 2. Platform Architecture
 
 ```mermaid
-graph TD
-    A["React/Vite Frontend & Mobile Officer App"] -- "HTTP / WebSockets / WebPush" --> B["FastAPI Backend Engine"]
-    B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
-    B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
-    B -- "Neo4j / NetworkX" --> D["Cartel Relationship Graph Engine"]
-    B -- "External Integration" --> E["Govt Registry Gateways: CBIC GSTN, EPFO, ESIC, DPIIT & DigiLocker"]
-    B -- "OCR & Multi-Lang Engine" --> F["Multi-Language Tesseract OCR & PDF Forgery/ELA Detector"]
-    B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
-    B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
-    B -- "Real-time Service" --> I["WebSocket Connection Manager & Alert Engine"]
-    B -- "POST /api/chat" --> J["MyGeM Assistant Router & Chat Service"]
-    J -- "Portal Guidance Fallback" --> K["Local Knowledge Base"]
-    J -- "General AI Questions" --> L["Gemini or Groq Chat Model"]
-    J -- "Time-Sensitive Queries" --> M["Groq Compound Web Search"]
-    M -- "Official GeM Queries" --> N["gem.gov.in Domain"]
+flowchart TD
+    A["React/Vite Frontend and Mobile Officer App"] -->|"HTTP, WebSockets, WebPush"| B["FastAPI Backend Engine"]
+    B -->|"Direct API with mTLS OAuth2"| GeM["Official GeM Portal Gateway"]
+    B -->|"SQLAlchemy 2.x"| C[("PostgreSQL / Local SQLite")]
+    B -->|"Neo4j / NetworkX"| D["Cartel Relationship Graph Engine"]
+    B -->|"External integration"| E["Government Registry Gateways"]
+    B -->|"OCR and multilingual processing"| F["Tesseract OCR and PDF Forgery Detector"]
+    B -->|"Semantic NLP"| G["RFP Clause Comparator and XAI Generator"]
+    B -->|"Blockchain audit"| H["Merkle Tree Ledger and Hyperledger Connector"]
+    B -->|"Real-time service"| I["WebSocket Manager and Alert Engine"]
+    B -->|"POST /api/chat"| J["MyGeM Assistant Router and Chat Service"]
+    J -->|"Portal guidance fallback"| K["Local Knowledge Base"]
+    J -->|"General AI questions"| L["Gemini or Groq Chat Model"]
+    J -->|"Time-sensitive queries"| M["Groq Compound Web Search"]
+    M -->|"Official GeM queries"| N["gem.gov.in Domain"]
+
+    classDef client fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
+    classDef core fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95,stroke-width:3px
+    classDef portal fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+    classDef data fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px
+    classDef analytics fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2px
+    classDef realtime fill:#CFFAFE,stroke:#0891B2,color:#164E63,stroke-width:2px
+    classDef assistant fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px
+
+    class A client
+    class B core
+    class GeM,E,N portal
+    class C,K data
+    class D,F,G analytics
+    class H,I realtime
+    class J,L,M assistant
 ```
 
 ### Core Architecture Components
@@ -114,31 +130,31 @@ flowchart LR
     O --> WEB["Web-Assisted Answer"]
     P --> WEB
 
-    G -. "Provider error" .-> K
-    X -. "Search error" .-> K
+    G -.->|"Provider error"| K
+    X -.->|"Search error"| K
     K --> FALL["Knowledge-Base Answer"]
 
     AI --> UI["Display Answer in MyGeM"]
     WEB --> UI
     FALL --> UI
 
-    classDef user fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px;
-    classDef interface fill:#E0E7FF,stroke:#4F46E5,color:#312E81,stroke-width:2px;
-    classDef service fill:#F3E8FF,stroke:#9333EA,color:#581C87,stroke-width:2px;
-    classDef decision fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px;
-    classDef ai fill:#CCFBF1,stroke:#0D9488,color:#134E4A,stroke-width:2px;
-    classDef official fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
-    classDef fallback fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px;
-    classDef output fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2px;
+    classDef user fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
+    classDef interface fill:#E0E7FF,stroke:#4F46E5,color:#312E81,stroke-width:2px
+    classDef service fill:#F3E8FF,stroke:#9333EA,color:#581C87,stroke-width:2px
+    classDef decision fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px
+    classDef ai fill:#CCFBF1,stroke:#0D9488,color:#134E4A,stroke-width:2px
+    classDef official fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+    classDef fallback fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px
+    classDef output fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2px
 
-    class U user;
-    class W,A interface;
-    class S service;
-    class Q,T,R decision;
-    class G,X,AI,P ai;
-    class O,WEB official;
-    class K,FALL fallback;
-    class UI output;
+    class U user
+    class W,A interface
+    class S service
+    class Q,T,R decision
+    class G,X,AI,P ai
+    class O,WEB official
+    class K,FALL fallback
+    class UI output
 ```
 
 #### 11. Blacklisted & Debarred Bidders Governance Console

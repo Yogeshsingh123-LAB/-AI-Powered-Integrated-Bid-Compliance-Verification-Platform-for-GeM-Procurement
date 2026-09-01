@@ -29,16 +29,30 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 ## 🏗️ System Architecture
 
 ```mermaid
-graph TD
-    A["React/Vite Frontend & Mobile Officer App"] -- "HTTP / WebSockets / WebPush" --> B["FastAPI Backend Engine"]
-    B -- "Direct API mTLS OAuth2" --> GeM["Official GeM Portal Gateway (api.gem.gov.in)"]
-    B -- "SQLAlchemy 2.x" --> C[("PostgreSQL / Local SQLite")]
-    B -- "Neo4j / NetworkX" --> D["Cartel Relationship Graph Engine"]
-    B -- "External Integration" --> E["Govt API Gateways: CBIC GSTN, EPFO, ESIC, DPIIT, DigiLocker & PFMS Treasury"]
-    B -- "OCR & Multi-Lang Engine" --> F["Multi-Language Tesseract OCR & PDF Forgery/ELA Detector"]
-    B -- "Semantic NLP Engine" --> G["Semantic RFP Clause Comparator & XAI Snippet Generator"]
-    B -- "Blockchain Audit" --> H["Cryptographic Merkle Tree Ledger & Hyperledger Connector"]
-    B -- "Real-time Service" --> I["WebSocket Connection Manager & Alert Engine"]
+flowchart TD
+    A["React/Vite Frontend and Mobile Officer App"] -->|"HTTP, WebSockets, WebPush"| B["FastAPI Backend Engine"]
+    B -->|"Direct API with mTLS OAuth2"| GeM["Official GeM Portal Gateway"]
+    B -->|"SQLAlchemy 2.x"| C[("PostgreSQL / Local SQLite")]
+    B -->|"Neo4j / NetworkX"| D["Cartel Relationship Graph Engine"]
+    B -->|"External integrations"| E["Government API Gateways"]
+    B -->|"OCR and multilingual processing"| F["Tesseract OCR and PDF Forgery Detector"]
+    B -->|"Semantic NLP"| G["RFP Clause Comparator and XAI Generator"]
+    B -->|"Blockchain audit"| H["Merkle Tree Ledger and Hyperledger Connector"]
+    B -->|"Real-time services"| I["WebSocket Manager and Alert Engine"]
+
+    classDef client fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
+    classDef core fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95,stroke-width:3px
+    classDef portal fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+    classDef data fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px
+    classDef analytics fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:2px
+    classDef service fill:#CFFAFE,stroke:#0891B2,color:#164E63,stroke-width:2px
+
+    class A client
+    class B core
+    class GeM,E portal
+    class C data
+    class D,F,G analytics
+    class H,I service
 ```
 
 ---

@@ -15,6 +15,8 @@ class TenderBase(BaseModel):
 
 class TenderCreate(TenderBase):
     id: Optional[str] = None  # e.g., "GEM/2026/001", generated if auto-assigned
+    selected_requirements: Optional[List[Dict[str, Any]]] = None
+    requirements: Optional[List[Dict[str, Any]]] = None
 
 class TenderUpdate(BaseModel):
     title: Optional[str] = None
@@ -26,6 +28,8 @@ class TenderUpdate(BaseModel):
     eligibility_requirements: Optional[str] = None
     status: Optional[str] = None
     closing_date: Optional[str] = None
+    selected_requirements: Optional[List[Dict[str, Any]]] = None
+    requirements: Optional[List[Dict[str, Any]]] = None
 
 class TenderResponse(TenderBase):
     id: str

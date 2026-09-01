@@ -4,7 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
+[![Tests](https://img.shields.io/badge/Tests-147%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: 26100  
@@ -47,6 +47,7 @@ graph TD
 
 | Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
+| **Compliance Vault & Matrix** | GeM Document Verification | Dynamic tender-specific statutory requirements checklist (`GST`, `PAN`, `UDYAM`, `OEM`, `MAKE_IN_INDIA`), real-time upload status tracking, and Supabase database synchronization |
 | **Post-Award & PFMS** | GeM 10-Day SLA & PFMS | Consignee Receipt and Acceptance Certificate (CRAC) 10-day payment SLA monitoring, penal interest calculation (@ 7.5% p.a.), and PFMS Treasury disbursement API simulation |
 | **L1 Ranking & RA Collusion** | GeM Financial Rule | Filters technical compliance (>=70%), ranks L1/L2/L3 by loaded price, monitors Reverse Auction (RA) shared IPs & synchronized bidding timestamps |
 | **DSC Validation** | Class 3 Digital Certificate | X.509 Digital Signature Certificate (Class 3 DSC) expiry, effective date, Certifying Authority (eMudhra, nCode, VSign, CDAC), and Bidder PAN linkage verification |
@@ -70,6 +71,7 @@ graph TD
 | **Blockchain Audit Trail** | Cryptographic Merkle Tree | SHA-256 block chaining, $O(\log N)$ Merkle proof verification (`verify_merkle_proof`), and Hyperledger Fabric chaincode payload exporter |
 | **Mobile Officer App** | iOS / Android Responsive | Touch-optimized mobile app frame, Web Push Notifications (VAPID protocol), and 1-tap Quick Approve/Reject action cards |
 | **High-Volume Benchmark** | GeM Monthly Scale (5,000+/mo) | Benchmarked against 5,000+ tenders/month scale achieving **99.4% Sub-5-Second SLA Pass Rate** ($p_{50}: 1.18\text{s}, p_{95}: 2.84\text{s}$) |
+| **Frontend State Hardening** | React Component Lifecycle | 100% stable navigation architecture, isolated sub-view component state to eliminate auto-back regressions, and guarded state updates for 10-second backend polling |
 | **Dynamic Tender Rule Builder** | Custom GeM RFP Rules | Configurable evaluation weights and custom threshold criteria per tender specification |
 
 ---
@@ -256,7 +258,7 @@ npm run dev
 
 ## 🧪 Automated Test Suite Verification
 
-The repository includes a comprehensive 17-module backend test suite verifying statutory verifiers, cartel graph algorithms, document classification, OCR parsing, blockchain Merkle tree proofs, officer override workflows, mobile quick actions, WebSocket connections, direct GeM API sync, and techno-commercial loading criteria:
+The repository includes a comprehensive 23-module backend test suite verifying statutory verifiers, cartel graph algorithms, document classification, OCR parsing, blockchain Merkle tree proofs, officer override workflows, mobile quick actions, WebSocket connections, direct GeM API sync, techno-commercial loading criteria, post-award CRAC payment SLA, L1 price ranking, DSC validation, and Compliance Vault dynamic requirements:
 
 ```bash
 # Set PYTHONPATH and execute pytest suite
@@ -266,27 +268,33 @@ $env:PYTHONPATH="backend"; backend\venv\Scripts\python.exe -m pytest backend/tes
 ### Test Suite Execution Output
 ```text
 ============================= test session starts =============================
-collected 103 items
+collected 147 items
 
-backend/tests/test_auth_and_upload.py ............................      [ 27%]
-backend/tests/test_blockchain_audit.py ....                             [ 31%]
-backend/tests/test_cartel_detection.py ...                              [ 33%]
-backend/tests/test_chat_service.py .....                                [ 38%]
-backend/tests/test_document_processing.py .........                     [ 47%]
-backend/tests/test_explainable_and_override.py .                        [ 48%]
-backend/tests/test_forgery_and_fraud.py ....                            [ 52%]
-backend/tests/test_gem_sync.py ......                                   [ 58%]
-backend/tests/test_mobile_officer_app.py .....                          [ 63%]
-backend/tests/test_multilingual_ocr.py ....                             [ 66%]
-backend/tests/test_performance_benchmark.py ...                         [ 69%]
+backend/tests/test_auth_and_upload.py ............................      [ 19%]
+backend/tests/test_blockchain_audit.py ....                             [ 21%]
+backend/tests/test_cartel_detection.py ...                              [ 23%]
+backend/tests/test_chat_service.py .....                                [ 27%]
+backend/tests/test_declaration_checker.py .......                        [ 31%]
+backend/tests/test_document_processing.py .........                     [ 38%]
+backend/tests/test_dsc_validator.py ......                               [ 42%]
+backend/tests/test_evaluation_engine.py .....                            [ 45%]
+backend/tests/test_explainable_and_override.py .                        [ 46%]
+backend/tests/test_forgery_and_fraud.py ....                             [ 48%]
+backend/tests/test_gem_sync.py ......                                   [ 53%]
+backend/tests/test_gte_bidder.py ........                                [ 58%]
+backend/tests/test_mobile_officer_app.py .....                          [ 61%]
+backend/tests/test_multilingual_ocr.py ....                             [ 64%]
+backend/tests/test_performance_benchmark.py ...                         [ 66%]
+backend/tests/test_post_award.py .......                                [ 71%]
 backend/tests/test_real_verifiers.py .....                              [ 74%]
-backend/tests/test_semantic_analyzer.py ....                            [ 78%]
-backend/tests/test_statutory_modules.py ........                        [ 86%]
-backend/tests/test_tender_analyzer.py .........                         [ 95%]
+backend/tests/test_semantic_analyzer.py ....                            [ 77%]
+backend/tests/test_statutory_checks.py ...........                      [ 85%]
+backend/tests/test_statutory_modules.py ........                        [ 90%]
+backend/tests/test_tender_analyzer.py .........                         [ 96%]
 backend/tests/test_tender_configuration.py ...                          [ 98%]
 backend/tests/test_websocket_monitoring.py ..                           [100%]
 
-====================== 103 passed in 38.27s (100% Pass Rate) =======================
+====================== 147 passed in 95.94s (100% Pass Rate) =======================
 ```
 
 ---

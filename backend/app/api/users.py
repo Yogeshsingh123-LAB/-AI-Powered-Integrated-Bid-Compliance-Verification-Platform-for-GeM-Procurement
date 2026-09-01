@@ -53,6 +53,56 @@ def update_user_me(
     )
     return current_user
 
+# --- Registered Bidders Listing Endpoint ---
+
+@router.get("/bidders", response_model=List[Dict[str, Any]])
+@router.get("/admin/bidders", response_model=List[Dict[str, Any]])
+def get_all_bidders(
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all registered bidder accounts with compliance & bid summaries (OFFICER & ADMIN access)."""
+    from app.models.bid import Bid
+    from app.models.document import Document
+
+    bidders = db.query(User).filter(User.role.ilike("BIDDER")).order_by(User.created_at.desc()).all()
+    results = []
+
+    for user in bidders:
+        user_bids = db.query(Bid).filter(Bid.bidder_id == user.id).all()
+        doc_count = db.query(Document).filter(Document.uploaded_by == user.id).count()
+
+        # Determine highest compliance score and risk
+        scores = [float(b.compliance_score) for b in user_bids if b.compliance_score is not None]
+        avg_score = max(scores) if scores else 0.0
+        risk_level = "LOW" if avg_score >= 80 else ("MEDIUM" if avg_score >= 50 else "HIGH")
+        if not user_bids:
+            risk_level = "PENDING"
+
+        verif_status = "Verified" if any(b.officer_status == "Qualified" for b in user_bids) else ("Under Review" if user_bids else "Registered")
+
+        results.append({
+            "id": str(user.id),
+            "name": user.full_name,
+            "email": user.email,
+            "phone": user.phone or "N/A",
+            "role": user.role,
+            "status": user.status or ("Active" if user.is_active else "Suspended"),
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "bids_count": len(user_bids),
+            "active_tenders": len(user_bids),
+            "compliance": avg_score,
+            "score": avg_score,
+            "risk": risk_level,
+            "riskLevel": f"{risk_level} Risk",
+            "verification": verif_status,
+            "verificationStatus": verif_status,
+            "documents": f"{doc_count} Documents"
+        })
+
+    return results
+
 # --- Admin User Management Endpoints ---
 
 @router.get("/admin/users", response_model=List[UserResponse])

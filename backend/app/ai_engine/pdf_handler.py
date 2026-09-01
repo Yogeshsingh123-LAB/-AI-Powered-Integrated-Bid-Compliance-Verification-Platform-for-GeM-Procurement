@@ -62,8 +62,8 @@ class PDFHandler:
                 if self.is_page_scanned(page_text):
                     ocr_used = True
                     try:
-                        # Render page as PNG image
-                        pix = page.get_pixmap(dpi=150)
+                        # Render page as PNG image at 300 DPI for high-accuracy OCR
+                        pix = page.get_pixmap(dpi=300)
                         img_data = pix.tobytes("png")
                         
                         # Process OCR using OCRParser

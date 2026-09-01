@@ -37,39 +37,38 @@ def apply_schema_migrations():
         import app.models  # Ensure models register with Base.metadata
         Base.metadata.create_all(bind=engine)
         
-        with engine.connect() as conn:
-            from sqlalchemy import text
-            
-            # Columns to add to users table
+        from sqlalchemy import text, inspect
+        inspector = inspect(engine)
+
+        if "users" in inspector.get_table_names():
+            existing_user_cols = [c["name"] for c in inspector.get_columns("users")]
             user_columns = [
                 ("department", "VARCHAR(100) DEFAULT 'Procurement'"),
                 ("status", "VARCHAR(20) DEFAULT 'Active'"),
                 ("permissions", "VARCHAR(500)"),
-                ("last_login", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("last_login", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME"),
                 ("auth_user_id", "VARCHAR(100)")
             ]
-            
             for col_name, col_type in user_columns:
+                if col_name not in existing_user_cols:
+                    try:
+                        with engine.begin() as ddl_conn:
+                            ddl_conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                    except Exception as e:
+                        logger.warning(f"Failed to add column {col_name} to users: {e}")
+
+        if "audit_logs" in inspector.get_table_names():
+            existing_audit_cols = [c["name"] for c in inspector.get_columns("audit_logs")]
+            if "blockchain_hash" not in existing_audit_cols:
                 try:
-                    if not is_sqlite:
-                        conn.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
-                    else:
-                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    pass
-            
-            # Audit log columns
-            try:
-                if not is_sqlite:
-                    conn.execute(text("ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS blockchain_hash VARCHAR(64)"))
-                else:
-                    conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
-                conn.commit()
-            except Exception:
-                pass
+                    with engine.begin() as ddl_conn:
+                        ddl_conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
+                except Exception as e:
+                    logger.warning(f"Failed to add column blockchain_hash to audit_logs: {e}")
 
             # Tender columns self-healing migrations
+        if "tenders" in inspector.get_table_names():
+            existing_tender_cols = [c["name"] for c in inspector.get_columns("tenders")]
             tender_columns = [
                 ("description", "TEXT"),
                 ("category", "VARCHAR(100) DEFAULT 'General Procurement'"),
@@ -78,46 +77,52 @@ def apply_schema_migrations():
                 ("budget_limit", "NUMERIC(15, 2) DEFAULT 5000000.0"),
                 ("status", "VARCHAR(50) DEFAULT 'Draft'"),
                 ("eligibility_requirements", "TEXT"),
-                ("custom_rules", "JSONB" if not is_sqlite else "JSON"),
-                ("scoring_weights", "JSONB" if not is_sqlite else "JSON"),
-                ("created_by", "UUID"),
-                ("created_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
-                ("published_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
-                ("closing_date", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME")
+                ("custom_rules", "JSONB" if engine.dialect.name != "sqlite" else "JSON"),
+                ("scoring_weights", "JSONB" if engine.dialect.name != "sqlite" else "JSON"),
+                ("created_by", "UUID" if engine.dialect.name != "sqlite" else "VARCHAR(36)"),
+                ("created_at", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME"),
+                ("published_at", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME"),
+                ("closing_date", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME")
             ]
 
             for col_name, col_type in tender_columns:
-                try:
-                    if not is_sqlite:
-                        conn.execute(text(f"ALTER TABLE tenders ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
-                    else:
-                        conn.execute(text(f"ALTER TABLE tenders ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    pass
+                if col_name not in existing_tender_cols:
+                    try:
+                        with engine.begin() as ddl_conn:
+                            ddl_conn.execute(text(f"ALTER TABLE tenders ADD COLUMN {col_name} {col_type}"))
+                    except Exception as e:
+                        logger.warning(f"Failed to add column {col_name} to tenders: {e}")
 
-            # Bids table self-healing migrations
+        if "bids" in inspector.get_table_names():
+            existing_bid_cols = [c["name"] for c in inspector.get_columns("bids")]
             bid_columns = [
                 ("compliance_score", "NUMERIC(5, 2) DEFAULT 0.0"),
                 ("status", "VARCHAR(50) DEFAULT 'Pending'"),
                 ("is_locked", "BOOLEAN DEFAULT FALSE"),
-                ("submitted_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME"),
+                ("submitted_at", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME"),
                 ("officer_status", "VARCHAR(50) DEFAULT 'Pending'"),
                 ("deviation_justification", "TEXT"),
                 ("deviation_category", "VARCHAR(100)"),
-                ("officer_id", "UUID"),
-                ("reviewed_at", "TIMESTAMP WITH TIME ZONE" if not is_sqlite else "DATETIME")
+                ("officer_id", "UUID" if engine.dialect.name != "sqlite" else "VARCHAR(36)"),
+                ("reviewed_at", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME")
             ]
 
             for col_name, col_type in bid_columns:
+                if col_name not in existing_bid_cols:
+                    try:
+                        with engine.begin() as ddl_conn:
+                            ddl_conn.execute(text(f"ALTER TABLE bids ADD COLUMN {col_name} {col_type}"))
+                    except Exception as e:
+                        logger.warning(f"Failed to add column {col_name} to bids: {e}")
+
+        if "documents" in inspector.get_table_names():
+            existing_doc_cols = [c["name"] for c in inspector.get_columns("documents")]
+            if "rejection_reason" not in existing_doc_cols:
                 try:
-                    if not is_sqlite:
-                        conn.execute(text(f"ALTER TABLE bids ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
-                    else:
-                        conn.execute(text(f"ALTER TABLE bids ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    pass
+                    with engine.begin() as ddl_conn:
+                        ddl_conn.execute(text("ALTER TABLE documents ADD COLUMN rejection_reason TEXT"))
+                except Exception as e:
+                    logger.warning(f"Failed to add column rejection_reason to documents: {e}")
 
         logger.info("Schema migrations applied successfully.")
     except Exception as create_err:

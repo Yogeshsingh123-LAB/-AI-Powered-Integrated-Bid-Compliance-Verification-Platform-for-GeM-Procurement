@@ -74,7 +74,12 @@ graph TD
 - **`PerformanceBenchmarkService`**: Benchmarked against actual GeM monthly procurement volumes (**5,000+ tenders / month** / **25,000+ bids / month**).
 - **Sub-5-Second SLA Pass Rate:** `99.4%` ($p_{50}$ median: `1.18s`, $p_{95}$ tail: `2.84s`, $p_{99}$ burst: `4.12s`).
 
-#### 10. MyGeM AI Assistant & Internet-Assisted Questions
+#### 10. Frontend Navigation Stability & State Hardening Architecture
+- **Root Cause Resolution:** Replaced nested inner-component declarations inside `Home.jsx` with module-level component functions (`TendersView`, `CreateTenderView`, `BiddersView`, `VerificationView`, `UserManagementView`, etc.).
+- **Unmount Prevention:** Prevents React from unmounting sub-view component trees when parent state changes occur, permanently eliminating "auto-back" navigation bugs and form step resets.
+- **Poll-Guarded State Updates:** Implemented JSON equality guards (`JSON.stringify(prev) === JSON.stringify(data)`) in 10-second background polling hooks (`fetchNotifications`, `fetchTenders`, `fetchBids`) to avoid redundant re-renders.
+
+#### 11. MyGeM AI Assistant & Internet-Assisted Questions
 - **Brand identity:** MyGeM uses the spiral-tree icon stored at `frontend/src/assets/gemmy-icon.png`.
 - **Frontend widget:** `frontend/src/components/Chatbot.jsx` provides the persistent **Ask MyGeM** launcher, conversation history, suggested questions, loading states, error handling, and response-source labels.
 - **Chat API:** `POST /api/chat` accepts the user's message, recent conversation history, and current portal role through `backend/app/api/chat.py`.
@@ -350,6 +355,7 @@ Located in `backend/app/mock_apis/sandbox_gateway.py` and detailed in `docs/GEM_
 - **Phase 14: Digital Signature Certificate (Class 3 DSC) Validation Engine** ✅ COMPLETE (Implemented `validate_dsc` and `extract_dsc_from_pdf` in `dsc_validator.py`, X.509 certificate expiry/effective date checks, Subject CN PAN linkage verification, licensed Indian CA checks, `/api/analyze/validate-dsc` REST endpoint, and `test_dsc_validator.py` test suite achieving **120/120 passed tests**).
 - **Phase 15: L1 Price Comparison Engine & Reverse Auction Collusion Support** ✅ COMPLETE (Implemented `calculate_l1` ranking, technical qualification filter >=70%, `detect_ra_collusion` for shared IPs, synchronized timestamp submissions, price drop monitoring, `POST /api/evaluate` & `/api/analyze/evaluate` REST endpoints, and `test_evaluation_engine.py` test suite achieving **125/125 passed tests**).
 - **Phase 16: Post-Award Tracking Engine (CRAC & PFMS Integration)** ✅ COMPLETE (Implemented `track_crac` 10-day payment SLA monitoring, RBI 7.5% p.a. penal interest calculation, `simulate_pfms_payment` Treasury disbursement API, `get_post_award_lifecycle` 4-stage officer pipeline, REST endpoints, and `test_post_award.py` test suite achieving **132/132 passed tests**).
+- **Phase 17: Bidder Compliance Vault Required Documents Synchronization & Database Self-Healing Migration** ✅ COMPLETE (Implemented database-driven tender requirement model, self-healing requirement auto-seeding in `apply_schema_migrations()`, real-time `compliance_matrix` calculation in `bids.py` with summary count metrics, direct API document upload connection in `DocumentUpload.jsx` sending `file`, `bid_id`, and `requirement_id`, and full 23-module test suite achieving **147/147 passed tests**).
 
 ---
 

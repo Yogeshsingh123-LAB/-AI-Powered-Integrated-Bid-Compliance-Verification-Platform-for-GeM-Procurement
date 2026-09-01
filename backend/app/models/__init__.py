@@ -8,5 +8,6 @@ from app.models.document_ocr import DocumentOCR
 from app.models.document_extraction import DocumentExtraction
 from app.models.officer_annotation import OfficerAnnotation
 from app.models.bidder import Bidder
+from app.models.notification import Notification
 
 

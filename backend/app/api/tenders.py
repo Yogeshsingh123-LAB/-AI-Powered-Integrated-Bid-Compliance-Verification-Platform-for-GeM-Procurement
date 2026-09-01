@@ -16,6 +16,52 @@ from app.services.auth_service import get_current_user, require_role, create_aud
 
 router = APIRouter(prefix="/tenders", tags=["Tender Management"])
 
+def compute_tender_date_info(t: Tender, db: Optional[Session] = None) -> tuple:
+    """
+    Computes (publishedDate_str, closingDate_str, daysLeft_str, effective_status)
+    dynamically based on t.published_at, t.closing_date, and t.status.
+    If closing_date is in the past for an Active tender, auto-closes the tender in DB if db session is provided.
+    """
+    now = datetime.now(timezone.utc)
+
+    pub_date_str = t.published_at.strftime("%d %b %Y") if t.published_at else (t.created_at.strftime("%d %b %Y") if t.created_at else "01 Sep 2026")
+
+    if t.closing_date:
+        closing_date_str = t.closing_date.strftime("%d %b %Y")
+        c_dt = t.closing_date
+        if c_dt.tzinfo is None:
+            c_dt = c_dt.replace(tzinfo=timezone.utc)
+
+        diff = c_dt - now
+        days_remaining = diff.days
+        seconds_remaining = diff.total_seconds()
+
+        if t.status.lower() in ["cancelled", "draft"]:
+            effective_status = t.status.capitalize()
+            days_left_str = effective_status
+        elif seconds_remaining <= 0:
+            effective_status = "Closed"
+            days_left_str = "Closed"
+            # Auto-update database status if active
+            if t.status.lower() == "active" and db:
+                t.status = "Closed"
+                db.commit()
+        else:
+            effective_status = t.status.capitalize()
+            if days_remaining == 0:
+                hours_remaining = max(1, int(seconds_remaining // 3600))
+                days_left_str = f"{hours_remaining} hours left" if hours_remaining > 1 else "1 hour left"
+            elif days_remaining == 1:
+                days_left_str = "1 day left"
+            else:
+                days_left_str = f"{days_remaining} days left"
+    else:
+        closing_date_str = "30 Sep 2026"
+        effective_status = t.status.capitalize()
+        days_left_str = "30 days left" if effective_status == "Active" else effective_status
+
+    return pub_date_str, closing_date_str, days_left_str, effective_status
+
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def create_tender(
@@ -58,6 +104,16 @@ def create_tender(
         except Exception:
             pass
 
+    # Date Validation: Closing date cannot be in the past for Active / Published tenders
+    now = datetime.now(timezone.utc)
+    if closing_date_dt:
+        c_check = closing_date_dt if closing_date_dt.tzinfo else closing_date_dt.replace(tzinfo=timezone.utc)
+        if initial_status.upper() in {"ACTIVE", "PUBLISHED"} and c_check < now:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Closing date must be later than the publication/start date."
+            )
+
     new_tender = Tender(
         id=tender_id,
         title=req.title,
@@ -76,26 +132,23 @@ def create_tender(
     db.commit()
     db.refresh(new_tender)
 
-    # Attach default statutory compliance requirements
-    default_requirements = [
-        {"code": "GST", "desc": "Valid GST Registration Certificate (GSTIN)"},
-        {"code": "PAN", "desc": "Permanent Account Number (PAN) Card Evidence"},
-        {"code": "UDYAM", "desc": "Udyam MSME Registration Certificate"},
-        {"code": "OEM", "desc": "Original Equipment Manufacturer (OEM) Authorization Letter"},
-        {"code": "MAKE_IN_INDIA", "desc": "Make in India (Local Content) Declaration"}
-    ]
+    # Attach officer-selected compliance requirements ONLY
+    reqs_to_add = req.selected_requirements or req.requirements or []
+    if reqs_to_add:
+        for r_item in reqs_to_add:
+            code = (r_item.get("code") or r_item.get("requirement_code") or "GENERAL").upper()
+            desc = r_item.get("description") or r_item.get("desc") or r_item.get("name") or r_item.get("title") or code
+            is_mand = r_item.get("is_mandatory", True) if "is_mandatory" in r_item else r_item.get("mandatory", True)
 
-    for req_item in default_requirements:
-        req_obj = Requirement(
-            id=uuid.uuid4(),
-            tender_id=new_tender.id,
-            code=req_item["code"],
-            description=req_item["desc"],
-            is_mandatory=True
-        )
-        db.add(req_obj)
-
-    db.commit()
+            req_obj = Requirement(
+                id=uuid.uuid4(),
+                tender_id=new_tender.id,
+                code=code,
+                description=desc,
+                is_mandatory=is_mand
+            )
+            db.add(req_obj)
+        db.commit()
 
     create_audit_record(
         db=db,
@@ -116,7 +169,16 @@ def create_tender(
             "status": new_tender.status,
             "category": new_tender.category,
             "department": new_tender.department,
-            "budget_limit": float(new_tender.budget_limit)
+            "budget_limit": float(new_tender.budget_limit),
+            "requirements": [
+                {
+                    "id": r.id,
+                    "code": r.code,
+                    "description": r.description,
+                    "is_mandatory": r.is_mandatory
+                }
+                for r in new_tender.requirements
+            ]
         }
     }
 
@@ -156,8 +218,18 @@ def list_tenders(
             func.lower(Bid.officer_status) == "pending"
         ).count()
 
-        pub_date_str = t.published_at.strftime("%d %b %Y") if t.published_at else (t.created_at.strftime("%d %b %Y") if t.created_at else "01 Sept 2026")
-        closing_date_str = t.closing_date.strftime("%d %b %Y") if t.closing_date else "30 Sep 2026"
+        pub_date_str, closing_date_str, days_left_str, effective_status = compute_tender_date_info(t, db)
+
+        reqs = db.query(Requirement).filter(Requirement.tender_id == t.id).all()
+        reqs_list = [
+            {
+                "id": str(r.id),
+                "code": r.code,
+                "description": r.description,
+                "is_mandatory": r.is_mandatory
+            }
+            for r in reqs
+        ]
 
         results.append({
             "id": t.id,
@@ -168,21 +240,22 @@ def list_tenders(
             "tender_type": t.tender_type or "Custom Bid",
             "value": f"₹{float(t.budget_limit):,.2f}" if t.budget_limit else "₹50,00,000",
             "budget_limit": float(t.budget_limit) if t.budget_limit else 5000000.0,
-            "status": t.status,
+            "status": effective_status,
             "eligibility_requirements": t.eligibility_requirements or "GST, PAN, Udyam, OEM",
             "published_at": t.published_at.isoformat() if t.published_at else None,
             "publishedDate": pub_date_str,
             "closingDate": closing_date_str,
             "deadline": closing_date_str,
-            "daysLeft": "30 days left" if t.status == "Active" else "Closed",
+            "daysLeft": days_left_str,
             "bids_count": bids_count,
             "bidders": bids_count,
-            "pending": pending_count
+            "pending": pending_count,
+            "requirements": reqs_list
         })
 
     return results
 
-@router.get("/{tender_id}", response_model=Dict[str, Any])
+@router.get("/{tender_id:path}", response_model=Dict[str, Any])
 def get_tender_details(
     tender_id: str,
     current_user: User = Depends(get_current_user),
@@ -204,6 +277,7 @@ def get_tender_details(
         )
 
     reqs = db.query(Requirement).filter(Requirement.tender_id == tender.id).all()
+    pub_date_str, closing_date_str, days_left_str, effective_status = compute_tender_date_info(tender, db)
 
     return {
         "id": tender.id,
@@ -213,7 +287,10 @@ def get_tender_details(
         "department": tender.department,
         "tender_type": tender.tender_type,
         "budget_limit": float(tender.budget_limit),
-        "status": tender.status,
+        "status": effective_status,
+        "publishedDate": pub_date_str,
+        "closingDate": closing_date_str,
+        "daysLeft": days_left_str,
         "eligibility_requirements": tender.eligibility_requirements,
         "published_at": tender.published_at.isoformat() if tender.published_at else None,
         "requirements": [
@@ -227,7 +304,7 @@ def get_tender_details(
         ]
     }
 
-@router.post("/{tender_id}/publish", response_model=Dict[str, Any])
+@router.post("/{tender_id:path}/publish", response_model=Dict[str, Any])
 def publish_tender(
     tender_id: str,
     request: Request,
@@ -271,7 +348,7 @@ def publish_tender(
         }
     }
 
-@router.patch("/{tender_id}/status", response_model=Dict[str, Any])
+@router.patch("/{tender_id:path}/status", response_model=Dict[str, Any])
 def update_tender_status(
     tender_id: str,
     payload: Dict[str, Any],
@@ -321,3 +398,139 @@ def update_tender_status(
         "tender_id": tender.id,
         "status": tender.status
     }
+
+@router.delete("/{tender_id:path}", response_model=Dict[str, Any])
+def delete_tender(
+    tender_id: str,
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete or cancel a tender.
+    - If 0 bids: Permanently delete tender and its statutory requirements.
+    - If > 0 bids: DO NOT delete. Change status to 'Cancelled' to preserve audit trails & bidder activity.
+    """
+    ip_address = request.client.host if request.client else None
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    bids_count = db.query(Bid).filter(Bid.tender_id == tender_id).count()
+
+    if bids_count == 0:
+        # CASE A: Safe to permanently delete
+        old_title = tender.title
+        db.delete(tender)
+        db.commit()
+
+        create_audit_record(
+            db=db,
+            action="TENDER_DELETED",
+            user_id=current_user.id,
+            entity_type="Tender",
+            entity_id=tender_id,
+            old_value=f"Title: {old_title}",
+            new_value="Permanently Deleted (0 bids)",
+            ip_address=ip_address
+        )
+
+        return {
+            "success": True,
+            "action": "DELETED",
+            "message": f"Tender '{tender_id}' deleted successfully.",
+            "bids_count": 0
+        }
+    else:
+        # CASE B: Contains bidder activity -> Cancel instead of permanent delete
+        old_status = tender.status
+        tender.status = "Cancelled"
+        db.commit()
+        db.refresh(tender)
+
+        create_audit_record(
+            db=db,
+            action="TENDER_CANCELLED",
+            user_id=current_user.id,
+            entity_type="Tender",
+            entity_id=tender_id,
+            old_value=old_status,
+            new_value=f"Cancelled due to deletion request with {bids_count} bids preserved.",
+            ip_address=ip_address
+        )
+
+        return {
+            "success": True,
+            "action": "CANCELLED",
+            "message": f"Tender '{tender_id}' contains bidder activity ({bids_count} bids) and cannot be permanently deleted. It has been CANCELLED instead to preserve audit records.",
+            "bids_count": bids_count,
+            "status": "Cancelled"
+        }
+
+
+@router.put("/{tender_id:path}/requirements", response_model=Dict[str, Any])
+def update_tender_requirements(
+    tender_id: str,
+    payload: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Update officer-selected requirements for a specific tender."""
+    ip_address = request.client.host if request.client else None
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    bids_count = db.query(Bid).filter(Bid.tender_id == tender_id).count()
+    selected_reqs = payload.get("requirements") or payload.get("selected_requirements") or []
+
+    # Remove existing requirement records for this tender
+    db.query(Requirement).filter(Requirement.tender_id == tender_id).delete()
+    db.commit()
+
+    added = []
+    for r_item in selected_reqs:
+        code = (r_item.get("code") or r_item.get("requirement_code") or "GENERAL").upper()
+        desc = r_item.get("description") or r_item.get("desc") or r_item.get("name") or r_item.get("title") or code
+        is_mand = r_item.get("is_mandatory", True) if "is_mandatory" in r_item else r_item.get("mandatory", True)
+
+        req_obj = Requirement(
+            id=uuid.uuid4(),
+            tender_id=tender.id,
+            code=code,
+            description=desc,
+            is_mandatory=is_mand
+        )
+        db.add(req_obj)
+        added.append({"id": str(req_obj.id), "code": code, "description": desc, "is_mandatory": is_mand})
+
+    db.commit()
+
+    create_audit_record(
+        db=db,
+        action="TENDER_REQUIREMENTS_UPDATED",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=tender_id,
+        new_value=f"Updated requirements count: {len(added)}. Bids count: {bids_count}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Updated requirements for tender '{tender_id}'.",
+        "tender_id": tender.id,
+        "requirements_count": len(added),
+        "requirements": added
+    }
+
+

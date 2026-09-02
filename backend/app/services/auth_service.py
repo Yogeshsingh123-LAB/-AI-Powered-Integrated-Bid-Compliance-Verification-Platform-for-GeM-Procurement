@@ -361,10 +361,19 @@ def get_optional_current_user(db: Session = Depends(get_db), token: Optional[str
 # FastAPI Dependency for Role-Based Access Control
 class require_role:
     def __init__(self, *allowed_roles: str):
-        self.allowed_roles = [role.upper() for role in allowed_roles]
+        normalized = []
+        for r in allowed_roles:
+            r_up = r.upper().replace(" ", "_")
+            normalized.append(r_up)
+            if r_up in ["ADMIN", "SUPER_ADMIN"]:
+                normalized.extend(["ADMIN", "SUPER_ADMIN"])
+            elif r_up in ["OFFICER", "PROCUREMENT_OFFICER", "VERIFICATION_OFFICER"]:
+                normalized.extend(["OFFICER", "PROCUREMENT_OFFICER", "VERIFICATION_OFFICER", "PROCUREMENT OFFICER", "VERIFICATION OFFICER"])
+        self.allowed_roles = list(set(normalized))
 
     def __call__(self, current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role.upper() not in self.allowed_roles:
+        user_role_norm = current_user.role.upper().replace(" ", "_") if current_user.role else ""
+        if user_role_norm not in self.allowed_roles and current_user.role.upper() not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to access this resource."

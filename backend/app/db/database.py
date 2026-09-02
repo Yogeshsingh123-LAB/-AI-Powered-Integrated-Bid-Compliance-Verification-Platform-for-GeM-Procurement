@@ -9,25 +9,26 @@ logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
-# Try connecting to PostgreSQL; fall back to SQLite if unreachable or connection fails.
+# Connect to single primary PostgreSQL / Supabase cloud database
 is_sqlite = False
 try:
     logger.info(f"Connecting to database: {settings.DATABASE_URL}")
     connect_args = {}
     if "postgresql" in settings.DATABASE_URL:
-        connect_args["connect_timeout"] = 3
+        connect_args["connect_timeout"] = 5
     engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
     with engine.connect() as conn:
         pass
     logger.info("Database connection to PostgreSQL successful.")
 except Exception as e:
-    logger.warning(
-        f"PostgreSQL database connection failed ({e}). "
-        "Falling back to local SQLite database: sqlite:///./bid_compliance.db"
+    logger.error(
+        f"CRITICAL ERROR: Could not connect to primary PostgreSQL/Supabase database ({e}). "
+        "Silent fallback to local SQLite is disabled to maintain single source of truth."
     )
-    sqlite_url = "sqlite:///./bid_compliance.db"
-    engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
-    is_sqlite = True
+    raise RuntimeError(
+        f"Unable to connect to primary database at {settings.DATABASE_URL}. "
+        "Please verify your network connection and Supabase DATABASE_URL configuration."
+    ) from e
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

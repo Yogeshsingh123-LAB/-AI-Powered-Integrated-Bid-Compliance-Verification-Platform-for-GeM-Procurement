@@ -399,6 +399,80 @@ def update_tender_status(
         "status": tender.status
     }
 
+@router.put("/{tender_id:path}", response_model=Dict[str, Any])
+def edit_tender(
+    tender_id: str,
+    payload: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Edit tender parameters (title, description, category, department, budget_limit, closing_date, status)."""
+    ip_address = request.client.host if request.client else None
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    old_info = f"Title: {tender.title}, Budget: {tender.budget_limit}, Status: {tender.status}"
+
+    if "title" in payload and payload["title"]:
+        tender.title = payload["title"]
+    if "description" in payload and payload["description"] is not None:
+        tender.description = payload["description"]
+    if "category" in payload and payload["category"]:
+        tender.category = payload["category"]
+    if "department" in payload and payload["department"]:
+        tender.department = payload["department"]
+    if "budget_limit" in payload and payload["budget_limit"] is not None:
+        try:
+            tender.budget_limit = float(payload["budget_limit"])
+        except Exception:
+            pass
+    if "status" in payload and payload["status"]:
+        tender.status = payload["status"]
+    if "closing_date" in payload and payload["closing_date"]:
+        try:
+            c_date = payload["closing_date"]
+            if "T" in c_date or "Z" in c_date:
+                tender.closing_date = datetime.fromisoformat(c_date.replace("Z", "+00:00"))
+            else:
+                tender.closing_date = datetime.strptime(c_date, "%Y-%m-%d")
+        except Exception:
+            pass
+
+    db.commit()
+    db.refresh(tender)
+
+    new_info = f"Title: {tender.title}, Budget: {tender.budget_limit}, Status: {tender.status}"
+
+    create_audit_record(
+        db=db,
+        action="TENDER_UPDATED",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=tender_id,
+        old_value=old_info,
+        new_value=new_info,
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Tender '{tender.id}' updated successfully.",
+        "tender": {
+            "id": tender.id,
+            "title": tender.title,
+            "status": tender.status,
+            "category": tender.category,
+            "department": tender.department,
+            "budget_limit": float(tender.budget_limit) if tender.budget_limit else 0.0
+        }
+    }
+
 @router.delete("/{tender_id:path}", response_model=Dict[str, Any])
 def delete_tender(
     tender_id: str,

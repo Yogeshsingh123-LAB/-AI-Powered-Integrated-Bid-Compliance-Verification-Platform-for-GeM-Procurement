@@ -78,7 +78,8 @@ export default function TenderRuleBuilder({ tenderId = 'GEM/2026/001', token, on
     setSaving(true);
     setMessage('');
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/tenders/${tenderId}/config`, {
+      const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const response = await fetch(`${API_BASE}/api/v1/tenders/${tenderId}/config`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

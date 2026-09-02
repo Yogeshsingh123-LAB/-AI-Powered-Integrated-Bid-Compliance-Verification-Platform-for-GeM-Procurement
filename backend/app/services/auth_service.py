@@ -48,20 +48,36 @@ def create_audit_record(
 ) -> AuditLog:
     """Helper to log security-sensitive events in the database with cryptographic blockchain hashing."""
     try:
+        def safe_uuid(val):
+            if not val:
+                return None
+            try:
+                return uuid.UUID(str(val))
+            except (ValueError, AttributeError, TypeError):
+                return None
+
+        clean_user_id = safe_uuid(user_id)
+        clean_entity_id = safe_uuid(entity_id)
+        clean_bid_id = safe_uuid(bid_id)
+
+        effective_new_val = new_value
+        if entity_id and not clean_entity_id:
+            effective_new_val = f"[RefID: {entity_id}] " + (new_value or "")
+
         # Calculate SHA-256 blockchain hash chain
         last_log = db.query(AuditLog).order_by(desc(AuditLog.created_at)).first()
         prev_hash = last_log.blockchain_hash if (last_log and last_log.blockchain_hash) else "0" * 64
-        chain_payload = f"{prev_hash}:{action}:{user_id or ''}:{entity_type}:{entity_id or ''}:{bid_id or ''}:{new_value or ''}"
+        chain_payload = f"{prev_hash}:{action}:{user_id or ''}:{entity_type}:{entity_id or ''}:{bid_id or ''}:{effective_new_val or ''}"
         block_hash = hashlib.sha256(chain_payload.encode("utf-8")).hexdigest()
 
         log = AuditLog(
-            user_id=user_id,
+            user_id=clean_user_id,
             action=action,
             entity_type=entity_type,
-            entity_id=entity_id,
-            bid_id=bid_id,
+            entity_id=clean_entity_id,
+            bid_id=clean_bid_id,
             old_value=old_value,
-            new_value=new_value,
+            new_value=effective_new_val,
             ip_address=ip_address,
             blockchain_hash=block_hash
         )
@@ -72,7 +88,6 @@ def create_audit_record(
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to write audit log: {e}")
-        # Continue execution without crashing the main flow
         return None
 
 class AuthService:

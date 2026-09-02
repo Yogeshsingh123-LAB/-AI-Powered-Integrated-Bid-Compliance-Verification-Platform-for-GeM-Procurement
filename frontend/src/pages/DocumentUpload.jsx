@@ -413,7 +413,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
                 className={`filter-pill ${docFilter === "completed" ? "active" : ""}`}
                 onClick={() => setDocFilter("completed")}
               >
-                Completed / Verified ✓
+                Completed / Verified
               </button>
             </div>
           </div>
@@ -751,7 +751,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
                   </div>
                   <div className="reg-item">
                     <label>Digital Signature Status</label>
-                    <span>{report.forgery_analysis.has_digital_signature ? "✓ Embedded PKCS#7 Signature" : "⚠️ No PKCS#7 Signature Found"}</span>
+                    <span>{report.forgery_analysis.has_digital_signature ? "Embedded PKCS#7 Signature" : "No PKCS#7 Signature Found"}</span>
                   </div>
                   <div className="reg-item">
                     <label>Creation Software Signature</label>
@@ -778,7 +778,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
                   <div className="reg-item">
                     <label>Multi-Bidder Identifier Reuse</label>
                     <strong style={{ color: report.fraud_analysis.is_collusion_risk ? '#dc2626' : '#10b981' }}>
-                      {report.fraud_analysis.is_collusion_risk ? "CRITICAL: GSTIN/PAN Reused Across Bidders" : "✓ Unique Entity Identifier"}
+                      {report.fraud_analysis.is_collusion_risk ? "CRITICAL: GSTIN/PAN Reused Across Bidders" : "Unique Entity Identifier"}
                     </strong>
                   </div>
                   <div className="reg-item">
@@ -1048,4 +1048,4 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   );
 }
 
-export default DocumentUploadPage;
+export default DocumentUploadPage;

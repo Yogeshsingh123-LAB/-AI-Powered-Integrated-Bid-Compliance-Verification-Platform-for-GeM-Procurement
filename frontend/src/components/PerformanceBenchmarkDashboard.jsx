@@ -125,25 +125,41 @@ export default function PerformanceBenchmarkDashboard() {
       </div>
 
       {/* Latency Pipeline Breakdown */}
-      <div style={{ background: 'rgba(30,41,59,0.5)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Cpu size={16} /> Component Latency Breakdown (Average ~1.80 seconds)
-        </h3>
+      {(() => {
+        const breakdown = testResult?.component_latency_breakdown_avg_seconds || {
+          ocr_preprocessing: 0.85,
+          statutory_apis: 0.42,
+          cartel_graph: 0.31,
+          xai_compliance_scoring: 0.22
+        };
+        const total = (breakdown.ocr_preprocessing + breakdown.statutory_apis + breakdown.cartel_graph + breakdown.xai_compliance_scoring) || 1.80;
+        const ocrPct = Math.round((breakdown.ocr_preprocessing / total) * 100);
+        const statPct = Math.round((breakdown.statutory_apis / total) * 100);
+        const cartelPct = Math.round((breakdown.cartel_graph / total) * 100);
+        const xaiPct = 100 - (ocrPct + statPct + cartelPct);
 
-        <div className="latency-breakdown-bar">
-          <div className="bar-segment" style={{ width: '47%', background: '#3b82f6' }}>OCR (0.85s)</div>
-          <div className="bar-segment" style={{ width: '23%', background: '#10b981' }}>Statutory APIs (0.42s)</div>
-          <div className="bar-segment" style={{ width: '17%', background: '#a855f7' }}>Cartel Graph (0.31s)</div>
-          <div className="bar-segment" style={{ width: '13%', background: '#f59e0b' }}>XAI (0.22s)</div>
-        </div>
+        return (
+          <div style={{ background: 'rgba(30,41,59,0.5)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Cpu size={16} /> Component Latency Breakdown (Average ~{total.toFixed(2)} seconds)
+            </h3>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#cbd5e1', marginTop: '0.6rem' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span> OCR Preprocessing (47%)</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Statutory APIs (23%)</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }}></span> Cartel Graph (17%)</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> XAI & Scoring (13%)</span>
-        </div>
-      </div>
+            <div className="latency-breakdown-bar">
+              <div className="bar-segment" style={{ width: `${ocrPct}%`, background: '#3b82f6' }}>OCR ({breakdown.ocr_preprocessing}s)</div>
+              <div className="bar-segment" style={{ width: `${statPct}%`, background: '#10b981' }}>Statutory APIs ({breakdown.statutory_apis}s)</div>
+              <div className="bar-segment" style={{ width: `${cartelPct}%`, background: '#a855f7' }}>Cartel Graph ({breakdown.cartel_graph}s)</div>
+              <div className="bar-segment" style={{ width: `${xaiPct}%`, background: '#f59e0b' }}>XAI ({breakdown.xai_compliance_scoring}s)</div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#cbd5e1', marginTop: '0.6rem' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span> OCR Preprocessing ({ocrPct}%)</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Statutory APIs ({statPct}%)</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }}></span> Cartel Graph ({cartelPct}%)</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> XAI & Scoring ({xaiPct}%)</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

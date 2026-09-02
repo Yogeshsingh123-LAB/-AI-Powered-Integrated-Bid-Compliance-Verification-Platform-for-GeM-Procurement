@@ -126,7 +126,7 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
               </div>
             </div>
             <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
-            <span className="card-subtext warning">⚡ {bids.length} active in system</span>
+            <span className="card-subtext warning"> {bids.length} active in system</span>
           </div>
 
           <div className="summary-card card-emerald-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
@@ -137,7 +137,7 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
               </div>
             </div>
             <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
-            <span className="card-subtext info">✓ {bids.filter(b => b.status === "Verified").length} verified</span>
+            <span className="card-subtext info"> {bids.filter(b => b.status === "Verified").length} verified</span>
           </div>
 
           <div className="summary-card card-amber-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
@@ -159,7 +159,7 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
               </div>
             </div>
             <h2 className="card-value">00</h2>
-            <span className="card-subtext success">🛡️ Vault Ready</span>
+            <span className="card-subtext success">️ Vault Ready</span>
           </div>
         </div>
 
@@ -227,7 +227,7 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
             {/* AI Submission Assistant */}
             <div className="ai-assistant-card studio-gradient">
               <div className="ai-card-header">
-                <h3>AI Submission Assistant <span className="sparkle-icon">✨</span></h3>
+                <h3>AI Submission Assistant <span className="sparkle-icon"></span></h3>
               </div>
               <p className="ai-message">
                 {bids.length > 0
@@ -1057,7 +1057,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dash
                 bids.slice(0, 4).map((b, idx) => (
                   <div key={b.id || idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>🤖</div>
+                      <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}></div>
                       <div>
                         <strong style={{ color: "#0f172a", display: "block" }}>Compliance audit completed ({b.score}/100)</strong>
                         <span style={{ color: "#64748b", fontSize: "0.72rem" }}>{b.bidderName}</span>
@@ -1089,7 +1089,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dash
                   onClick={() => setActiveSection("userManagement")}
                   style={{ background: "#f3e8ff", border: "1px solid #d8b4fe", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
                 >
-                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#9333ea", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: 800 }}>👤</div>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#9333ea", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: 800 }}></div>
                   <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#7e22ce" }}>User Management</span>
                 </button>
               )}
@@ -1099,7 +1099,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dash
                 onClick={() => setActiveSection("bidders")}
                 style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
-                <div style={{ width: "28px", height: "28px", color: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center" }}>🔍</div>
+                <div style={{ width: "28px", height: "28px", color: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center" }}></div>
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#c2410c" }}>Review Pending Bids</span>
               </button>
 
@@ -1108,7 +1108,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dash
                 onClick={() => setActiveSection("bidders")}
                 style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
-                <div style={{ width: "28px", height: "28px", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center" }}>🚨</div>
+                <div style={{ width: "28px", height: "28px", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center" }}></div>
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#b91c1c" }}>View High Risk Bids</span>
               </button>
 
@@ -1117,7 +1117,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dash
                 onClick={() => setActiveSection("tenders")}
                 style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s ease" }}
               >
-                <div style={{ width: "28px", height: "28px", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center" }}>📁</div>
+                <div style={{ width: "28px", height: "28px", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center" }}></div>
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#15803d" }}>View Active Tenders</span>
               </button>
             </div>
@@ -1845,7 +1845,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
                   <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>Edit Tender Specifications</h2>
                   <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Tender ID: <strong>{editingTenderModalItem.id}</strong></span>
                 </div>
-                <button onClick={() => setEditingTenderModalItem(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+                <button onClick={() => setEditingTenderModalItem(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}></button>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -1952,7 +1952,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
                   <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>Tender Compliance Requirements</h2>
                   <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Tender ID: <strong>{editingRequirementsTender.id}</strong> — {editingRequirementsTender.title}</span>
                 </div>
-                <button onClick={() => setEditingRequirementsTender(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}>✕</button>
+                <button onClick={() => setEditingRequirementsTender(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#64748b", cursor: "pointer", fontWeight: 800 }}></button>
               </div>
 
               <p style={{ fontSize: "0.82rem", color: "#475569", marginBottom: "16px" }}>
@@ -3566,9 +3566,9 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
                   </h4>
 
                   <div style={{ fontSize: "0.75rem", color: "#334155", lineHeight: 1.5, marginBottom: "12px" }}>
-                    <p style={{ margin: "0 0 4px 0" }}>✅ <strong>{verifiedCount}/{submittedDocuments.length} Documents Verified:</strong> All statutory credentials confirmed.</p>
-                    <p style={{ margin: "0 0 4px 0" }}>✅ <strong>0 Pending Issues:</strong> No pending manual reviews.</p>
-                    <p style={{ margin: "0 0 8px 0" }}>✅ <strong>{bidderScore}% Score:</strong> Bidder meets all eligibility criteria for tender award.</p>
+                    <p style={{ margin: "0 0 4px 0" }}> <strong>{verifiedCount}/{submittedDocuments.length} Documents Verified:</strong> All statutory credentials confirmed.</p>
+                    <p style={{ margin: "0 0 4px 0" }}> <strong>0 Pending Issues:</strong> No pending manual reviews.</p>
+                    <p style={{ margin: "0 0 8px 0" }}> <strong>{bidderScore}% Score:</strong> Bidder meets all eligibility criteria for tender award.</p>
                   </div>
 
                   <button
@@ -3865,18 +3865,18 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
 
 const IntegrationsView = ({ API_BASE, token }) => {
     const initialIntegrations = [
-      { id: 1, name: "Udyam / MSME", key: "udyam", category: "Statutory", status: "Connected", lastSync: "2 mins ago", requests: "42,850", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.udyamregistration.gov.in/v1/verify", icon: "🏢" },
-      { id: 2, name: "GSTN", key: "gstn", category: "Taxation", status: "Connected", lastSync: "5 mins ago", requests: "128,420", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://api.gst.gov.in/taxpayer/v1/search", icon: "🏛️" },
-      { id: 3, name: "PAN / Income Tax", key: "pan", category: "Taxation", status: "Connected", lastSync: "12 mins ago", requests: "96,110", apiStatus: "Healthy (100% Uptime)", endpoint: "https://incometaxindia.gov.in/api/v2/pan-val", icon: "💳" },
-      { id: 4, name: "MCA21", key: "mca21", category: "Corporate", status: "Connected", lastSync: "18 mins ago", requests: "34,500", apiStatus: "Healthy (99.7% Uptime)", endpoint: "https://mca.gov.in/mcafoportal/api/company", icon: "📜" },
-      { id: 5, name: "Startup India", key: "startup_india", category: "Incentives", status: "Connected", lastSync: "25 mins ago", requests: "18,290", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.startupindia.gov.in/v1/dpiit-val", icon: "🚀" },
-      { id: 6, name: "NSIC", key: "nsic", category: "MSME", status: "Connected", lastSync: "32 mins ago", requests: "12,400", apiStatus: "Healthy (99.5% Uptime)", endpoint: "https://nsic.co.in/api/v1/single-point-reg", icon: "🏭" },
-      { id: 7, name: "EPFO", key: "epfo", category: "Labor", status: "Needs Attention", lastSync: "45 mins ago", requests: "52,100", apiStatus: "Latency Warning (450ms)", endpoint: "https://unifiedportal-epfo.gov.in/api/v1/est-search", icon: "👥" },
-      { id: 8, name: "ESIC", key: "esic", category: "Labor", status: "Disconnected", lastSync: "2 days ago", requests: "8,920", apiStatus: "Endpoint Timeout (504 Error)", endpoint: "https://esic.gov.in/api/v1/employer-status", icon: "🏥" },
-      { id: 9, name: "DigiLocker", key: "digilocker", category: "Identity", status: "Connected", lastSync: "8 mins ago", requests: "88,640", apiStatus: "Healthy (100% Uptime)", endpoint: "https://api.digilocker.gov.in/v2/oauth", icon: "🔐" },
-      { id: 10, name: "Make in India", key: "make_in_india", category: "Procurement", status: "Connected", lastSync: "14 mins ago", requests: "29,780", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://makeinindia.gov.in/api/v1/class1-cert", icon: "🇮🇳" },
-      { id: 11, name: "BIS / DPIIT", key: "bis_dpiit", category: "Quality & Standards", status: "Needs Attention", lastSync: "1 hour ago", requests: "15,310", apiStatus: "Certificate Renewal Due", endpoint: "https://bis.gov.in/api/v1/crs-search", icon: "🏅" },
-      { id: 12, name: "GeM", key: "gem", category: "Procurement Portal", status: "Connected", lastSync: "Just now", requests: "210,500", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.gem.gov.in/v3/bid-verification", icon: "🛒" }
+      { id: 1, name: "Udyam / MSME", key: "udyam", category: "Statutory", status: "Connected", lastSync: "2 mins ago", requests: "42,850", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.udyamregistration.gov.in/v1/verify", icon: "" },
+      { id: 2, name: "GSTN", key: "gstn", category: "Taxation", status: "Connected", lastSync: "5 mins ago", requests: "128,420", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://api.gst.gov.in/taxpayer/v1/search", icon: "️" },
+      { id: 3, name: "PAN / Income Tax", key: "pan", category: "Taxation", status: "Connected", lastSync: "12 mins ago", requests: "96,110", apiStatus: "Healthy (100% Uptime)", endpoint: "https://incometaxindia.gov.in/api/v2/pan-val", icon: "" },
+      { id: 4, name: "MCA21", key: "mca21", category: "Corporate", status: "Connected", lastSync: "18 mins ago", requests: "34,500", apiStatus: "Healthy (99.7% Uptime)", endpoint: "https://mca.gov.in/mcafoportal/api/company", icon: "" },
+      { id: 5, name: "Startup India", key: "startup_india", category: "Incentives", status: "Connected", lastSync: "25 mins ago", requests: "18,290", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.startupindia.gov.in/v1/dpiit-val", icon: "" },
+      { id: 6, name: "NSIC", key: "nsic", category: "MSME", status: "Connected", lastSync: "32 mins ago", requests: "12,400", apiStatus: "Healthy (99.5% Uptime)", endpoint: "https://nsic.co.in/api/v1/single-point-reg", icon: "" },
+      { id: 7, name: "EPFO", key: "epfo", category: "Labor", status: "Needs Attention", lastSync: "45 mins ago", requests: "52,100", apiStatus: "Latency Warning (450ms)", endpoint: "https://unifiedportal-epfo.gov.in/api/v1/est-search", icon: "" },
+      { id: 8, name: "ESIC", key: "esic", category: "Labor", status: "Disconnected", lastSync: "2 days ago", requests: "8,920", apiStatus: "Endpoint Timeout (504 Error)", endpoint: "https://esic.gov.in/api/v1/employer-status", icon: "" },
+      { id: 9, name: "DigiLocker", key: "digilocker", category: "Identity", status: "Connected", lastSync: "8 mins ago", requests: "88,640", apiStatus: "Healthy (100% Uptime)", endpoint: "https://api.digilocker.gov.in/v2/oauth", icon: "" },
+      { id: 10, name: "Make in India", key: "make_in_india", category: "Procurement", status: "Connected", lastSync: "14 mins ago", requests: "29,780", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://makeinindia.gov.in/api/v1/class1-cert", icon: "" },
+      { id: 11, name: "BIS / DPIIT", key: "bis_dpiit", category: "Quality & Standards", status: "Needs Attention", lastSync: "1 hour ago", requests: "15,310", apiStatus: "Certificate Renewal Due", endpoint: "https://bis.gov.in/api/v1/crs-search", icon: "" },
+      { id: 12, name: "GeM", key: "gem", category: "Procurement Portal", status: "Connected", lastSync: "Just now", requests: "210,500", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.gem.gov.in/v3/bid-verification", icon: "" }
     ];
 
     const [integrationsList, setIntegrationsList] = useState(initialIntegrations);
@@ -3944,7 +3944,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
         {/* PROTOTYPE SANDBOX BANNER */}
         <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#f8fafc", padding: "14px 20px", borderRadius: "12px", border: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "1.4rem" }}>🎓</span>
+            <span style={{ fontSize: "1.4rem" }}></span>
             <div>
               <strong style={{ fontSize: "0.88rem", color: "#38bdf8" }}>Demonstration Mode Notice</strong>
               <p style={{ margin: 0, fontSize: "0.76rem", color: "#cbd5e1" }}>
@@ -3973,7 +3973,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
           <div style={{ background: "#ffffff", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#15803d", textTransform: "uppercase" }}>Connected</span>
-              <span style={{ fontSize: "1rem" }}>🟢</span>
+              <span style={{ fontSize: "1rem" }}></span>
             </div>
             <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#15803d" }}>{connectedCount}</strong>
             <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Active API Sync</span>
@@ -3982,7 +3982,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
           <div style={{ background: "#ffffff", border: "1px solid #fef08a", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#b45309", textTransform: "uppercase" }}>Needs Attention</span>
-              <span style={{ fontSize: "1rem" }}>🟡</span>
+              <span style={{ fontSize: "1rem" }}></span>
             </div>
             <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b45309" }}>{attentionCount}</strong>
             <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Latency / Cert Renewal</span>
@@ -3991,7 +3991,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
           <div style={{ background: "#ffffff", border: "1px solid #fca5a5", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#b91c1c", textTransform: "uppercase" }}>Disconnected</span>
-              <span style={{ fontSize: "1rem" }}>🔴</span>
+              <span style={{ fontSize: "1rem" }}></span>
             </div>
             <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b91c1c" }}>{disconnectedCount}</strong>
             <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Offline / Endpoint 504</span>
@@ -4000,7 +4000,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
           <div style={{ background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "12px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#1d4ed8", textTransform: "uppercase" }}>Total Integrations</span>
-              <span style={{ fontSize: "1rem" }}>🏛️</span>
+              <span style={{ fontSize: "1rem" }}>️</span>
             </div>
             <strong style={{ fontSize: "1.8rem", fontWeight: 900, color: "#1e40af" }}>{totalCount}</strong>
             <span style={{ fontSize: "0.7rem", color: "#64748b", display: "block", marginTop: "2px" }}>Registry Data Sources</span>
@@ -4053,7 +4053,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
                         color: isConnected ? "#15803d" : isAttention ? "#a16207" : "#b91c1c"
                       }}
                     >
-                      {isConnected ? "🟢 Connected" : isAttention ? "🟡 Needs Attention" : "🔴 Disconnected"}
+                      {isConnected ? " Connected" : isAttention ? " Needs Attention" : " Disconnected"}
                     </span>
                   </div>
 
@@ -4099,7 +4099,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
                       gap: "4px"
                     }}
                   >
-                    ⚙ Configure
+                     Configure
                   </button>
 
                   <button
@@ -4122,7 +4122,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
                       boxShadow: "0 1px 3px rgba(37,99,235,0.2)"
                     }}
                   >
-                    {testingId === portal.id ? "Testing..." : "⚡ Test Connection"}
+                    {testingId === portal.id ? "Testing..." : " Test Connection"}
                   </button>
                 </div>
               </div>
@@ -4191,7 +4191,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
                   <h2 style={{ fontSize: "1.1rem", margin: 0, color: "#ffffff" }}>{configModalItem.name} Integration Gateway</h2>
                   <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Configure Sandbox/Production API parameters</span>
                 </div>
-                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setConfigModalItem(null)}>✕</button>
+                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setConfigModalItem(null)}></button>
               </div>
 
               <form onSubmit={handleSaveConfig} className="drawer-content" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -4620,11 +4620,11 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const getStatusBadge = (st) => {
       switch (st) {
         case "Active":
-          return <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🟢 Active</span>;
+          return <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}> Active</span>;
         case "Pending":
-          return <span style={{ background: "#fef9c3", color: "#a16207", border: "1px solid #fef08a", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🟡 Pending</span>;
+          return <span style={{ background: "#fef9c3", color: "#a16207", border: "1px solid #fef08a", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}> Pending</span>;
         case "Suspended":
-          return <span style={{ background: "#fee2e2", color: "#b91c1c", border: "1px solid #fca5a5", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>🔴 Suspended</span>;
+          return <span style={{ background: "#fee2e2", color: "#b91c1c", border: "1px solid #fca5a5", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}> Suspended</span>;
         default:
           return <span style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", padding: "4px 10px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 600 }}>{st}</span>;
       }
@@ -4716,7 +4716,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
               <UserCheck size={20} style={{ color: "#16a34a" }} />
             </div>
             <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#15803d", marginTop: "8px" }}>{activeUsersCount}</div>
-            <span style={{ fontSize: "0.75rem", color: "#16a34a" }}>🟢 Active system credentials</span>
+            <span style={{ fontSize: "0.75rem", color: "#16a34a" }}> Active system credentials</span>
           </div>
 
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
@@ -4725,7 +4725,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
               <Clock size={20} style={{ color: "#d97706" }} />
             </div>
             <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#b45309", marginTop: "8px" }}>{pendingUsersCount}</div>
-            <span style={{ fontSize: "0.75rem", color: "#b45309" }}>🟡 Awaiting onboarding response</span>
+            <span style={{ fontSize: "0.75rem", color: "#b45309" }}> Awaiting onboarding response</span>
           </div>
 
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
@@ -4806,9 +4806,9 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
               style={{ padding: "9px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
             >
               <option value="All" style={{ background: "#ffffff", color: "#0f172a" }}>All Statuses</option>
-              <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}>🟢 Active</option>
-              <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}>🟡 Pending</option>
-              <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}>🔴 Suspended</option>
+              <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}> Active</option>
+              <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}> Pending</option>
+              <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}> Suspended</option>
             </select>
 
             {/* Reset Button */}
@@ -5004,11 +5004,11 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                       <td key={roleName} style={{ padding: "12px 16px", textAlign: "center" }}>
                         {isAllowed ? (
                           <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 12px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 800 }}>
-                            ✓ Allowed
+                             Allowed
                           </span>
                         ) : (
                           <span style={{ background: "#f1f5f9", color: "#94a3b8", padding: "4px 12px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 600 }}>
-                            ✕ Restricted
+                             Restricted
                           </span>
                         )}
                       </td>
@@ -5029,7 +5029,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
                   {editingUser ? `Edit User: ${editingUser.name}` : "Add New User Account"}
                 </h3>
-                <button onClick={() => setIsAddEditModalOpen(false)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}>✕</button>
+                <button onClick={() => setIsAddEditModalOpen(false)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}></button>
               </div>
 
               <form onSubmit={handleSaveUser}>
@@ -5107,9 +5107,9 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                       onChange={(e) => setUserForm({ ...userForm, status: e.target.value })}
                       style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
                     >
-                      <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}>🟢 Active</option>
-                      <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}>🟡 Pending</option>
-                      <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}>🔴 Suspended</option>
+                      <option value="Active" style={{ background: "#ffffff", color: "#0f172a" }}> Active</option>
+                      <option value="Pending" style={{ background: "#ffffff", color: "#0f172a" }}> Pending</option>
+                      <option value="Suspended" style={{ background: "#ffffff", color: "#0f172a" }}> Suspended</option>
                     </select>
                   </div>
                 </div>
@@ -5147,7 +5147,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
 
                 <div style={{ marginBottom: "20px", background: "#fff7ed", padding: "12px 16px", borderRadius: "8px", border: "1px solid #ffedd5" }}>
                   <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#c2410c", marginBottom: "4px" }}>
-                    🛡️ Admin Authorization Password *
+                    ️ Admin Authorization Password *
                   </label>
                   <input
                     type="password"
@@ -5211,7 +5211,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                 <h3 style={{ fontSize: "1.1rem", fontWeight: 900, color: "#0f172a", margin: 0 }}>
                   User Account Inspector
                 </h3>
-                <button onClick={() => setViewingUser(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}>✕</button>
+                <button onClick={() => setViewingUser(null)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "#64748b" }}></button>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px", background: "#f8fafc", padding: "16px", borderRadius: "10px" }}>
@@ -5248,7 +5248,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {(viewingUser.permissions || []).map((p) => (
                     <span key={p} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "4px 8px", borderRadius: "6px", fontSize: "0.75rem", fontWeight: 600 }}>
-                      ✓ {p}
+                       {p}
                     </span>
                   ))}
                 </div>
@@ -5477,13 +5477,13 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
     const getStatusBadgeStyle = (st) => {
       switch (st) {
         case "Success":
-          return { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", icon: "✓" };
+          return { bg: "#dcfce7", color: "#15803d", border: "#bbf7d0", icon: "" };
         case "Failed":
-          return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5", icon: "✕" };
+          return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5", icon: "" };
         case "Flagged":
-          return { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa", icon: "⚠" };
+          return { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa", icon: "" };
         case "Review":
-          return { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", icon: "🔍" };
+          return { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", icon: "" };
         default:
           return { bg: "#f1f5f9", color: "#475569", border: "#cbd5e1", icon: "●" };
       }
@@ -5950,7 +5950,7 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
           {/* Footer Bar */}
           <div style={{ padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#64748b" }}>
             <span>Showing <strong>{filteredLogs.length}</strong> of <strong>{logsList.length}</strong> audit records</span>
-            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>🔒 Cryptographic Audit Hashing Active (SHA-256 Ledger)</span>
+            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}> Cryptographic Audit Hashing Active (SHA-256 Ledger)</span>
           </div>
         </div>
 
@@ -5971,7 +5971,7 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
                   <h2 style={{ fontSize: "1.25rem", margin: "6px 0 2px 0", color: "#ffffff" }}>{selectedEvent.action}</h2>
                   <span style={{ fontSize: "0.78rem", color: "#cbd5e1" }}>Timestamp: {selectedEvent.timestamp}</span>
                 </div>
-                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setSelectedEvent(null)}>✕</button>
+                <button className="close-btn" style={{ color: "#ffffff" }} onClick={() => setSelectedEvent(null)}></button>
               </div>
 
               {/* Drawer Content Body */}
@@ -6218,7 +6218,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
           oemAuthorizationRequired: true,
           description: "AI Extracted: High-pressure centrifugal pumps (API 610 compliant) for CPCL refinery unit 4. Requires mandatory OEM warranty certificate and 4-year experience."
         }));
-        showToast("✨ AI Requirement Assistant successfully extracted 14 compliance parameters & rules!");
+        showToast(" AI Requirement Assistant successfully extracted 14 compliance parameters & rules!");
       }, 900);
     };
 
@@ -6255,13 +6255,13 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         });
         if (res.ok) {
           fetchTenders();
-          showToast(`💾 Tender Draft Saved Successfully in Supabase Database! ID: ${finalTenderId}`);
+          showToast(` Tender Draft Saved Successfully in Supabase Database! ID: ${finalTenderId}`);
         } else {
           const errData = await res.json();
-          showToast(`⚠️ Draft Save Note: ${errData.detail || "Database save failed"}`);
+          showToast(`️ Draft Save Note: ${errData.detail || "Database save failed"}`);
         }
       } catch (err) {
-        showToast(`💾 Local Draft Saved! (ID: ${finalTenderId})`);
+        showToast(` Local Draft Saved! (ID: ${finalTenderId})`);
       }
     };
 
@@ -6281,7 +6281,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (selectedDate < today) {
-          showToast("⚠️ Closing date must be later than the publication/start date.");
+          showToast("️ Closing date must be later than the publication/start date.");
           return;
         }
       }
@@ -6314,7 +6314,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         if (res.ok) {
           await fetchTenders();
           setCurrentStep(5);
-          showToast(`🚀 Tender ${finalTenderId} Successfully Published to GeM Procurement Network! Redirecting to Tenders List...`);
+          showToast(` Tender ${finalTenderId} Successfully Published to GeM Procurement Network! Redirecting to Tenders List...`);
           setTimeout(() => {
             setActiveSection("tenders");
           }, 1500);
@@ -6341,7 +6341,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         };
         setTendersList((prev) => [newTenderObj, ...prev]);
         setCurrentStep(5);
-        showToast(`🚀 Tender ${finalTenderId} Published locally! Redirecting to Tenders List...`);
+        showToast(` Tender ${finalTenderId} Published locally! Redirecting to Tenders List...`);
         setTimeout(() => {
           setActiveSection("tenders");
         }, 1500);
@@ -6417,7 +6417,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
             style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 1 ? "#2563eb" : "#94a3b8" }}
           >
             <span className="step-num" style={{ background: currentStep >= 1 ? "#2563eb" : "#f1f5f9", color: currentStep >= 1 ? "#ffffff" : "#64748b" }}>
-              {currentStep > 1 ? "✓" : "1"}
+              {currentStep > 1 ? "" : "1"}
             </span>
             <span>Basic Details</span>
           </div>
@@ -6430,7 +6430,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
             style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 2 ? "#2563eb" : "#94a3b8" }}
           >
             <span className="step-num" style={{ background: currentStep >= 2 ? "#2563eb" : "#f1f5f9", color: currentStep >= 2 ? "#ffffff" : "#64748b" }}>
-              {currentStep > 2 ? "✓" : "2"}
+              {currentStep > 2 ? "" : "2"}
             </span>
             <span>Requirements</span>
           </div>
@@ -6443,7 +6443,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
             style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 3 ? "#2563eb" : "#94a3b8" }}
           >
             <span className="step-num" style={{ background: currentStep >= 3 ? "#2563eb" : "#f1f5f9", color: currentStep >= 3 ? "#ffffff" : "#64748b" }}>
-              {currentStep > 3 ? "✓" : "3"}
+              {currentStep > 3 ? "" : "3"}
             </span>
             <span>Documents</span>
           </div>
@@ -6456,7 +6456,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
             style={{ cursor: currentStep < 5 ? "pointer" : "default", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, color: currentStep >= 4 ? "#2563eb" : "#94a3b8" }}
           >
             <span className="step-num" style={{ background: currentStep >= 4 ? "#2563eb" : "#f1f5f9", color: currentStep >= 4 ? "#ffffff" : "#64748b" }}>
-              {currentStep === 5 ? "✓" : "4"}
+              {currentStep === 5 ? "" : "4"}
             </span>
             <span>Review</span>
           </div>
@@ -6484,7 +6484,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
                   <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Basic Tender Information</h2>
                   {aiExtracted && (
                     <span style={{ fontSize: "0.72rem", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", padding: "3px 8px", borderRadius: "12px", fontWeight: 700 }}>
-                      ✨ AI Extracted Metadata
+                       AI Extracted Metadata
                     </span>
                   )}
                 </div>
@@ -6840,8 +6840,8 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
                     <div style={{ marginTop: "12px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
                       {formData.customDocs.map((doc, idx) => (
                         <span key={idx} style={{ background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: "16px", padding: "4px 12px", fontSize: "0.78rem", color: "#334155", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                          📄 {doc}
-                          <button type="button" onClick={() => handleRemoveCustomDoc(idx)} style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontWeight: 800 }}>✕</button>
+                           {doc}
+                          <button type="button" onClick={() => handleRemoveCustomDoc(idx)} style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontWeight: 800 }}></button>
                         </span>
                       ))}
                     </div>
@@ -6896,7 +6896,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
                 {/* Cryptographic Ledger Preview (Hidden as per user requirement)
                 <div style={{ marginTop: "20px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "14px", borderRadius: "10px" }}>
                   <strong style={{ fontSize: "0.78rem", color: "#15803d", textTransform: "uppercase", display: "block" }}>
-                    🔒 Sovereign Cryptographic Hash Ledger Preview
+                     Sovereign Cryptographic Hash Ledger Preview
                   </strong>
                   <code style={{ fontSize: "0.75rem", color: "#166534", fontFamily: "monospace", display: "block", marginTop: "4px" }}>
                     SHA256: 8f4a9b21c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6
@@ -6938,7 +6938,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "#64748b" }}>Ledger Integrity Status:</span>
-                <strong style={{ color: "#16a34a" }}>✓ SHA-256 Ledger Verified</strong>
+                <strong style={{ color: "#16a34a" }}> SHA-256 Ledger Verified</strong>
               </div>
             </div>
 
@@ -6991,7 +6991,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
                 onClick={handleSaveDraft}
                 style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "0.85rem", fontWeight: 700, color: "#1e293b", cursor: "pointer" }}
               >
-                💾 Save Draft
+                 Save Draft
               </button>
 
               {currentStep === 4 ? (
@@ -7000,7 +7000,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
                   onClick={handlePublishTender}
                   style={{ background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 24px", fontSize: "0.88rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
                 >
-                  🚀 Publish Tender to GeM →
+                   Publish Tender to GeM →
                 </button>
               ) : (
                 <button
@@ -7226,7 +7226,7 @@ const ReportsView = ({ bids, tendersList, setActiveSection }) => {
             </div>
             <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#7e22ce", lineHeight: 1.1 }}>{(totalBidsCount * 0.4).toFixed(1)} hrs</div>
             <span style={{ fontSize: "0.72rem", color: "#7e22ce", fontWeight: 700 }}>
-              ⚡ Real-time AI processing speed
+               Real-time AI processing speed
             </span>
           </div>
 
@@ -7917,7 +7917,7 @@ const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, n
                         type="text"
                         value={settings.announcementBadgeText}
                         onChange={(e) => handleChange("announcementBadgeText", e.target.value)}
-                        placeholder="e.g. 📢 LIVE ANNOUNCEMENTS"
+                        placeholder="e.g.  LIVE ANNOUNCEMENTS"
                         style={inputStyle}
                       />
                     </div>
@@ -7945,7 +7945,7 @@ const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, n
                         style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                         placeholder="Enter scrolling announcement text..."
                       />
-                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Use ✦ separator symbols for clean multi-topic scrolling announcements.</span>
+                      <span style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "4px", display: "block" }}>Use  separator symbols for clean multi-topic scrolling announcements.</span>
                     </div>
 
                     <div>
@@ -7991,7 +7991,7 @@ const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, n
                         }}
                       >
                         <span className="ticker-badge">
-                          {settings.announcementBadgeText || "📢 LIVE ANNOUNCEMENTS"}
+                          {settings.announcementBadgeText || " LIVE ANNOUNCEMENTS"}
                         </span>
                         <div className="ticker-wrapper">
                           <span
@@ -8012,7 +8012,7 @@ const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, n
                       </div>
                     ) : (
                       <div style={{ padding: "14px", background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", fontSize: "0.82rem", fontWeight: 700, textAlign: "center" }}>
-                        ⚠️ Live Announcement Ticker is currently Disabled (Banner hidden across portal)
+                        ️ Live Announcement Ticker is currently Disabled (Banner hidden across portal)
                       </div>
                     )}
                   </div>
@@ -8615,8 +8615,8 @@ function Home({ role, user, onLogout }) {
       ? JSON.parse(saved)
       : {
         enabled: true,
-        badgeText: "📢 LIVE ANNOUNCEMENTS",
-        text: "✦ Welcome to BidVerify Government e-Auction & Compliance Verification Portal ✦ Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active ✦ Tender GEM-CPCL-2026-001 Live ✦ Helpdesk: 1800-425-8888 (Toll Free) ✦",
+        badgeText: " LIVE ANNOUNCEMENTS",
+        text: " Welcome to BidVerify Government e-Auction & Compliance Verification Portal  Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active  Tender GEM-CPCL-2026-001 Live  Helpdesk: 1800-425-8888 (Toll Free) ",
         type: "NOTICE",
         speed: "NORMAL"
       };
@@ -8651,13 +8651,13 @@ function Home({ role, user, onLogout }) {
     if (isUserAdmin) {
       // ADMIN Context: Only Admin Password works
       if (inputPass !== "Admin@123") {
-        setActionPasswordError("❌ Invalid Admin Password! Please try again.");
+        setActionPasswordError(" Invalid Admin Password! Please try again.");
         return;
       }
     } else {
       // PROCUREMENT OFFICER Context: Only Officer Password works
       if (inputPass !== "officer123" && inputPass !== (user?.password || "officer123")) {
-        setActionPasswordError("❌ Invalid Procurement Officer Password! Please try again.");
+        setActionPasswordError(" Invalid Procurement Officer Password! Please try again.");
         return;
       }
     }
@@ -8872,6 +8872,518 @@ function Home({ role, user, onLogout }) {
 
   // Admin "System Settings" View Component
 
+  
+// Admin "Blacklist Management" View Component (100% Emoji-Free, Lucide Icons Only)
+function BlacklistManagementView({ API_BASE, token, user }) {
+  const [bidders, setBidders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL"); // ALL, BLACKLISTED, ACTIVE
+
+  // Action Modal State
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: "BLACKLIST", // BLACKLIST or UNBLACKLIST
+    bidder: null
+  });
+  const [actionReason, setActionReason] = useState("");
+  const [actionDuration, setActionDuration] = useState("6");
+  const [actionPassword, setActionPassword] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchBlacklistRegistry();
+  }, []);
+
+  const fetchBlacklistRegistry = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      const res = await fetch(`${API_BASE}/api/admin/blacklist`, {
+        headers: {
+          Authorization: `Bearer ${activeToken}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBidders(data);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.detail || "Failed to fetch blacklist registry.");
+      }
+    } catch (err) {
+      setError("Network error fetching blacklist registry.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openActionModal = (bidder, type) => {
+    setModalState({ isOpen: true, type, bidder });
+    setActionReason("");
+    setActionDuration("6");
+    setActionPassword("");
+    setActionError("");
+  };
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, type: "BLACKLIST", bidder: null });
+    setActionReason("");
+    setActionDuration("6");
+    setActionPassword("");
+    setActionError("");
+  };
+
+  const handleActionSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!actionPassword.trim()) {
+      setActionError("Admin Authorization Password is required.");
+      return;
+    }
+
+    if (modalState.type === "BLACKLIST" && !actionReason.trim()) {
+      setActionError("Please provide a valid reason for disbarment / blacklisting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionError("");
+
+    const activeToken = localStorage.getItem("gem_token") || token;
+    const endpoint = modalState.type === "BLACKLIST" 
+      ? `${API_BASE}/api/admin/blacklist`
+      : `${API_BASE}/api/admin/unblacklist`;
+
+    const payload = modalState.type === "BLACKLIST" ? {
+      email: modalState.bidder.email,
+      admin_password: actionPassword.trim(),
+      reason: actionReason.trim(),
+      duration_months: parseInt(actionDuration, 10) || 6
+    } : {
+      email: modalState.bidder.email,
+      admin_password: actionPassword.trim()
+    };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${activeToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        closeModal();
+        fetchBlacklistRegistry();
+      } else {
+        setActionError(data.detail || "Operation failed. Invalid Admin Password.");
+      }
+    } catch (err) {
+      setActionError("Network error executing blacklist action.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredBidders = bidders.filter(b => {
+    const matchesSearch = 
+      (b.full_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.company_name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (statusFilter === "BLACKLISTED") return matchesSearch && b.is_blacklisted;
+    if (statusFilter === "ACTIVE") return matchesSearch && !b.is_blacklisted;
+    return matchesSearch;
+  });
+
+  const blacklistedCount = bidders.filter(b => b.is_blacklisted).length;
+  const activeCount = bidders.filter(b => !b.is_blacklisted).length;
+
+  return (
+    <div className="blacklist-management-container" style={{ padding: "8px 0" }}>
+      {/* Header Banner */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+            <ShieldAlert size={24} style={{ color: "#dc2626" }} /> Bidder Disbarment & Blacklist Governance
+          </h2>
+          <span style={{ fontSize: "0.82rem", color: "#64748b" }}>
+            Enforce GFR Rule 151 disbarment, track blacklisting audit trails, and manage administrative bidder access.
+          </span>
+        </div>
+        <button
+          onClick={fetchBlacklistRegistry}
+          style={{
+            background: "#ffffff",
+            border: "1px solid #cbd5e1",
+            borderRadius: "8px",
+            padding: "8px 14px",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: "#475569",
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+          }}
+        >
+          <RefreshCw size={14} /> Refresh Registry
+        </button>
+      </div>
+
+      {/* KPI Stats Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "24px" }}>
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", boxShadow: "0 2px 6px rgba(0,0,0,0.02)" }}>
+          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "6px" }}>
+            TOTAL REGISTERED BIDDERS
+          </div>
+          <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a" }}>
+            {bidders.length}
+          </div>
+          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>GeM Registered Entities</span>
+        </div>
+
+        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "12px", padding: "18px" }}>
+          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#dc2626", textTransform: "uppercase", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <ShieldAlert size={14} /> CURRENTLY BLACKLISTED
+          </div>
+          <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#991b1b" }}>
+            {blacklistedCount}
+          </div>
+          <span style={{ fontSize: "0.75rem", color: "#b91c1c" }}>Disbarred Bidders</span>
+        </div>
+
+        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "18px" }}>
+          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#16a34a", textTransform: "uppercase", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <CheckCircle2 size={14} /> ACTIVE / CLEAN BIDDERS
+          </div>
+          <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#14532d" }}>
+            {activeCount}
+          </div>
+          <span style={{ fontSize: "0.75rem", color: "#15803d" }}>Full Bidding Privileges</span>
+        </div>
+      </div>
+
+      {/* Control Bar: Search & Filters */}
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+          <input
+            type="text"
+            placeholder="Search bidder by name, company, email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: "100%", padding: "9px 14px 9px 40px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.88rem", color: "#0f172a" }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => setStatusFilter("ALL")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              border: "1px solid",
+              borderColor: statusFilter === "ALL" ? "#2563eb" : "#cbd5e1",
+              background: statusFilter === "ALL" ? "#eff6ff" : "#ffffff",
+              color: statusFilter === "ALL" ? "#2563eb" : "#64748b",
+              cursor: "pointer"
+            }}
+          >
+            All Bidders ({bidders.length})
+          </button>
+          <button
+            onClick={() => setStatusFilter("BLACKLISTED")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              border: "1px solid",
+              borderColor: statusFilter === "BLACKLISTED" ? "#dc2626" : "#cbd5e1",
+              background: statusFilter === "BLACKLISTED" ? "#fef2f2" : "#ffffff",
+              color: statusFilter === "BLACKLISTED" ? "#dc2626" : "#64748b",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px"
+            }}
+          >
+            <ShieldAlert size={14} /> Blacklisted Only ({blacklistedCount})
+          </button>
+          <button
+            onClick={() => setStatusFilter("ACTIVE")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              border: "1px solid",
+              borderColor: statusFilter === "ACTIVE" ? "#16a34a" : "#cbd5e1",
+              background: statusFilter === "ACTIVE" ? "#f0fdf4" : "#ffffff",
+              color: statusFilter === "ACTIVE" ? "#16a34a" : "#64748b",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px"
+            }}
+          >
+            <CheckCircle2 size={14} /> Active Only ({activeCount})
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 600, marginBottom: "20px" }}>
+          {error}
+        </div>
+      )}
+
+      {/* Main Bidders Registry Table */}
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+          <thead>
+            <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#475569" }}>
+              <th style={{ padding: "14px 18px", fontWeight: 800 }}>Bidder / Organization</th>
+              <th style={{ padding: "14px 18px", fontWeight: 800 }}>Contact Info</th>
+              <th style={{ padding: "14px 18px", fontWeight: 800 }}>Status & Disbarment Details</th>
+              <th style={{ padding: "14px 18px", fontWeight: 800 }}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={4} style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>
+                  Loading bidder blacklist registry...
+                </td>
+              </tr>
+            ) : filteredBidders.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>
+                  No bidder records matching criteria.
+                </td>
+              </tr>
+            ) : (
+              filteredBidders.map((b) => (
+                <tr key={b.id || b.email} style={{ borderBottom: "1px solid #f1f5f9", background: b.is_blacklisted ? "rgba(254,242,242,0.4)" : "transparent" }}>
+                  <td style={{ padding: "14px 18px" }}>
+                    <div style={{ fontWeight: 800, color: "#0f172a", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Building size={15} style={{ color: "#475569" }} /> {b.full_name}
+                    </div>
+                    <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                      {b.company_name || "GeM Registered Bidder"}
+                    </span>
+                  </td>
+
+                  <td style={{ padding: "14px 18px" }}>
+                    <div style={{ color: "#334155", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Mail size={14} style={{ color: "#64748b" }} /> {b.email}
+                    </div>
+                    {b.phone && (
+                      <div style={{ fontSize: "0.78rem", color: "#64748b", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                        <Phone size={13} /> {b.phone}
+                      </div>
+                    )}
+                  </td>
+
+                  <td style={{ padding: "14px 18px" }}>
+                    {b.is_blacklisted ? (
+                      <div>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 8px", borderRadius: "6px", background: "#fef2f2", color: "#dc2626", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase" }}>
+                          <ShieldAlert size={12} /> BLACKLISTED
+                        </span>
+                        {b.blacklist_reason && (
+                          <div style={{ fontSize: "0.78rem", color: "#991b1b", marginTop: "4px", fontStyle: "italic" }}>
+                            "{b.blacklist_reason}"
+                          </div>
+                        )}
+                        {b.blacklist_duration_months && (
+                          <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
+                            Period: {b.blacklist_duration_months} Months
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 8px", borderRadius: "6px", background: "#f0fdf4", color: "#16a34a", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase" }}>
+                        <CheckCircle2 size={12} /> ACTIVE / CLEAN
+                      </span>
+                    )}
+                  </td>
+
+                  <td style={{ padding: "14px 18px" }}>
+                    {b.is_blacklisted ? (
+                      <button
+                        onClick={() => openActionModal(b, "UNBLACKLIST")}
+                        style={{
+                          background: "#ffffff",
+                          border: "1px solid #bbf7d0",
+                          borderRadius: "6px",
+                          padding: "6px 12px",
+                          fontSize: "0.78rem",
+                          fontWeight: 800,
+                          color: "#16a34a",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        <Unlock size={14} /> Unblacklist Bidder
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openActionModal(b, "BLACKLIST")}
+                        style={{
+                          background: "#ffffff",
+                          border: "1px solid #fecaca",
+                          borderRadius: "6px",
+                          padding: "6px 12px",
+                          fontSize: "0.78rem",
+                          fontWeight: 800,
+                          color: "#dc2626",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        <Ban size={14} /> Blacklist Bidder
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Action Modal with Admin Password Field */}
+      {modalState.isOpen && modalState.bidder && (
+        <div className="drawer-overlay" onClick={closeModal} style={{ zIndex: 999999 }}>
+          <div className="studio-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px", padding: "28px", borderRadius: "16px", background: "#ffffff", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: modalState.type === "BLACKLIST" ? "#fef2f2" : "#f0fdf4", color: modalState.type === "BLACKLIST" ? "#dc2626" : "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {modalState.type === "BLACKLIST" ? <Ban size={22} /> : <Unlock size={22} />}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                    {modalState.type === "BLACKLIST" ? "Blacklist / Disbar Bidder" : "Unblacklist / Restore Bidder"}
+                  </h3>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                    Target: <strong>{modalState.bidder.full_name}</strong> ({modalState.bidder.email})
+                  </span>
+                </div>
+              </div>
+              <button onClick={closeModal} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleActionSubmit}>
+              {modalState.type === "BLACKLIST" && (
+                <>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>
+                      Disbarment / Blacklisting Reason *
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={actionReason}
+                      onChange={(e) => setActionReason(e.target.value)}
+                      placeholder="e.g. Non-performance, forged documents under GFR Rule 151..."
+                      style={{ width: "100%", padding: "10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a" }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>
+                      Disbarment Period (Months)
+                    </label>
+                    <select
+                      value={actionDuration}
+                      onChange={(e) => setActionDuration(e.target.value)}
+                      style={{ width: "100%", padding: "10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#0f172a", background: "#ffffff" }}
+                    >
+                      <option value="3">3 Months</option>
+                      <option value="6">6 Months</option>
+                      <option value="12">12 Months (1 Year)</option>
+                      <option value="24">24 Months (2 Years)</option>
+                      <option value="36">36 Months (3 Years)</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.78rem", fontWeight: 700, color: "#dc2626", marginBottom: "6px" }}>
+                  <Lock size={14} /> Mandatory Admin Authorization Password *
+                </label>
+                <input
+                  type="password"
+                  value={actionPassword}
+                  onChange={(e) => setActionPassword(e.target.value)}
+                  placeholder="Enter Master Admin Password (Admin@123)"
+                  style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.88rem", color: "#0f172a" }}
+                  required
+                />
+              </div>
+
+              {actionError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "10px 12px", borderRadius: "8px", fontSize: "0.8rem", fontWeight: 600, marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <AlertTriangle size={16} /> {actionError}
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "8px 16px", fontSize: "0.85rem", fontWeight: 600, color: "#475569", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    background: modalState.type === "BLACKLIST" ? "#dc2626" : "#16a34a",
+                    color: "#ffffff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 20px",
+                    fontSize: "0.85rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  {isSubmitting ? "Authorizing..." : (modalState.type === "BLACKLIST" ? "Confirm & Blacklist" : "Confirm & Restore")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
   const renderContent = () => {
     switch (activeSection) {
       case "profile":
@@ -8959,6 +9471,15 @@ function Home({ role, user, onLogout }) {
         return <ReportsView bids={bids} tendersList={tendersList} setActiveSection={setActiveSection} />;
       case "userManagement":
         return <UserManagementView user={user} role={role} isAdmin={isAdmin} API_BASE={API_BASE} token={token} />;
+      case "blacklistManagement":
+        return isAdmin ? (
+          <BlacklistManagementView API_BASE={API_BASE} token={token} user={user} />
+        ) : (
+          <SectionPlaceholder
+            title="Access Restricted"
+            description="Bidder Blacklist & Disbarment Management is restricted exclusively to Admin role users."
+          />
+        );
       case "integrations":
         return <IntegrationsView API_BASE={API_BASE} token={token} />;
       case "auditTrail":
@@ -9160,7 +9681,7 @@ function Home({ role, user, onLogout }) {
                       : undefined
             }}
           >
-            <span className="ticker-badge">{announcementConfig.badgeText || "📢 LIVE ANNOUNCEMENTS"}</span>
+            <span className="ticker-badge">{announcementConfig.badgeText || " LIVE ANNOUNCEMENTS"}</span>
             <div className="ticker-wrapper">
               <span
                 className="ticker-text"
@@ -9192,7 +9713,7 @@ function Home({ role, user, onLogout }) {
                   <h2>{selectedBid.bidderName}</h2>
                   <span>Bid System ID: {selectedBid.id} | Submitted: {selectedBid.submittedOn}</span>
                 </div>
-                <button className="close-btn" onClick={() => setSelectedBid(null)}>✕</button>
+                <button className="close-btn" onClick={() => setSelectedBid(null)}></button>
               </div>
 
               <div className="drawer-content">
@@ -9251,9 +9772,9 @@ function Home({ role, user, onLogout }) {
                         <td>{selectedBid.bidderName}</td>
                         <td>
                           {selectedBid.gstin ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active ✓</span>
+                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
                           ) : (
-                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided ✕</span>
+                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
                           )}
                         </td>
                       </tr>
@@ -9263,9 +9784,9 @@ function Home({ role, user, onLogout }) {
                         <td>{selectedBid.bidderName}</td>
                         <td>
                           {selectedBid.pan ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active ✓</span>
+                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
                           ) : (
-                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided ✕</span>
+                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
                           )}
                         </td>
                       </tr>
@@ -9275,7 +9796,7 @@ function Home({ role, user, onLogout }) {
                         <td>{selectedBid.udyam ? selectedBid.bidderName : "N/A"}</td>
                         <td>
                           {selectedBid.udyam ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Verified ✓</span>
+                            <span style={{ color: "#10b981", fontWeight: 600 }}>Verified </span>
                           ) : (
                             <span style={{ color: "#f59e0b", fontWeight: 600 }}>Exempt / Missing</span>
                           )}
@@ -9292,7 +9813,7 @@ function Home({ role, user, onLogout }) {
                     <div className="warnings-list">
                       {selectedBid.warnings.map((w, idx) => (
                         <div key={idx} className={`warning-item ${selectedBid.risk === "HIGH" ? "critical" : selectedBid.risk === "MEDIUM" ? "warning" : "info"}`}>
-                          <div className="warning-icon">⚠</div>
+                          <div className="warning-icon"></div>
                           <div className="warning-text">{w}</div>
                         </div>
                       ))}
@@ -9451,6 +9972,30 @@ function Home({ role, user, onLogout }) {
 
                     <button
                       className="dropdown-item"
+                      onClick={() => { setActiveSection("blacklistManagement"); setUserDropdownOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: activeSection === "blacklistManagement" ? "#f1f5f9" : "transparent",
+                        color: activeSection === "blacklistManagement" ? "#0f172a" : "#334155",
+                        border: "none",
+                        fontSize: "0.85rem",
+                        fontWeight: activeSection === "blacklistManagement" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      <ShieldAlert size={16} style={{ color: "#dc2626" }} />
+                      <span>Blacklist Management</span>
+                    </button>
+
+                    <button
+                      className="dropdown-item"
                       onClick={() => { setActiveSection("integrations"); setUserDropdownOpen(false); }}
                       style={{
                         width: "100%",
@@ -9570,7 +10115,7 @@ function Home({ role, user, onLogout }) {
                     : undefined
           }}
         >
-          <span className="ticker-badge">{announcementConfig.badgeText || "📢 LIVE ANNOUNCEMENTS"}</span>
+          <span className="ticker-badge">{announcementConfig.badgeText || " LIVE ANNOUNCEMENTS"}</span>
           <div className="ticker-wrapper">
             <span
               className="ticker-text"
@@ -9602,7 +10147,7 @@ function Home({ role, user, onLogout }) {
                 <h2>{selectedBid.bidderName}</h2>
                 <span>Bid System ID: {selectedBid.id} | Submitted: {selectedBid.submittedOn}</span>
               </div>
-              <button className="close-btn" onClick={() => setSelectedBid(null)}>✕</button>
+              <button className="close-btn" onClick={() => setSelectedBid(null)}></button>
             </div>
 
             <div className="drawer-content">
@@ -9671,9 +10216,9 @@ function Home({ role, user, onLogout }) {
                       <td>{selectedBid.bidderName}</td>
                       <td>
                         {selectedBid.gstin ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active ✓</span>
+                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
                         ) : (
-                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided ✕</span>
+                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
                         )}
                       </td>
                     </tr>
@@ -9683,9 +10228,9 @@ function Home({ role, user, onLogout }) {
                       <td>{selectedBid.bidderName}</td>
                       <td>
                         {selectedBid.pan ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active ✓</span>
+                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
                         ) : (
-                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided ✕</span>
+                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
                         )}
                       </td>
                     </tr>
@@ -9695,7 +10240,7 @@ function Home({ role, user, onLogout }) {
                       <td>{selectedBid.udyam ? selectedBid.bidderName : "N/A"}</td>
                       <td>
                         {selectedBid.udyam ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Verified ✓</span>
+                          <span style={{ color: "#10b981", fontWeight: 600 }}>Verified </span>
                         ) : (
                           <span style={{ color: "#f59e0b", fontWeight: 600 }}>Exempt / Missing</span>
                         )}
@@ -9712,7 +10257,7 @@ function Home({ role, user, onLogout }) {
                   <div className="warnings-list">
                     {selectedBid.warnings.map((w, idx) => (
                       <div key={idx} className={`warning-item ${selectedBid.risk === "HIGH" ? "critical" : selectedBid.risk === "MEDIUM" ? "warning" : "info"}`}>
-                        <div className="warning-icon">⚠</div>
+                        <div className="warning-icon"></div>
                         <div className="warning-text">{w}</div>
                       </div>
                     ))}
@@ -9774,7 +10319,7 @@ function Home({ role, user, onLogout }) {
                   Tender Reference: <strong>{selectedTender.id}</strong> | Department: <strong>{selectedTender.department}</strong>
                 </span>
               </div>
-              <button className="close-btn" style={{ color: "#ffffff", background: "rgba(255, 255, 255, 0.2)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }} onClick={() => setSelectedTender(null)}>✕</button>
+              <button className="close-btn" style={{ color: "#ffffff", background: "rgba(255, 255, 255, 0.2)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }} onClick={() => setSelectedTender(null)}></button>
             </div>
 
             <div className="drawer-content" style={{ padding: "24px" }}>
@@ -9801,7 +10346,7 @@ function Home({ role, user, onLogout }) {
               {/* Technical Specifications & Requirements */}
               <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", background: "#ffffff" }}>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0f172a", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
-                  📋 Technical Scope & Mandatory Criteria
+                   Technical Scope & Mandatory Criteria
                 </h4>
                 <ul style={{ listStyle: "disc", paddingLeft: "20px", fontSize: "0.88rem", color: "#334155", display: "flex", flexDirection: "column", gap: "8px" }}>
                   <li><strong>Scope of Supply:</strong> Design, testing, supply, and on-site commissioning at {selectedTender.department} premises.</li>
@@ -9814,7 +10359,7 @@ function Home({ role, user, onLogout }) {
               {/* Required Documents Matrix */}
               <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "18px", background: "#ffffff" }}>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0f172a", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
-                  🛡️ Required Mandatory Certificates
+                  ️ Required Mandatory Certificates
                 </h4>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                   <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>

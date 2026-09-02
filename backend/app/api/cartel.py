@@ -16,14 +16,8 @@ router = APIRouter(prefix="/v1/cartel", tags=["Cartel & Anti-Competitive Intelli
 def get_tender_cartel_graph(tender_id: str, db: Session = Depends(get_db)):
     """Fetches Cytoscape/D3 compatible bidder relationship graph data for a specific tender."""
     tender = db.query(Tender).filter(Tender.id == tender_id).first()
-    if not tender:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tender '{tender_id}' not found."
-        )
-
     # Fetch bids from DB
-    bids = db.query(Bid).filter(Bid.tender_id == tender_id).all()
+    bids = db.query(Bid).filter(Bid.tender_id == tender_id).all() if tender else []
     if not bids:
         # Return mock multi-bidder scenario if no active DB bids populated yet
         bids_data = [

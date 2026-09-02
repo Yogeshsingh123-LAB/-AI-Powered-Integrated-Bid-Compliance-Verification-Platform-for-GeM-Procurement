@@ -204,12 +204,21 @@ def list_bids_for_tender(
     for b in bids:
         bidder = db.query(User).filter(User.id == b.bidder_id).first()
         score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
-        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+        off_status = (b.officer_status or "Pending").upper()
+        if off_status == "PENDING":
+            risk_level = "HIGH"
+        elif score_val >= 80:
+            risk_level = "LOW"
+        elif score_val >= 50:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "HIGH"
 
         doc_count = db.query(Document).filter(Document.bid_id == b.id, Document.document_status != "REPLACED").count()
 
         results.append({
             "id": str(b.id),
+            "bid_id": str(b.id),
             "tender_id": b.tender_id,
             "bidder_id": str(b.bidder_id),
             "bidderName": bidder.full_name if bidder else "Registered Bidder",
@@ -288,20 +297,24 @@ def get_bid_details(
 ):
     """Retrieve detailed verification status of a specific bid."""
     bid = None
-    try:
-        b_uuid = uuid.UUID(str(bid_id))
-        bid = db.query(Bid).filter(Bid.id == b_uuid).first()
-        if not bid:
-            bid = db.query(Bid).filter(Bid.bidder_id == b_uuid).order_by(Bid.submitted_at.desc()).first()
-    except Exception:
-        pass
-
-    if not bid:
-        all_bids = db.query(Bid).all()
-        for b in all_bids:
-            if str(b.id) == str(bid_id) or str(b.bidder_id) == str(bid_id):
-                bid = b
-                break
+    clean_id = str(bid_id).replace("-", "").lower()
+    clean_target = clean_id.replace("/", "")
+    all_bids = db.query(Bid).all()
+    for b in all_bids:
+        b_id_clean = str(b.id).replace("-", "").lower()
+        b_bidder_clean = str(b.bidder_id).replace("-", "").lower() if b.bidder_id else ""
+        b_tender_clean = str(b.tender_id).replace("-", "").replace("/", "").lower() if b.tender_id else ""
+        
+        b_email_clean = str(b.bidder.email).lower() if b.bidder and b.bidder.email else ""
+        b_name_clean = str(b.bidder.full_name).lower() if b.bidder and b.bidder.full_name else ""
+        
+        if (b_id_clean == clean_id or 
+            b_bidder_clean == clean_id or 
+            b_tender_clean == clean_target or 
+            b_email_clean == str(bid_id).lower() or 
+            b_name_clean == str(bid_id).lower()):
+            bid = b
+            break
 
     if not bid:
         raise HTTPException(
@@ -321,8 +334,16 @@ def get_bid_details(
     documents = db.query(Document).filter(Document.bid_id == bid.id, Document.document_status != "REPLACED").all()
     requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
 
+    # Determine risk level: if officer verification is pending, report HIGH or derived risk
     score_val = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
-    risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+    if (bid.officer_status or "Pending").upper() == "PENDING":
+        risk_level = "HIGH"
+    elif score_val >= 80:
+        risk_level = "LOW"
+    elif score_val >= 50:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "HIGH"
 
     # Map requirement items to uploaded documents
     doc_map = {str(d.requirement_id): d for d in documents}
@@ -341,7 +362,7 @@ def get_bid_details(
 
         if d_obj:
             uploaded_cnt += 1
-            if d_obj.document_status.upper() == "VERIFIED":
+            if d_obj.document_status.upper() in ["VERIFIED", "PROCESSED", "APPROVED"]:
                 verified_cnt += 1
             status_text = d_obj.document_status
             compliance_matrix.append({
@@ -353,7 +374,7 @@ def get_bid_details(
                 "document_id": str(d_obj.id),
                 "file_name": d_obj.original_filename,
                 "status": status_text,
-                "uploaded_at": d_obj.uploaded_at.isoformat()
+                "uploaded_at": d_obj.uploaded_at.isoformat() if d_obj.uploaded_at else None
             })
         else:
             missing_cnt += 1
@@ -369,13 +390,43 @@ def get_bid_details(
                 "uploaded_at": None
             })
 
+    # Fetch audit logs for this bid
+    from app.models.audit_log import AuditLog
+    audit_records = db.query(AuditLog).filter(
+        (AuditLog.bid_id == bid.id) | (AuditLog.entity_id == str(bid.id))
+    ).order_by(AuditLog.created_at.desc()).all()
+
+    audit_trail = [
+        {
+            "id": str(a.id),
+            "action": a.action,
+            "user_id": str(a.user_id) if a.user_id else None,
+            "timestamp": a.created_at.isoformat() if a.created_at else None,
+            "details": a.new_value or a.old_value or f"Action: {a.action}"
+        }
+        for a in audit_records
+    ]
+
     return {
         "id": str(bid.id),
         "tender_id": bid.tender_id,
         "tender_title": tender.title if tender else "Procurement Bid Submission",
+        "tender_department": tender.department if tender else None,
+        "tender_category": tender.category if tender else None,
         "bidder_id": str(bid.bidder_id),
         "bidder_name": bidder.full_name if bidder else "Registered Bidder",
-        "bidder_email": bidder.email if bidder else "",
+        "bidder_email": bidder.email if bidder else None,
+        "bidder_phone": bidder.phone if bidder else None,
+        "bidder_status": bidder.status if bidder else "Active",
+        "bidder_organization": (bidder.department or bidder.full_name) if bidder else None,
+        "pan": None,
+        "gstin": None,
+        "udyam": None,
+        "constitution": None,
+        "incorporation_date": None,
+        "address": None,
+        "country": None,
+        "bid_value": getattr(bid, "bid_value", None),
         "status": bid.status,
         "officer_status": bid.officer_status or "Pending",
         "is_locked": bid.is_locked,
@@ -387,16 +438,16 @@ def get_bid_details(
         "submitted_at": bid.submitted_at.isoformat() if bid.submitted_at else None,
         "summary_counts": {
             "required": len(requirements),
-            "uploaded": uploaded_cnt,
+            "uploaded": len(documents),
             "verified": verified_cnt,
-            "missing": missing_cnt,
-            "pending_verification": uploaded_cnt - verified_cnt
+            "missing": max(0, len(requirements) - len(documents)),
+            "pending_verification": max(0, len(documents) - verified_cnt)
         },
         "compliance_matrix": compliance_matrix,
         "documents": [
             {
                 "id": str(d.id),
-                "requirement_id": str(d.requirement_id),
+                "requirement_id": str(d.requirement_id) if d.requirement_id else None,
                 "document_type": d.document_type,
                 "original_filename": d.original_filename,
                 "file_size": d.file_size,
@@ -413,7 +464,8 @@ def get_bid_details(
                 "is_mandatory": r.is_mandatory
             }
             for r in requirements
-        ]
+        ],
+        "audit_trail": audit_trail
     }
 
 

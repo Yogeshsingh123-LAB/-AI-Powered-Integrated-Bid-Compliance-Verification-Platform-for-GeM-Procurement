@@ -2738,33 +2738,41 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
       return () => { mounted = false; };
     }, [selectedVerificationBidder, API_BASE, token]);
 
-    // Dynamic Bidder data fallback from selectedVerificationBidder or active state
-    const bidderName = fetchedBidDetails?.bidder_name || selectedVerificationBidder?.name || selectedVerificationBidder?.bidderName || "Bidder Organization";
-    const bidderLocation = selectedVerificationBidder?.location || "India";
-    const bidderStatus = fetchedBidDetails?.officer_status || fetchedBidDetails?.status || selectedVerificationBidder?.verificationStatus || selectedVerificationBidder?.status || "Under Review";
-    const bidderPan = selectedVerificationBidder?.pan || "N/A";
-    const bidderGstin = selectedVerificationBidder?.gstin || "N/A";
-    const bidderType = selectedVerificationBidder?.type || selectedVerificationBidder?.enterprise_type || "Enterprise";
-    const bidderPhone = fetchedBidDetails?.bidder_email || selectedVerificationBidder?.phone || "N/A";
-    const bidderEmail = fetchedBidDetails?.bidder_email || selectedVerificationBidder?.email || "N/A";
-    const bidderScore = fetchedBidDetails?.compliance_score !== undefined ? fetchedBidDetails.compliance_score : (selectedVerificationBidder?.complianceScore !== undefined ? selectedVerificationBidder.complianceScore : (selectedVerificationBidder?.score || 0));
-    const bidderRisk = fetchedBidDetails?.risk_level || selectedVerificationBidder?.riskLevel || selectedVerificationBidder?.risk || "LOW";
+    // Dynamic Bidder data fallback from fetchedBidDetails or active state (no demo strings)
+    const bidderName = fetchedBidDetails?.bidder_name || selectedVerificationBidder?.name || selectedVerificationBidder?.bidderName || "Not provided";
+    const bidderLocation = fetchedBidDetails?.country || selectedVerificationBidder?.location || selectedVerificationBidder?.country || "Not provided";
+    const bidderStatus = fetchedBidDetails?.officer_status || fetchedBidDetails?.status || selectedVerificationBidder?.verificationStatus || selectedVerificationBidder?.status || "Pending";
+    const bidderPan = fetchedBidDetails?.pan || selectedVerificationBidder?.pan || "Not provided";
+    const bidderGstin = fetchedBidDetails?.gstin || selectedVerificationBidder?.gstin || "Not provided";
+    const bidderUdyam = fetchedBidDetails?.udyam || selectedVerificationBidder?.udyam || "Not provided";
+    const bidderType = fetchedBidDetails?.constitution || selectedVerificationBidder?.constitution || selectedVerificationBidder?.type || selectedVerificationBidder?.enterprise_type || "Not provided";
+    const bidderIncorporation = fetchedBidDetails?.incorporation_date || selectedVerificationBidder?.incorporation_date || selectedVerificationBidder?.incorporationDate || "Not provided";
+    const bidderAddress = fetchedBidDetails?.address || selectedVerificationBidder?.address || "Not provided";
+    const bidderPhone = fetchedBidDetails?.bidder_phone || selectedVerificationBidder?.phone || selectedVerificationBidder?.bidderPhone || "Not provided";
+    const bidderEmail = fetchedBidDetails?.bidder_email || selectedVerificationBidder?.email || selectedVerificationBidder?.bidderEmail || "Not provided";
+    const bidderScore = fetchedBidDetails?.compliance_score !== undefined && fetchedBidDetails?.compliance_score !== null ? fetchedBidDetails.compliance_score : (selectedVerificationBidder?.complianceScore !== undefined ? selectedVerificationBidder.complianceScore : (selectedVerificationBidder?.score || 0));
+    const bidderRisk = fetchedBidDetails?.risk_level || selectedVerificationBidder?.riskLevel || selectedVerificationBidder?.risk || "HIGH";
 
-    const tenderId = fetchedBidDetails?.tender_id || selectedVerificationBidder?.tenderId || selectedVerificationBidder?.tender_id || "N/A";
-    const tenderName = fetchedBidDetails?.tender_title || selectedVerificationBidder?.tenderName || selectedVerificationBidder?.tender_name || "Unknown Tender";
-    const bidderId = fetchedBidDetails?.bidder_id || selectedVerificationBidder?.id || selectedVerificationBidder?.bidder_id || "N/A";
-    const submissionDate = fetchedBidDetails?.submitted_at || selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || "N/A";
-    const bidValue = selectedVerificationBidder?.bidValue || selectedVerificationBidder?.bid_value || "N/A";
-    
+    const tenderId = fetchedBidDetails?.tender_id || selectedVerificationBidder?.tenderId || selectedVerificationBidder?.tender_id || "Not provided";
+    const tenderName = fetchedBidDetails?.tender_title || selectedVerificationBidder?.tenderName || selectedVerificationBidder?.tender_title || selectedVerificationBidder?.tender_name || "Not provided";
+    const tenderDepartment = fetchedBidDetails?.tender_department || selectedVerificationBidder?.department || selectedVerificationBidder?.tender_department || "Not provided";
+    const bidderId = fetchedBidDetails?.id ? `BID-${fetchedBidDetails.id.substring(0, 8).toUpperCase()}` : (selectedVerificationBidder?.id || selectedVerificationBidder?.bid_id || "Not provided");
+    const submissionDate = fetchedBidDetails?.submitted_at ? new Date(fetchedBidDetails.submitted_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : (selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || selectedVerificationBidder?.submittedOn || "Not provided");
+    const bidValue = fetchedBidDetails?.bid_value ? `₹${Number(fetchedBidDetails.bid_value).toLocaleString('en-IN')}` : (selectedVerificationBidder?.bidValue || selectedVerificationBidder?.bid_value ? `₹${Number(selectedVerificationBidder.bidValue || selectedVerificationBidder.bid_value).toLocaleString('en-IN')}` : "Not provided");
+
     const extractedFields = Array.isArray(selectedVerificationBidder?.extractedFields)
       ? selectedVerificationBidder.extractedFields
       : (Array.isArray(fetchedBidDetails?.extracted_fields) ? fetchedBidDetails.extracted_fields : []);
 
-    const rawDocs = (fetchedBidDetails && Array.isArray(fetchedBidDetails.documents) && fetchedBidDetails.documents.length > 0)
+    const rawDocs = (fetchedBidDetails && Array.isArray(fetchedBidDetails.documents))
       ? fetchedBidDetails.documents.map(d => ({
           id: d.id,
-          name: d.original_filename || d.document_type || "Compliance Document",
-          type: d.document_type || "PDF",
+          type: d.document_type || "Compliance Document",
+          name: d.original_filename || d.document_type || "Document",
+          number: d.id ? `DOC-${d.id.substring(0, 6).toUpperCase()}` : "N/A",
+          issuedBy: d.uploaded_by ? "Bidder Submission" : "Government Issuer",
+          issueDate: d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString("en-IN") : "Not provided",
+          expiryDate: "N/A",
           size: d.file_size ? `${(d.file_size / 1024).toFixed(1)} KB` : "1.2 MB",
           status: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "Verified" : "Pending",
           statusBg: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "#dcfce7" : "#fff7ed",
@@ -2784,14 +2792,13 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
 
     const verifiedCount = submittedDocuments.filter(d => d.status === "Verified").length;
     const pendingCount = submittedDocuments.filter(d => d.status === "Pending").length;
-    const issuesCount = submittedDocuments.filter(d => d.status === "Issues Found").length;
+    const issuesCount = submittedDocuments.filter(d => d.status === "Issues Found" || d.status === "Rejected").length;
 
     const handleVerifySingleDoc = (docId) => {
       setVerifiedDocMap(prev => ({ ...prev, [docId]: true }));
-      alert("Document manually verified via AI portal bypass.");
     };
 
-    const verifyAllDocs = () => {
+    const handleVerifyAllDocs = () => {
       const allVerified = {};
       submittedDocuments.forEach(d => {
         allVerified[d.id] = true;
@@ -2803,11 +2810,33 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
       ? selectedVerificationBidder.complianceChecks
       : (Array.isArray(fetchedBidDetails?.compliance_checks) ? fetchedBidDetails.compliance_checks : []);
 
-    const handleAuthenticateAndSubmit = (e) => {
+    const handleAuthenticateAndSubmit = async (e) => {
       e.preventDefault();
       if (!officerPassword || officerPassword.length < 3) {
         setAuthError("Please enter your Procurement Officer password to authenticate.");
         return;
+      }
+
+      try {
+        const activeToken = localStorage.getItem("gem_token") || token;
+        const targetId = fetchedBidDetails?.id || selectedVerificationBidder?.bid_id || selectedVerificationBidder?.id;
+        
+        if (targetId && typeof targetId === "string" && targetId.length >= 10) {
+          await fetch(`${API_BASE}/v1/override/decision`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+            },
+            body: JSON.stringify({
+              bid_id: targetId,
+              officer_status: officerDecision === "qualified" ? "Approved" : (officerDecision === "disqualified" ? "Rejected" : "Approved with Deviation"),
+              justification: `Officer decision finalized as ${officerDecision.toUpperCase()} via authenticated officer portal.`
+            })
+          });
+        }
+      } catch (err) {
+        console.warn("Could not save override decision to backend:", err);
       }
 
       const randomHash = "0x" + Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase();
@@ -2815,7 +2844,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
 
       const record = {
         decision: officerDecision,
-        officer: user?.full_name || "Procurement Officer #OFF-9821",
+        officer: user?.full_name || "Procurement Officer",
         timestamp: timestamp,
         hash: randomHash
       };
@@ -2924,12 +2953,14 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
               <div style={{ position: "relative", width: "42px", height: "42px" }}>
                 <svg width="42" height="42" viewBox="0 0 36 36">
                   <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" strokeWidth="3.5" />
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16a34a" strokeWidth="3.5" strokeDasharray={`${bidderScore}, 100`} />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={bidderScore >= 80 ? "#16a34a" : bidderScore >= 50 ? "#eab308" : "#dc2626"} strokeWidth="3.5" strokeDasharray={`${bidderScore}, 100`} />
                 </svg>
               </div>
               <div>
-                <strong style={{ fontSize: "1.1rem", fontWeight: 800, color: "#16a34a", display: "block", lineHeight: 1 }}>{bidderScore}%</strong>
-                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#16a34a" }}>Good</span>
+                <strong style={{ fontSize: "1.1rem", fontWeight: 800, color: bidderScore >= 80 ? "#16a34a" : bidderScore >= 50 ? "#d97706" : "#dc2626", display: "block", lineHeight: 1 }}>{bidderScore}%</strong>
+                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: bidderScore >= 80 ? "#16a34a" : bidderScore >= 50 ? "#d97706" : "#dc2626" }}>
+                  {bidderStatus === "Pending" ? "Pending Assessment" : (bidderScore >= 80 ? "Good" : bidderScore >= 50 ? "Moderate" : "Low Score")}
+                </span>
               </div>
             </div>
           </div>
@@ -2937,10 +2968,20 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
           {/* Tile 6: Risk Level */}
           <div>
             <span style={{ fontSize: "0.72rem", color: "#64748b", display: "block", marginBottom: "4px" }}>Risk Level</span>
-            <span style={{ padding: "4px 10px", borderRadius: "10px", fontSize: "0.75rem", fontWeight: 700, background: "#fff7ed", color: "#ea580c", display: "inline-block" }}>
+            <span style={{
+              padding: "4px 10px",
+              borderRadius: "10px",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              background: bidderRisk === "HIGH" ? "#fef2f2" : bidderRisk === "MEDIUM" ? "#fff7ed" : "#f0fdf4",
+              color: bidderRisk === "HIGH" ? "#dc2626" : bidderRisk === "MEDIUM" ? "#ea580c" : "#16a34a",
+              display: "inline-block"
+            }}>
               ◆ {bidderRisk}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "#64748b", display: "block", marginTop: "2px" }}>Requires Review</span>
+            <span style={{ fontSize: "0.75rem", color: "#64748b", display: "block", marginTop: "2px" }}>
+              {bidderRisk === "HIGH" ? "Action Required" : bidderRisk === "MEDIUM" ? "Requires Review" : "Low Risk"}
+            </span>
           </div>
 
         </div>
@@ -3005,7 +3046,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Udyam</span>
-                  <strong style={{ color: "#0f172a" }}>UDYAM-GJ-01-1234567</strong>
+                  <strong style={{ color: "#0f172a" }}>{bidderUdyam}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Constitution</span>
@@ -3013,7 +3054,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Incorporation</span>
-                  <strong style={{ color: "#0f172a" }}>12 May 2010</strong>
+                  <strong style={{ color: "#0f172a" }}>{bidderIncorporation}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Email</span>
@@ -3030,7 +3071,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
                 <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a", display: "block", marginBottom: "6px" }}>Registered Address</span>
                 <div style={{ display: "flex", gap: "6px", fontSize: "0.72rem", color: "#475569", lineHeight: 1.4 }}>
                   <MapPin size={14} style={{ color: "#64748b", flexShrink: 0, marginTop: "2px" }} />
-                  <span>123, Industrial Area, Phase - IV, GIDC Vatva, Ahmedabad - 382445, Gujarat, India</span>
+                  <span>{bidderAddress}</span>
                 </div>
               </div>
             </div>

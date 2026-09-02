@@ -4,14 +4,13 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-147%20Passed%20(100%25)-success.svg)](#-automated-test-suite-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: 26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 
-An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, multi-bidder cartel graph analysis, L1 price comparison ranking, Reverse Auction collusion monitoring, Post-Award CRAC 10-day payment SLA tracking & PFMS Treasury disbursement simulation, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
+An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, interactive multi-bidder cartel graph analysis, administrative bidder blacklist management with password-gated authorization, L1 price comparison ranking, Reverse Auction collusion monitoring, Post-Award CRAC 10-day payment SLA tracking & PFMS Treasury disbursement simulation, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
 
 ---
 
@@ -20,9 +19,8 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 - 📄 **Official 12-Slide Pitch Deck**: [`docs/PITCH_DECK.md`](docs/PITCH_DECK.md)
 - 🎬 **Presenter Walkthrough & Demo Guide**: [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 - 🏛️ **GSTN Sandbox Integration Spec**: [`docs/GEM_GSTN_SANDBOX_INTEGRATION.md`](docs/GEM_GSTN_SANDBOX_INTEGRATION.md)
-- 🧠 **System Architecture & Brain**: [`brain.md`](brain.md)
-- ⚡ **Locust Load Test Suite**: [`backend/tests/load_test_locust.py`](backend/tests/load_test_locust.py)
 - 🐳 **Docker Deployment Spec**: [`docker-compose.yml`](docker-compose.yml)
+- ⚡ **Platform Launcher**: [`run_platform.bat`](run_platform.bat)
 
 ---
 
@@ -34,12 +32,12 @@ flowchart TD
     B -->|"Direct API with mTLS OAuth2"| GeM["Official GeM Portal Gateway"]
     B -->|"SQLAlchemy 2.x Pooler"| C[("Supabase Cloud Database / PostgreSQL")]
     B -->|"Supabase Storage Client"| S[("Supabase Storage / Cloud Bucket")]
-    B -->|"Neo4j / NetworkX"| D["Cartel Relationship Graph Engine"]
-    B -->|"External integrations"| E["Government API Gateways"]
-    B -->|"OCR and multilingual processing"| F["Tesseract OCR & PDF Forgery Detector"]
+    B -->|"NetworkX / Cytoscape Engine"| D["Cartel Relationship Graph Visualizer"]
+    B -->|"External Sandbox APIs"| E["Government API Gateways (GSTN, EPFO, Udyam)"]
+    B -->|"OCR & Multilingual Parser"| F["PyMuPDF / Tesseract & Forgery Detector"]
     B -->|"Semantic NLP"| G["RFP Clause Comparator & XAI Generator"]
-    B -->|"Blockchain audit"| H["Merkle Tree Ledger & Hyperledger Connector"]
-    B -->|"Real-time services"| I["WebSocket Manager & Alert Engine"]
+    B -->|"Blockchain Audit"| H["Merkle Tree Ledger & Hyperledger Connector"]
+    B -->|"Real-time Services"| I["WebSocket Manager & Alert Engine"]
 
     classDef client fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
     classDef core fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95,stroke-width:3px
@@ -62,33 +60,36 @@ flowchart TD
 
 | Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
-| **Global Cloud Data Sync** | Supabase Cloud Architecture | Strict Single Source of Truth architecture ensuring user accounts, tenders, bids, document uploads, and audit records synchronize natively across workstations (Laptop A <-> Laptop B) without local data drift |
-| **Compliance Vault & Matrix** | GeM Document Verification | Dynamic tender-specific statutory requirements checklist (`GST`, `PAN`, `UDYAM`, `OEM`, `MAKE_IN_INDIA`), real-time upload status tracking, and Supabase database synchronization |
+| **Admin Blacklist Control** | GeM Debarment Rules | Password-gated administrative bidder blacklisting & unblacklisting (`/api/admin/blacklist`), real-time status validation, Disbarment registry metadata, and audit log generation |
+| **Global Cloud Data Sync** | Supabase Cloud Architecture | Strict Single Source of Truth architecture ensuring user accounts, tenders, bids, document uploads, and audit records synchronize natively across workstations |
+| **Cartel Ring Detection & Graph** | NetworkX & SVG Visualizer | Interactive multi-bidder relationship graph visualizing shared directors (DINs), common addresses, overlapping bank accounts, and synchronized IP/timestamp patterns with SVG edge connectors |
+| **Compliance Vault & Matrix** | GeM Document Verification | Dynamic tender-specific statutory requirements checklist (`GST`, `PAN`, `UDYAM`, `OEM`, `MAKE_IN_INDIA`), real-time upload status tracking, and database synchronization |
 | **Post-Award & PFMS** | GeM 10-Day SLA & PFMS | Consignee Receipt and Acceptance Certificate (CRAC) 10-day payment SLA monitoring, penal interest calculation (@ 7.5% p.a.), and PFMS Treasury disbursement API simulation |
 | **L1 Ranking & RA Collusion** | GeM Financial Rule | Filters technical compliance (>=70%), ranks L1/L2/L3 by loaded price, monitors Reverse Auction (RA) shared IPs & synchronized bidding timestamps |
 | **DSC Validation** | Class 3 Digital Certificate | X.509 Digital Signature Certificate (Class 3 DSC) expiry, effective date, Certifying Authority (eMudhra, nCode, VSign, CDAC), and Bidder PAN linkage verification |
 | **e-EMD & e-PBG Validation** | GeM 3.0/4.0 Mandate | Electronic EMD (min 2% tender threshold) and Performance Bank Guarantee (min 3% threshold) verification against Scheduled Commercial Banks with digital signature checks |
-| **ESG & Data Security** | GeM Mandatory Rule | Rule-based verification of required ESG (environmental compliance, social responsibility, governance) and Data Security (data encryption, access control, breach notification) declarations |
 | **Techno-Commercial Loading** | GeM 4.0 Load Criteria | Auto-detection of procurement modes (Direct <= ₹50k, L1 ₹50k-₹10L, Bid > ₹10L, Reverse Auction) and techno-commercial loading penalties (delivery delay, payment terms, warranty shortfall) |
-| **Global Tender Enquiry (GTE)** | GeM GTE International Rule | Multi-country Bidder model supporting foreign tax IDs (EIN, VAT) & IEC import licenses for non-Indian international bidders |
 | **Direct GeM API Sync** | OAuth 2.0 mTLS Auth | Dedicated client certificate authentication (`mTLS`), live tender fetching, bid retrieval, and compliance report sync |
 | **Statutory Identifiers** | CBIC GSTN, PAN, Udyam, Aadhaar | Automated Regex + spaCy NER Extraction & Sandbox Verification |
-| **Labor & Compliance** | EPFO & ESIC Registries | Verification of Establishment IDs, ESIC Registration Numbers, employee headcounts, and monthly ECR remittance receipts |
-| **Startup India Framework** | DPIIT Recognition | DPIIT recognition verification & GFR Rule 173 relaxation path for prior experience/turnover |
 | **Make in India (MII)** | PPP-MII Order 2017 | Class-I (>50%), Class-II (20-50%), and Non-Local (<20%) local content self-declaration validator |
-| **DigiLocker Integration** | MeitY DigiLocker Sandbox | OAuth2 authentication, document URI fetching, and e-Signed document extraction |
-| **Cartel Ring Detection** | Neo4j & NetworkX Graph Engine | Collusion detection mapping shared directors (DINs), common addresses, bank accounts, and synchronized IP/timestamp patterns |
 | **Explainable AI (XAI)** | Evidence Extraction Engine | Document title, page #, quote snippet, confidence score, and rationale for every compliance score |
-| **MyGeM AI Assistant** | Knowledge Base + Optional Live Web Search | Conversational help for portal workflows and bid compliance, with Groq-powered internet search for current questions and a local knowledge-base fallback |
+| **MyGeM AI Assistant** | Knowledge Base + Live Web Search | Conversational help for portal workflows and bid compliance, with Groq-powered internet search for current questions and a local knowledge-base fallback |
 | **Officer Override Workflow** | GFR Rule 173 Guidelines | "Approve with Deviation" workflow with SHA-256 audit trail and officer annotation comment threads |
 | **Real-time Monitoring** | WebSockets & Alerts | Live WebSocket feeds (`/ws/live`, `/ws/tender/{id}`) with instant alert dispatching for non-compliant bids, PDF forgery, and blacklisting |
-| **Multi-Language Regional OCR** | Pan-India Indic Scripts | Tesseract multi-language OCR for Hindi (हिन्दी), Gujarati (ગુજરાતી), Marathi (मराठी), Tamil (தமிழ்), Bengali (বাংলা), Telugu (తెలుగు), and English with automatic Unicode language detection |
+| **Multi-Language Regional OCR** | Pan-India Indic Scripts | Tesseract multi-language OCR for Hindi (हिन्दी), Gujarati (ગુજરાતી), Marathi (मराठी), Tamil (தமிழ்), Bengali (বাংলা), Telugu (తెలుగు), and English |
 | **PDF Forgery Detection** | Forensic Inspection | Metadata alteration checks, Error Level Analysis (ELA), font embedding anomalies, and e-signature integrity validation |
-| **Blockchain Audit Trail** | Cryptographic Merkle Tree | SHA-256 block chaining, $O(\log N)$ Merkle proof verification (`verify_merkle_proof`), and Hyperledger Fabric chaincode payload exporter |
-| **Mobile Officer App** | iOS / Android Responsive | Touch-optimized mobile app frame, Web Push Notifications (VAPID protocol), and 1-tap Quick Approve/Reject action cards |
+| **Blockchain Audit Trail** | Cryptographic Merkle Tree | SHA-256 block chaining, $O(\log N)$ Merkle proof verification (`verify_merkle_proof`), visual Merkle tree hierarchy diagram, and Hyperledger Fabric chaincode exporter |
 | **High-Volume Benchmark** | GeM Monthly Scale (5,000+/mo) | Benchmarked against 5,000+ tenders/month scale achieving **99.4% Sub-5-Second SLA Pass Rate** ($p_{50}: 1.18\text{s}, p_{95}: 2.84\text{s}$) |
-| **Frontend State Hardening** | React Component Lifecycle | 100% stable navigation architecture, isolated sub-view component state to eliminate auto-back regressions, and guarded state updates for 10-second backend polling |
-| **Dynamic Tender Rule Builder** | Custom GeM RFP Rules | Configurable evaluation weights and custom threshold criteria per tender specification |
+
+---
+
+## 🔑 Default Master Admin Credentials
+
+The platform initializes a master administrator account upon startup:
+
+- **Email**: `admin@gem.gov.in`
+- **Password**: `Admin@123`
+- **Role**: `ADMIN`
 
 ---
 
@@ -100,34 +101,10 @@ flowchart TD
 
 **MyGeM** is the platform's built-in AI bid-compliance assistant. It helps bidders, procurement officers, and administrators understand the portal and navigate the bid-verification workflow.
 
-### What you can ask MyGeM
-
-- How to upload bid documents and resolve upload problems
-- Which GSTIN, PAN, and Udyam details are checked
-- How compliance scores and risk ratings are calculated
-- What bid statuses and audit stages mean
-- How suppliers and procurement officers use the portal
-- Brief general questions, acronym meanings, and calculations
-
-### Internet-assisted questions
-
-When Groq web search is enabled, MyGeM can search the internet for time-sensitive questions containing phrases such as **"latest," "current," "today," "recent," "news,"** or **"search the web."** Questions about GeM or Government e-Marketplace are restricted to the official `gem.gov.in` domain. Web-assisted responses are identified in the chat as **"Live web answer via Groq."**
-
-Example questions:
-- "What is the latest official GeM update?"
-- "Search the web for recent GeM news."
-- "What are the current GeM guidelines?"
-
-Configure the feature through environment variables:
-
-```env
-AI_PROVIDER=groq
-GROQ_API_KEY=your_groq_api_key
-GROQ_WEB_SEARCH_ENABLED=true
-GROQ_WEB_MODEL=groq/compound-mini
-```
-
-If the AI provider or internet search is unavailable, MyGeM automatically falls back to its local portal knowledge base. Tender-specific, legal, financial, and policy-critical answers should always be verified against the tender document and the official GeM portal.
+### Features:
+- Real-time bid document compliance guidance
+- Conversational answers to statutory checks (GSTIN, PAN, Udyam)
+- Live Web Search via Groq for official GeM portal news (`gem.gov.in`)
 
 ---
 
@@ -137,31 +114,20 @@ The FastAPI backend exposes modular RESTful endpoints and WebSocket channels:
 
 | Router Path | Description | Key Operations |
 |---|---|---|
+| `/api/admin/blacklist` | Admin Blacklist Control | Gated administrative blacklisting with password authorization |
+| `/api/admin/unblacklist` | Admin Unblacklist Control | Gated administrative reinstatement with password authorization |
 | `/api/post-award/track-crac` | CRAC SLA Payment Tracking | Monitors Consignee Receipt and Acceptance Certificate 10-day payment SLA |
 | `/api/post-award/simulate-pfms` | PFMS Treasury Simulation | Simulates Ministry of Finance PFMS Treasury payment release and returns UTR receipt |
-| `/api/post-award/status/{bid_id}` | Post-Award Lifecycle Status | Returns complete 4-stage lifecycle timeline for procurement officer dashboard |
-| `/api/evaluate` | L1 Ranking & RA Collusion Endpoint | Ranks compliant bids by lowest price (L1/L2/L3) and flags shared IP / timestamp collusion |
+| `/api/evaluate` | L1 Ranking & RA Collusion | Ranks compliant bids by lowest price (L1/L2/L3) and flags shared IP / timestamp collusion |
 | `/api/analyze/validate-dsc` | Class 3 DSC Validation | Verifies X.509 certificate expiry, CA issuer, and Bidder PAN linkage |
-| `/api/analyze/validate-emd` | e-EMD Digital Certificate Validation | Verifies EMD certificate, Scheduled Bank issuer, 2% threshold, & digital signature |
-| `/api/analyze/validate-epbg` | e-PBG Digital Guarantee Validation | Verifies Performance Bank Guarantee, Scheduled Bank issuer, 3% threshold, & signature |
-| `/api/documents/upload-rfp` | RFP Mode & Loading Auto-Detection | Uploads RFP, auto-detects mode (Direct/L1/Bid), and evaluates loading criteria |
-| `/api/analyze/techno-commercial-loading` | Techno-Commercial Loading | JSON evaluation of delivery delay loading, payment terms, and warranty penalties |
-| `/api/v1/sync-tender/{id}` | Direct GeM API Sync | OAuth 2.0 mTLS tender fetch and DB synchronization |
-| `/api/v1/sync/submit-report/{id}` | GeM Report Submission | Pushes AI verification results directly to GeM portal |
-| `/api/v1/sync/bids/{id}` | GeM Bid Retrieval | Pulls vendor bid submissions directly from GeM gateway |
+| `/api/analyze/validate-emd` | e-EMD Digital Certificate | Verifies EMD certificate, Scheduled Bank issuer, 2% threshold, & signature |
+| `/api/analyze/validate-epbg` | e-PBG Digital Guarantee | Verifies Performance Bank Guarantee, Scheduled Bank issuer, 3% threshold, & signature |
+| `/api/documents/upload-rfp` | RFP Mode & Loading Auto-Detect | Uploads RFP, auto-detects mode (Direct/L1/Bid), and evaluates loading criteria |
 | `/api/v1/auth` | User Authentication | JWT Login, Registration, Current User Profile |
 | `/api/v1/documents` | Document Upload & Processing | Multipart PDF/Image upload, OCR extraction, Forgery analysis, Scoring |
-| `/api/v1/analysis` | Compliance Analysis | Bid evaluation details, component breakdown, XAI evidence generation |
 | `/api/v1/cartel` | Cartel & Collusion Analysis | Multi-bidder relationship graph analysis, DIN/IP/Address overlap checks |
-| `/api/v1/audit` | System Audit Trail | Action log query, SHA-256 hash tracking |
 | `/api/v1/blockchain-audit` | Merkle Tree Audit Ledger | Merkle root computation, proof verification, Hyperledger export |
-| `/api/v1/override` | Officer Deviation Override | GFR Rule 173 "Approve with Deviation" submission, annotation threads |
-| `/api/v1/multilingual` | Regional OCR & Translation | Indic document OCR, Unicode term translation to standard schemas |
-| `/api/v1/digilocker` | DigiLocker Sandbox OAuth2 | Certificate URI fetching, OAuth token exchange, document extraction |
-| `/api/v1/mobile-officer` | Mobile Quick Action App | Push notification subscription, mobile queue, 1-tap approve/reject |
 | `/api/v1/benchmark` | SLA & Volume Benchmark | SLA stats generation, $p_{50}/p_{95}/p_{99}$ latency metrics |
-| `/api/v1/tender-rules` | Tender Rule Builder | Tender requirement CRUD operations and criteria weight setup |
-| `/api/v1/chat` | AI Bid Assistant | Natural language Q&A chatbot endpoint for procurement guidance |
 | `/ws/live` & `/ws/tender/{id}` | Real-Time WebSockets | Live bid monitoring stream, non-compliance alerts, forgery warnings |
 
 ---
@@ -173,27 +139,26 @@ gem-bid-compliance/
 ├── backend/
 │   ├── app/
 │   │   ├── ai_engine/          # Semantic NLP, Multilingual OCR, Forgery Detector
-│   │   ├── api/                # FastAPI Routers (Auth, Docs, Cartel, Sync, Audit, etc.)
+│   │   ├── api/                # FastAPI Routers (Auth, Docs, Cartel, Sync, Audit, Admin, etc.)
 │   │   ├── core/               # App configuration, gem_auth.py, CORS settings
 │   │   ├── db/                 # Database connection & session lifecycle
-│   │   ├── mock_apis/          # Realistic Govt API Sandbox Mocks (GSTN, EPFO, etc.)
+│   │   ├── mock_apis/          # Realistic Govt API Sandbox Mocks (GSTN, EPFO, Blacklist DB)
 │   │   ├── models/             # SQLAlchemy ORM Data Models
 │   │   ├── schemas/            # Pydantic v2 validation schemas
-│   │   ├── scoring/            # Compliance Scorer & Rule Evaluator Engine
-│   │   ├── services/           # Business logic, tender_analyzer.py, verifiers, gem_client.py, WebSocket manager
+│   │   ├── scoring/            # Compliance Scorer & Cartel Detector Engine
+│   │   ├── services/           # Business logic, tender_analyzer.py, verifiers, gem_client.py
 │   │   └── main.py             # FastAPI App Entrypoint & Lifespan Setup
-│   ├── tests/                  # Automated pytest test suite (17 modules)
-│   │   ├── load_test_locust.py # Locust performance load testing script
-│   │   └── test_*.py           # Unit & Integration test modules
+│   ├── generate_mock_data.py   # Seed database generator
+│   ├── generate_sample_pdfs.py # Test compliance PDF scenario generator
 │   ├── requirements.txt        # Backend Python dependencies
 │   └── Dockerfile              # Container spec for Backend
 ├── frontend/
 │   ├── src/
-│   │   ├── components/         # Modular React components (Graph, Chatbot, Mobile App, etc.)
+│   │   ├── components/         # Modular React components (Graph, Chatbot, Mobile App, Merkle Tree, etc.)
 │   │   ├── pages/              # App Views (Home, DocumentUpload, Status, BidderProfile, Login)
 │   │   ├── services/           # Axios API client & WebSocket connections
 │   │   ├── App.jsx             # Main React Router Component
-│   │   ├── App.css             # Glassmorphism & Dark Mode styling rules
+│   │   ├── App.css             # Dark Mode styling rules
 │   │   └── main.jsx            # React mounting entrypoint
 │   ├── package.json            # Frontend NPM dependencies
 │   └── Dockerfile              # Nginx production build spec for Frontend
@@ -202,28 +167,18 @@ gem-bid-compliance/
 │   ├── GEM_GSTN_SANDBOX_INTEGRATION.md # GSTN Sandbox API integration specification
 │   └── PITCH_DECK.md           # Official 12-slide project pitch deck
 ├── .env.example                # Environment variables template
-├── brain.md                    # Core architecture design document
 ├── docker-compose.yml          # Multi-container orchestration (Backend + Frontend + DB)
 ├── run_platform.bat            # Windows 1-click startup launcher script
-├── run_platform.sh             # macOS / Linux 1-click startup launcher script
 └── README.md                   # Repository documentation
 ```
 
 ---
 
-## 🔒 Sandbox Integration & Direct GeM API Mode
-
-> [!NOTE]
-> **Production & Sandbox Dual-Mode**: Direct GeM portal integration uses OAuth 2.0 Client Certificate Authentication (`mTLS`). When client certificates (`GEM_CLIENT_CERT`, `GEM_CLIENT_KEY`) are present, requests route directly to `https://api.gem.gov.in/v1`. For offline testing and evaluation, setting `GEM_USE_MOCK=true` operates against realistic mock gateways in [`backend/app/mock_apis/`](backend/app/mock_apis/).
-
----
-
 ## 🚀 Quickstart Guide
 
-### 1-Click Platform Launchers
+### 1-Click Platform Launcher
 
 - **Windows**: Double-click `run_platform.bat` or run `.\run_platform.bat` in PowerShell/CMD.
-- **macOS / Linux**: Run `chmod +x run_platform.sh && ./run_platform.sh` in Terminal.
 
 ---
 
@@ -261,9 +216,6 @@ backend\venv\Scripts\activate  # Windows (or source venv/bin/activate on Linux/m
 # Install dependencies
 pip install -r requirements.txt
 
-# Run database migrations / seed local SQLite database
-python -c "from app.db.session import init_db; init_db()"
-
 # Start FastAPI server with live reload
 uvicorn app.main:app --reload --port 8000
 ```
@@ -280,58 +232,7 @@ npm run dev
 
 ---
 
-## 🧪 Automated Test Suite Verification
-
-The repository includes a comprehensive 23-module backend test suite verifying statutory verifiers, cartel graph algorithms, document classification, OCR parsing, blockchain Merkle tree proofs, officer override workflows, mobile quick actions, WebSocket connections, direct GeM API sync, techno-commercial loading criteria, post-award CRAC payment SLA, L1 price ranking, DSC validation, and Compliance Vault dynamic requirements:
-
-```bash
-# Set PYTHONPATH and execute pytest suite
-$env:PYTHONPATH="backend"; backend\venv\Scripts\python.exe -m pytest backend/tests/
-```
-
-### Test Suite Execution Output
-```text
-============================= test session starts =============================
-collected 147 items
-
-backend/tests/test_auth_and_upload.py ............................      [ 19%]
-backend/tests/test_blockchain_audit.py ....                             [ 21%]
-backend/tests/test_cartel_detection.py ...                              [ 23%]
-backend/tests/test_chat_service.py .....                                [ 27%]
-backend/tests/test_declaration_checker.py .......                        [ 31%]
-backend/tests/test_document_processing.py .........                     [ 38%]
-backend/tests/test_dsc_validator.py ......                               [ 42%]
-backend/tests/test_evaluation_engine.py .....                            [ 45%]
-backend/tests/test_explainable_and_override.py .                        [ 46%]
-backend/tests/test_forgery_and_fraud.py ....                             [ 48%]
-backend/tests/test_gem_sync.py ......                                   [ 53%]
-backend/tests/test_gte_bidder.py ........                                [ 58%]
-backend/tests/test_mobile_officer_app.py .....                          [ 61%]
-backend/tests/test_multilingual_ocr.py ....                             [ 64%]
-backend/tests/test_performance_benchmark.py ...                         [ 66%]
-backend/tests/test_post_award.py .......                                [ 71%]
-backend/tests/test_real_verifiers.py .....                              [ 74%]
-backend/tests/test_semantic_analyzer.py ....                            [ 77%]
-backend/tests/test_statutory_checks.py ...........                      [ 85%]
-backend/tests/test_statutory_modules.py ........                        [ 90%]
-backend/tests/test_tender_analyzer.py .........                         [ 96%]
-backend/tests/test_tender_configuration.py ...                          [ 98%]
-backend/tests/test_websocket_monitoring.py ..                           [100%]
-
-====================== 147 passed in 95.94s (100% Pass Rate) =======================
-```
-
----
-
-## ⚡ High-Volume Load Testing & SLA Benchmarks
-
-To verify performance under peak GeM portal loads (5,000+ tenders / month, burst traffic up to 250 bids/min), run the Locust benchmark suite:
-
-```bash
-locust -f backend/tests/load_test_locust.py --host=http://localhost:8000
-```
-
-### Benchmark SLA Performance Metrics
+## ⚡ High-Volume Load & SLA Benchmarks
 
 - **Sub-5-Second SLA Pass Rate:** `99.4%` (Target: >98.5%)
 - **Median Latency ($p_{50}$):** `1.18 seconds`

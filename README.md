@@ -30,15 +30,16 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 
 ```mermaid
 flowchart TD
-    A["React/Vite Frontend and Mobile Officer App"] -->|"HTTP, WebSockets, WebPush"| B["FastAPI Backend Engine"]
+    A["React/Vite Frontend & Mobile Officer App"] -->|"HTTP, WebSockets, WebPush"| B["FastAPI Backend Engine"]
     B -->|"Direct API with mTLS OAuth2"| GeM["Official GeM Portal Gateway"]
-    B -->|"SQLAlchemy 2.x"| C[("PostgreSQL / Local SQLite")]
+    B -->|"SQLAlchemy 2.x Pooler"| C[("Supabase Cloud Database / PostgreSQL")]
+    B -->|"Supabase Storage Client"| S[("Supabase Storage / Cloud Bucket")]
     B -->|"Neo4j / NetworkX"| D["Cartel Relationship Graph Engine"]
     B -->|"External integrations"| E["Government API Gateways"]
-    B -->|"OCR and multilingual processing"| F["Tesseract OCR and PDF Forgery Detector"]
-    B -->|"Semantic NLP"| G["RFP Clause Comparator and XAI Generator"]
-    B -->|"Blockchain audit"| H["Merkle Tree Ledger and Hyperledger Connector"]
-    B -->|"Real-time services"| I["WebSocket Manager and Alert Engine"]
+    B -->|"OCR and multilingual processing"| F["Tesseract OCR & PDF Forgery Detector"]
+    B -->|"Semantic NLP"| G["RFP Clause Comparator & XAI Generator"]
+    B -->|"Blockchain audit"| H["Merkle Tree Ledger & Hyperledger Connector"]
+    B -->|"Real-time services"| I["WebSocket Manager & Alert Engine"]
 
     classDef client fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
     classDef core fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95,stroke-width:3px
@@ -50,7 +51,7 @@ flowchart TD
     class A client
     class B core
     class GeM,E portal
-    class C data
+    class C,S data
     class D,F,G analytics
     class H,I service
 ```
@@ -61,6 +62,7 @@ flowchart TD
 
 | Module | Standard / Guideline | Key Features & Implementation |
 |---|---|---|
+| **Global Cloud Data Sync** | Supabase Cloud Architecture | Strict Single Source of Truth architecture ensuring user accounts, tenders, bids, document uploads, and audit records synchronize natively across workstations (Laptop A <-> Laptop B) without local data drift |
 | **Compliance Vault & Matrix** | GeM Document Verification | Dynamic tender-specific statutory requirements checklist (`GST`, `PAN`, `UDYAM`, `OEM`, `MAKE_IN_INDIA`), real-time upload status tracking, and Supabase database synchronization |
 | **Post-Award & PFMS** | GeM 10-Day SLA & PFMS | Consignee Receipt and Acceptance Certificate (CRAC) 10-day payment SLA monitoring, penal interest calculation (@ 7.5% p.a.), and PFMS Treasury disbursement API simulation |
 | **L1 Ranking & RA Collusion** | GeM Financial Rule | Filters technical compliance (>=70%), ranks L1/L2/L3 by loaded price, monitors Reverse Auction (RA) shared IPs & synchronized bidding timestamps |

@@ -8690,6 +8690,27 @@ function Home({ role, user, onLogout }) {
       setTendersList(prev => [payload.newTenderObj, ...prev]);
       if (payload.onSuccess) payload.onSuccess();
     } else if (type === "EDIT") {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      const budgetVal = parseFloat(String(payload.editedTender.value || payload.editedTender.budget_limit || "5000000").replace(/[^0-9.]/g, '') || "5000000");
+      fetch(`${API_BASE}/api/tenders/${encodeURIComponent(payload.editedTender.id)}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({
+          title: payload.editedTender.title,
+          description: payload.editedTender.description || payload.editedTender.title,
+          category: payload.editedTender.category,
+          department: payload.editedTender.department,
+          budget_limit: budgetVal,
+          closing_date: payload.editedTender.closingDate || payload.editedTender.deadline || "2026-09-30",
+          status: payload.editedTender.status
+        })
+      })
+      .then(() => fetchTenders())
+      .catch(err => console.error("Error editing tender:", err));
+
       setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
       setEditingTenderModalItem(null);
     } else if (type === "STATUS") {

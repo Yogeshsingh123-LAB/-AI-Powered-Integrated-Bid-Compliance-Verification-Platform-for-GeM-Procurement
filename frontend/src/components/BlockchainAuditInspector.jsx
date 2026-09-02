@@ -173,11 +173,49 @@ export default function BlockchainAuditInspector({ bidId = "123e4567-e89b-12d3-a
             </div>
           </div>
 
+          {/* Visual Merkle Tree SVG Diagram */}
+          <div style={{ background: 'rgba(15,23,42,0.8)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.2)', marginTop: '0.5rem' }}>
+            <h4 style={{ fontSize: '0.78rem', color: '#38bdf8', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Merkle Tree Graph Structure
+            </h4>
+            <div style={{ position: 'relative', width: '100%', height: '110px' }}>
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                {/* Branch lines from Root (50%, 15px) to Branches (25%, 55px and 75%, 55px) */}
+                <line x1="50%" y1="20" x2="25%" y2="55" stroke="#38bdf8" strokeWidth="1.5" />
+                <line x1="50%" y1="20" x2="75%" y2="55" stroke="#38bdf8" strokeWidth="1.5" />
+                {/* Lines from Branches to Leaves */}
+                <line x1="25%" y1="55" x2="12.5%" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+                <line x1="25%" y1="55" x2="37.5%" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+                <line x1="75%" y1="55" x2="62.5%" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+                <line x1="75%" y1="55" x2="87.5%" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+              </svg>
+
+              {/* Root node */}
+              <div style={{ position: 'absolute', left: '50%', top: '5px', transform: 'translateX(-50%)', background: '#0369a1', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800 }}>
+                ROOT: {(merkleData?.merkle_root || "").slice(0, 8)}...
+              </div>
+
+              {/* Branch nodes */}
+              <div style={{ position: 'absolute', left: '25%', top: '45px', transform: 'translateX(-50%)', background: '#0284c7', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '0.62rem' }}>
+                H(L1+L2)
+              </div>
+              <div style={{ position: 'absolute', left: '75%', top: '45px', transform: 'translateX(-50%)', background: '#0284c7', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '0.62rem' }}>
+                H(L3+L4)
+              </div>
+
+              {/* Leaf nodes */}
+              <div style={{ position: 'absolute', left: '12.5%', top: '80px', transform: 'translateX(-50%)', background: '#1e293b', border: '1px solid #a855f7', color: '#cbd5e1', padding: '2px 4px', borderRadius: '3px', fontSize: '0.58rem' }}>🍃 L1</div>
+              <div style={{ position: 'absolute', left: '37.5%', top: '80px', transform: 'translateX(-50%)', background: '#1e293b', border: '1px solid #a855f7', color: '#cbd5e1', padding: '2px 4px', borderRadius: '3px', fontSize: '0.58rem' }}>🍃 L2</div>
+              <div style={{ position: 'absolute', left: '62.5%', top: '80px', transform: 'translateX(-50%)', background: '#1e293b', border: '1px solid #a855f7', color: '#cbd5e1', padding: '2px 4px', borderRadius: '3px', fontSize: '0.58rem' }}>🍃 L3</div>
+              <div style={{ position: 'absolute', left: '87.5%', top: '80px', transform: 'translateX(-50%)', background: '#1e293b', border: '1px solid #a855f7', color: '#cbd5e1', padding: '2px 4px', borderRadius: '3px', fontSize: '0.58rem' }}>🍃 L4</div>
+            </div>
+          </div>
+
           <div style={{ marginTop: '0.5rem' }}>
             <h4 style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 0, marginBottom: '0.4rem' }}>
               Leaf Hashes in Tree:
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '160px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '140px', overflowY: 'auto' }}>
               {merkleData?.leaf_hashes?.map((h, i) => (
                 <div 
                   key={i} 
@@ -185,7 +223,7 @@ export default function BlockchainAuditInspector({ bidId = "123e4567-e89b-12d3-a
                   style={{ cursor: 'pointer' }}
                   onClick={() => setVerifyHash(h)}
                 >
-                  🍃 {h}
+                  🍃 Leaf #{i+1}: {h}
                 </div>
               ))}
             </div>

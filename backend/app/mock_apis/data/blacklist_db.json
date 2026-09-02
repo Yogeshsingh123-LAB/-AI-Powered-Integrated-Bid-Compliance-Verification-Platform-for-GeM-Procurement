@@ -934,5 +934,14 @@
     "order_number": null,
     "order_date": null,
     "valid_until": null
+  },
+  "NEWADMIN@CPCL.COM": {
+    "identifier": "NEWADMIN@CPCL.COM",
+    "name": "admin (CPCL)",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
   }
 }

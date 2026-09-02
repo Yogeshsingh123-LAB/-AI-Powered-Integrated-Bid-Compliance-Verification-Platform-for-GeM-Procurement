@@ -48,3 +48,19 @@ class AdminUserCreate(BaseModel):
     permissions: Optional[list[str]] = []
     admin_authorization_password: Optional[str] = None
 
+class BlacklistBidderRequest(BaseModel):
+    user_id: Optional[UUID] = None
+    identifier: Optional[str] = None # PAN, GSTIN, or email
+    reason: Optional[str] = "Non-compliance / Fraudulent submission"
+    authority: Optional[str] = "GeM SPV Administration"
+    order_number: Optional[str] = None
+    valid_until: Optional[str] = "2029-12-31"
+    admin_password: str = Field(..., description="Admin password required to authorize blacklisting")
+
+class UnblacklistBidderRequest(BaseModel):
+    user_id: Optional[UUID] = None
+    identifier: Optional[str] = None # PAN, GSTIN, or email
+    reason: Optional[str] = "Sanction period expired / Cleared upon audit appeal"
+    admin_password: str = Field(..., description="Admin password required to authorize unblacklisting")
+
+

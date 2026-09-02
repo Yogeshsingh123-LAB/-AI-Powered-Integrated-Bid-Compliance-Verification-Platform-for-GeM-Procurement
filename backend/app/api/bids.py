@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.db.database import get_db
 from app.models.user import User
@@ -226,6 +227,59 @@ def list_bids_for_tender(
 
     return results
 
+@router.get("/stats", response_model=Dict[str, Any])
+def get_officer_bid_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve real database KPI statistics for Officer/Admin dashboard:
+    - active_tenders: Total count of active/published tenders
+    - total_bids: Total count of bids submitted for active tenders
+    - pending_verification: Total count of bids requiring officer review
+    - high_risk: Total count of bids with HIGH risk tiering
+    - completed: Total count of bids where officer review is completed/qualified/disqualified
+    """
+    if current_user.role.upper() not in ["OFFICER", "ADMIN"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Officers and Admins can view platform bid statistics."
+        )
+
+    active_tenders = db.query(Tender).filter(
+        func.upper(Tender.status).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
+    ).all()
+    active_tender_ids = [t.id for t in active_tenders]
+    active_tenders_count = len(active_tenders) if active_tenders else db.query(Tender).count()
+
+    all_bids = db.query(Bid).all()
+    valid_bids = [b for b in all_bids if not active_tender_ids or b.tender_id in active_tender_ids]
+
+    total_bids = len(valid_bids)
+    pending_verification = 0
+    high_risk = 0
+    completed = 0
+
+    for b in valid_bids:
+        st = (b.officer_status or b.status or "Pending").upper()
+        if st in ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]:
+            completed += 1
+        else:
+            pending_verification += 1
+
+        score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
+        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+        if risk_level == "HIGH":
+            high_risk += 1
+
+    return {
+        "active_tenders": active_tenders_count,
+        "total_bids": total_bids,
+        "pending_verification": pending_verification,
+        "high_risk": high_risk,
+        "completed": completed
+    }
+
 @router.get("/{bid_id}", response_model=Dict[str, Any])
 def get_bid_details(
     bid_id: str,
@@ -237,13 +291,15 @@ def get_bid_details(
     try:
         b_uuid = uuid.UUID(str(bid_id))
         bid = db.query(Bid).filter(Bid.id == b_uuid).first()
+        if not bid:
+            bid = db.query(Bid).filter(Bid.bidder_id == b_uuid).order_by(Bid.submitted_at.desc()).first()
     except Exception:
         pass
 
     if not bid:
         all_bids = db.query(Bid).all()
         for b in all_bids:
-            if str(b.id) == str(bid_id):
+            if str(b.id) == str(bid_id) or str(b.bidder_id) == str(bid_id):
                 bid = b
                 break
 

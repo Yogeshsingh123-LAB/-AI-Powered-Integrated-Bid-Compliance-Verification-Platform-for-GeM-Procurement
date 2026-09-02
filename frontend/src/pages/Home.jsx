@@ -572,9 +572,39 @@ const NotificationsSection = ({ notifications }) => {
   };
 
 
-const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) => {
+const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dashboardStats, loadingDashboardStats, dashboardStatsError, fetchDashboardStats }) => {
+    const activeTendersCount = dashboardStats?.active_tenders ?? tendersList.length;
+    const totalBidsCount = dashboardStats?.total_bids ?? bids.length;
+    const pendingCount = dashboardStats?.pending_verification ?? bids.filter(b => {
+      const st = (b.officer_status || b.status || "").toLowerCase();
+      return st.includes("pending") || st.includes("under") || st.includes("review") || st.includes("processing");
+    }).length;
+    const highRiskCount = dashboardStats?.high_risk ?? bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length;
+    const completedCount = dashboardStats?.completed ?? bids.filter(b => {
+      const st = (b.officer_status || b.status || "").toLowerCase();
+      return st.includes("verified") || st.includes("completed") || st.includes("qualified") || st.includes("approved");
+    }).length;
+
+    const renderStatValue = (val) => {
+      if (loadingDashboardStats && dashboardStats === null) {
+        return <span style={{ fontSize: "1rem", color: "#64748b" }}>Loading...</span>;
+      }
+      if (dashboardStatsError && dashboardStats === null) {
+        return <span style={{ fontSize: "0.85rem", color: "#ef4444" }}>Error</span>;
+      }
+      return val > 9 ? val : `0${val}`;
+    };
+
     return (
       <div className="officer-dashboard-main-wrapper" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {dashboardStatsError && dashboardStats === null && (
+          <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px 16px", color: "#991b1b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Unable to load bid statistics from live server database.</span>
+            <button onClick={fetchDashboardStats} style={{ background: "#dc2626", color: "#ffffff", border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem" }}>
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* ROW 1: TOP 5 SUMMARY KPI CARDS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
@@ -592,7 +622,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) =>
             </div>
             <div style={{ marginTop: "10px" }}>
               <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
-                {tendersList.length > 9 ? tendersList.length : `0${tendersList.length}`}
+                {renderStatValue(activeTendersCount)}
               </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Published on GeM</span>
@@ -615,7 +645,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) =>
             </div>
             <div style={{ marginTop: "10px" }}>
               <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
-                {bids.length > 9 ? bids.length : `0${bids.length}`}
+                {renderStatValue(totalBidsCount)}
               </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Across current tenders</span>
@@ -638,9 +668,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) =>
             </div>
             <div style={{ marginTop: "10px" }}>
               <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
-                {bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length > 9
-                  ? bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length
-                  : `0${bids.filter(b => b.status.toLowerCase().includes("pending") || b.status.toLowerCase().includes("under") || b.status.toLowerCase().includes("review")).length}`}
+                {renderStatValue(pendingCount)}
               </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Requires review</span>
@@ -663,9 +691,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) =>
             </div>
             <div style={{ marginTop: "10px" }}>
               <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
-                {bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length > 9
-                  ? bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length
-                  : `0${bids.filter(b => (b.risk || "").toUpperCase() === "HIGH").length}`}
+                {renderStatValue(highRiskCount)}
               </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Requires attention</span>
@@ -688,9 +714,7 @@ const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin }) =>
             </div>
             <div style={{ marginTop: "10px" }}>
               <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1 }}>
-                {bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length > 9
-                  ? bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length
-                  : `0${bids.filter(b => (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("approved")).length}`}
+                {renderStatValue(completedCount)}
               </h2>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "0.78rem", color: "#64748b" }}>
                 <span>Verification completed</span>
@@ -1345,7 +1369,8 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
                                 bid_id: bidder.id,
                                 name: bidder.bidderName || bidder.name,
                                 tenderId: selectedTenderForBidders.id,
-                                tenderName: selectedTenderForBidders.title
+                                tenderName: selectedTenderForBidders.title,
+                                documents: Array.isArray(bidder.documents) ? bidder.documents : []
                               });
                               setActiveSection("verification");
                             }}
@@ -2592,14 +2617,14 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
                       <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                         <button
                           title="View Details"
-                          onClick={() => { setSelectedVerificationBidder(b); setActiveSection("verification"); }}
+                          onClick={() => { setSelectedVerificationBidder({ ...b, documents: Array.isArray(b.documents) ? b.documents : [] }); setActiveSection("verification"); }}
                           style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                         >
                           <Eye size={14} />
                         </button>
                         <button
                           title="Inspect Documents"
-                          onClick={() => { setSelectedVerificationBidder(b); setActiveSection("verification"); }}
+                          onClick={() => { setSelectedVerificationBidder({ ...b, documents: Array.isArray(b.documents) ? b.documents : [] }); setActiveSection("verification"); }}
                           style={{ width: "30px", height: "30px", borderRadius: "6px", border: "1px solid #e2e8f0", background: "#ffffff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                         >
                           <FileText size={14} />
@@ -2731,9 +2756,11 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
     const submissionDate = fetchedBidDetails?.submitted_at || selectedVerificationBidder?.submissionDate || selectedVerificationBidder?.submission_date || "N/A";
     const bidValue = selectedVerificationBidder?.bidValue || selectedVerificationBidder?.bid_value || "N/A";
     
-    const extractedFields = selectedVerificationBidder?.extractedFields || [];
-    
-    const initialSubmittedDocuments = (fetchedBidDetails && fetchedBidDetails.documents && fetchedBidDetails.documents.length > 0)
+    const extractedFields = Array.isArray(selectedVerificationBidder?.extractedFields)
+      ? selectedVerificationBidder.extractedFields
+      : (Array.isArray(fetchedBidDetails?.extracted_fields) ? fetchedBidDetails.extracted_fields : []);
+
+    const rawDocs = (fetchedBidDetails && Array.isArray(fetchedBidDetails.documents) && fetchedBidDetails.documents.length > 0)
       ? fetchedBidDetails.documents.map(d => ({
           id: d.id,
           name: d.original_filename || d.document_type || "Compliance Document",
@@ -2744,7 +2771,9 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
           statusColor: d.document_status === "PROCESSED" || d.document_status === "VERIFIED" ? "#15803d" : "#c2410c",
           issues: d.document_status === "REJECTED" ? ["Verification Rejected"] : []
         }))
-      : (selectedVerificationBidder?.documents || []);
+      : (Array.isArray(selectedVerificationBidder?.documents) ? selectedVerificationBidder.documents : []);
+
+    const initialSubmittedDocuments = Array.isArray(rawDocs) ? rawDocs : [];
 
     const submittedDocuments = initialSubmittedDocuments.map((doc) => {
       if (verifiedDocMap[doc.id]) {
@@ -2770,7 +2799,9 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
       setVerifiedDocMap(allVerified);
     };
 
-    const complianceChecks = selectedVerificationBidder?.complianceChecks || [];
+    const complianceChecks = Array.isArray(selectedVerificationBidder?.complianceChecks)
+      ? selectedVerificationBidder.complianceChecks
+      : (Array.isArray(fetchedBidDetails?.compliance_checks) ? fetchedBidDetails.compliance_checks : []);
 
     const handleAuthenticateAndSubmit = (e) => {
       e.preventDefault();
@@ -8443,12 +8474,22 @@ function Home({ role, user, onLogout }) {
     }
   };
 
-  // Fetch Bids from backend
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loadingDashboardStats, setLoadingDashboardStats] = useState(false);
+  const [dashboardStatsError, setDashboardStatsError] = useState(false);
+
+  // Fetch Bids from backend (Role-based: /all for Officer/Admin, /my-bids for Bidder)
   const fetchBids = async () => {
     try {
-      if (!token) return;
-      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const activeToken = localStorage.getItem("gem_token") || token;
+      if (!activeToken) return;
+
+      const currentRole = (role || user?.role || "").toUpperCase();
+      const isOfficerOrAdmin = currentRole.includes("OFFICER") || currentRole.includes("ADMIN") || currentRole === "BUYER";
+      const endpoint = isOfficerOrAdmin ? `${API_BASE}/api/bids/all` : `${API_BASE}/api/bids/my-bids`;
+
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${activeToken}` }
       });
       if (res.ok) {
         const data = await res.json();
@@ -8458,6 +8499,30 @@ function Home({ role, user, onLogout }) {
       }
     } catch (err) {
       console.warn("Failed to fetch live bids:", err);
+    }
+  };
+
+  // Fetch Officer Dashboard KPI statistics directly from database
+  const fetchDashboardStats = async () => {
+    try {
+      const activeToken = localStorage.getItem("gem_token") || token;
+      if (!activeToken) return;
+      setLoadingDashboardStats(true);
+      setDashboardStatsError(false);
+      const res = await fetch(`${API_BASE}/api/bids/stats`, {
+        headers: { Authorization: `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDashboardStats(data);
+      } else {
+        setDashboardStatsError(true);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch officer dashboard stats:", err);
+      setDashboardStatsError(true);
+    } finally {
+      setLoadingDashboardStats(false);
     }
   };
 
@@ -8484,7 +8549,21 @@ function Home({ role, user, onLogout }) {
     fetchTenders();
     fetchBids();
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
+
+    const currentRole = (role || user?.role || "").toUpperCase();
+    const isOfficerOrAdmin = currentRole.includes("OFFICER") || currentRole.includes("ADMIN") || currentRole === "BUYER";
+    if (isOfficerOrAdmin) {
+      fetchDashboardStats();
+    }
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+      if (isOfficerOrAdmin) {
+        fetchDashboardStats();
+        fetchBids();
+      }
+    }, 10000);
+
     return () => clearInterval(interval);
   }, [role, user]);
 
@@ -8842,7 +8921,16 @@ function Home({ role, user, onLogout }) {
       case "dashboard":
       default:
         return role === "Buyer" ? (
-          <BuyerDashboardView tendersList={tendersList} bids={bids} setActiveSection={setActiveSection} isAdmin={isAdmin} />
+          <BuyerDashboardView
+            tendersList={tendersList}
+            bids={bids}
+            setActiveSection={setActiveSection}
+            isAdmin={isAdmin}
+            dashboardStats={dashboardStats}
+            loadingDashboardStats={loadingDashboardStats}
+            dashboardStatsError={dashboardStatsError}
+            fetchDashboardStats={fetchDashboardStats}
+          />
         ) : (
           <BidderDashboardView tendersList={tendersList} bids={bids} notifications={notifications} setActiveSection={setActiveSection} user={user} setSelectedBid={setSelectedBid} />
         );

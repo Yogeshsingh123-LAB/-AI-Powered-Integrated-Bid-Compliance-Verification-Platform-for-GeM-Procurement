@@ -203,6 +203,7 @@ gem-bid-compliance/
 ├── brain.md                    # Core architecture design document
 ├── docker-compose.yml          # Multi-container orchestration (Backend + Frontend + DB)
 ├── run_platform.bat            # Windows 1-click startup launcher script
+├── run_platform.sh             # macOS / Linux 1-click startup launcher script
 └── README.md                   # Repository documentation
 ```
 
@@ -216,6 +217,13 @@ gem-bid-compliance/
 ---
 
 ## 🚀 Quickstart Guide
+
+### 1-Click Platform Launchers
+
+- **Windows**: Double-click `run_platform.bat` or run `.\run_platform.bat` in PowerShell/CMD.
+- **macOS / Linux**: Run `chmod +x run_platform.sh && ./run_platform.sh` in Terminal.
+
+---
 
 ### Option A: 1-Command Docker Setup (Recommended)
 

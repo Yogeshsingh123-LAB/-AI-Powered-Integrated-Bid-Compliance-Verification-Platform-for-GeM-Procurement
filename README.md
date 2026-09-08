@@ -6,7 +6,7 @@
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Problem Statement ID**: 26100  
+**Problem Statement ID**: PS26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 

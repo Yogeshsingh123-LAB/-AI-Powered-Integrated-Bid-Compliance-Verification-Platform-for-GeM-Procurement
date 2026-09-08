@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": { "browser": true },
+  "rules": { "no-undef": "error" },
+  "overrides": [
+    { "files": ["vite.config.js", "tests/**/*.js"], "env": { "node": true } }
+  ]
+}

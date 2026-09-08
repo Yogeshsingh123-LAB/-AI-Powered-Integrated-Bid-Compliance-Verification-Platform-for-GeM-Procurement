@@ -32,7 +32,7 @@ class TenderConfigRequest(BaseModel):
     custom_rules: List[RuleDefinition]
     scoring_weights: ScoringWeights
 
-@router.get("/{tender_id}/config", response_model=Dict[str, Any])
+@router.get("/{tender_id:path}/config", response_model=Dict[str, Any])
 def get_tender_config(tender_id: str, db: Session = Depends(get_db)):
     """Fetch tender custom rules and buyer scoring weights configuration."""
     tender = db.query(Tender).filter(Tender.id == tender_id).first()
@@ -54,7 +54,7 @@ def get_tender_config(tender_id: str, db: Session = Depends(get_db)):
         }
     }
 
-@router.post("/{tender_id}/config", response_model=Dict[str, Any])
+@router.post("/{tender_id:path}/config", response_model=Dict[str, Any])
 def update_tender_config(
     tender_id: str,
     payload: TenderConfigRequest,

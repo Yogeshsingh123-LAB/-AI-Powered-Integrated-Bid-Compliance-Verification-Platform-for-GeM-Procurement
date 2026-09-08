@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState, useEffect } from 'react';
 import './BlockchainAuditInspector.css';
 
@@ -16,8 +17,8 @@ export default function BlockchainAuditInspector({ bidId = "123e4567-e89b-12d3-a
     setLoading(true);
     try {
       const [chainRes, merkleRes] = await Promise.all([
-        fetch('/api/v1/blockchain/chain'),
-        fetch(`/api/v1/blockchain/merkle-tree/${bidId}`)
+        apiFetch('/api/v1/blockchain/chain'),
+        apiFetch(`/api/v1/blockchain/merkle-tree/${bidId}`)
       ]);
 
       if (chainRes.ok && merkleRes.ok) {
@@ -77,7 +78,7 @@ export default function BlockchainAuditInspector({ bidId = "123e4567-e89b-12d3-a
   const handleVerifyHash = async () => {
     if (!verifyHash.trim()) return;
     try {
-      const res = await fetch('/api/v1/blockchain/verify-proof', {
+      const res = await apiFetch('/api/v1/blockchain/verify-proof', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

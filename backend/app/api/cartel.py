@@ -12,7 +12,7 @@ from app.services.cartel_graph_service import cartel_graph_service
 
 router = APIRouter(prefix="/v1/cartel", tags=["Cartel & Anti-Competitive Intelligence"])
 
-@router.get("/graph/{tender_id}", response_model=Dict[str, Any])
+@router.get("/graph/{tender_id:path}", response_model=Dict[str, Any])
 def get_tender_cartel_graph(tender_id: str, db: Session = Depends(get_db)):
     """Fetches Cytoscape/D3 compatible bidder relationship graph data for a specific tender."""
     tender = db.query(Tender).filter(Tender.id == tender_id).first()
@@ -75,7 +75,7 @@ def get_tender_cartel_graph(tender_id: str, db: Session = Depends(get_db)):
     analysis_report = CartelDetector.analyze_tender_cartel_risk(tender_id, bids_data)
     return analysis_report
 
-@router.post("/analyze/{tender_id}", response_model=Dict[str, Any])
+@router.post("/analyze/{tender_id:path}", response_model=Dict[str, Any])
 def analyze_cartel_risk(tender_id: str, payload: List[Dict[str, Any]]):
     """Triggers custom multi-bidder relationship graph analysis and cartel ring detection."""
     return CartelDetector.analyze_tender_cartel_risk(tender_id, payload)

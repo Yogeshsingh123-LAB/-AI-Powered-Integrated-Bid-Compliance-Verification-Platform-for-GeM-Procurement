@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState, useEffect } from 'react';
 import './MobileOfficerApp.css';
 
@@ -15,7 +16,7 @@ export default function MobileOfficerApp() {
   const fetchMobileCards = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/mobile/pending-bids');
+      const res = await apiFetch('/api/v1/mobile/pending-bids');
       if (res.ok) {
         const data = await res.json();
         setCards(data.cards);
@@ -56,7 +57,7 @@ export default function MobileOfficerApp() {
 
   const handleQuickAction = async (bidId, action) => {
     try {
-      await fetch('/api/v1/mobile/quick-action', {
+      await apiFetch('/api/v1/mobile/quick-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bid_id: bidId, action: action })
@@ -72,7 +73,7 @@ export default function MobileOfficerApp() {
 
   const handleSimulatePushAlert = async () => {
     try {
-      const res = await fetch('/api/v1/mobile/send-test-push', {
+      const res = await apiFetch('/api/v1/mobile/send-test-push', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

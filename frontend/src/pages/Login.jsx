@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from "react";
 import { User, Lock, Mail, RefreshCw, ShieldCheck } from "lucide-react";
 
@@ -20,7 +21,7 @@ function Login({ onLogin }) {
   const [signUpPassword, setSignUpPassword] = useState("");
   const [organization, setOrganization] = useState("");
 
-  const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const API_BASE = BACKEND_URL;
 
   useEffect(() => {
     generateCaptcha();
@@ -57,7 +58,7 @@ function Login({ onLogin }) {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await apiFetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -122,7 +123,7 @@ function Login({ onLogin }) {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/auth/register`, {
+      const response = await apiFetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # -------------------------------------------------------------------
   # PostgreSQL Database Service
@@ -10,7 +8,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: bid_compliance_db
     ports:
       - "5432:5432"
@@ -32,9 +30,17 @@ services:
     container_name: gem_bid_backend
     restart: always
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/bid_compliance_db
-      - SECRET_KEY=sih2026_bid_compliance_super_secret_jwt_key
-      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80
+      - DATABASE_URL=postgresql+psycopg://postgres:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/bid_compliance_db
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL:-admin@gem.gov.in}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD in .env}
+      - SUPABASE_URL=${SUPABASE_URL:?Set SUPABASE_URL in .env}
+      - SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY:?Set SUPABASE_SECRET_KEY in .env}
+      - SUPABASE_BUCKET=${SUPABASE_BUCKET:-bid-documents}
+      - GEM_USE_MOCK=${GEM_USE_MOCK:-true}
+      - ENABLE_REAL_API_LOOKUP=${ENABLE_REAL_API_LOOKUP:-false}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
       - UPLOAD_DIR=/app/uploads
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - AI_PROVIDER=${AI_PROVIDER:-groq}

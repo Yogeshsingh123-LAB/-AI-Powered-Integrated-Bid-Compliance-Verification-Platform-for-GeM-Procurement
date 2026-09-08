@@ -11,3 +11,8 @@ uploads/
 storage/uploads/
 *.db
 *.sqlite
+
+.env.*
+!.env.example
+.venv/
+tests/

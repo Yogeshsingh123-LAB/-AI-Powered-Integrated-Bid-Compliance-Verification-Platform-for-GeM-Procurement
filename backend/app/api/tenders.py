@@ -399,6 +399,72 @@ def update_tender_status(
         "status": tender.status
     }
 
+@router.put("/{tender_id:path}/requirements", response_model=Dict[str, Any])
+def update_tender_requirements(
+    tender_id: str,
+    payload: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Update officer-selected requirements for a specific tender."""
+    ip_address = request.client.host if request.client else None
+
+    tender = db.query(Tender).filter(Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+
+    bids_count = db.query(Bid).filter(Bid.tender_id == tender_id).count()
+    if bids_count:
+        raise HTTPException(status_code=409, detail="Requirements cannot be replaced after bidders have applied. Create a new tender revision instead.")
+    selected_reqs = payload.get("requirements") or payload.get("selected_requirements") or []
+
+    # Remove existing requirement records for this tender
+    db.query(Requirement).filter(Requirement.tender_id == tender_id).delete()
+    db.commit()
+
+    added = []
+    for r_item in selected_reqs:
+        code = (r_item.get("code") or r_item.get("requirement_code") or "GENERAL").upper()
+        desc = r_item.get("description") or r_item.get("desc") or r_item.get("name") or r_item.get("title") or code
+        is_mand = r_item.get("is_mandatory", True) if "is_mandatory" in r_item else r_item.get("mandatory", True)
+
+        req_obj = Requirement(
+            id=uuid.uuid4(),
+            tender_id=tender.id,
+            code=code,
+            description=desc,
+            is_mandatory=is_mand
+        )
+        db.add(req_obj)
+        added.append({"id": str(req_obj.id), "code": code, "description": desc, "is_mandatory": is_mand})
+
+    db.commit()
+
+    create_audit_record(
+        db=db,
+        action="TENDER_REQUIREMENTS_UPDATED",
+        user_id=current_user.id,
+        entity_type="Tender",
+        entity_id=tender_id,
+        new_value=f"Updated requirements count: {len(added)}. Bids count: {bids_count}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Updated requirements for tender '{tender_id}'.",
+        "tender_id": tender.id,
+        "requirements_count": len(added),
+        "requirements": added
+    }
+
+
+
+
 @router.put("/{tender_id:path}", response_model=Dict[str, Any])
 def edit_tender(
     tender_id: str,
@@ -544,67 +610,5 @@ def delete_tender(
             "bids_count": bids_count,
             "status": "Cancelled"
         }
-
-
-@router.put("/{tender_id:path}/requirements", response_model=Dict[str, Any])
-def update_tender_requirements(
-    tender_id: str,
-    payload: Dict[str, Any],
-    request: Request,
-    current_user: User = Depends(require_role("OFFICER", "ADMIN")),
-    db: Session = Depends(get_db)
-):
-    """Update officer-selected requirements for a specific tender."""
-    ip_address = request.client.host if request.client else None
-
-    tender = db.query(Tender).filter(Tender.id == tender_id).first()
-    if not tender:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tender '{tender_id}' not found."
-        )
-
-    bids_count = db.query(Bid).filter(Bid.tender_id == tender_id).count()
-    selected_reqs = payload.get("requirements") or payload.get("selected_requirements") or []
-
-    # Remove existing requirement records for this tender
-    db.query(Requirement).filter(Requirement.tender_id == tender_id).delete()
-    db.commit()
-
-    added = []
-    for r_item in selected_reqs:
-        code = (r_item.get("code") or r_item.get("requirement_code") or "GENERAL").upper()
-        desc = r_item.get("description") or r_item.get("desc") or r_item.get("name") or r_item.get("title") or code
-        is_mand = r_item.get("is_mandatory", True) if "is_mandatory" in r_item else r_item.get("mandatory", True)
-
-        req_obj = Requirement(
-            id=uuid.uuid4(),
-            tender_id=tender.id,
-            code=code,
-            description=desc,
-            is_mandatory=is_mand
-        )
-        db.add(req_obj)
-        added.append({"id": str(req_obj.id), "code": code, "description": desc, "is_mandatory": is_mand})
-
-    db.commit()
-
-    create_audit_record(
-        db=db,
-        action="TENDER_REQUIREMENTS_UPDATED",
-        user_id=current_user.id,
-        entity_type="Tender",
-        entity_id=tender_id,
-        new_value=f"Updated requirements count: {len(added)}. Bids count: {bids_count}",
-        ip_address=ip_address
-    )
-
-    return {
-        "success": True,
-        "message": f"Updated requirements for tender '{tender_id}'.",
-        "tender_id": tender.id,
-        "requirements_count": len(added),
-        "requirements": added
-    }
 
 

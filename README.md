@@ -83,13 +83,13 @@ flowchart TD
 
 ---
 
-## 🔑 Default Master Admin Credentials
+## 🔑 Administrator Setup
 
-The platform initializes a master administrator account upon startup:
+Set `INITIAL_ADMIN_EMAIL` and a strong `INITIAL_ADMIN_PASSWORD` to bootstrap a new database.
+Existing accounts are preserved. Preset-password bypasses have been removed.
 
-- **Email**: `admin@gem.gov.in`
-- **Password**: `Admin@123`
-- **Role**: `ADMIN`
+For hosted deployment, environment settings, and existing administrator password reset,
+see [the deployment guide](docs/DEPLOYMENT.md).
 
 ---
 

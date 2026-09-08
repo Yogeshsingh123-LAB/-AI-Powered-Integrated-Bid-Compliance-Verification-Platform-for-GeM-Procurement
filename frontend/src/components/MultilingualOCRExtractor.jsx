@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState } from 'react';
 import { Globe, Zap, FileText, CheckCircle2 } from 'lucide-react';
 import './MultilingualOCRExtractor.css';
@@ -23,7 +24,7 @@ export default function MultilingualOCRExtractor() {
   const handleProcessOCR = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/multilingual/ocr', {
+      const res = await apiFetch('/api/v1/multilingual/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

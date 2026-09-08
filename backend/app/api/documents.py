@@ -38,7 +38,7 @@ def get_safe_filename(filename: str) -> str:
 def validate_file(file: UploadFile) -> bytes:
     """Validate file extension, MIME type, and size. Returns file bytes."""
     # Validate extension
-    ext = os.path.splitext(file.filename)[1].lower()
+    ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -62,6 +62,9 @@ def validate_file(file: UploadFile) -> bytes:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Could not read file size."
         )
+
+    if file_size == 0:
+        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
 
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(
@@ -678,7 +681,7 @@ async def upload_rfp(
 
     # Validate uploaded file
     file_bytes = validate_file(file)
-    ext = os.path.splitext(file.filename)[1].lower()
+    ext = os.path.splitext(file.filename or "")[1].lower()
     
     extracted_text = ""
     if ext == ".pdf":

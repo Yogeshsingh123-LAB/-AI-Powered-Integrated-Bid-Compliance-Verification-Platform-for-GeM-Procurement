@@ -1,5 +1,5 @@
 # pyrefly: ignore [missing-import]
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore [missing-import]
@@ -44,12 +44,12 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.db.database import initialize_database, engine
+    initialize_database()
     try:
-        from app.db.database import init_admin_user
-        init_admin_user()
-    except Exception:
-        pass
-    yield
+        yield
+    finally:
+        engine.dispose()
 
 app = FastAPI(
     title="GeM Bid Compliance Verification API",
@@ -62,7 +62,6 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
-    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,26 +73,28 @@ from app.api.tenders import router as tenders_router
 # pyrefly: ignore [missing-import]
 from app.api.bids import router as bids_router
 
+from app.services.auth_service import get_current_user, require_role
+
 # Register routers
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(tenders_router, prefix="/api")
 app.include_router(bids_router, prefix="/api")
-app.include_router(documents_router, prefix="/api")
-app.include_router(chat_router, prefix="/api")
-app.include_router(analysis_router, prefix="/api")
-app.include_router(audit_router, prefix="/api")
-app.include_router(digilocker_router, prefix="/api/v1")
-app.include_router(tender_rules_router, prefix="/api")
-app.include_router(cartel_router, prefix="/api")
-app.include_router(override_router, prefix="/api")
+app.include_router(documents_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(chat_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(analysis_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(audit_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(digilocker_router, prefix="/api/v1", dependencies=[Depends(get_current_user)])
+app.include_router(tender_rules_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(cartel_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(override_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
 app.include_router(ws_monitoring_router, prefix="/api")
 app.include_router(ws_monitoring_router)
-app.include_router(multilingual_router, prefix="/api")
-app.include_router(blockchain_audit_router, prefix="/api")
-app.include_router(mobile_officer_router, prefix="/api")
-app.include_router(benchmark_router, prefix="/api")
-app.include_router(sync_router, prefix="/api")
+app.include_router(multilingual_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(blockchain_audit_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(mobile_officer_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(benchmark_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
+app.include_router(sync_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
 app.include_router(notifications_router, prefix="/api")
 
 
@@ -112,6 +113,12 @@ def read_root():
 
 @app.get("/health")
 def read_health():
-    return {
-        "status": "healthy"
-    }
+    from fastapi import HTTPException
+    from sqlalchemy import text
+    from app.db.database import engine
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable") from None
+    return {"status": "healthy"}

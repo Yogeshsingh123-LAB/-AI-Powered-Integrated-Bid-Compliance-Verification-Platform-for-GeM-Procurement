@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Sliders, ShieldCheck, Save, RefreshCw } from 'lucide-react';
 import './TenderRuleBuilder.css';
@@ -78,8 +79,8 @@ export default function TenderRuleBuilder({ tenderId = 'GEM/2026/001', token, on
     setSaving(true);
     setMessage('');
     try {
-      const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
-      const response = await fetch(`${API_BASE}/api/v1/tenders/${tenderId}/config`, {
+      const API_BASE = BACKEND_URL;
+      const response = await apiFetch(`${API_BASE}/api/v1/tenders/${tenderId}/config`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.core.security import verify_password
 from app.models.bid import Bid
 from app.models.user import User
 from app.models.officer_annotation import OfficerAnnotation
@@ -19,6 +20,7 @@ from app.scoring.compliance_scorer import ComplianceScorer
 router = APIRouter(prefix="/v1/override", tags=["Explainable AI & Officer Override Engine"])
 
 class OfficerDecisionRequest(BaseModel):
+    officer_password: str = Field(..., min_length=1, repr=False)
     bid_id: str = Field(..., json_schema_extra={"example": "123e4567-e89b-12d3-a456-426614174000"})
     officer_status: str = Field(..., json_schema_extra={"example": "Approved with Deviation"}) # "Approved", "Rejected", "Approved with Deviation"
     deviation_category: Optional[str] = Field(default="Minor Administrative", json_schema_extra={"example": "Minor Administrative"})
@@ -95,6 +97,9 @@ def submit_officer_decision(
             detail="Only Procurement Officers and Admins can submit bid override decisions."
         )
 
+    if not verify_password(payload.officer_password, current_user.password_hash):
+        raise HTTPException(status_code=403, detail="Incorrect officer authorization password.")
+
     try:
         bid_uuid = uuid.UUID(payload.bid_id)
     except ValueError:
@@ -135,7 +140,7 @@ def submit_officer_decision(
     bid.is_locked = True  # Decision locked permanently
 
     # Record Cryptographic Blockchain-Hashed Audit Log
-    create_audit_record(
+    audit = create_audit_record(
         db=db,
         action=f"OFFICER_OVERRIDE_{new_status.upper().replace(' ', '_')}",
         user_id=str(current_user.id),
@@ -156,7 +161,8 @@ def submit_officer_decision(
         "officer_status": bid.officer_status,
         "deviation_category": bid.deviation_category,
         "deviation_justification": bid.deviation_justification,
-        "reviewed_at": bid.reviewed_at.isoformat()
+        "reviewed_at": bid.reviewed_at.isoformat(),
+        "audit_hash": audit.blockchain_hash if audit else None
     }
 
 @router.post("/annotations", response_model=Dict[str, Any])

@@ -16,8 +16,9 @@ class ConnectionManager:
         self.tender_channel_connections: Dict[str, List[WebSocket]] = {}
         self.recent_events_log: List[Dict[str, Any]] = []
 
-    async def connect_global(self, websocket: WebSocket):
-        await websocket.accept()
+    async def connect_global(self, websocket: WebSocket, accepted: bool = False):
+        if not accepted:
+            await websocket.accept()
         self.active_global_connections.append(websocket)
         logger.info(f"WebSocketManager: Client connected to global live stream. Total active: {len(self.active_global_connections)}")
 
@@ -26,8 +27,9 @@ class ConnectionManager:
             self.active_global_connections.remove(websocket)
             logger.info("WebSocketManager: Client disconnected from global stream.")
 
-    async def connect_tender(self, tender_id: str, websocket: WebSocket):
-        await websocket.accept()
+    async def connect_tender(self, tender_id: str, websocket: WebSocket, accepted: bool = False):
+        if not accepted:
+            await websocket.accept()
         if tender_id not in self.tender_channel_connections:
             self.tender_channel_connections[tender_id] = []
         self.tender_channel_connections[tender_id].append(websocket)

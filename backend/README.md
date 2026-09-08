@@ -5,7 +5,7 @@ This is the backend for the AI-Powered Integrated Bid Compliance Verification Pl
 ## Technology Stack
 - **Python 3.11+**
 - **FastAPI**
-- **PostgreSQL / Local SQLite Fallback**
+- **PostgreSQL / Supabase**
 - **SQLAlchemy 2.x**
 - **Pydantic Settings**
 - **JWT authentication**
@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Database Setup
-The backend automatically connects to PostgreSQL (`DATABASE_URL`). If PostgreSQL is unconfigured or unavailable, it automatically falls back to a local SQLite database (`bid_compliance.db`) with auto-created tables out-of-the-box.
+Configure PostgreSQL (`DATABASE_URL`) in `backend/.env`, together with Supabase Storage credentials and `INITIAL_ADMIN_PASSWORD` for a new database. Startup fails clearly if the configured database is unavailable; there is no silent SQLite fallback. See [the deployment guide](../docs/DEPLOYMENT.md). SQLite is used only by isolated regression tests.
 
 ### 5. Generate Mock Data & Sample Documents
 Run data seeds and test document generators:

@@ -1,3 +1,4 @@
+import { apiFetch, websocketUrl } from "../services/api";
 import React, { useState, useEffect, useRef } from 'react';
 import { Radio, Zap, Inbox, AlertTriangle, ChevronRight } from 'lucide-react';
 import './LiveBidMonitoring.css';
@@ -20,22 +21,22 @@ export default function LiveBidMonitoring({ tenderId = null }) {
   }, [tenderId]);
 
   const connectWebSocket = () => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = tenderId
-      ? `${protocol}//${window.location.host}/ws/tender/${tenderId}`
-      : `${protocol}//${window.location.host}/ws/live`;
+    const wsUrl = websocketUrl(tenderId
+      ? `/api/v1/monitoring/tender/${encodeURIComponent(tenderId)}`
+      : '/api/v1/monitoring/live');
 
     try {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        setIsConnected(true);
+        ws.send(JSON.stringify({ token: localStorage.getItem("gem_token") }));
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data.type === "authenticated") { setIsConnected(true); return; }
           setEvents((prev) => [data, ...prev.slice(0, 49)]);
         } catch (e) {
           console.error("Error parsing WebSocket message:", e);
@@ -56,7 +57,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
 
   const fetchRecentEvents = async () => {
     try {
-      const res = await fetch('/api/v1/monitoring/recent-events');
+      const res = await apiFetch('/api/v1/monitoring/recent-events');
       if (res.ok) {
         const data = await res.json();
         if (data.events && data.events.length > 0) {
@@ -103,7 +104,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
   const handleSimulateBid = async (isNonCompliant = false) => {
     setSimulating(true);
     try {
-      await fetch('/api/v1/monitoring/simulate-bid', {
+      await apiFetch('/api/v1/monitoring/simulate-bid', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

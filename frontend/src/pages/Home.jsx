@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import { useState, useEffect } from "react";
 import profileImage from "../assets/profile.png";
 import "../App.css";
@@ -5,6 +6,7 @@ import DocumentUploadPage from "./DocumentUpload";
 import StatusPage from "./Status";
 import BidderProfile from "./BidderProfile";
 import {
+  Building, Unlock, RefreshCw, X, Ban,
   LayoutDashboard,
   UserCircle,
   CloudUpload,
@@ -412,7 +414,7 @@ const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setS
       try {
         const activeToken = localStorage.getItem("gem_token") || token;
         if (activeToken) {
-          const res = await fetch(`${API_BASE}/api/bids`, {
+          const res = await apiFetch(`${API_BASE}/api/bids`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -572,7 +574,7 @@ const NotificationsSection = ({ notifications }) => {
   };
 
 
-const BuyerDashboardView = ({ tendersList, bids, setActiveSection, isAdmin, dashboardStats, loadingDashboardStats, dashboardStatsError, fetchDashboardStats }) => {
+const BuyerDashboardView = ({ handleTenderClickFromDashboard, tendersList, bids, setActiveSection, isAdmin, dashboardStats, loadingDashboardStats, dashboardStatsError, fetchDashboardStats }) => {
     const activeTendersCount = dashboardStats?.active_tenders ?? tendersList.length;
     const totalBidsCount = dashboardStats?.total_bids ?? bids.length;
     const pendingCount = dashboardStats?.pending_verification ?? bids.filter(b => {
@@ -1256,7 +1258,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
         try {
           const activeToken = localStorage.getItem("gem_token") || token;
           const tenderRef = selectedTenderForBidders.id || selectedTenderForBidders.title;
-          const res = await fetch(`${API_BASE}/api/bids/tender/${encodeURIComponent(tenderRef)}`, {
+          const res = await apiFetch(`${API_BASE}/api/bids/tender/${encodeURIComponent(tenderRef)}`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
           if (res.ok) {
@@ -2045,7 +2047,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
 
                       try {
                         const activeToken = localStorage.getItem("gem_token") || token;
-                        const res = await fetch(`${API_BASE}/api/tenders/${editingRequirementsTender.id}/requirements`, {
+                        const res = await apiFetch(`${API_BASE}/api/tenders/${editingRequirementsTender.id}/requirements`, {
                           method: "PUT",
                           headers: {
                             "Content-Type": "application/json",
@@ -2102,7 +2104,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
       const fetchBiddersData = async () => {
         try {
           const activeToken = localStorage.getItem("gem_token") || token;
-          const res = await fetch(`${API_BASE}/api/bidders`, {
+          const res = await apiFetch(`${API_BASE}/api/bidders`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
           if (res.ok) {
@@ -2113,7 +2115,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
               return;
             }
           }
-          const bidsRes = await fetch(`${API_BASE}/api/bids`, {
+          const bidsRes = await apiFetch(`${API_BASE}/api/bids`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
           if (bidsRes.ok) {
@@ -2720,7 +2722,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
       const fetchBidDetails = async () => {
         try {
           const activeToken = localStorage.getItem("gem_token") || token;
-          const res = await fetch(`${API_BASE}/api/bids/${targetId}`, {
+          const res = await apiFetch(`${API_BASE}/api/bids/${targetId}`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
           if (res.ok) {
@@ -2817,36 +2819,35 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
         return;
       }
 
+      let result;
       try {
         const activeToken = localStorage.getItem("gem_token") || token;
         const targetId = fetchedBidDetails?.id || selectedVerificationBidder?.bid_id || selectedVerificationBidder?.id;
-        
-        if (targetId && typeof targetId === "string" && targetId.length >= 10) {
-          await fetch(`${API_BASE}/v1/override/decision`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
-            },
-            body: JSON.stringify({
-              bid_id: targetId,
-              officer_status: officerDecision === "qualified" ? "Approved" : (officerDecision === "disqualified" ? "Rejected" : "Approved with Deviation"),
-              justification: `Officer decision finalized as ${officerDecision.toUpperCase()} via authenticated officer portal.`
-            })
-          });
-        }
+        if (!targetId) throw new Error("Select a saved bid before submitting a decision.");
+        const response = await apiFetch(`${API_BASE}/api/v1/override/decision`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+          },
+          body: JSON.stringify({
+            bid_id: targetId,
+            officer_password: officerPassword,
+            officer_status: officerDecision === "qualified" ? "Approved" : (officerDecision === "disqualified" ? "Rejected" : "Approved with Deviation"),
+            justification: `Officer decision finalized as ${officerDecision.toUpperCase()} via authenticated officer portal.`
+          })
+        });
+        result = await response.json();
+        if (!response.ok) throw new Error(typeof result.detail === "string" ? result.detail : "Could not save the decision.");
       } catch (err) {
-        console.warn("Could not save override decision to backend:", err);
+        setAuthError(err.message || "Could not save the decision. Please try again.");
+        return;
       }
-
-      const randomHash = "0x" + Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("").toUpperCase();
-      const timestamp = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
-
       const record = {
         decision: officerDecision,
         officer: user?.full_name || "Procurement Officer",
-        timestamp: timestamp,
-        hash: randomHash
+        timestamp: new Date(result.reviewed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+        hash: result.audit_hash || "Audit hash unavailable"
       };
 
       setLockedRecordInfo(record);
@@ -4276,11 +4277,11 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const [statusFilter, setStatusFilter] = useState("All");
 
     const fetchUsersList = async () => {
-      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
       setLoadingUsers(true);
       try {
-        const res = await fetch(`${apiBaseUrl}/api/admin/users`, {
+        const res = await apiFetch(`${apiBaseUrl}/api/admin/users`, {
           headers: {
             "Authorization": token ? `Bearer ${token}` : ""
           }
@@ -4433,12 +4434,12 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         return;
       }
 
-      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
 
       if (editingUser) {
         try {
-          const res = await fetch(`${apiBaseUrl}/api/admin/users/${editingUser.id}/status`, {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${editingUser.id}/status`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -4467,7 +4468,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         else if (userForm.role === "Auditor") targetRole = "AUDITOR";
 
         try {
-          const res = await fetch(`${apiBaseUrl}/api/admin/users`, {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -4545,13 +4546,13 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         return;
       }
 
-      const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+      const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
 
       if (actionType === "SUSPEND") {
         const newStatus = targetUser.status === "Suspended" ? "Active" : "Suspended";
         try {
-          const res = await fetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}/status`, {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}/status`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -4573,7 +4574,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         alert(`Password reset link successfully dispatched to ${targetUser.email}.`);
       } else if (actionType === "DELETE") {
         try {
-          const res = await fetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}`, {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}`, {
             method: "DELETE",
             headers: {
               "Authorization": token ? `Bearer ${token}` : ""
@@ -6245,7 +6246,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
 
       try {
         const activeToken = localStorage.getItem("gem_token") || token;
-        const res = await fetch(`${API_BASE}/api/tenders`, {
+        const res = await apiFetch(`${API_BASE}/api/tenders`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -6261,7 +6262,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
           showToast(`️ Draft Save Note: ${errData.detail || "Database save failed"}`);
         }
       } catch (err) {
-        showToast(` Local Draft Saved! (ID: ${finalTenderId})`);
+        showToast(err.message || "Could not save the draft. Check the connection and try again.");
       }
     };
 
@@ -6302,7 +6303,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
 
       try {
         const activeToken = localStorage.getItem("gem_token") || token;
-        const res = await fetch(`${API_BASE}/api/tenders`, {
+        const res = await apiFetch(`${API_BASE}/api/tenders`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -6314,7 +6315,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         if (res.ok) {
           await fetchTenders();
           setCurrentStep(5);
-          showToast(` Tender ${finalTenderId} Successfully Published to GeM Procurement Network! Redirecting to Tenders List...`);
+          showToast(` Tender ${finalTenderId} Successfully Published to the BidVerify Bidder Portal! Redirecting to Tenders List...`);
           setTimeout(() => {
             setActiveSection("tenders");
           }, 1500);
@@ -6324,27 +6325,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         }
       } catch (err) {
         console.error("Publish tender backend error:", err);
-        // Fallback UI state update
-        const newTenderObj = {
-          id: finalTenderId,
-          title: formData.title || "New Procurement Tender",
-          category: formData.category || "Equipment",
-          department: formData.department || "Projects",
-          publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          closingDate: formData.submissionDeadline || "30 Sep 2026",
-          deadline: formData.submissionDeadline || "30 Sep 2026",
-          daysLeft: "30 days left",
-          bidders: 0,
-          pending: 0,
-          status: "Active",
-          value: formData.estimatedValue || "₹50,00,000"
-        };
-        setTendersList((prev) => [newTenderObj, ...prev]);
-        setCurrentStep(5);
-        showToast(` Tender ${finalTenderId} Published locally! Redirecting to Tenders List...`);
-        setTimeout(() => {
-          setActiveSection("tenders");
-        }, 1500);
+        showToast(err.message || "Could not publish the tender. Check the connection and try again.");
       }
     };
 
@@ -8492,7 +8473,7 @@ function Home({ role, user, onLogout }) {
   const [notifications, setNotifications] = useState([]);
   const [deleteNoticeModal, setDeleteNoticeModal] = useState({ open: false, title: "", message: "" });
 
-  const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  const API_BASE = BACKEND_URL;
   const token = typeof window !== "undefined" ? localStorage.getItem("gem_token") : null;
 
   const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
@@ -8501,7 +8482,7 @@ function Home({ role, user, onLogout }) {
   const fetchTenders = async () => {
     try {
       const activeToken = localStorage.getItem("gem_token") || token;
-      const res = await fetch(`${API_BASE}/api/tenders`, {
+      const res = await apiFetch(`${API_BASE}/api/tenders`, {
         headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
       });
       if (res.ok) {
@@ -8529,7 +8510,7 @@ function Home({ role, user, onLogout }) {
       const isOfficerOrAdmin = currentRole.includes("OFFICER") || currentRole.includes("ADMIN") || currentRole === "BUYER";
       const endpoint = isOfficerOrAdmin ? `${API_BASE}/api/bids/all` : `${API_BASE}/api/bids/my-bids`;
 
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         headers: { Authorization: `Bearer ${activeToken}` }
       });
       if (res.ok) {
@@ -8550,7 +8531,7 @@ function Home({ role, user, onLogout }) {
       if (!activeToken) return;
       setLoadingDashboardStats(true);
       setDashboardStatsError(false);
-      const res = await fetch(`${API_BASE}/api/bids/stats`, {
+      const res = await apiFetch(`${API_BASE}/api/bids/stats`, {
         headers: { Authorization: `Bearer ${activeToken}` }
       });
       if (res.ok) {
@@ -8572,7 +8553,7 @@ function Home({ role, user, onLogout }) {
     try {
       const activeToken = localStorage.getItem("gem_token") || token;
       if (!activeToken) return;
-      const res = await fetch(`${API_BASE}/api/notifications`, {
+      const res = await apiFetch(`${API_BASE}/api/notifications`, {
         headers: { Authorization: `Bearer ${activeToken}` }
       });
       if (res.ok) {
@@ -8631,153 +8612,66 @@ function Home({ role, user, onLogout }) {
   const [activeTenderMenuId, setActiveTenderMenuId] = useState(null);
 
   // Security Authorization Modal State for Tender Operations
+  const [officerNotes, setOfficerNotes] = useState("");
   const [pendingTenderAction, setPendingTenderAction] = useState(null);
   const [actionPasswordInput, setActionPasswordInput] = useState("");
   const [actionPasswordError, setActionPasswordError] = useState("");
 
-  const verifyAndExecuteTenderAction = (e) => {
+  const verifyAndExecuteTenderAction = async (e) => {
     if (e) e.preventDefault();
     if (!pendingTenderAction) return;
-
-    const inputPass = actionPasswordInput.trim();
-    if (!inputPass) {
+    if (!actionPasswordInput) {
       setActionPasswordError("Password is required to authorize this tender operation.");
       return;
     }
-
-    const currentRoleUpper = (role || user?.role || "").toUpperCase();
-    const isUserAdmin = isAdmin || currentRoleUpper.includes("ADMIN");
-
-    if (isUserAdmin) {
-      // ADMIN Context: Only Admin Password works
-      if (inputPass !== "Admin@123") {
-        setActionPasswordError(" Invalid Admin Password! Please try again.");
-        return;
-      }
-    } else {
-      // PROCUREMENT OFFICER Context: Only Officer Password works
-      if (inputPass !== "officer123" && inputPass !== (user?.password || "officer123")) {
-        setActionPasswordError(" Invalid Procurement Officer Password! Please try again.");
-        return;
-      }
-    }
-
-    // Authorized! Execute action & sync with backend database
-    const { type, payload } = pendingTenderAction;
-    if (type === "CREATE") {
-      const newTenderData = {
-        title: payload.newTenderObj.title,
-        description: payload.newTenderObj.description || payload.newTenderObj.title,
-        category: payload.newTenderObj.category || "General Hardware & Services",
-        department: payload.newTenderObj.department || "Chennai Petroleum Corporation Limited (CPCL)",
-        budget_limit: parseFloat(String(payload.newTenderObj.value || "1000000").replace(/[^0-9.]/g, '') || "1000000"),
-        status: payload.newTenderObj.status || "Draft"
-      };
-      if (payload.newTenderObj.id) newTenderData.id = payload.newTenderObj.id;
-
-      fetch(`${API_BASE}/api/tenders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(newTenderData)
-      })
-      .then(r => r.json())
-      .then(() => fetchTenders())
-      .catch(err => console.error("Error creating tender:", err));
-
-      setTendersList(prev => [payload.newTenderObj, ...prev]);
-      if (payload.onSuccess) payload.onSuccess();
-    } else if (type === "EDIT") {
-      const activeToken = localStorage.getItem("gem_token") || token;
-      const budgetVal = parseFloat(String(payload.editedTender.value || payload.editedTender.budget_limit || "5000000").replace(/[^0-9.]/g, '') || "5000000");
-      fetch(`${API_BASE}/api/tenders/${encodeURIComponent(payload.editedTender.id)}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
-        },
-        body: JSON.stringify({
-          title: payload.editedTender.title,
-          description: payload.editedTender.description || payload.editedTender.title,
-          category: payload.editedTender.category,
-          department: payload.editedTender.department,
-          budget_limit: budgetVal,
-          closing_date: payload.editedTender.closingDate || payload.editedTender.deadline || "2026-09-30",
-          status: payload.editedTender.status
-        })
-      })
-      .then(() => fetchTenders())
-      .catch(err => console.error("Error editing tender:", err));
-
-      setTendersList(prev => prev.map(t => t.id === payload.editedTender.id ? payload.editedTender : t));
-      setEditingTenderModalItem(null);
-    } else if (type === "STATUS") {
-      fetch(`${API_BASE}/api/tenders/${payload.tenderId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ status: payload.newStatus })
-      })
-      .then(() => fetchTenders())
-      .catch(err => console.error("Error updating status:", err));
-
-      setTendersList(prev => prev.map(t => t.id === payload.tenderId ? {
-        ...t,
-        status: payload.newStatus,
-        daysLeft: payload.newStatus === "Active" ? (t.daysLeft || "7 days left") : null
-      } : t));
-      setActiveTenderMenuId(null);
-    } else if (type === "DELETE") {
-      const activeToken = localStorage.getItem("gem_token") || token;
-      fetch(`${API_BASE}/api/tenders/${encodeURIComponent(payload.tenderId)}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
-        }
-      })
-      .then(async (r) => {
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          throw new Error(data.detail || "Failed to delete tender.");
-        }
-        return data;
-      })
-      .then((data) => {
-        fetchTenders();
-        if (data.action === "CANCELLED") {
-          setDeleteNoticeModal({
-            open: true,
-            title: "Tender Cancelled (Audit Preserved)",
-            message: data.message || `Tender '${payload.tenderId}' contains bidder activity and cannot be permanently deleted. It has been CANCELLED instead to preserve audit records.`
-          });
-        } else {
-          setDeleteNoticeModal({
-            open: true,
-            title: "Tender Deleted",
-            message: data.message || `Tender '${payload.tenderId}' deleted successfully.`
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Error deleting tender:", err);
-        setDeleteNoticeModal({
-          open: true,
-          title: "Delete Tender Failed",
-          message: err.message || `Unable to delete tender '${payload.tenderId}'.`
-        });
+    const send = async (path, method, body) => {
+      const response = await apiFetch(`${API_BASE}${path}`, {
+        method, headers: { "Content-Type": "application/json" },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not save this operation.");
+      return data;
+    };
+    try {
+      await send("/api/auth/verify-password", "POST", { password: actionPasswordInput });
+      const { type, payload } = pendingTenderAction;
+      if (type === "CREATE") {
+        const item = payload.newTenderObj;
+        await send("/api/tenders", "POST", {
+          ...(item.id ? { id: item.id } : {}), title: item.title,
+          description: item.description || item.title,
+          category: item.category, department: item.department,
+          budget_limit: parseFloat(String(item.value || "1000000").replace(/[^0-9.]/g, '')),
+          status: item.status || "Draft"
+        });
+        if (payload.onSuccess) payload.onSuccess();
+      } else if (type === "EDIT") {
+        const item = payload.editedTender;
+        await send(`/api/tenders/${encodeURIComponent(item.id)}`, "PUT", {
+          title: item.title, description: item.description || item.title,
+          category: item.category, department: item.department,
+          budget_limit: parseFloat(String(item.value || item.budget_limit || "5000000").replace(/[^0-9.]/g, '')),
+          closing_date: item.closingDate || item.deadline,
+          status: item.status
+        });
+        setEditingTenderModalItem(null);
+      } else if (type === "STATUS") {
+        await send(`/api/tenders/${encodeURIComponent(payload.tenderId)}/status`, "PATCH", { status: payload.newStatus });
+      } else if (type === "DELETE") {
+        const data = await send(`/api/tenders/${encodeURIComponent(payload.tenderId)}`, "DELETE");
+        setDeleteNoticeModal({ open: true,
+          title: data.action === "CANCELLED" ? "Tender Cancelled (Audit Preserved)" : "Tender Deleted",
+          message: data.message });
+      }
+      await fetchTenders();
       setActiveTenderMenuId(null);
+      setActionPasswordInput("");
+      setActionPasswordError("");
+      setPendingTenderAction(null);
+    } catch (err) {
+      setActionPasswordError(err.message || "Could not save this operation. Please try again.");
     }
-
-    // Reset password state & close modal
-    setActionPasswordInput("");
-    setActionPasswordError("");
-    setPendingTenderAction(null);
   };
 
   const handleTenderClickFromDashboard = (tenderId) => {
@@ -8902,7 +8796,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     setError("");
     try {
       const activeToken = localStorage.getItem("gem_token") || token;
-      const res = await fetch(`${API_BASE}/api/admin/blacklist`, {
+      const res = await apiFetch(`${API_BASE}/api/admin/blacklist`, {
         headers: {
           Authorization: `Bearer ${activeToken}`
         }
@@ -8968,7 +8862,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     };
 
     try {
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -9335,7 +9229,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
                   type="password"
                   value={actionPassword}
                   onChange={(e) => setActionPassword(e.target.value)}
-                  placeholder="Enter Master Admin Password (Admin@123)"
+                  placeholder="Enter your administrator password"
                   style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.88rem", color: "#0f172a" }}
                   required
                 />
@@ -9505,6 +9399,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
       default:
         return role === "Buyer" ? (
           <BuyerDashboardView
+            handleTenderClickFromDashboard={handleTenderClickFromDashboard}
             tendersList={tendersList}
             bids={bids}
             setActiveSection={setActiveSection}
@@ -10456,7 +10351,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
                   type="password"
                   value={actionPasswordInput}
                   onChange={(e) => setActionPasswordInput(e.target.value)}
-                  placeholder={isAdmin ? "Enter admin123" : "Enter officer123 or admin123"}
+                  placeholder="Enter your account password"
                   autoFocus
                   style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.9rem", color: "#0f172a" }}
                 />

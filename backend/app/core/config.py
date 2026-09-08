@@ -4,7 +4,7 @@ from typing import List
 # pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
 # pyrefly: ignore [missing-import]
-from pydantic import Field
+from pydantic import Field, AliasChoices, field_validator, model_validator
 
 
 import logging
@@ -15,13 +15,15 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development")
-    DATABASE_URL: str = Field(default="postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db")
-    JWT_SECRET: str = Field(default="super_secret_jwt_key_sih_2026_gem_procurement")
+    DATABASE_URL: str = Field(default="postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db", repr=False)
+    JWT_SECRET: str = Field(default="super_secret_jwt_key_sih_2026_gem_procurement", validation_alias=AliasChoices("JWT_SECRET", "SECRET_KEY"), repr=False)
+    INITIAL_ADMIN_EMAIL: str = Field(default="admin@gem.gov.in")
+    INITIAL_ADMIN_PASSWORD: str = Field(default="", repr=False)
     JWT_ALGORITHM: str = Field(default="HS256")
     UPLOAD_DIR: str = Field(default="storage/uploads")
     CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174")
     SUPABASE_URL: str = Field(default="")
-    SUPABASE_SECRET_KEY: str = Field(default="")
+    SUPABASE_SECRET_KEY: str = Field(default="", repr=False)
     SUPABASE_BUCKET: str = Field(default="bid-documents")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
     AI_PROVIDER: str = Field(default="gemini")
@@ -42,6 +44,30 @@ class Settings(BaseSettings):
     GEM_CLIENT_KEY: str = Field(default="certs/gem_client_key.pem")
     GEM_USE_MOCK: bool = Field(default=True)
 
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        # Hosted providers commonly supply the default psycopg2 scheme.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
+
+    @model_validator(mode="after")
+    def validate_production_settings(self):
+        if self.ENVIRONMENT.lower() == "production":
+            if len(self.JWT_SECRET) < 32 or self.JWT_SECRET.lower().startswith(("replace-", "your_", "change_")) or self.JWT_SECRET in {
+                "super_secret_jwt_key_sih_2026_gem_procurement",
+                "sih2026_bid_compliance_super_secret_jwt_key",
+                "change_this_super_secret_jwt_key_for_production_use_sih2026",
+            }:
+                raise ValueError("Set JWT_SECRET to a unique random secret of at least 32 characters.")
+            if not self.DATABASE_URL.startswith("postgresql+psycopg://"):
+                raise ValueError("Production requires a PostgreSQL DATABASE_URL.")
+            if not self.cors_origins_list or "*" in self.cors_origins_list:
+                raise ValueError("Set CORS_ORIGINS to the exact frontend origin(s).")
+        return self
+
 
     @property
     def effective_gemini_api_key(self) -> str:
@@ -57,11 +83,8 @@ class Settings(BaseSettings):
         # Uvicorn is launched from the repository root or from backend/.
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
-        extra="ignore"
+        extra="ignore",
+        hide_input_in_errors=True
     )
 
 settings = Settings()
-
-if settings.ENVIRONMENT.lower() == "production" and settings.JWT_SECRET == "super_secret_jwt_key_sih_2026_gem_procurement":
-    logger.warning("CRITICAL SECURITY WARNING: Default JWT_SECRET is active in PRODUCTION environment. Set JWT_SECRET in .env!")
-

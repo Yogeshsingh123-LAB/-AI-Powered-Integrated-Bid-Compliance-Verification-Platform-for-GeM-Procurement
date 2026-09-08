@@ -11,6 +11,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
+    tesseract-ocr-hin tesseract-ocr-guj tesseract-ocr-mar \
+    tesseract-ocr-tam tesseract-ocr-ben tesseract-ocr-tel \
     poppler-utils \
     libmagic1 \
     gcc \
@@ -19,7 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy dependency definition and install Python packages
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && python -m spacy download en_core_web_sm
 
 # Copy application source code
 COPY . .
@@ -28,4 +31,4 @@ COPY . .
 EXPOSE 8000
 
 # Run FastAPI backend using Uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

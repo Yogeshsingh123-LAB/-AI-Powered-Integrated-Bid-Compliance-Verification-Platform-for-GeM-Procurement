@@ -9,14 +9,14 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.security import create_access_token
 from app.core.config import settings
-from app.schemas.auth import UserRegister, TokenResponse, ChangePassword
+from app.schemas.auth import UserRegister, TokenResponse, ChangePassword, PasswordVerification
 from app.schemas.user import UserResponse
 from app.services.auth_service import AuthService, get_current_user, create_audit_record
 from app.models.user import User
 from app.models.tender import Tender
 from app.models.requirement import Requirement
 from app.models.bid import Bid
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -68,7 +68,11 @@ async def login(request: Request, db: Session = Depends(get_db)):
         )
 
     from app.schemas.auth import UserLogin
-    login_req = UserLogin(email=email, password=password)
+    from pydantic import ValidationError
+    try:
+        login_req = UserLogin(email=email, password=password)
+    except ValidationError:
+        raise HTTPException(status_code=422, detail="Enter a valid email address and password.") from None
     user = AuthService.authenticate_user(db, login_req, ip_address)
     
     access_token = create_access_token(subject=str(user.id), role=user.role)
@@ -83,6 +87,12 @@ async def login(request: Request, db: Session = Depends(get_db)):
 def get_me(current_user: User = Depends(get_current_user)):
     """Retrieve details of the currently authenticated user."""
     return current_user
+
+@router.post("/verify-password")
+def verify_current_password(req: PasswordVerification, current_user: User = Depends(get_current_user)):
+    if not verify_password(req.password, current_user.password_hash):
+        raise HTTPException(status_code=403, detail="Incorrect account password.")
+    return {"success": True}
 
 @router.post("/change-password", response_model=Dict[str, Any])
 def change_password(req: ChangePassword, request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

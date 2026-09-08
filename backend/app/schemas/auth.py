@@ -19,3 +19,6 @@ class TokenResponse(BaseModel):
 class ChangePassword(BaseModel):
     current_password: str = Field(...)
     new_password: str = Field(...)
+
+class PasswordVerification(BaseModel):
+    password: str = Field(..., min_length=1, repr=False)

@@ -94,10 +94,9 @@ class AuthService:
     @staticmethod
     def register_user(db: Session, req: UserRegister, ip_address: Optional[str] = None) -> User:
         """Register a new user (public registration allows BIDDER only)."""
-        # Determine role (allow OFFICER, ADMIN, BIDDER)
-        user_role = (req.role or "OFFICER").upper()
-        if user_role not in ["BIDDER", "OFFICER", "ADMIN", "AUDITOR", "VERIFICATION OFFICER"]:
-            user_role = "OFFICER"
+        if (req.role or "BIDDER").upper() != "BIDDER":
+            raise HTTPException(status_code=403, detail="Public registration is restricted to bidders.")
+        user_role = "BIDDER"
 
         # Validate password (minimum 8 characters)
         if not req.password or len(req.password) < 8:
@@ -234,17 +233,9 @@ class AuthService:
         clean_email = (req.email or "").strip().lower()
         user = db.query(User).filter(func.lower(User.email) == clean_email).first()
         
-        # Fallback lookup for primary Admin account
-        if not user and clean_email in ["admin@gem.gov.in", "admin@example.com", "admin"]:
-            user = db.query(User).filter(User.role == "ADMIN").first()
-
         is_valid_pass = False
         if user:
             is_valid_pass = verify_password(req.password, user.password_hash)
-            # Convenience fallback for primary admin account
-            if not is_valid_pass and (user.role.upper() == "ADMIN" or clean_email in ["admin@gem.gov.in", "admin@example.com"]):
-                if req.password in ["AdminPassword123", "Admin@123", "admin123", "admin", "Admin123", "officer123"]:
-                    is_valid_pass = True
 
         if not user or not is_valid_pass:
             create_audit_record(

@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "./api";
 /**
  * Bidder Profile Data Architecture & API Service
  * 
@@ -120,7 +121,7 @@ export function calculateProfileCompletion(profile) {
   return rawPercentage;
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const API_BASE = BACKEND_URL;
 
 /**
  * Service function to fetch bidder profile.
@@ -129,7 +130,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 export async function getBidderProfile(token = null) {
   if (token) {
     try {
-      const response = await fetch(`${API_BASE}/api/users/me`, {
+      const response = await apiFetch(`${API_BASE}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {

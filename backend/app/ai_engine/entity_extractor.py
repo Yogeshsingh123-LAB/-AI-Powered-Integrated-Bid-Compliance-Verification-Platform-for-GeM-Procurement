@@ -64,6 +64,11 @@ class EntityExtractor:
         digit_map = {'O': '0', 'I': '1', 'Z': '2', 'S': '5', 'B': '8', 'G': '6', 'T': '7'}
         for match in confused_pan_pattern.finditer(norm_text):
             prefix, num_part, suffix = match.groups()
+            # Require numeric evidence before repairing OCR digit confusions.
+            # Otherwise ordinary words such as "submission" and "commission"
+            # become invented PAN identifiers (SUBMI5510N / COMMI5510N).
+            if not any(ch.isdigit() for ch in num_part):
+                continue
             repaired_num = ""
             is_valid = True
             for ch in num_part.upper():
@@ -78,7 +83,9 @@ class EntityExtractor:
                 candidate = f"{prefix.upper()}{repaired_num}{suffix.upper()}"
                 raw_pans.add(candidate)
 
-        standalone_pans = raw_pans - embedded_pans
+        # Word boundaries already exclude PAN substrings inside a GSTIN.
+        # Keep a PAN explicitly printed elsewhere even when a GSTIN embeds it.
+        standalone_pans = raw_pans
         
         # 3. Udyam
         udyam_matches = cls.UDYAM_PATTERN.findall(norm_text)

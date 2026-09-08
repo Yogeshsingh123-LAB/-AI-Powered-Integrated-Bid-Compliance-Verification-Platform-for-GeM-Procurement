@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
-import Home from "./pages/Home";
+import { apiFetch, BACKEND_URL } from "./services/api";
+import { lazy, Suspense, useState, useEffect } from "react";
 import Login from "./pages/Login";
-import Chatbot from "./components/Chatbot";
+import "./App.css";
+
+const Home = lazy(() => import("./pages/Home"));
+const Chatbot = lazy(() => import("./components/Chatbot"));
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -9,13 +12,13 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
 
-  const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const API_BASE = BACKEND_URL;
 
   // Restore session from token on mount
   useEffect(() => {
     const token = localStorage.getItem("gem_token");
     if (token) {
-      fetch(`${API_BASE}/api/auth/me`, {
+      apiFetch(`${API_BASE}/api/auth/me`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -57,7 +60,7 @@ function App() {
     const token = localStorage.getItem("gem_token");
     if (token) {
       // Call logout endpoint in background (silent audit entry)
-      fetch(`${API_BASE}/api/auth/logout`, {
+      apiFetch(`${API_BASE}/api/auth/logout`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -88,10 +91,10 @@ function App() {
   return (
     <>
       {isLoggedIn ? (
-        <>
+        <Suspense fallback={<div role="status">Loading your workspace...</div>}>
           <Home role={userRole} user={currentUser} onLogout={handleLogout} />
           <Chatbot userRole={userRole} />
-        </>
+        </Suspense>
       ) : (
         <Login onLogin={handleLogin} />
       )}

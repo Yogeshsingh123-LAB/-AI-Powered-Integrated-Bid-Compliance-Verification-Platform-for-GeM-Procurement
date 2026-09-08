@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import Dict, Any, List, Optional
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 from .ocr_parser import OCRParser
 
 logger = logging.getLogger(__name__)

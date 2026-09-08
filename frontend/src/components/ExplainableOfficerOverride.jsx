@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, Scale, Search, FileText, MessageSquare } from 'lucide-react';
 import './ExplainableOfficerOverride.css';
@@ -19,7 +20,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
   const fetchXAIReport = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/override/explainable/${bidId}`);
+      const res = await apiFetch(`/api/v1/override/explainable/${bidId}`);
       if (res.ok) {
         const data = await res.json();
         setReport(data);
@@ -101,7 +102,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
     setPasswordError("");
     try {
       const token = localStorage.getItem("gem_token");
-      const res = await fetch('/api/v1/override/decision', {
+      const res = await apiFetch('/api/v1/override/decision', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -111,6 +112,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
           bid_id: bidId,
           officer_status: selectedStatus,
           deviation_category: selectedStatus.includes("Deviation") ? category : null,
+          officer_password: passwordInput,
           justification: justification
         })
       });
@@ -125,8 +127,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
         alert(errData.detail || "Failed to submit officer decision.");
       }
     } catch (err) {
-      alert("Submitted successfully.");
-      setShowOverrideModal(false);
+      setPasswordError(err.message || "Could not save the decision. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -135,7 +136,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
   const handleAddAnnotation = async () => {
     if (!commentText.trim()) return;
     try {
-      await fetch('/api/v1/override/annotations', {
+      const response = await apiFetch('/api/v1/override/annotations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -145,10 +146,11 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
           is_internal: true
         })
       });
+      if (!response.ok) throw new Error("Could not save the annotation.");
       setCommentText("");
       fetchXAIReport();
     } catch (err) {
-      setCommentText("");
+      alert(err.message || "Could not save the annotation.");
     }
   };
 
@@ -329,13 +331,15 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
                 placeholder="Enter detailed audit justification for officer override..."
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
+              />
+            </div>
             <div style={{ marginTop: '0.8rem' }}>
               <label style={{ fontSize: '0.8rem', color: '#f59e0b', display: 'block', marginBottom: '0.3rem', fontWeight: '600' }}>
                 🔑 Officer Security Authorization Password:
               </label>
               <input 
                 type="password"
-                placeholder="Enter password (e.g. officer123 / Admin@123)"
+                placeholder="Enter your account password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 style={{

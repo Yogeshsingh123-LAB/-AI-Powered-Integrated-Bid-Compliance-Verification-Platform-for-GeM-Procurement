@@ -31,3 +31,8 @@ storage/uploads/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+.env.*
+!.env.example
+.venv/
+tests/

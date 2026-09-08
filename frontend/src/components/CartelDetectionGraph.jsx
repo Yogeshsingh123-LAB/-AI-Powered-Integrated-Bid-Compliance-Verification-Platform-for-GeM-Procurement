@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState, useEffect, useRef } from 'react';
 import { Network, RefreshCw } from 'lucide-react';
 import './CartelDetectionGraph.css';
@@ -15,7 +16,7 @@ export default function CartelDetectionGraph({ tenderId = "DEMO-TENDER-01" }) {
   const fetchGraphData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/cartel/graph/${tenderId}`);
+      const res = await apiFetch(`/api/v1/cartel/graph/${tenderId}`);
       if (res.ok) {
         const data = await res.json();
         setGraphData(data);

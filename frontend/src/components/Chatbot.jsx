@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 import {
   Info,
@@ -10,7 +11,7 @@ import {
 import gemmyIcon from "../assets/gemmy-icon.png";
 import "./Chatbot.css";
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_URL = BACKEND_URL;
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -74,7 +75,7 @@ function Chatbot({ userRole = "Guest" }) {
     const timeoutId = window.setTimeout(() => controller.abort(), 25000);
 
     try {
-      const response = await fetch(`${API_URL}/api/chat`, {
+      const response = await apiFetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

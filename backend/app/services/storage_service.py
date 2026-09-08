@@ -13,7 +13,7 @@ class StorageService:
     def get_client(cls) -> Client:
         if cls._client is None:
             url = settings.SUPABASE_URL
-            key = settings.SUPABASE_SECRET_KEY or settings.SUPABASE_KEY
+            key = settings.SUPABASE_SECRET_KEY
             
             if not url or "your-project-id" in url or not key:
                 logger.error("Supabase URL or Key is not configured correctly in environment variables.")

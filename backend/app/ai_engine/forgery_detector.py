@@ -2,7 +2,7 @@ import re
 import logging
 from typing import Dict, Any, List, Optional
 # pyrefly: ignore [missing-import]
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 
 logger = logging.getLogger(__name__)
 

@@ -66,3 +66,10 @@ node_modules
 *.local
 *.db
 
+
+# Keep deployed configuration and uploaded documents out of Git.
+.env.*
+!.env.example
+!**/.env.example
+backend/uploads/
+backend/storage/

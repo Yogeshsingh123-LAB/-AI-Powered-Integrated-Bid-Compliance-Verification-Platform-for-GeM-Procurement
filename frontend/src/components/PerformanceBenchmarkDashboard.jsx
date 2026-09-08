@@ -1,3 +1,4 @@
+import { apiFetch } from "../services/api";
 import React, { useState, useEffect } from 'react';
 import { Activity, Play, Cpu } from 'lucide-react';
 import './PerformanceBenchmarkDashboard.css';
@@ -13,7 +14,7 @@ export default function PerformanceBenchmarkDashboard() {
 
   const fetchReport = async () => {
     try {
-      const res = await fetch('/api/v1/benchmark/gem-scale-report');
+      const res = await apiFetch('/api/v1/benchmark/gem-scale-report');
       if (res.ok) {
         const data = await res.json();
         setReport(data);
@@ -37,7 +38,7 @@ export default function PerformanceBenchmarkDashboard() {
   const handleRunStressTest = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/benchmark/run', {
+      const res = await apiFetch('/api/v1/benchmark/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ num_bids: 100, concurrency_workers: 10 })

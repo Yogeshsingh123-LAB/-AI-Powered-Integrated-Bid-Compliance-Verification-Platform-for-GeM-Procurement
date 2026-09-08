@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from "react";
 import {
   MOCK_BIDDER_PROFILE,
@@ -142,12 +143,12 @@ function BidderProfile() {
   const handleSaveProfile = async (e) => {
     e.preventDefault();
 
-    const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+    const API_BASE = BACKEND_URL;
     const token = localStorage.getItem("gem_token");
 
     if (token) {
       try {
-        await fetch(`${API_BASE}/api/users/me`, {
+        await apiFetch(`${API_BASE}/api/users/me`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

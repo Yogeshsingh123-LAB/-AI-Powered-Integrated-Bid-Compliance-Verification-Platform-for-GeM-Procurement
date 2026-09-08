@@ -9,26 +9,11 @@ logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
-# Connect to single primary PostgreSQL / Supabase cloud database
-is_sqlite = False
-try:
-    logger.info(f"Connecting to database: {settings.DATABASE_URL}")
-    connect_args = {}
-    if "postgresql" in settings.DATABASE_URL:
-        connect_args["connect_timeout"] = 5
-    engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
-    with engine.connect() as conn:
-        pass
-    logger.info("Database connection to PostgreSQL successful.")
-except Exception as e:
-    logger.error(
-        f"CRITICAL ERROR: Could not connect to primary PostgreSQL/Supabase database ({e}). "
-        "Silent fallback to local SQLite is disabled to maintain single source of truth."
-    )
-    raise RuntimeError(
-        f"Unable to connect to primary database at {settings.DATABASE_URL}. "
-        "Please verify your network connection and Supabase DATABASE_URL configuration."
-    ) from e
+# Constructing the engine must not connect, migrate, or create accounts at import.
+# Startup owns those actions, which also makes isolated tests possible.
+is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {"connect_timeout": 10}
+engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -127,62 +112,49 @@ def apply_schema_migrations():
 
         logger.info("Schema migrations applied successfully.")
     except Exception as create_err:
-        logger.error(f"Failed to apply database migrations: {create_err}")
-
-# Auto-apply migrations when database module loads
-try:
-    apply_schema_migrations()
-except Exception as err:
-    logger.warning(f"Database migration load error: {err}")
+        raise RuntimeError("Database schema initialization failed. Check database permissions and migrations.") from None
 
 def init_admin_user():
-    """Ensure that ONLY the primary platform Admin user (admin@gem.gov.in) exists in the initial database."""
-    db = SessionLocal()
-    try:
-        from app.models.user import User
-        from app.core.security import get_password_hash
-        
-        admin_email = "admin@gem.gov.in"
-        existing_admin = db.query(User).filter(User.email.ilike(admin_email)).first()
-        if not existing_admin:
-            # Check if any admin exists
-            existing_admin = db.query(User).filter(User.role == "ADMIN").first()
-            
-        if not existing_admin:
-            logger.info("Initializing primary Admin user account...")
-            admin_user = User(
-                full_name="Platform Administrator",
-                email=admin_email,
-                password_hash=get_password_hash("Admin@123"),
-                role="ADMIN",
-                status="Active",
-                department="Procurement",
-                is_active=True
-            )
-            db.add(admin_user)
-            db.commit()
-            logger.info("Primary Admin user (admin@gem.gov.in) initialized successfully.")
-        else:
-            # Ensure email and active status are correct
-            existing_admin.email = admin_email
-            existing_admin.is_active = True
-            existing_admin.role = "ADMIN"
-            if not existing_admin.status:
-                existing_admin.status = "Active"
-            if not existing_admin.department:
-                existing_admin.department = "Procurement"
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Failed to initialize primary admin user: {e}")
-    finally:
-        db.close()
+    """Bootstrap an admin once; never rename, reactivate or promote existing users."""
+    from app.models.user import User
+    from app.core.security import get_password_hash, validate_password_strength, verify_password
 
-# Auto-run admin init when database module is loaded
-try:
+    with SessionLocal() as db:
+        existing_admin = db.query(User).filter(User.role == "ADMIN").first()
+        if existing_admin:
+            if settings.ENVIRONMENT.lower() == "production" and any(
+                verify_password(password, existing_admin.password_hash)
+                for password in ("Admin@123", "AdminPassword123", "admin123", "admin", "Admin123", "officer123")
+            ):
+                raise RuntimeError("Change the existing administrator's default password before production startup.")
+            return
+        password = settings.INITIAL_ADMIN_PASSWORD
+        if not password:
+            raise RuntimeError("Set INITIAL_ADMIN_PASSWORD to bootstrap the first administrator.")
+        if not validate_password_strength(password) or password in {"Admin@123", "AdminPassword123"}:
+            raise RuntimeError("INITIAL_ADMIN_PASSWORD must be a strong, non-default password.")
+        email = settings.INITIAL_ADMIN_EMAIL.strip().lower()
+        if db.query(User).filter(User.email.ilike(email)).first():
+            raise RuntimeError("INITIAL_ADMIN_EMAIL already belongs to a non-admin account. Choose another address.")
+        db.add(User(
+            full_name="Platform Administrator", email=email,
+            password_hash=get_password_hash(password), role="ADMIN",
+            status="Active", department="Procurement", is_active=True,
+        ))
+        db.commit()
+
+
+def initialize_database():
+    try:
+        with engine.connect() as connection:
+            from sqlalchemy import text
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        # Driver errors and connection URIs can contain credentials.
+        raise RuntimeError("Database connection failed. Check DATABASE_URL and database availability.") from None
+    apply_schema_migrations()
     init_admin_user()
-except Exception:
-    pass
+
 
 def get_db():
     db = SessionLocal()

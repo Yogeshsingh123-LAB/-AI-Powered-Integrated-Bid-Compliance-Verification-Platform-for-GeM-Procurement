@@ -1,3 +1,4 @@
+import { apiFetch, BACKEND_URL } from "../services/api";
 import { useState, useRef, useEffect } from "react";
 import {
   CloudUpload,
@@ -52,10 +53,10 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const confirmSubmitDocuments = async () => {
     if (!submittingBidGroup) return;
     const activeToken = localStorage.getItem("gem_token");
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const API_BASE = BACKEND_URL;
 
     try {
-      const res = await fetch(`${API_BASE}/api/bids/${submittingBidGroup.bidId}/submit`, {
+      const res = await apiFetch(`${API_BASE}/api/bids/${submittingBidGroup.bidId}/submit`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${activeToken}`,
@@ -93,10 +94,10 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const fetchMyBidsAndRequirements = async () => {
     const activeToken = localStorage.getItem("gem_token");
     if (!activeToken) return;
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const API_BASE = BACKEND_URL;
 
     try {
-      const res = await fetch(`${API_BASE}/api/bids/my-bids`, {
+      const res = await apiFetch(`${API_BASE}/api/bids/my-bids`, {
         headers: { "Authorization": `Bearer ${activeToken}` }
       });
       if (!res.ok) return;
@@ -108,7 +109,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
 
       const groups = [];
       for (const b of myBidsData) {
-        const detailsRes = await fetch(`${API_BASE}/api/bids/${b.id}`, {
+        const detailsRes = await apiFetch(`${API_BASE}/api/bids/${b.id}`, {
           headers: { "Authorization": `Bearer ${activeToken}` }
         });
         if (detailsRes.ok) {
@@ -174,7 +175,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const fetchWithTimeout = (url, options = {}, timeout = 30000) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
-    return fetch(url, { ...options, signal: controller.signal })
+    return apiFetch(url, { ...options, signal: controller.signal })
       .finally(() => clearTimeout(timer));
   };
 
@@ -225,7 +226,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
       timeouts.push(t);
     });
 
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const API_BASE = BACKEND_URL;
     const formData = new FormData();
     formData.append("file", uploadedFile);
 
@@ -329,7 +330,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
     if (e.target.files && e.target.files[0]) {
       const uploadedFile = e.target.files[0];
       const activeToken = localStorage.getItem("gem_token");
-      const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+      const API_BASE = BACKEND_URL;
 
       if (activeTargetDoc && activeTargetDoc.bidId && activeTargetDoc.requirementId) {
         setUploading(true);
@@ -340,7 +341,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
 
         try {
           addLog(`Uploading document '${uploadedFile.name}' for requirement '${activeTargetDoc.docCode}'...`, "info");
-          const uploadRes = await fetch(`${API_BASE}/api/documents/upload`, {
+          const uploadRes = await apiFetch(`${API_BASE}/api/documents/upload`, {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${activeToken}`

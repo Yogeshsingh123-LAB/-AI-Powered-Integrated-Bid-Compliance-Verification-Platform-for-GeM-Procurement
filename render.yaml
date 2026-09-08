@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: bidverify-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: INITIAL_ADMIN_EMAIL
+        value: admin@gem.gov.in
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: bid-documents
+      - key: CORS_ORIGINS
+        sync: false
+      - key: GEM_USE_MOCK
+        value: "true"
+      - key: ENABLE_REAL_API_LOOKUP
+        value: "false"

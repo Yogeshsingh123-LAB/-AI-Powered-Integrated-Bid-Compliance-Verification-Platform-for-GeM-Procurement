@@ -129,12 +129,11 @@ def admin_create_user(
     
     if req.admin_authorization_password and req.admin_authorization_password.strip():
         from app.core.security import verify_password
-        if not verify_password(req.admin_authorization_password.strip(), admin_user.password_hash):
-            if req.admin_authorization_password.strip() not in ["AdminPassword123", "Admin@123", "admin123", "admin"]:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid Admin Authorization Password."
-                )
+        if not verify_password(req.admin_authorization_password, admin_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Admin Authorization Password."
+            )
 
     new_user = AuthService.create_user_by_admin(db, req, admin_user, ip_address)
     return new_user
@@ -251,13 +250,12 @@ def _verify_admin_authorization(password: str, admin_user: User):
             detail="Admin Password is required to authorize this action."
         )
     from app.core.security import verify_password
-    pwd = str(password).strip()
+    pwd = str(password)
     if not verify_password(pwd, admin_user.password_hash):
-        if pwd not in ["AdminPassword123", "Admin@123", "admin123", "admin"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid Admin Authorization Password. Operation denied."
-            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Admin Authorization Password. Operation denied."
+        )
 
 BLACK_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "mock_apis", "data", "blacklist_db.json")
 

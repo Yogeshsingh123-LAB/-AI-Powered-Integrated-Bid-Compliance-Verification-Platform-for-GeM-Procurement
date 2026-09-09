@@ -180,6 +180,13 @@ gem-bid-compliance/
 
 - **Windows**: Double-click `run_platform.bat` or run `.\run_platform.bat` in PowerShell/CMD.
 
+The Windows launcher waits for the backend and its database health check before
+starting Vite. It reuses running services and saves background service output in
+`logs/backend.stderr.log` and `logs/frontend.stderr.log` (with separate stdout logs).
+If startup fails, the launcher shows the error instead of reporting success.
+Run it again after resolving the reported configuration or connectivity problem.
+For backend live reload while developing, use the manual Uvicorn command below.
+
 ---
 
 ### Option A: 1-Command Docker Setup (Recommended)
@@ -211,7 +218,7 @@ docker-compose up --build
 # Navigate to backend and create virtual environment
 cd backend
 python -m venv venv
-backend\venv\Scripts\activate  # Windows (or source venv/bin/activate on Linux/macOS)
+venv\Scripts\activate  # Windows (or source venv/bin/activate on Linux/macOS)
 
 # Install dependencies
 pip install -r requirements.txt

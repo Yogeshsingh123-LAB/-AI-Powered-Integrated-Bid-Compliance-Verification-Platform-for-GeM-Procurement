@@ -97,6 +97,7 @@ def _basic_calculation_answer(text: str) -> str | None:
     try:
         with localcontext() as context:
             context.prec = max(28, len(left_text) + len(right_text) + 16)
+            context.clear_flags()
             result = operations[symbol](Decimal(left_text), Decimal(right_text))
             approximate = context.flags[Inexact]
             displayed = result.quantize(Decimal("0.000001")) if result.as_tuple().exponent < -6 else result

@@ -230,6 +230,17 @@ class ChatTests(unittest.TestCase):
         self.assertFalse(has_latex(answer))
         self.assertEqual(source, "knowledge_base")
 
+    def test_calculation_does_not_inherit_decimal_flags(self):
+        from decimal import Decimal, Inexact, localcontext
+        with localcontext() as caller:
+            Decimal(1) / Decimal(3)
+            self.assertTrue(caller.flags[Inexact])
+            self.assertEqual(_basic_calculation_answer("2 + 2"), "2 + 2 = 4.")
+            self.assertEqual(_basic_calculation_answer("1 / 8"), "1 ÷ 8 = 0.125.")
+            self.assertIn("(approximate)", _basic_calculation_answer("1 / 3"))
+            self.assertIn("(approximate)", _basic_calculation_answer("1 / 128"))
+            self.assertTrue(caller.flags[Inexact], "Do not mutate the caller's Decimal context")
+
     def test_language_detection_and_outage_fallback(self):
         for question, language in (("आवेदन की स्थिति", "hi"), ("mera status kya hai", "hinglish"), ("Track my application", "en")):
             self.assertEqual(detect_language(question), language)

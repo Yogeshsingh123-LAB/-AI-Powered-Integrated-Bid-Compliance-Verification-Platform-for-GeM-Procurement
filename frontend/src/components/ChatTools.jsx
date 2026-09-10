@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../services/api";
-import { errorText, formatDate, translations } from "./chatText";
+import { formatDate, translations } from "./chatText";
+import { requestChatJson } from "./chatRequest";
 
 const BASE = "/api/chat/support";
 const uuidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
@@ -11,36 +12,39 @@ function useRequest(t) {
   const [busy, setBusy] = useState(false);
   const controllers = useRef(new Set());
   const active = useRef(true);
+  const generation = useRef(0);
   const foregroundPending = useRef(false);
   useEffect(() => {
     active.current = true;
     const pending = controllers.current;
-    return () => { active.current = false; pending.forEach((c) => c.abort()); };
+    return () => {
+      active.current = false;
+      generation.current += 1;
+      foregroundPending.current = false;
+      pending.forEach((c) => c.abort());
+      pending.clear();
+    };
   }, []);
   const request = useCallback(async (path, options = {}, quiet = false) => {
     if (!quiet && foregroundPending.current) return null;
     if (!quiet) foregroundPending.current = true;
     const controller = new AbortController();
+    const requestGeneration = generation.current;
+    const isCurrent = () => active.current && generation.current === requestGeneration;
     controllers.current.add(controller);
     const timer = setTimeout(() => controller.abort(), 20000);
     if (!quiet) { setBusy(true); setError(""); }
     try {
-      const response = await apiFetch(path, { ...options, signal: controller.signal, headers: { "Content-Type": "application/json" } });
-      if (!response.ok) {
-        const failure = new Error("Request failed");
-        failure.status = response.status;
-        throw failure;
-      }
-      const result = response.status === 204 ? {} : await response.json();
-      return active.current ? result : null;
-    } catch (err) {
-      if (active.current) setError(errorText(err.status, t));
-      return null;
+      return await requestChatJson(apiFetch, path, options, {
+        signal: controller.signal, quiet, isCurrent, onError: setError, translations: t,
+      });
     } finally {
       clearTimeout(timer);
       controllers.current.delete(controller);
-      if (!quiet) foregroundPending.current = false;
-      if (active.current && !quiet) setBusy(false);
+      if (isCurrent() && !quiet) {
+        foregroundPending.current = false;
+        setBusy(false);
+      }
     }
   }, [t]);
   return { request, error, busy };

@@ -93,7 +93,7 @@ function App() {
       {isLoggedIn ? (
         <Suspense fallback={<div role="status">Loading your workspace...</div>}>
           <Home role={userRole} user={currentUser} onLogout={handleLogout} />
-          <Chatbot userRole={userRole} />
+          <Chatbot key={currentUser?.id} userRole={userRole} isSupportAdmin={currentUser?.role?.toUpperCase() === "ADMIN"} />
         </Suspense>
       ) : (
         <Login onLogin={handleLogin} />

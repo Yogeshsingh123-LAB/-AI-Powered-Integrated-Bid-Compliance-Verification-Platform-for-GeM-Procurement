@@ -7,9 +7,15 @@ import {
   RefreshCw,
   Send,
   X,
+  Globe, ChevronDown, FileSearch, TicketPlus, Tickets, Headset, Inbox,
+  Minus, Maximize2, Minimize2, RotateCcw, Grip, Move,
 } from "lucide-react";
 import gemmyIcon from "../assets/gemmy-icon.png";
 import "./Chatbot.css";
+import { ApplicationTracking, SupportPanel, SupportInbox } from "./ChatTools";
+import { detectLanguage, errorText, translations, languageOptions } from "./chatText";
+import { useChatWindow } from "./chatWindow";
+import { renderChatMessage } from "./chatMessage";
 
 const API_URL = BACKEND_URL;
 
@@ -27,7 +33,17 @@ const INITIAL_SUGGESTIONS = [
   "What is the status of my audit?",
 ];
 
-function Chatbot({ userRole = "Guest" }) {
+function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
+  const [language, setLanguage] = useState(() => {
+    try { const saved = localStorage.getItem("mygem-language"); return languageOptions.some(o => o.code === saved) ? saved : "auto"; } catch { return "auto"; }
+  });
+  const panel = useChatWindow();
+  useEffect(() => { try { localStorage.setItem("mygem-language", language); } catch { /* Storage is optional. */ } }, [language]);
+  const [detectedLanguage, setDetectedLanguage] = useState("en");
+  const effectiveLanguage = language === "auto" ? detectedLanguage : language;
+  const t = translations[effectiveLanguage];
+  const [mode, setMode] = useState("chat");
+  const [showAbout, setShowAbout] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
@@ -35,6 +51,10 @@ function Chatbot({ userRole = "Guest" }) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const pendingRef = useRef(null);
+  const generationRef = useRef(0);
+
+  useEffect(() => () => { generationRef.current += 1; pendingRef.current?.abort(); }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,19 +62,29 @@ function Chatbot({ userRole = "Guest" }) {
 
   useEffect(() => {
     if (isOpen) {
-      window.setTimeout(() => inputRef.current?.focus(), 150);
+      const timer = window.setTimeout(() => inputRef.current?.focus(), 150);
+      return () => window.clearTimeout(timer);
     }
   }, [isOpen]);
 
   const resetConversation = () => {
+    generationRef.current += 1;
+    pendingRef.current?.abort();
+    pendingRef.current = null;
+    setIsLoading(false);
     setMessages([WELCOME_MESSAGE]);
     setSuggestions(INITIAL_SUGGESTIONS);
     setInput("");
+    setMode("chat");
   };
 
   const sendMessage = async (question) => {
     const trimmedQuestion = question.trim();
-    if (!trimmedQuestion || isLoading) return;
+    if (!trimmedQuestion || pendingRef.current) return;
+    if (language === "auto") setDetectedLanguage(detectLanguage(trimmedQuestion));
+    const responseLanguage = language === "auto" ? detectLanguage(trimmedQuestion) : language;
+    const responseText = translations[responseLanguage];
+    const generation = generationRef.current;
 
     const userMessage = {
       id: `${Date.now()}-user`,
@@ -62,7 +92,7 @@ function Chatbot({ userRole = "Guest" }) {
       content: trimmedQuestion,
     };
     const conversationHistory = messages
-      .filter((message) => message.id !== "welcome")
+      .filter((message) => message.id !== "welcome" && !message.isError)
       .slice(-10)
       .map(({ role, content }) => ({ role, content }));
 
@@ -72,6 +102,7 @@ function Chatbot({ userRole = "Guest" }) {
     setIsLoading(true);
 
     const controller = new AbortController();
+    pendingRef.current = controller;
     const timeoutId = window.setTimeout(() => controller.abort(), 25000);
 
     try {
@@ -82,15 +113,19 @@ function Chatbot({ userRole = "Guest" }) {
           message: trimmedQuestion,
           history: conversationHistory,
           user_role: userRole,
+          language,
         }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`Assistant service returned ${response.status}`);
+        const failure = new Error("Request failed");
+        failure.status = response.status;
+        throw failure;
       }
 
       const data = await response.json();
+      if (generation !== generationRef.current) return;
       setMessages((current) => [
         ...current,
         {
@@ -102,22 +137,23 @@ function Chatbot({ userRole = "Guest" }) {
       ]);
       setSuggestions(data.suggestions || INITIAL_SUGGESTIONS);
     } catch (error) {
-      const timedOut = error.name === "AbortError";
+      if (generation !== generationRef.current) return;
       setMessages((current) => [
         ...current,
         {
           id: `${Date.now()}-error`,
           role: "assistant",
           isError: true,
-          content: timedOut
-            ? "The assistant took too long to respond. Please try again."
-            : "I can’t reach the assistant service right now. Please start the FastAPI backend on port 8000 and try again.",
+          content: errorText(error.status, responseText),
         },
       ]);
-      setSuggestions(INITIAL_SUGGESTIONS);
+      setSuggestions(responseText.suggestions);
     } finally {
       window.clearTimeout(timeoutId);
-      setIsLoading(false);
+      if (generation === generationRef.current) {
+        pendingRef.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
@@ -142,46 +178,57 @@ function Chatbot({ userRole = "Guest" }) {
   }
 
   return (
-    <section className="gemmy-widget" aria-label="MyGeM bid compliance assistant">
+    <section className={`gemmy-widget${panel.style.height < 500 ? ' gemmy-compact' : ''}`} style={panel.style} aria-label="MyGeM" lang={effectiveLanguage === "hinglish" ? "hi-Latn" : effectiveLanguage}>
       <header className="gemmy-header">
-        <div className="gemmy-brand">
+        <div className="gemmy-brand" {...panel.handlers()} tabIndex={panel.mobile || panel.expanded ? undefined : 0} role="group" aria-label={t.move} title={t.move}>
           <span className="gemmy-brand-icon">
             <img src={gemmyIcon} alt="" aria-hidden="true" />
           </span>
           <div>
             <strong>Ask MyGeM</strong>
-            <span>AI compliance assistant</span>
+            <span>AI assistant <Move size={11} aria-hidden="true" /></span>
           </div>
         </div>
         <div className="gemmy-header-actions">
-          <button type="button" title="About MyGeM" aria-label="About MyGeM">
+          <button type="button" title={t.minimize} aria-label={t.minimize} onClick={() => setIsOpen(false)}><Minus size={17} /></button>
+          <button type="button" title={panel.expanded ? t.restore : t.expand} aria-label={panel.expanded ? t.restore : t.expand} onClick={panel.toggle}>{panel.expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}</button>
+          <button type="button" title={t.about} aria-label={t.about} onClick={() => setShowAbout(!showAbout)}>
             <Info size={18} />
           </button>
           <button
             type="button"
-            onClick={resetConversation}
-            title="Start a new conversation"
-            aria-label="Start a new conversation"
-          >
-            <RefreshCw size={18} />
-          </button>
-          <button
-            type="button"
             onClick={() => setIsOpen(false)}
-            title="Close assistant"
-            aria-label="Close assistant"
+            title={t.close}
+            aria-label={t.close}
           >
             <X size={20} />
           </button>
         </div>
       </header>
 
+      {showAbout && <p className="gemmy-about">{t.aboutText}</p>}
       <div className="gemmy-help-strip">
-        <MessageCircleQuestion size={15} />
-        Ask about this portal or bid compliance
+        <label className="gemmy-language"><Globe size={15} aria-hidden="true" /><span className="gemmy-sr-only">{t.language}</span>
+          <select aria-label={t.language} value={language} onChange={(e) => { resetConversation(); setLanguage(e.target.value); }}>
+            {languageOptions.map(({ code, label }) => <option key={code} value={code}>{code === "auto" ? t.auto : label}</option>)}
+          </select><ChevronDown size={13} aria-hidden="true" />
+        </label>
+        <div className="gemmy-toolbar-actions">
+          <button type="button" onClick={resetConversation} title={t.reset} aria-label={t.reset}><RefreshCw size={16} /></button>
+          <button type="button" onClick={panel.reset} title={t.resetLayout} aria-label={t.resetLayout}><RotateCcw size={16} /></button>
+        </div>
       </div>
 
-      <div className="gemmy-messages" aria-live="polite">
+      <nav className="gemmy-menu" aria-label="Assistant features">
+        {[['chat', MessageCircleQuestion], ['track', FileSearch], ['create', TicketPlus], ['ticket', Tickets], ['live', Headset], ...(isSupportAdmin ? [['staff', Inbox]] : [])].map(([item, Icon]) =>
+          <button type="button" key={item} aria-pressed={mode === item} onClick={() => setMode(item)}><Icon size={16} aria-hidden="true" /><span>{t[item]}</span></button>)}
+      </nav>
+
+      {mode === "track" && <ApplicationTracking key={effectiveLanguage} language={effectiveLanguage} />}
+      {["create", "ticket", "live"].includes(mode) && <SupportPanel key={`${mode}-${effectiveLanguage}`} mode={mode} language={effectiveLanguage} />}
+      {mode === "staff" && isSupportAdmin && <SupportInbox key={effectiveLanguage} language={effectiveLanguage} />}
+
+      {mode === "chat" && <><div className="gemmy-messages" aria-live="polite">
         {messages.map((message) => (
           <div key={message.id} className={`gemmy-message-row ${message.role}`}>
             {message.role === "assistant" && (
@@ -190,12 +237,12 @@ function Chatbot({ userRole = "Guest" }) {
               </span>
             )}
             <div className={`gemmy-message ${message.isError ? "error" : ""}`}>
-              {message.content}
+              {message.id === "welcome" ? t.welcome : message.role === "assistant" ? renderChatMessage(message.content) : message.content}
               {message.source === "knowledge_base" && (
-                <small>Portal knowledge base</small>
+                <small>{t.kb}</small>
               )}
               {message.source === "ai_web" && (
-                <small>Live web answer via Groq</small>
+                <small>{t.web}</small>
               )}
             </div>
           </div>
@@ -208,7 +255,7 @@ function Chatbot({ userRole = "Guest" }) {
             </span>
             <div className="gemmy-message gemmy-typing">
               <Loader2 size={15} className="gemmy-spinner" />
-              Checking the guidance…
+              {t.loading}
             </div>
           </div>
         )}
@@ -217,7 +264,7 @@ function Chatbot({ userRole = "Guest" }) {
 
       {suggestions.length > 0 && !isLoading && (
         <div className="gemmy-suggestions" aria-label="Suggested questions">
-          {suggestions.slice(0, 3).map((suggestion) => (
+          {(messages.length === 1 ? t.suggestions : suggestions).slice(0, 3).map((suggestion) => (
             <button type="button" key={suggestion} onClick={() => sendMessage(suggestion)}>
               {suggestion}
             </button>
@@ -226,19 +273,19 @@ function Chatbot({ userRole = "Guest" }) {
       )}
 
       <form className="gemmy-input-area" onSubmit={handleSubmit}>
-        <label htmlFor="gemmy-question" className="gemmy-sr-only">Type your question</label>
+        <label htmlFor="gemmy-question" className="gemmy-sr-only">{t.question}</label>
         <textarea
           ref={inputRef}
           id="gemmy-question"
           value={input}
           onChange={(event) => setInput(event.target.value.slice(0, 2000))}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
               sendMessage(input);
             }
           }}
-          placeholder="Type a question…"
+          placeholder={t.question}
           rows="1"
           disabled={isLoading}
         />
@@ -246,15 +293,21 @@ function Chatbot({ userRole = "Guest" }) {
           type="submit"
           className="gemmy-send"
           disabled={!input.trim() || isLoading}
-          aria-label="Send question"
+          aria-label={t.send}
         >
           <Send size={20} />
         </button>
-      </form>
+      </form></>}
 
       <p className="gemmy-disclaimer">
-        AI answers are informational and may contain errors. Verify tender-specific or legal guidance on the official GeM portal.
+        {t.disclaimer}
       </p>
+      {!panel.mobile && !panel.expanded && ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(edge =>
+        <div key={edge} className={`gemmy-resize gemmy-resize-${edge}`} {...panel.handlers(edge)}
+          role={edge === 'se' ? 'group' : undefined} tabIndex={edge === 'se' ? 0 : undefined}
+          aria-label={edge === 'se' ? t.resize : undefined} title={t.resize}>
+          {edge === 'se' && <Grip size={14} aria-hidden="true" />}
+        </div>)}
     </section>
   );
 }

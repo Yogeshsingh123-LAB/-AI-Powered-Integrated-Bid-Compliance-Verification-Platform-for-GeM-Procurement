@@ -12,6 +12,7 @@ from app.api.users import router as users_router
 from app.api.documents import router as documents_router
 # pyrefly: ignore [missing-import]
 from app.api.chat import router as chat_router
+from app.api.chat_support import router as chat_support_router
 # pyrefly: ignore [missing-import]
 from app.api.analysis import router as analysis_router
 # pyrefly: ignore [missing-import]
@@ -82,6 +83,7 @@ app.include_router(tenders_router, prefix="/api")
 app.include_router(bids_router, prefix="/api")
 app.include_router(documents_router, prefix="/api", dependencies=[Depends(get_current_user)])
 app.include_router(chat_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(chat_support_router, prefix="/api", dependencies=[Depends(get_current_user)])
 app.include_router(analysis_router, prefix="/api", dependencies=[Depends(get_current_user)])
 app.include_router(audit_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
 app.include_router(digilocker_router, prefix="/api/v1", dependencies=[Depends(get_current_user)])

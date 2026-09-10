@@ -81,7 +81,7 @@ npm run dev
   - Build Command: `pip install -r backend/requirements.txt`
   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
   - Environment Variables: `PORT=8000`, `GEMINI_API_KEY=<your_key>`
-- **Frontend (Render / Vercel Static Site)**:
+- **Frontend (Static Site)**:
   - Build Command: `cd frontend && npm install && npm run build`
   - Output Directory: `frontend/dist`
-  - Environment Variables: `VITE_API_BASE_URL=https://<your-backend-url>.onrender.com`
+  - Environment Variables: `VITE_API_URL=https://<your-backend-url>.onrender.com`

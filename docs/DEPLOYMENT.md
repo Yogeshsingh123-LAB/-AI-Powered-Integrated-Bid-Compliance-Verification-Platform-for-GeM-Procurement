@@ -1,6 +1,6 @@
 # Deploy BidVerify
 
-Deploy the FastAPI backend on Render and the Vite frontend on Vercel, using
+Deploy the FastAPI backend on Render and the Vite frontend on a static host, using
 Supabase PostgreSQL and a private Supabase Storage bucket. Hosting does not
 turn the demonstration GeM/government connectors into authorized live APIs.
 
@@ -75,7 +75,7 @@ Set these **backend-only** environment variables:
 | `SUPABASE_URL` | Project URL |
 | `SUPABASE_SECRET_KEY` | Backend secret/service-role key from the same project |
 | `SUPABASE_BUCKET` | `bid-documents` |
-| `CORS_ORIGINS` | Exact Vercel production origin, e.g. `https://bidverify.vercel.app` |
+| `CORS_ORIGINS` | Exact frontend production origin, e.g. `https://bidverify.example.com` |
 | `GEM_USE_MOCK` | `true` for the SIH demonstration |
 | `ENABLE_REAL_API_LOOKUP` | `false` until approved registry access is configured |
 
@@ -94,7 +94,7 @@ and in-memory demo monitoring data are not durable storage.
 
 ## 4. Deploy the frontend
 
-Import the same repository into Vercel:
+For optional separate frontend hosting, configure your static host with:
 
 | Setting | Value |
 | --- | --- |
@@ -106,12 +106,11 @@ Import the same repository into Vercel:
 | Output | `dist` |
 | `VITE_API_URL` | Public HTTPS Render origin, with no `/api` suffix |
 
-`frontend/vercel.json` supplies the build settings. The shared API client sends
-all API calls to `VITE_API_URL`. WebSockets connect directly to that backend
-over `wss`; **no Vercel API rewrite is required**. Redeploy the frontend whenever
+The shared API client sends all API calls to `VITE_API_URL`. WebSockets connect
+directly to that backend over `wss`. Redeploy the frontend whenever
 `VITE_API_URL` changes because Vite embeds it at build time.
 
-Once Vercel provides the production URL, put that exact origin in Render's
+Once your host provides the production URL, put that exact origin in Render's
 `CORS_ORIGINS` and redeploy the backend. Separate multiple allowed origins with
 commas. Add your custom domain there if you use one.
 
@@ -179,6 +178,5 @@ analytics, mobile, benchmark and government integration screens still contain
 demonstration data; these are not proof of live government verification.
 
 References: [Render Docker](https://render.com/docs/docker),
-[Vercel Vite](https://vercel.com/docs/frameworks/frontend/vite),
 [Supabase connections](https://supabase.com/docs/guides/database/connecting-to-postgres),
 [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).

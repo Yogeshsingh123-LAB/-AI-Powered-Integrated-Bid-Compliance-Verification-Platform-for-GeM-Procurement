@@ -2,7 +2,7 @@ import asyncio
 import logging
 import operator
 import re
-from decimal import Decimal, DivisionByZero, InvalidOperation
+from decimal import Decimal, DivisionByZero, InvalidOperation, localcontext, Inexact
 
 from app.core.config import settings
 from app.schemas.chat import ChatMessage
@@ -16,6 +16,19 @@ procurement, supplier document submission, GSTIN/PAN/Udyam verification, bid com
 risk scores, audit status, and using this platform. Answer brief general factual questions,
 acronyms, and calculations directly. When live web search is available and the user asks for
 current information, use it and retain source citations in the answer.
+
+Response formatting:
+- Use plain text and everyday language. Never use LaTeX, TeX commands, math delimiters,
+  code fences, Markdown tables or Markdown emphasis. Use short paragraphs and numbered steps.
+- Write calculations like '25 × 4 = 100', percentages like '85%', scores like '85 out of 100',
+  Indian rupee amounts like '₹1,25,000', and dates like '10 September 2026'.
+- Use Indian digit grouping for quantities. Avoid unnecessary trailing decimal zeros;
+  preserve required precision and explicitly label rounded results as approximate.
+- Never reformat reference numbers, ticket IDs, GSTIN/PAN identifiers, phone numbers or URLs.
+- Use English by default, or the explicitly requested reply language, including regional Indian languages. Use its native script, except Hinglish which uses Latin letters.
+- For application status direct the user to Track Application and ask them to enter their
+  full reference there. For ticket creation, tracking, escalation or a human agent direct
+  them to the corresponding support menu. Never claim you performed these actions in chat.
 
 Platform facts:
 - GeM stands for Government e-Marketplace, India's online public procurement platform.
@@ -82,12 +95,21 @@ def _basic_calculation_answer(text: str) -> str | None:
         "÷": operator.truediv,
     }
     try:
-        result = operations[symbol](Decimal(left_text), Decimal(right_text))
+        with localcontext() as context:
+            context.prec = max(28, len(left_text) + len(right_text) + 16)
+            context.clear_flags()
+            result = operations[symbol](Decimal(left_text), Decimal(right_text))
+            approximate = context.flags[Inexact]
+            displayed = result.quantize(Decimal("0.000001")) if result.as_tuple().exponent < -6 else result
+            approximate = approximate or displayed != result
     except (DivisionByZero, InvalidOperation):
         return "That calculation is undefined because division by zero is not allowed."
 
-    formatted_result = format(result.normalize(), "f")
-    return f"{left_text} {symbol} {right_text} = {formatted_result}."
+    from app.services.chat_text import format_number
+    readable_symbol = {"*": "×", "x": "×", "/": "÷"}.get(symbol, symbol)
+    equals = "≈" if approximate else "="
+    suffix = " (approximate)" if approximate else ""
+    return f"{format_number(left_text)} {readable_symbol} {format_number(right_text)} {equals} {format_number(format(displayed, 'f'))}{suffix}."
 
 
 def _needs_web_search(message: str) -> bool:
@@ -495,8 +517,22 @@ async def answer_question(
     message: str,
     history: list[ChatMessage],
     user_role: str | None,
+    language: str = "auto",
 ) -> tuple[str, str, list[str]]:
+    from app.services.chat_text import detect_language, localized_fallback, has_latex
+    from app.services.chat_languages import LANGUAGE_NAMES, REGIONAL
+    language = detect_language(message) if language == "auto" else language
     fallback_answer, suggestions = _knowledge_base_answer(message, user_role)
+    if language != "en":
+        fallback_answer, suggestions = localized_fallback(message, language)
+        calculation = _basic_calculation_answer(_normalize(message))
+        if calculation:
+            if "undefined" in calculation:
+                calculation = REGIONAL[language][2] if language in REGIONAL else ("शून्य से भाग देना संभव नहीं है।" if language == "hi" else "Zero se divide karna possible nahi hai.")
+            approximate = REGIONAL[language][3] if language in REGIONAL else ("लगभग" if language == "hi" else "lagbhag")
+            fallback_answer = calculation.replace("(approximate)", f"({approximate})")
+    language_name = LANGUAGE_NAMES[language]
+    provider_message = f"Reply language: {language_name}. Use plain text without LaTeX.\n{message}"
     provider = settings.AI_PROVIDER.strip().lower()
 
     if provider == "groq":
@@ -519,9 +555,12 @@ async def answer_question(
 
     try:
         answer, used_live_tool = await asyncio.wait_for(
-            asyncio.to_thread(generator, message, history, user_role),
+            asyncio.to_thread(generator, provider_message, history, user_role),
             timeout=20,
         )
+        if has_latex(answer):
+            logger.warning("AI chat returned unsupported math markup; using plain-text guidance")
+            return fallback_answer, "knowledge_base", suggestions
         return answer, "ai_web" if used_live_tool else "ai", suggestions
     except Exception as exc:  # The local knowledge base keeps chat useful during provider outages.
         logger.warning("AI chat provider unavailable: %s", exc)

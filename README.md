@@ -73,6 +73,23 @@ Provides modular verification endpoints simulating live government portals:
 
 ---
 
+## MyGeM AI Assistant
+
+**MyGeM** is BidVerify's built-in conversational assistant for bidders, procurement officers, and administrators. Available after login, it helps users understand portal workflows, bid documents, and compliance requirements.
+
+### Features
+
+- **Bid compliance guidance**: Answers questions about document requirements and statutory identifiers such as GSTIN, PAN, and Udyam.
+- **AI answers and live web search**: Uses Groq for conversational responses and, when configured and enabled, web search for current questions. A local knowledge base provides fallback guidance when the AI service is unavailable.
+- **Multilingual conversations**: Offers automatic language detection and a language selector, including regional Indian languages.
+- **Readable responses and calculations**: Supports bold formatting and instructions for clear, plain-text calculation answers.
+- **Application tracking and support**: Provides dedicated menus for application tracking, support tickets, and live support, with a support inbox for administrators.
+- **Chat controls**: Lets users start a new conversation and adjust the chat window.
+
+MyGeM provides guidance; final bidder qualification and disqualification decisions remain with the Procurement Officer.
+
+---
+
 ## 🎯 Key Assets & Quick Links
 
 - 📄 **Implementation Plan**: [`implementation_plan.md`](implementation_plan.md)

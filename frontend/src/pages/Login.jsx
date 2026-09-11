@@ -31,6 +31,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
   const [authError, setAuthError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
@@ -251,6 +252,11 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
 
     if (!signUpName || !signUpEmail || !signUpPassword || !organization) {
       setAuthError("Please fill out all required fields to register.");
+      return;
+    }
+
+    if (signUpPassword.length < 8) {
+      setAuthError("Password must be at least 8 characters long.");
       return;
     }
 
@@ -614,12 +620,53 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                     <div className="input-field-wrapper">
                       <Lock size={18} className="field-icon-left" />
                       <input
-                        type="password"
+                        type={showSignUpPassword ? "text" : "password"}
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
                         placeholder="Create a strong password"
                         required
                       />
+                      <button
+                        type="button"
+                        className="toggle-password-btn"
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                        title={showSignUpPassword ? "Hide password" : "Show password"}
+                      >
+                        {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+
+                    {/* Password Creation Character Description & Requirements */}
+                    <div className="password-rules-box">
+                      <div className="password-rules-header">
+                        <Shield size={14} className="password-rules-icon" />
+                        <span>Password Creation Requirements & Character Guidelines</span>
+                      </div>
+                      <p className="password-rules-desc">
+                        Create a secure password using a combination of the following character types:
+                      </p>
+                      <div className="password-rules-grid">
+                        <div className={`pass-rule-item ${signUpPassword.length >= 8 ? "valid" : ""}`}>
+                          <CheckCircle2 size={13} className="rule-icon" />
+                          <span>At least 8 characters long</span>
+                        </div>
+                        <div className={`pass-rule-item ${/[A-Z]/.test(signUpPassword) ? "valid" : ""}`}>
+                          <CheckCircle2 size={13} className="rule-icon" />
+                          <span>At least 1 Uppercase letter (A–Z)</span>
+                        </div>
+                        <div className={`pass-rule-item ${/[a-z]/.test(signUpPassword) ? "valid" : ""}`}>
+                          <CheckCircle2 size={13} className="rule-icon" />
+                          <span>At least 1 Lowercase letter (a–z)</span>
+                        </div>
+                        <div className={`pass-rule-item ${/[0-9]/.test(signUpPassword) ? "valid" : ""}`}>
+                          <CheckCircle2 size={13} className="rule-icon" />
+                          <span>At least 1 Numeric digit (0–9)</span>
+                        </div>
+                        <div className={`pass-rule-item ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(signUpPassword) ? "valid" : ""}`}>
+                          <CheckCircle2 size={13} className="rule-icon" />
+                          <span>At least 1 Special character (e.g. @ # $ % ! & *)</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

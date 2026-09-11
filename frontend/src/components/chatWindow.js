@@ -19,7 +19,7 @@ export function resizeWindow(rect, edge, dx, dy, viewport) {
 function viewport() {
   return { width: window.visualViewport?.width || window.innerWidth, height: window.visualViewport?.height || window.innerHeight };
 }
-function defaults() { const v = viewport(); return fitWindow({ width: 420, height: 600, x: v.width - 444, y: v.height - 620 }, v); }
+function defaults() { const v = viewport(); return fitWindow({ width: 440, height: 680, x: v.width - 464, y: v.height - 700 }, v); }
 export function useChatWindow() {
   const [rect, setRect] = useState(() => {
     try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && ["x", "y", "width", "height"].every(k => Number.isFinite(saved[k])) && saved.width > 0 && saved.height > 0) return saved; } catch { /* Storage is optional. */ }

@@ -33,3 +33,13 @@ class TrackingResponse(BaseModel):
     submitted_at: datetime
     reviewed_at: datetime | None = None
     next_action: Literal["check_documents", "respond_to_clarification", "check_decision", "contact_support"]
+
+
+class TrackingBid(TrackingResponse):
+    tender_id: str
+    tender_title: str
+
+
+class TrackingBidsResponse(BaseModel):
+    items: list[TrackingBid]
+    has_more: bool

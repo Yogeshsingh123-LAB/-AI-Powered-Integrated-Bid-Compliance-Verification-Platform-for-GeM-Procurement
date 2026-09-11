@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../services/api";
 import { formatDate, translations } from "./chatText";
 import { requestChatJson } from "./chatRequest";
+import { trackingTranslations } from "./chatTrackingText";
+import { Search, FileSearch, ArrowRight, ChevronLeft } from "lucide-react";
 
 const BASE = "/api/chat/support";
 const uuidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
@@ -54,28 +56,69 @@ function ReferenceInput({ label, name = "reference", optional = false }) {
   return <label>{label}<input name={name} required={!optional} pattern={uuidPattern} maxLength={36} autoComplete="off" spellCheck={false} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></label>;
 }
 
-export function ApplicationTracking({ language }) {
+export function ApplicationTracking({ language, onSelect }) {
   const t = translations[language];
+  const copy = trackingTranslations[language];
   const { request, busy, error } = useRequest(t);
+  const [page, setPage] = useState(null);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [selected, setSelected] = useState(null);
   const [result, setResult] = useState(null);
-  async function lookup(event) {
-    event.preventDefault();
+  useEffect(() => {
+    let stopped = false;
+    request("/api/chat/bids").then(data => { if (!stopped) setPage(data); });
+    return () => { stopped = true; };
+  }, [request]);
+  async function load(term = query, start = offset) {
     if (busy) return;
-    setResult(null);
-    const reference = new FormData(event.currentTarget).get("reference").trim();
-    setResult(await request("/api/chat/track", { method: "POST", body: JSON.stringify({ reference }) }));
+    setPage(null);
+    setQuery(term);
+    setOffset(start);
+    setPage(await request(`/api/chat/bids?${new URLSearchParams({ search: term, offset: start })}`));
   }
-  return <div className="gemmy-tool">
-    <p>{t.referenceHelp}</p>
-    <form onSubmit={lookup}><ReferenceInput label={t.reference} /><button disabled={busy}>{busy ? t.loading : t.lookup}</button></form>
+  async function select(bid) {
+    if (busy) return;
+    if (onSelect) { onSelect(bid); return; }
+    setSelected(bid);
+    setResult(null);
+    setResult(await request("/api/chat/track", { method: "POST", body: JSON.stringify({ reference: bid.reference }) }));
+  }
+  return <div className="gemmy-tool gemmy-tracking" aria-busy={busy}>
+    {selected ? <>
+      <button type="button" className="gemmy-track-back" disabled={busy} onClick={() => { setSelected(null); setResult(null); load(); }}><ChevronLeft size={15} />{t.back}</button>
+      <h3>{selected.tender_title}</h3>
+      <p className="gemmy-reference">{copy.tender}: {selected.tender_id}</p>
+      {result && <article className="gemmy-status-card" aria-live="polite">
+        <span className={`gemmy-bid-status gemmy-bid-status-${result.status}`}>{t.statuses[result.status]}</span>
+        <dl><dt>{t.submitted}</dt><dd>{formatDate(result.submitted_at, language)}</dd>
+          <dt>{t.reviewed}</dt><dd>{formatDate(result.reviewed_at, language)}</dd></dl>
+        <div className="gemmy-next-action"><strong>{t.next}</strong><p>{t.actions[result.next_action]}</p></div>
+      </article>}
+      <button type="button" disabled={busy} onClick={() => select(selected)}>{t.refresh}</button>
+    </> : <>
+      <h3>{copy.title}</h3><p className="gemmy-muted">{copy.intro}</p>
+      <form className="gemmy-bid-search" onSubmit={event => { event.preventDefault(); load(search.trim(), 0); }}>
+        <label className="gemmy-sr-only" htmlFor="gemmy-tender-search">{copy.search}</label>
+        <input id="gemmy-tender-search" type="search" value={search} onChange={event => setSearch(event.target.value)} maxLength={255} placeholder={copy.search} />
+        <button disabled={busy} aria-label={copy.search} title={copy.search}><Search size={17} /></button>
+      </form>
+      {page?.items.map(bid => <button type="button" className="gemmy-bid-card" key={bid.reference} disabled={busy} onClick={() => select(bid)}>
+        <span className="gemmy-bid-card-heading"><FileSearch size={18} aria-hidden="true" /><strong>{bid.tender_title}</strong></span>
+        <span className="gemmy-reference">{copy.tender}: {bid.tender_id}</span>
+        <span className="gemmy-muted">{t.submitted}: {formatDate(bid.submitted_at, language)}</span>
+        <span className="gemmy-bid-card-footer"><span className={`gemmy-bid-status gemmy-bid-status-${bid.status}`}>{t.statuses[bid.status]}</span><ArrowRight size={16} aria-label={copy.choose} /></span>
+      </button>)}
+      {page?.items.length === 0 && <p className="gemmy-bid-empty" role="status"><FileSearch size={26} aria-hidden="true" />{query || offset ? copy.noMatch : copy.empty}</p>}
+      <div className="gemmy-bid-pagination">
+        <button type="button" disabled={busy} onClick={() => load()}>{t.refresh}</button>
+        {offset > 0 && <button type="button" disabled={busy} onClick={() => load(query, Math.max(0, offset - 20))}>{t.previous}</button>}
+        {page?.has_more && <button type="button" disabled={busy} onClick={() => load(query, offset + 20)}>{t.more}</button>}
+      </div>
+    </>}
+    {busy && <p role="status">{t.loading}</p>}
     {error && <p role="alert">{error}</p>}
-    {result && <article className="gemmy-status-card" aria-live="polite">
-      <strong>{t.status}: {t.statuses[result.status]}</strong>
-      <dl><dt>{t.reference}</dt><dd className="gemmy-reference">{result.reference}</dd>
-        <dt>{t.submitted}</dt><dd>{formatDate(result.submitted_at, language)}</dd>
-        <dt>{t.reviewed}</dt><dd>{formatDate(result.reviewed_at, language)}</dd></dl>
-      <strong>{t.next}</strong><p>{t.actions[result.next_action]}</p>
-    </article>}
   </div>;
 }
 
@@ -84,6 +127,8 @@ export function SupportPanel({ mode, language }) {
   const { request, busy, error } = useRequest(t);
   const [ticket, setTicket] = useState(null);
   const [available, setAvailable] = useState(null);
+  const [relatedBid, setRelatedBid] = useState(null);
+  const [choosingBid, setChoosingBid] = useState(false);
   useEffect(() => {
     if (mode !== "live") return;
     let stopped = false;
@@ -117,11 +162,14 @@ export function SupportPanel({ mode, language }) {
       {mode === "ticket" ? <ReferenceInput label={t.ticketReference} /> : <>
         <label>{t.subject}<input name="subject" required minLength={3} maxLength={160} /></label>
         <label>{t.issue}<textarea name="message" required minLength={3} maxLength={2000} rows={3} /></label>
-        <ReferenceInput label={t.optionalReference} optional />
+        <input type="hidden" name="reference" value={relatedBid?.reference || ""} />
+        <button type="button" aria-expanded={choosingBid} onClick={() => setChoosingBid(value => !value)}>{trackingTranslations[language].optional}{relatedBid ? `: ${relatedBid.tender_title} · ${relatedBid.tender_id}` : ""}</button>
+        {relatedBid && <button type="button" onClick={() => setRelatedBid(null)}>{trackingTranslations[language].clear}</button>}
         <p className="gemmy-muted">{t.consent}</p>
       </>}
       <button disabled={busy}>{busy ? t.loading : mode === "ticket" ? t.lookup : t.createTicket}</button>
     </form>
+    {choosingBid && <ApplicationTracking language={language} onSelect={bid => { setRelatedBid(bid); setChoosingBid(false); }} />}
     {error && <p role="alert">{error}</p>}
   </div>;
 }

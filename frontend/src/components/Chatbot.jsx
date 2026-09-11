@@ -8,7 +8,7 @@ import {
   Send,
   X,
   Globe, ChevronDown, FileSearch, TicketPlus, Tickets, Headset, Inbox,
-  Minus, Maximize2, Minimize2, RotateCcw, Grip, Move,
+  Maximize2, Minimize2, RotateCcw, Grip, Move, ShieldCheck, ArrowUpRight, ListChecks, ChartNoAxesCombined,
 } from "lucide-react";
 import gemmyIcon from "../assets/gemmy-icon.png";
 import "./Chatbot.css";
@@ -16,6 +16,7 @@ import { ApplicationTracking, SupportPanel, SupportInbox } from "./ChatTools";
 import { detectLanguage, errorText, translations, languageOptions } from "./chatText";
 import { useChatWindow } from "./chatWindow";
 import { renderChatMessage } from "./chatMessage";
+import { trackingTranslations } from "./chatTrackingText";
 
 const API_URL = BACKEND_URL;
 
@@ -53,19 +54,27 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
   const inputRef = useRef(null);
   const pendingRef = useRef(null);
   const generationRef = useRef(0);
+  const isWelcome = messages.length === 1;
+  const isSupport = ["create", "ticket", "live", "staff"].includes(mode);
+  const english = effectiveLanguage === "en";
 
   useEffect(() => () => { generationRef.current += 1; pendingRef.current?.abort(); }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+    if (!isWelcome) messagesEndRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }, [messages, isLoading, isWelcome, mode, isOpen]);
+
+  useEffect(() => {
+    const field = inputRef.current;
+    if (field) { field.style.height = "auto"; field.style.height = `${Math.min(field.scrollHeight, 100)}px`; }
+  }, [input, mode, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
       const timer = window.setTimeout(() => inputRef.current?.focus(), 150);
       return () => window.clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, mode]);
 
   const resetConversation = () => {
     generationRef.current += 1;
@@ -170,7 +179,6 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
         onClick={() => setIsOpen(true)}
         aria-label="Open MyGeM assistant"
       >
-        <span className="gemmy-launcher-pulse" />
         <img className="gemmy-launcher-icon" src={gemmyIcon} alt="" aria-hidden="true" />
         <span>Ask MyGeM</span>
       </button>
@@ -186,11 +194,10 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
           </span>
           <div>
             <strong>Ask MyGeM</strong>
-            <span>AI assistant <Move size={11} aria-hidden="true" /></span>
+            <span>Bid compliance assistant <Move size={11} aria-hidden="true" /></span>
           </div>
         </div>
         <div className="gemmy-header-actions">
-          <button type="button" title={t.minimize} aria-label={t.minimize} onClick={() => setIsOpen(false)}><Minus size={17} /></button>
           <button type="button" title={panel.expanded ? t.restore : t.expand} aria-label={panel.expanded ? t.restore : t.expand} onClick={panel.toggle}>{panel.expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}</button>
           <button type="button" title={t.about} aria-label={t.about} onClick={() => setShowAbout(!showAbout)}>
             <Info size={18} />
@@ -220,16 +227,38 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
       </div>
 
       <nav className="gemmy-menu" aria-label="Assistant features">
-        {[['chat', MessageCircleQuestion], ['track', FileSearch], ['create', TicketPlus], ['ticket', Tickets], ['live', Headset], ...(isSupportAdmin ? [['staff', Inbox]] : [])].map(([item, Icon]) =>
-          <button type="button" key={item} aria-pressed={mode === item} onClick={() => setMode(item)}><Icon size={16} aria-hidden="true" /><span>{t[item]}</span></button>)}
+        {[['chat', MessageCircleQuestion, english ? 'Assistant' : t.chat], ['track', FileSearch, english ? 'Track bid' : t.track], ['create', Headset, english ? 'Support' : t.live]].map(([item, Icon, label]) =>
+          <button type="button" key={item} aria-pressed={item === 'create' ? isSupport : mode === item} onClick={() => setMode(item)}><Icon size={16} aria-hidden="true" /><span>{label}</span></button>)}
       </nav>
+
+      {isSupport && <nav className="gemmy-support-nav" aria-label={t.live}>
+        {[["create", TicketPlus], ["ticket", Tickets], ["live", Headset], ...(isSupportAdmin ? [["staff", Inbox]] : [])].map(([item, Icon]) =>
+          <button type="button" key={item} aria-pressed={mode === item} onClick={() => setMode(item)}><Icon size={14} aria-hidden="true" />{t[item]}</button>)}
+      </nav>}
 
       {mode === "track" && <ApplicationTracking key={effectiveLanguage} language={effectiveLanguage} />}
       {["create", "ticket", "live"].includes(mode) && <SupportPanel key={`${mode}-${effectiveLanguage}`} mode={mode} language={effectiveLanguage} />}
       {mode === "staff" && isSupportAdmin && <SupportInbox key={effectiveLanguage} language={effectiveLanguage} />}
 
       {mode === "chat" && <><div className="gemmy-messages" aria-live="polite">
-        {messages.map((message) => (
+        {isWelcome && <div className="gemmy-welcome">
+          <div className="gemmy-eyebrow"><ShieldCheck size={14} aria-hidden="true" />{english ? "YOUR BID, WITH MORE CLARITY" : t.chat}</div>
+          <h2>{english ? <>A clearer path to<br /><em>bid readiness.</em></> : t.chat}</h2>
+          <p>{english ? "Understand requirements, untangle flags, and find your next step. Where shall we start?" : trackingTranslations[effectiveLanguage].intro}</p>
+          <div className="gemmy-start-cards">
+            {[
+              [ListChecks, english ? "Build my checklist" : t.suggestions[0], english ? "Documents & eligibility" : null, english ? "Help me prepare a pre-submission bid checklist covering required documents, eligibility, and common compliance mistakes." : t.suggestions[0]],
+              [ChartNoAxesCombined, english ? "Explain my score" : t.suggestions[2], english ? "Scoring & risk flags" : null, english ? "How is the compliance score calculated, and what should I do about flagged documents?" : t.suggestions[2]],
+              [FileSearch, english ? "Track my bid" : t.track, english ? "Status & next action" : null, null],
+              [MessageCircleQuestion, english ? "Document help" : t.suggestions[1], english ? "Uploads & verification" : null, t.suggestions[1]],
+            ].map(([Icon, title, detail, question]) => <button key={title} type="button" onClick={() => question ? sendMessage(question) : setMode("track")}>
+              <span className="gemmy-card-top"><Icon size={19} aria-hidden="true" /><ArrowUpRight size={14} aria-hidden="true" /></span>
+              <strong>{title}</strong>{detail && <span>{detail}</span>}
+            </button>)}
+          </div>
+          {english && <div className="gemmy-journey"><span>01 Prepare</span><span aria-hidden="true">→</span><span>02 Verify</span><span aria-hidden="true">→</span><span>03 Submit</span></div>}
+        </div>}
+        {messages.filter(message => message.id !== "welcome").map((message) => (
           <div key={message.id} className={`gemmy-message-row ${message.role}`}>
             {message.role === "assistant" && (
               <span className="gemmy-avatar" aria-hidden="true">
@@ -262,7 +291,7 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {suggestions.length > 0 && !isLoading && (
+      {suggestions.length > 0 && !isLoading && !isWelcome && (
         <div className="gemmy-suggestions" aria-label="Suggested questions">
           {(messages.length === 1 ? t.suggestions : suggestions).slice(0, 3).map((suggestion) => (
             <button type="button" key={suggestion} onClick={() => sendMessage(suggestion)}>
@@ -285,7 +314,7 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
               sendMessage(input);
             }
           }}
-          placeholder={t.question}
+          placeholder={english ? "Ask about your bid or documents…" : t.question}
           rows="1"
           disabled={isLoading}
         />

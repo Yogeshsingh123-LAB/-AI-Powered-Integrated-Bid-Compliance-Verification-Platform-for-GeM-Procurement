@@ -6,11 +6,19 @@ support tickets, escalation and administrator replies. Voice input is not includ
 
 ## Tracking access
 
-- Users must be signed in and enter the full application UUID shown in My Bids.
+- Users sign in and select their submitted tender in Track bid. Cards show the tender
+  title, Tender ID, submission date and recorded status. No application UUID is entered.
+- `GET /api/chat/bids` searches the signed-in user's bids by tender title or Tender ID,
+  with literal, case-insensitive matching (including slash, percent and underscore).
+  It returns 20 records per page, newest first, with an offset and `has_more` flag.
+  Empty accounts, empty search results, loading, errors and retry are distinct UI states.
 - `POST /api/chat/track` performs an exact, parameterized, owner-scoped lookup.
+  The selected card supplies its internal reference automatically, refreshing status
+  when opened. Back returns to the same search/page; Refresh fetches current records.
   Even administrators cannot use this endpoint to track another person's application.
 - Only the reference, mapped status, submission date, review date and next-action code
-  are returned. No document contents, identifiers, scores or reviewer notes are loaded.
+  are returned by the detail endpoint; the list also includes tender title and Tender ID.
+  No document contents, government identifiers, scores or reviewer notes are loaded.
 - Automated compliance findings are shown as under review, not as a final approval.
   Unknown states are shown as unavailable. There is no invented last-updated date:
   the existing bid table records submission and review dates only.
@@ -19,7 +27,7 @@ support tickets, escalation and administrator replies. Voice input is not includ
   AI question; the About panel explains not to share credentials or identity documents.
 - There is no anonymous lookup and no OTP workflow. Existing login verifies ownership.
 - Database-backed counters limit application lookups to 10 per minute per account,
-  AI chat to 30, ticket creation to 5, and support messages/escalations to 20.
+  bid list searches to 60, AI chat to 30, ticket creation to 5, and support messages/escalations to 20.
   These counters are shared across workers. Tracking never changes procurement records;
   only abuse-control counters are written by its rate-limit dependency.
 - Missing and other users' references return the same 404 message. Responses containing
@@ -27,8 +35,9 @@ support tickets, escalation and administrator replies. Voice input is not includ
 
 ## Support operations
 
-Applicants use Raise ticket to enter a subject, message and optional owned application
-reference. Save the returned full ticket UUID. Track ticket opens its status and latest
+Applicants use Raise ticket to enter a subject and message, and optionally select an
+owned bid using the tender picker. The internal reference is attached automatically.
+Save the returned full ticket UUID. Track ticket opens its status and latest
 100 messages; Request escalation records a single escalation timestamp. The same action
 is idempotent. Resolved tickets cannot receive applicant messages or be escalated.
 
@@ -62,9 +71,9 @@ suggestions and calculation messages; broader answers require the configured AI 
 
 ## Floating panel
 
-Drag the brand area of the gradient header to move the panel. Drag any edge or corner
+Drag the brand area of the navy header to move the panel. Drag any edge or corner
 to resize it; the bottom-right grip is visible. The header and grip also accept arrow
-keys (10 pixels, or 40 with Shift). Desktop defaults are 420 × 600 pixels with a
+keys (10 pixels, or 40 with Shift). Desktop defaults are 440 × 680 pixels with a
 340 × 420 minimum, constrained to the visible viewport. Expand/restore preserves the
 previous rectangle; minimize/close returns to the launcher without clearing messages.
 The toolbar provides New conversation and Reset layout. Position and size are stored

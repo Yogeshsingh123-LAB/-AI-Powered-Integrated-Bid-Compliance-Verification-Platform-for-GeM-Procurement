@@ -53,15 +53,27 @@ try {
     New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
 
     Write-Host '[1/2] Checking backend...'
-    $backendMatches = Test-HttpReady 'http://127.0.0.1:8000/' 'message' 'Bid Compliance API is running'
+    $backendPort = 8000
+    if (Test-HttpReady 'http://127.0.0.1:8000/' 'message' 'Bid Compliance API is running') {
+        $backendPort = 8000
+    } elseif (Test-HttpReady 'http://127.0.0.1:8001/' 'message' 'Bid Compliance API is running') {
+        $backendPort = 8001
+    } elseif (Test-PortOccupied 8000) {
+        $backendPort = 8001
+    }
+
+    $env:MOCK_API_BASE_URL = "http://127.0.0.1:$backendPort"
+    $backendUri = "http://127.0.0.1:$backendPort"
+    $backendMatches = Test-HttpReady "$backendUri/" 'message' 'Bid Compliance API is running'
+    $backendProcess = $null
     if ($backendMatches) {
-        if (-not (Test-HttpReady 'http://127.0.0.1:8000/health' 'status' 'healthy')) {
-            throw 'The backend is running but its database is unavailable. Check backend/.env and database connectivity.'
+        if (-not (Test-HttpReady "$backendUri/health" 'status' 'healthy')) {
+            throw "The backend is running on port $backendPort but its database is unavailable. Check backend/.env and database connectivity."
         }
-        Write-Host 'Backend is already healthy.'
+        Write-Host "Backend is already healthy on port $backendPort."
     } else {
-        if (Test-PortOccupied 8000) {
-            throw 'Port 8000 is occupied by another service or a backend still starting. Check it before retrying.'
+        if (Test-PortOccupied $backendPort) {
+            throw "Port $backendPort is occupied by another service or a backend still starting. Check it before retrying."
         }
         $pythonExecutable = Join-Path $backendDirectory 'venv/Scripts/python.exe'
         if (-not (Test-Path -LiteralPath $pythonExecutable)) {
@@ -69,15 +81,17 @@ try {
         }
         $backendErrorLog = Join-Path $logDirectory 'backend.stderr.log'
         $backendProcess = Start-Process -FilePath $pythonExecutable `
-            -ArgumentList '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000' `
+            -ArgumentList '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', "$backendPort" `
             -WorkingDirectory $backendDirectory -WindowStyle Hidden `
             -RedirectStandardOutput (Join-Path $logDirectory 'backend.stdout.log') `
             -RedirectStandardError $backendErrorLog -PassThru
-        Wait-ServiceReady $backendProcess 'http://127.0.0.1:8000/health' $backendErrorLog 'status' 'healthy'
-        Write-Host "Backend ready (PID $($backendProcess.Id))."
+        Wait-ServiceReady $backendProcess "$backendUri/health" $backendErrorLog 'status' 'healthy'
+        Write-Host "Backend ready on port $backendPort (PID $($backendProcess.Id))."
     }
 
     Write-Host '[2/2] Checking frontend...'
+    $env:VITE_API_URL = "http://127.0.0.1:$backendPort"
+    $frontendProcess = $null
     if (Test-PortOccupied 5173) {
         if (-not (Test-HttpReady 'http://127.0.0.1:5173/@vite/client')) {
             throw 'Port 5173 is occupied but Vite is not responding. Check that service before retrying.'
@@ -100,8 +114,32 @@ try {
     }
 
     Write-Host 'Platform ready: http://localhost:5173'
-    Write-Host 'Backend docs:   http://127.0.0.1:8000/docs'
+    Write-Host "Backend docs:   http://127.0.0.1:$backendPort/docs"
     Write-Host "Background service logs: $logDirectory"
+
+    if ($backendProcess -or $frontendProcess) {
+        Write-Host 'Platform is active. Press Ctrl+C in this window to stop.' -ForegroundColor Green
+        try {
+            while ($true) {
+                Start-Sleep -Seconds 2
+                if ($backendProcess -and $backendProcess.HasExited) {
+                    Write-Host "Backend process (PID $($backendProcess.Id)) exited unexpectedly." -ForegroundColor Red
+                    break
+                }
+                if ($frontendProcess -and $frontendProcess.HasExited) {
+                    Write-Host "Frontend process (PID $($frontendProcess.Id)) exited unexpectedly." -ForegroundColor Red
+                    break
+                }
+            }
+        } finally {
+            if ($backendProcess -and -not $backendProcess.HasExited) {
+                Stop-Process -Id $backendProcess.Id -Force -ErrorAction SilentlyContinue
+            }
+            if ($frontendProcess -and -not $frontendProcess.HasExited) {
+                Stop-Process -Id $frontendProcess.Id -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
 } catch {
     Write-Host "Startup failed: $($_.Exception.Message)" -ForegroundColor Red
     exit 1

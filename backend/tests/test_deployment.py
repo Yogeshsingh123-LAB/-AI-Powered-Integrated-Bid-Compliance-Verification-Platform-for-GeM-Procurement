@@ -21,18 +21,36 @@ os.environ.update({
 })
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.core.config import settings, Settings
+settings.ENVIRONMENT = "test"
+settings.DATABASE_URL = "sqlite:///" + str(Path(TEMP.name) / "test.db").replace("\\", "/")
+settings.JWT_SECRET = "test-only-unique-secret-for-api-regressions"
+settings.INITIAL_ADMIN_PASSWORD = "TestAdmin!8Secure"
+settings.INITIAL_ADMIN_EMAIL = "admin@example.com"
+settings.SUPABASE_URL = ""
+settings.SUPABASE_SECRET_KEY = ""
+settings.ENABLE_REAL_API_LOOKUP = False
+settings.CORS_ORIGINS = "https://frontend.example.com"
+
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 from app.main import app
-from app.core.config import Settings
-from app.db.database import SessionLocal, engine, init_admin_user
 from app.models.user import User
 from app.services.storage_service import StorageService
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 class DeploymentTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        import app.db.database as db_mod
+        db_mod.is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+        db_mod.connect_args = {"check_same_thread": False} if db_mod.is_sqlite else {"connect_timeout": 10}
+        db_mod.engine = create_engine(settings.DATABASE_URL, connect_args=db_mod.connect_args, pool_pre_ping=True)
+        db_mod.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_mod.engine)
+        db_mod.initialize_database()
+
         cls.client = TestClient(app)
         cls.client.__enter__()
         response = cls.client.post("/api/auth/login", json={"email": "admin@example.com", "password": "TestAdmin!8Secure"})
@@ -42,8 +60,12 @@ class DeploymentTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.client.__exit__(None, None, None)
-        engine.dispose()
-        TEMP.cleanup()
+        import app.db.database as db_mod
+        db_mod.engine.dispose()
+        try:
+            TEMP.cleanup()
+        except Exception:
+            pass
 
     def register_bidder(self, name):
         email = f"{name}@example.com"
@@ -67,19 +89,20 @@ class DeploymentTests(unittest.TestCase):
             self.assertEqual(r.status_code, 403, r.text)
 
     def test_bootstrap_preserves_existing_admin(self):
-        with SessionLocal() as db:
+        import app.db.database as db_mod
+        with db_mod.SessionLocal() as db:
             user = db.query(User).filter(User.role == "ADMIN").first()
             user.email = "renamed@example.com"
             user.is_active = False
             db.commit()
         try:
-            init_admin_user()
-            with SessionLocal() as db:
+            db_mod.init_admin_user()
+            with db_mod.SessionLocal() as db:
                 user = db.query(User).filter(User.role == "ADMIN").first()
                 self.assertEqual(user.email, "renamed@example.com")
                 self.assertFalse(user.is_active)
         finally:
-            with SessionLocal() as db:
+            with db_mod.SessionLocal() as db:
                 user = db.query(User).filter(User.role == "ADMIN").first()
                 user.email, user.is_active = "admin@example.com", True
                 db.commit()

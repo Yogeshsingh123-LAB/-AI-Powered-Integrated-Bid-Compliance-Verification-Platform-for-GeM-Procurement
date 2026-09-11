@@ -232,17 +232,38 @@ function BidderProfile() {
         </div>
       )}
 
-      {/* PAGE HEADER */}
-      <header className="profile-page-header">
-        <div className="profile-header-titles">
-          <h1>Profile</h1>
-          <p>Manage your company information, contact details and compliance information.</p>
+      {/* PAGE HERO BANNER MATCHING DASHBOARD & MY BIDS */}
+      <div className="mybids-hero-banner-exact" style={{ marginBottom: "24px" }}>
+        <div className="mybids-hero-bg" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+        <div className="mybids-hero-grid">
+          <div className="mybids-hero-left">
+            <div className="mybids-eyebrow-exact">
+              <span>BIDDER PROFILE</span>
+              <div className="green-accent-underline"></div>
+            </div>
+            <h1 className="mybids-title-exact">
+              Company & Compliance<br />
+              <span className="mybids-orange-text">Registry Record.</span>
+            </h1>
+            <p className="mybids-desc-exact">
+              Manage your company information, statutory registration IDs (GSTIN/PAN/Udyam), contact details and account security.
+            </p>
+          </div>
+
+          <div className="mybids-hero-center-cursive">
+            <div className="cursive-quote-text">
+              Integrity<br />Excellence<br />Trust
+            </div>
+            <div className="tricolor-bar-sm"></div>
+          </div>
+
+          <div className="mybids-hero-glass-quote">
+            <button className="btn-orange-primary" onClick={handleEditProfileClick}>
+              <Edit size={16} /> Edit Profile
+            </button>
+          </div>
         </div>
-        <button className="header-action-btn" onClick={handleEditProfileClick}>
-          <Edit size={16} />
-          <span>Edit Profile</span>
-        </button>
-      </header>
+      </div>
 
       {/* 1. COMPANY OVERVIEW (HERO CARD) */}
       <div className="profile-card hero-card">

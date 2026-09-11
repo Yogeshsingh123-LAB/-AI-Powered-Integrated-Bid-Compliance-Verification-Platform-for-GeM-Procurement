@@ -1,12 +1,12 @@
 :root {
-  --text: #94a3b8;
-  --text-h: #f8fafc;
-  --bg: #070a13;
-  --bg-card: #0f1422;
-  --border: #1e293b;
-  --code-bg: #0a0d16;
-  --accent: #6366f1;
-  --accent-rgb: 99, 102, 241;
+  --text: #334155;
+  --text-h: #0f172a;
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --border: #e2e8f0;
+  --code-bg: #f1f5f9;
+  --accent: #ff6b2b;
+  --accent-rgb: 255, 107, 43;
   --success: #10b981;
   --success-bg: rgba(16, 185, 129, 0.1);
   --success-border: rgba(16, 185, 129, 0.3);
@@ -16,17 +16,17 @@
   --danger: #ef4444;
   --danger-bg: rgba(239, 68, 68, 0.1);
   --danger-border: rgba(239, 68, 68, 0.3);
-  --info: #3b82f6;
-  --info-bg: rgba(59, 130, 246, 0.1);
-  --info-border: rgba(59, 130, 246, 0.3);
-  --shadow: rgba(0, 0, 0, 0.6) 0 10px 25px -5px, rgba(0, 0, 0, 0.3) 0 8px 10px -6px;
+  --info: #2563eb;
+  --info-bg: rgba(37, 99, 235, 0.1);
+  --info-border: rgba(37, 99, 235, 0.3);
+  --shadow: rgba(15, 23, 42, 0.08) 0 10px 25px -5px, rgba(15, 23, 42, 0.04) 0 8px 10px -6px;
 
-  --sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --sans: 'Plus Jakarta Sans', 'Outfit', system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', monospace;
 
   font: 16px/1.5 var(--sans);
   letter-spacing: 0.2px;
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -39,6 +39,7 @@ body {
   margin: 0;
   background-color: var(--bg);
   color: var(--text);
+  font-family: var(--sans);
   overflow-x: hidden;
 }
 

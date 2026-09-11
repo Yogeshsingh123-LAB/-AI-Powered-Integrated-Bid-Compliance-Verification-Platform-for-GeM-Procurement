@@ -48,6 +48,7 @@ import {
   Eye,
   Sparkles,
   Award,
+  Trophy,
   Calendar,
   CheckSquare,
   Filter,
@@ -97,186 +98,260 @@ function SectionPlaceholder({ title, description, rows }) {
 }
 
 const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSection, user, setSelectedBid }) => {
+    const getGreetingByTime = () => {
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) return "Good Morning,";
+      if (hour >= 12 && hour < 17) return "Good Afternoon,";
+      return "Good Evening,";
+    };
+
     return (
       <div className="bidder-dashboard-content">
-        {/* Welcome Section */}
-        <div className="bidder-hero-banner">
-          <div className="hero-left-content">
-            <span className="hero-eyebrow">BIDDER PORTAL</span>
-            <h1>Good Morning, {user ? user.full_name : "Valued User"}</h1>
-            <p className="hero-subtitle">
-              Automated AI compliance verification active across GSTIN, PAN, Udyam MSME, and OEM credentials.
-            </p>
-            <div className="hero-action-pills">
-              <button className="hero-pill-btn active" onClick={() => setActiveSection("tenders")}>
-                + Explore New Tenders
-              </button>
-              <button className="hero-pill-btn" onClick={() => setActiveSection("documents")}>
-                Upload Documents
-              </button>
+        {/* Hero Banner with Backdrop & Handwritten Script Overlay */}
+        <div className="bidder-hero-banner-exact">
+          <div className="hero-bg-backdrop" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+          <div className="hero-exact-grid">
+            {/* Left Content */}
+            <div className="hero-exact-left">
+              <span className="hero-eyebrow-exact">BIDDER PORTAL ▸</span>
+              <h1 className="hero-title-exact">
+                {getGreetingByTime()}<br />
+                <span className="hero-user-orange">{user ? user.full_name : "kushwaha deep kumar"}</span> <span className="hero-wave">👋</span>
+              </h1>
+              <p className="hero-desc-exact">
+                Participate in tenders, upload your documents and get AI-powered compliance verification — faster, simpler and more transparent.
+              </p>
+              <div className="hero-buttons-exact">
+                <button className="btn-orange-primary" onClick={() => setActiveSection("tenders")}>
+                  Explore New Tenders <ArrowRight size={16} />
+                </button>
+                <button className="btn-ghost-outline" onClick={() => setActiveSection("documents")}>
+                  <CloudUpload size={16} /> Upload Documents
+                </button>
+              </div>
+            </div>
+
+            {/* Center Handwritten Overlay Script */}
+            <div className="hero-exact-center-script">
+              <div className="script-cursive-text">Your Compliance.<br />Stronger India.</div>
+              <div className="tricolor-ribbon-line"></div>
+            </div>
+
+            {/* Right Feature Checklist */}
+            <div className="hero-exact-right-checklist">
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Secure</span>
+              </div>
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Transparent</span>
+              </div>
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Efficient</span>
+              </div>
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Government-Ready</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Vibrant Summary Metric Cards */}
-        <div className="summary-cards-row">
-          <div className="summary-card card-blue-glow" onClick={() => setActiveSection("tenders")} style={{ cursor: "pointer" }}>
-            <div className="card-top">
-              <span className="card-label">Active Tenders</span>
-              <div className="card-icon-wrapper blue">
-                <FolderOpen size={20} />
+        {/* 4 Summary KPI Cards Grid */}
+        {(() => {
+          const tendersCount = tendersList ? tendersList.length : 0;
+          const myBidsCount = bids ? bids.length : 0;
+          const underVerifCount = bids ? bids.filter(b => (b.status || "").toLowerCase().includes("under") || (b.status || "").toLowerCase().includes("pending") || (b.status || "").toLowerCase().includes("verif")).length : 0;
+          const draftsCount = bids ? bids.filter(b => (b.status || "").toLowerCase().includes("draft")).length : 0;
+          const docsCount = user && Array.isArray(user.documents) ? user.documents.length : (user && user.uploadedDocsCount ? user.uploadedDocsCount : 0);
+          const fmt = (val) => (val < 10 ? `0${val}` : `${val}`);
+
+          return (
+            <div className="summary-kpis-grid-exact">
+              {/* Card 1: Active Tenders */}
+              <div className="kpi-exact-card card-blue-theme" onClick={() => setActiveSection("tenders")}>
+                <div className="kpi-exact-top">
+                  <div className="kpi-icon-pill blue">
+                    <Search size={18} />
+                  </div>
+                  <button className="kpi-circle-arrow-btn" aria-label="Explore Tenders">
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+                <span className="kpi-exact-label">Active Tenders</span>
+                <h2 className="kpi-exact-value">{fmt(tendersCount)}</h2>
+                <span className="kpi-exact-subtext green">{tendersCount > 0 ? "↑ Active tenders available" : "✓ Explore published bids"}</span>
+              </div>
+
+              {/* Card 2: My Bids */}
+              <div className="kpi-exact-card card-mint-theme" onClick={() => setActiveSection("myBids")}>
+                <div className="kpi-exact-top">
+                  <div className="kpi-icon-pill mint">
+                    <FileCheck2 size={18} />
+                  </div>
+                  <button className="kpi-circle-arrow-btn" aria-label="View My Bids">
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+                <span className="kpi-exact-label">My Bids</span>
+                <h2 className="kpi-exact-value">{fmt(myBidsCount)}</h2>
+                <span className="kpi-exact-subtext muted">{underVerifCount > 0 ? `⚙ ${underVerifCount} under verification` : "✓ All bids processed"}</span>
+              </div>
+
+              {/* Card 3: Draft Bids */}
+              <div className="kpi-exact-card card-amber-theme" onClick={() => setActiveSection("myBids")}>
+                <div className="kpi-exact-top">
+                  <div className="kpi-icon-pill amber">
+                    <Clock size={18} />
+                  </div>
+                  <button className="kpi-circle-arrow-btn" aria-label="View Draft Bids">
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+                <span className="kpi-exact-label">Draft Bids</span>
+                <h2 className="kpi-exact-value">{fmt(draftsCount)}</h2>
+                <span className="kpi-exact-subtext amber">{draftsCount > 0 ? "⏳ Complete to submit" : "✓ No pending drafts"}</span>
+              </div>
+
+              {/* Card 4: Documents */}
+              <div className="kpi-exact-card card-purple-theme" onClick={() => setActiveSection("documents")}>
+                <div className="kpi-exact-top">
+                  <div className="kpi-icon-pill purple">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <button className="kpi-circle-arrow-btn" aria-label="View Documents">
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+                <span className="kpi-exact-label">Documents</span>
+                <h2 className="kpi-exact-value">{fmt(docsCount)}</h2>
+                <span className="kpi-exact-subtext muted">{docsCount > 0 ? "🛡️ Vault Ready" : "🛡️ Upload Compliance Docs"}</span>
               </div>
             </div>
-            <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
-            <span className="card-subtext warning"> {bids.length} active in system</span>
-          </div>
+          );
+        })()}
 
-          <div className="summary-card card-emerald-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
-            <div className="card-top">
-              <span className="card-label">My Bids</span>
-              <div className="card-icon-wrapper emerald">
-                <FileCheck2 size={20} />
-              </div>
-            </div>
-            <h2 className="card-value">{bids.length > 9 ? bids.length : `0${bids.length}`}</h2>
-            <span className="card-subtext info"> {bids.filter(b => b.status === "Verified").length} verified</span>
-          </div>
-
-          <div className="summary-card card-amber-glow" onClick={() => setActiveSection("myBids")} style={{ cursor: "pointer" }}>
-            <div className="card-top">
-              <span className="card-label">Draft Bids</span>
-              <div className="card-icon-wrapper amber">
-                <FileText size={20} />
-              </div>
-            </div>
-            <h2 className="card-value">{bids.filter(b => b.status.toLowerCase().includes("draft")).length > 9 ? bids.filter(b => b.status.toLowerCase().includes("draft")).length : `0${bids.filter(b => b.status.toLowerCase().includes("draft")).length}`}</h2>
-            <span className="card-subtext warning">⏳ Pending submission</span>
-          </div>
-
-          <div className="summary-card card-purple-glow" onClick={() => setActiveSection("documents")} style={{ cursor: "pointer" }}>
-            <div className="card-top">
-              <span className="card-label">Documents</span>
-              <div className="card-icon-wrapper purple">
-                <ClipboardList size={20} />
-              </div>
-            </div>
-            <h2 className="card-value">00</h2>
-            <span className="card-subtext success">️ Vault Ready</span>
-          </div>
-        </div>
-
-        {/* Main Split Layout */}
-        <div className="dashboard-main-split">
-          {/* Left Column - Active Bids */}
-          <div className="split-left-col">
-            <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2>Active Bids Registry</h2>
-              <button className="text-link-btn" onClick={() => setActiveSection("myBids")}>View All Bids →</button>
+        {/* Main Split Section (Left Active Bids Registry, Right AI Assistant & Activity) */}
+        <div className="dashboard-main-split-exact">
+          {/* Left Column - Active Bids Registry */}
+          <div className="split-left-col-exact">
+            <div className="split-header-row">
+              <h2 className="split-title">Active Bids Registry</h2>
+              <button className="view-all-blue-link" onClick={() => setActiveSection("myBids")}>
+                View All Bids <ArrowRight size={14} />
+              </button>
             </div>
 
-            <div className="bids-list">
+            <div className="registry-box-card">
               {bids.length === 0 ? (
-                <div style={{ background: "#ffffff", border: "1px dashed #cbd5e1", borderRadius: "12px", padding: "36px 24px", textAlign: "center" }}>
-                  <FolderOpen size={40} style={{ color: "#94a3b8", marginBottom: "12px" }} />
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 6px 0" }}>No Active Bids Registered Yet</h3>
-                  <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 18px 0" }}>Submit your first procurement bid to launch automated document verification and compliance pre-audits.</p>
-                  <button
-                    style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "10px 20px", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer" }}
-                    onClick={() => setActiveSection("documents")}
-                  >
-                    + Upload Documents & Create Bid
+                <div className="registry-empty-state">
+                  <div className="folder-empty-icon-wrap">
+                    <FolderOpen size={44} />
+                  </div>
+                  <h3 className="empty-state-headline">No Active Bids Registered Yet</h3>
+                  <p className="empty-state-subtext">
+                    Submit your first procurement bid to launch automated document verification and compliance pre-audits.
+                  </p>
+                  <button className="btn-upload-create-blue" onClick={() => setActiveSection("documents")}>
+                    <CloudUpload size={16} /> Upload Documents & Create Bid
                   </button>
                 </div>
               ) : (
-                bids.map((bid) => (
-                  <div key={bid.id} className="bid-item-card accent-left-emerald" onClick={() => setSelectedBid(bid)} style={{ cursor: "pointer" }}>
-                    <div className="bid-card-header">
-                      <div>
-                        <span className="bid-id">{bid.id}</span>
-                        <h3>{bid.bidderName || "Procurement Bid Submission"}</h3>
-                        <span className="bid-org">Submitted on: {bid.submittedOn}</span>
-                      </div>
-                      <span className={`bid-status-tag ${bid.status.toLowerCase().includes("verified") ? "ready" : "draft"}`}>{bid.status}</span>
-                    </div>
-
-                    <div className="bid-card-body">
-                      <div className="progress-section">
-                        <div className="progress-info">
-                          <span>Compliance Score</span>
-                          <strong>{bid.score}% Match</strong>
+                <div className="bids-list">
+                  {bids.map((bid) => (
+                    <div key={bid.id} className="bid-item-card accent-left-emerald" onClick={() => setSelectedBid(bid)} style={{ cursor: "pointer" }}>
+                      <div className="bid-card-header">
+                        <div>
+                          <span className="bid-id">{bid.id}</span>
+                          <h3>{bid.bidderName || "Procurement Bid Submission"}</h3>
+                          <span className="bid-org">Submitted on: {bid.submittedOn}</span>
                         </div>
-                        <div className="progress-bar-container">
-                          <div className={`progress-bar-fill ${bid.score >= 80 ? "success" : "amber"}`} style={{ width: `${bid.score}%` }}></div>
+                        <span className={`bid-status-tag ${bid.status.toLowerCase().includes("verified") ? "ready" : "draft"}`}>{bid.status}</span>
+                      </div>
+
+                      <div className="bid-card-body">
+                        <div className="progress-section">
+                          <div className="progress-info">
+                            <span>Compliance Score</span>
+                            <strong>{bid.score}% Match</strong>
+                          </div>
+                          <div className="progress-bar-container">
+                            <div className={`progress-bar-fill ${bid.score >= 80 ? "success" : "amber"}`} style={{ width: `${bid.score}%` }}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bid-card-footer">
+                        <div className="bid-actions">
+                          <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
+                            View Details
+                          </button>
                         </div>
                       </div>
                     </div>
-
-                    <div className="bid-card-footer">
-                      <div className="bid-actions">
-                        <button className="secondary-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Right Column - Assistant & Recent Activity */}
-          <div className="split-right-col">
-            {/* AI Submission Assistant */}
-            <div className="ai-assistant-card studio-gradient">
-              <div className="ai-card-header">
-                <h3>AI Submission Assistant <span className="sparkle-icon"></span></h3>
+          {/* Right Column - AI Assistant & Activity */}
+          <div className="split-right-col-exact">
+            {/* AI Submission Assistant Card */}
+            <div className="ai-assistant-card-navy">
+              <div className="ai-assistant-header-row">
+                <div className="sparkle-circle-badge">
+                  <Sparkles size={16} />
+                </div>
+                <h3>AI Submission Assistant</h3>
               </div>
-              <p className="ai-message">
-                {bids.length > 0
-                  ? `"You have ${bids.length} active bid(s) in review. Upload missing statutory documents to maximize compliance score."`
-                  : `"Welcome! Upload your compliance documents to launch automated AI pre-auditing."`}
+              <p className="ai-assistant-subtext">
+                Get AI-powered guidance on required documents, compliance checks and tender eligibility before you submit.
               </p>
-              <ul className="ai-checks-list">
-                <li className="check-item checked">
-                  <CheckCircle2 size={16} className="status-icon success" />
+              <ul className="ai-checks-exact-list">
+                <li>
+                  <CheckCircle2 size={16} className="check-green-icon" />
                   <span>GSTIN & PAN Verification Active</span>
                 </li>
-                <li className="check-item checked">
-                  <CheckCircle2 size={16} className="status-icon success" />
+                <li>
+                  <CheckCircle2 size={16} className="check-green-icon" />
                   <span>MSME Exemption Checker Online</span>
                 </li>
-                <li className="check-item warn">
-                  <AlertTriangle size={16} className="status-icon warning" />
+                <li>
+                  <CheckCircle2 size={16} className="check-green-icon" />
                   <span>Statutory Rule Engine Monitoring</span>
                 </li>
               </ul>
-              <button className="assistant-action-btn" onClick={() => setActiveSection("documents")}>
-                Upload & Verify Docs
+              <button className="btn-ai-upload-white" onClick={() => setActiveSection("documents")}>
+                Upload & Verify Docs <ArrowRight size={14} />
               </button>
             </div>
 
-            {/* Recent Activity */}
-            <div className="recent-activity-card light-panel-box">
-              <div className="activity-card-header">
+            {/* Recent Activity Card */}
+            <div className="recent-activity-card-exact">
+              <div className="activity-header-exact">
                 <h3>Recent Activity</h3>
+                <button className="view-all-blue-link" onClick={() => setActiveSection("notifications")}>
+                  View All <ArrowRight size={12} />
+                </button>
               </div>
-              <ul className="activity-list">
+              <ul className="activity-list-exact">
                 {notifications.length === 0 ? (
-                  <li className="activity-item">
-                    <div className="activity-dot info"></div>
-                    <div className="activity-info">
-                      <p>Session initialized in Clean Launch Mode.</p>
-                      <span>Real-time active</span>
+                  <li className="activity-item-exact">
+                    <div className="activity-dot-blue"></div>
+                    <div className="activity-text-col">
+                      <p className="activity-main-title">Session initialized in Clean Launch Mode.</p>
+                      <span className="activity-sub-status">Real-time active</span>
                     </div>
+                    <span className="activity-time-right">2 hours ago</span>
                   </li>
                 ) : (
                   notifications.slice(0, 4).map((n, idx) => (
-                    <li className="activity-item" key={n.id || idx}>
-                      <div className={`activity-dot ${n.type || 'info'}`}></div>
-                      <div className="activity-info">
-                        <p>{n.title || n.text}</p>
-                        <span>{n.time || "Just Now"}</span>
+                    <li className="activity-item-exact" key={n.id || idx}>
+                      <div className={`activity-dot-blue ${n.type || 'info'}`}></div>
+                      <div className="activity-text-col">
+                        <p className="activity-main-title">{n.title || n.text}</p>
+                        <span className="activity-sub-status">{n.status || "Active"}</span>
                       </div>
+                      <span className="activity-time-right">{n.time || "Just Now"}</span>
                     </li>
                   ))
                 )}
@@ -284,6 +359,54 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
             </div>
           </div>
         </div>
+
+        {/* Footer Government & Partner Emblems Bar */}
+        <footer className="dashboard-footer-emblems">
+          <div className="emblems-left-flex">
+            {/* Ministry of Petroleum & Natural Gas */}
+            <div className="emblem-item-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              <div className="emblem-text-block">
+                <strong>Ministry of Petroleum & Natural Gas</strong>
+                <span>Government of India</span>
+              </div>
+            </div>
+
+            {/* CPCL Emblem */}
+            <div className="emblem-item-box">
+              <div className="cpcl-badge-logo">CPCL</div>
+              <div className="emblem-text-block">
+                <strong>Chennai Petroleum Corporation Limited</strong>
+                <span>(CPCL)</span>
+              </div>
+            </div>
+
+            {/* GeM Emblem */}
+            <div className="emblem-item-box">
+              <div className="gem-badge-logo">
+                <span className="gem-orange">Ge</span><span className="gem-blue">M</span>
+              </div>
+              <div className="emblem-text-block">
+                <strong>Government e-Marketplace</strong>
+                <span>Efficient • Transparent • Inclusive</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="emblems-right-legal">
+            <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy</a>
+            <span className="sep">|</span>
+            <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>
+            <span className="sep">|</span>
+            <a href="#contact" onClick={(e) => e.preventDefault()}>Contact</a>
+            <span className="sep">|</span>
+            <a href="#help" onClick={(e) => e.preventDefault()}>Help</a>
+          </div>
+        </footer>
       </div>
     );
   };
@@ -291,104 +414,344 @@ const BidderDashboardView = ({ tendersList, bids, notifications, setActiveSectio
 
 const MyBidsSection = ({ bids, setActiveSection, setSelectedBid }) => {
     const [myBidsFilter, setMyBidsFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
 
-    const filteredBids = bids.filter((bid) => {
-      if (myBidsFilter === "verification") {
-        return (
-          bid.status.toLowerCase().includes("under") ||
-          bid.status.toLowerCase().includes("pending") ||
-          bid.status.toLowerCase().includes("review") ||
-          bid.status.toLowerCase().includes("draft")
-        );
+    const sampleBidsList = [
+      {
+        id: "GEM-CPCL-2026-001",
+        title: "Supply of Industrial Safety Equipment",
+        category: "Goods",
+        department: "Chennai Petroleum Corporation Limited (CPCL)",
+        submittedOn: "22 Sep 2026\n11:30 AM",
+        status: "Under Verification",
+        score: null,
+        risk: "In progress"
+      },
+      {
+        id: "GEM-MOPNG-2026-021",
+        title: "IT Hardware Procurement",
+        category: "Goods",
+        department: "Ministry of Petroleum &\nNatural Gas",
+        submittedOn: "15 Sep 2026\n04:20 PM",
+        status: "Submitted",
+        score: "92/100",
+        risk: "Low Risk"
+      },
+      {
+        id: "GEM-HPCL-2026-014",
+        title: "Manpower Support Services",
+        category: "Services",
+        department: "Hindustan Petroleum\nCorporation Limited",
+        submittedOn: "10 Sep 2026\n09:15 AM",
+        status: "Pending Action",
+        score: "78/100",
+        risk: "Medium Risk"
+      },
+      {
+        id: "GEM-BPCL-2026-067",
+        title: "Office Furniture Supply",
+        category: "Goods",
+        department: "Bharat Petroleum\nCorporation Limited",
+        submittedOn: "28 Aug 2026\n03:40 PM",
+        status: "Submitted",
+        score: "88/100",
+        risk: "Low Risk"
+      },
+      {
+        id: "GEM-GAIL-2026-033",
+        title: "Digital Infrastructure Upgrade",
+        category: "Services",
+        department: "GAIL (India) Limited",
+        submittedOn: "18 Aug 2026\n10:10 AM",
+        status: "Under Verification",
+        score: null,
+        risk: "In progress"
       }
-      if (myBidsFilter === "completed") {
-        return (
-          bid.status.toLowerCase().includes("verified") ||
-          bid.status.toLowerCase().includes("completed") ||
-          bid.status.toLowerCase().includes("submitted") ||
-          bid.status.toLowerCase().includes("approved")
-        );
-      }
-      return true;
+    ];
+
+    const displayBidsList = bids && bids.length > 0 ? bids : sampleBidsList;
+
+    const filteredBids = displayBidsList.filter((bid) => {
+      const matchesFilter =
+        myBidsFilter === "all" ? true :
+        myBidsFilter === "verification" ? (bid.status.toLowerCase().includes("under") || bid.status.toLowerCase().includes("review")) :
+        myBidsFilter === "pending" ? (bid.status.toLowerCase().includes("pending") || bid.status.toLowerCase().includes("action")) :
+        myBidsFilter === "submitted" ? (bid.status.toLowerCase().includes("submitted") || bid.status.toLowerCase().includes("verified")) :
+        myBidsFilter === "withdrawn" ? bid.status.toLowerCase().includes("withdrawn") : true;
+
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q ||
+        (bid.title && bid.title.toLowerCase().includes(q)) ||
+        (bid.id && bid.id.toLowerCase().includes(q)) ||
+        (bid.department && bid.department.toLowerCase().includes(q));
+
+      return matchesFilter && matchesSearch;
     });
 
     return (
-      <div className="bidder-section-wrapper">
-        {/* Unique Teal Hero Banner for My Bids */}
-        <div className="section-hero-banner teal-theme">
-          <div>
-            <span className="hero-eyebrow">SUBMISSION REGISTRY</span>
-            <h2>My Filed & Draft Bids</h2>
-            <p className="hero-subtext">Real-time auditing, compliance score breakdown, and verification audit trail.</p>
-          </div>
-          <div className="hero-stat-pill">
-            <span>TOTAL BIDS</span>
-            <strong>{bids.length} Active</strong>
+      <div className="bidder-mybids-container">
+        {/* Sky Blue Hero Banner */}
+        <div className="mybids-hero-banner-exact">
+          <div className="mybids-hero-bg" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+          <div className="mybids-hero-grid">
+            <div className="mybids-hero-left">
+              <div className="mybids-eyebrow-exact">
+                <span>MY BIDS</span>
+                <div className="green-accent-underline"></div>
+              </div>
+              <h1 className="mybids-title-exact">
+                Track Your Bids,<br />
+                <span className="mybids-orange-text">From Submission to Success.</span>
+              </h1>
+              <p className="mybids-desc-exact">
+                View and manage all your tender submissions, check verification status and complete pending actions.
+              </p>
+            </div>
+
+            <div className="mybids-hero-center-cursive">
+              <div className="cursive-quote-text">
+                Participate<br />Comply<br />Grow
+              </div>
+              <div className="tricolor-bar-sm"></div>
+            </div>
+
+            <div className="mybids-hero-glass-quote">
+              <p className="glass-quote-title">“Compliant Bidders Build a Stronger India”</p>
+              <div className="tricolor-bar-sm"></div>
+            </div>
           </div>
         </div>
 
-        <div className="section-panel studio-panel">
-          <div className="panel-table-header">
-            <h3>Registered Bid Records</h3>
-            <div className="panel-actions">
-              <span
-                className={`filter-pill ${myBidsFilter === "all" ? "active" : ""}`}
-                onClick={() => setMyBidsFilter("all")}
-              >
-                All Bids
-              </span>
-              <span
-                className={`filter-pill ${myBidsFilter === "verification" ? "active" : ""}`}
-                onClick={() => setMyBidsFilter("verification")}
-              >
-                Under Verification
-              </span>
-              <span
-                className={`filter-pill ${myBidsFilter === "completed" ? "active" : ""}`}
-                onClick={() => setMyBidsFilter("completed")}
-              >
-                Completed
-              </span>
+        {/* 4 Summary KPI Cards */}
+        {(() => {
+          const totalBidsCount = displayBidsList ? displayBidsList.length : 0;
+          const underVerifCount = displayBidsList ? displayBidsList.filter(b => 
+            (b.status || "").toLowerCase().includes("under") || 
+            (b.status || "").toLowerCase().includes("pending") || 
+            (b.status || "").toLowerCase().includes("verif")
+          ).length : 0;
+          const pendingActionCount = displayBidsList ? displayBidsList.filter(b => 
+            (b.status || "").toLowerCase().includes("action") || 
+            (b.status || "").toLowerCase().includes("draft") || 
+            (b.status || "").toLowerCase().includes("response")
+          ).length : 0;
+          const submittedCount = displayBidsList ? displayBidsList.filter(b => 
+            (b.status || "").toLowerCase().includes("submitted") || 
+            (b.status || "").toLowerCase().includes("verified") || 
+            (b.status || "").toLowerCase().includes("complete")
+          ).length : 0;
+
+          const verifPercent = totalBidsCount > 0 ? Math.round((underVerifCount / totalBidsCount) * 100) : 0;
+          const formatVal = (val) => (val < 10 ? `0${val}` : `${val}`);
+
+          return (
+            <div className="mybids-kpis-row-exact">
+              {/* Total Bids */}
+              <div className="mybids-kpi-card card-blue-exact">
+                <div className="mybids-kpi-icon blue">
+                  <Search size={22} />
+                </div>
+                <div className="mybids-kpi-content">
+                  <span className="mybids-kpi-label">Total Bids</span>
+                  <h2 className="mybids-kpi-val">{formatVal(totalBidsCount)}</h2>
+                  <span className="mybids-kpi-sub green">{totalBidsCount > 0 ? "↑ Active bid entries" : "✓ No bids registered"}</span>
+                </div>
+              </div>
+
+              {/* Under Verification */}
+              <div className="mybids-kpi-card card-mint-exact">
+                <div className="mybids-kpi-icon mint">
+                  <ShieldCheck size={22} />
+                </div>
+                <div className="mybids-kpi-content">
+                  <span className="mybids-kpi-label">Under Verification</span>
+                  <h2 className="mybids-kpi-val">{formatVal(underVerifCount)}</h2>
+                  <span className="mybids-kpi-sub muted">{underVerifCount > 0 ? `⏱ ${verifPercent}% of total` : "✓ Stream clear"}</span>
+                </div>
+              </div>
+
+              {/* Pending Action */}
+              <div className="mybids-kpi-card card-amber-exact">
+                <div className="mybids-kpi-icon amber">
+                  <Clock size={22} />
+                </div>
+                <div className="mybids-kpi-content">
+                  <span className="mybids-kpi-label">Pending Action</span>
+                  <h2 className="mybids-kpi-val">{formatVal(pendingActionCount)}</h2>
+                  <span className="mybids-kpi-sub amber">{pendingActionCount > 0 ? "⏳ Action required" : "✓ No pending actions"}</span>
+                </div>
+              </div>
+
+              {/* Submitted */}
+              <div className="mybids-kpi-card card-purple-exact">
+                <div className="mybids-kpi-icon purple">
+                  <Trophy size={22} />
+                </div>
+                <div className="mybids-kpi-content">
+                  <span className="mybids-kpi-label">Submitted</span>
+                  <h2 className="mybids-kpi-val">{formatVal(submittedCount)}</h2>
+                  <span className="mybids-kpi-sub muted">{submittedCount > 0 ? "⏱ Successfully submitted" : "✓ No submitted bids"}</span>
+                </div>
+              </div>
             </div>
+          );
+        })()}
+
+        {/* Filter Tabs Bar & Search Box */}
+        <div className="mybids-filter-bar-exact">
+          <div className="mybids-tabs-exact">
+            {(() => {
+              const countAll = displayBidsList.length;
+              const countVerif = displayBidsList.filter(b => (b.status || "").toLowerCase().includes("under") || (b.status || "").toLowerCase().includes("pending") || (b.status || "").toLowerCase().includes("verif")).length;
+              const countPending = displayBidsList.filter(b => (b.status || "").toLowerCase().includes("action") || (b.status || "").toLowerCase().includes("draft") || (b.status || "").toLowerCase().includes("response")).length;
+              const countSubmitted = displayBidsList.filter(b => (b.status || "").toLowerCase().includes("submitted") || (b.status || "").toLowerCase().includes("verified") || (b.status || "").toLowerCase().includes("complete")).length;
+
+              return (
+                <>
+                  <button
+                    className={`mybids-tab ${myBidsFilter === "all" ? "active" : ""}`}
+                    onClick={() => setMyBidsFilter("all")}
+                  >
+                    All Bids ({countAll})
+                  </button>
+                  <button
+                    className={`mybids-tab ${myBidsFilter === "verification" ? "active" : ""}`}
+                    onClick={() => setMyBidsFilter("verification")}
+                  >
+                    Under Verification ({countVerif})
+                  </button>
+                  <button
+                    className={`mybids-tab ${myBidsFilter === "pending" ? "active" : ""}`}
+                    onClick={() => setMyBidsFilter("pending")}
+                  >
+                    Pending Action ({countPending})
+                  </button>
+                  <button
+                    className={`mybids-tab ${myBidsFilter === "submitted" ? "active" : ""}`}
+                    onClick={() => setMyBidsFilter("submitted")}
+                  >
+                    Submitted ({countSubmitted})
+                  </button>
+                </>
+              );
+            })()}
+            <button
+              className={`mybids-tab ${myBidsFilter === "withdrawn" ? "active" : ""}`}
+              onClick={() => setMyBidsFilter("withdrawn")}
+            >
+              Withdrawn (0)
+            </button>
           </div>
 
+          <div className="mybids-search-right">
+            <div className="mybids-search-box">
+              <Search size={16} className="search-icon-gray" />
+              <input
+                type="text"
+                placeholder="Search by tender title, ID or department..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button className="btn-mybids-filter">
+              <Filter size={14} /> Filter
+            </button>
+          </div>
+        </div>
+
+        {/* Bids Data Table Card */}
+        <div className="mybids-table-card-exact">
           <div style={{ overflowX: "auto" }}>
-            <table className="studio-table">
+            <table className="mybids-table-exact">
               <thead>
                 <tr>
-                  <th>Bid ID</th>
-                  <th>Bidder Organization</th>
-                  <th>Submitted On</th>
-                  <th>Compliance Rating</th>
-                  <th>Audit Status</th>
-                  <th>Action</th>
+                  <th style={{ width: "36px" }}>#</th>
+                  <th>Tender Title</th>
+                  <th>Tender ID</th>
+                  <th>Department</th>
+                  <th>Submission Date</th>
+                  <th>Bid Status</th>
+                  <th>Compliance Score</th>
+                  <th style={{ textAlign: "center" }}>Action</th>
+                  <th style={{ width: "24px" }}></th>
                 </tr>
               </thead>
               <tbody>
-                {filteredBids.map((bid) => (
-                  <tr key={bid.id} onClick={() => setSelectedBid(bid)} className="clickable-row">
-                    <td><strong className="id-badge">{bid.id}</strong></td>
-                    <td><span className="org-title">{bid.bidderName}</span></td>
-                    <td><span className="date-text">{bid.submittedOn}</span></td>
+                {filteredBids.map((bid, idx) => (
+                  <tr key={bid.id || idx} onClick={() => setSelectedBid(bid)} className="mybids-tr-hover">
+                    <td className="td-num">{idx + 1}</td>
+                    <td className="td-title-col">
+                      <div className="title-cell-grid">
+                        <div className="title-text-stack">
+                          <span className="tender-main-title">{bid.title || bid.bidderName || "Procurement Bid Submission"}</span>
+                          <span className={`category-tag-pill ${bid.category === "Services" ? "purple" : "blue"}`}>
+                            {bid.category || "Goods"}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span className="tender-id-text">{bid.id}</span></td>
+                    <td><span className="dept-text-stack">{bid.department || "Ministry of Petroleum & Natural Gas"}</span></td>
                     <td>
-                      <span className={`risk-badge ${bid.risk.toLowerCase()}`}>
-                        {bid.score}% — {bid.risk} RISK
+                      <span className="date-text-stack">
+                        {bid.submittedOn ? bid.submittedOn.split("\n").map((line, i) => (
+                          <span key={i} style={{ display: "block" }}>{line}</span>
+                        )) : "15 Sep 2026"}
                       </span>
                     </td>
                     <td>
-                      <span className={`status-badge ${bid.status.toLowerCase().replace(" ", "")}`}>
+                      <span className={`status-pill-exact ${
+                        bid.status === "Submitted" ? "green" :
+                        bid.status === "Pending Action" ? "orange" : "blue"
+                      }`}>
                         ● {bid.status}
                       </span>
                     </td>
                     <td>
-                      <button className="table-inspect-btn" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
-                        Inspect Audit →
+                      {bid.score ? (
+                        <div className="score-stack">
+                          <strong className="score-val">{bid.score}</strong>
+                          <span className={`risk-text ${bid.risk.includes("Low") ? "green" : "orange"}`}>
+                            {bid.risk}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="score-stack">
+                          <span className="score-dash">—</span>
+                          <span className="in-progress-text">In progress</span>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      {bid.status === "Pending Action" ? (
+                        <button className="btn-action-complete-orange" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
+                          Complete <ArrowRight size={14} />
+                        </button>
+                      ) : (
+                        <button className="btn-action-view-outline" onClick={(e) => { e.stopPropagation(); setSelectedBid(bid); }}>
+                          View <ArrowRight size={14} />
+                        </button>
+                      )}
+                    </td>
+                    <td>
+                      <button className="btn-more-dots" onClick={(e) => e.stopPropagation()} aria-label="More options">
+                        <MoreVertical size={16} />
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Table Pagination Footer */}
+          <div className="mybids-table-footer">
+            <span className="showing-bids-count">Showing 1–{filteredBids.length} of {filteredBids.length} bids</span>
+            <div className="pagination-controls">
+              <button className="page-arrow-btn" disabled><ChevronLeft size={16} /></button>
+              <button className="page-number-btn active">1</button>
+              <button className="page-arrow-btn" disabled><ChevronRight size={16} /></button>
+            </div>
           </div>
         </div>
       </div>
@@ -398,16 +761,25 @@ const MyBidsSection = ({ bids, setActiveSection, setSelectedBid }) => {
 
 const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setSelectedBid, token, API_BASE, bids, fetchBids }) => {
     const [bidderSearchQuery, setBidderSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+
     const filteredTenders = tendersList.filter((tender) => {
-      if (!bidderSearchQuery.trim()) return true;
-      const q = bidderSearchQuery.toLowerCase();
-      return (
+      const q = bidderSearchQuery.toLowerCase().trim();
+      const matchesSearch = !q ||
         (tender.id && tender.id.toLowerCase().includes(q)) ||
         (tender.title && tender.title.toLowerCase().includes(q)) ||
         (tender.department && tender.department.toLowerCase().includes(q)) ||
-        (tender.category && tender.category.toLowerCase().includes(q))
-      );
+        (tender.category && tender.category.toLowerCase().includes(q));
+
+      const matchesCat = categoryFilter === "all" ? true :
+        categoryFilter === "goods" ? (tender.category && tender.category.toLowerCase().includes("goods")) :
+        categoryFilter === "services" ? (tender.category && tender.category.toLowerCase().includes("services")) : true;
+
+      return matchesSearch && matchesCat;
     });
+
+    const goodsCount = tendersList.filter(t => (t.category || "").toLowerCase().includes("goods")).length;
+    const servicesCount = tendersList.filter(t => (t.category || "").toLowerCase().includes("services")).length;
 
     const handleCreateBidForTender = async (tItem) => {
       setSelectedTender(tItem);
@@ -433,43 +805,129 @@ const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setS
     };
 
     return (
-      <div className="bidder-section-wrapper">
-        {/* Unique Emerald Hero Banner for GeM Tenders */}
-        <div className="section-hero-banner emerald-theme">
-          <div>
-            <span className="hero-eyebrow">OPPORTUNITY EXPLORER</span>
-            <h2>Available GeM Tenders</h2>
-            <p className="hero-subtext">Browse matching government procurements and launch instant compliance pre-audits.</p>
+      <div className="bidder-mybids-container">
+        {/* Hero Banner matching Dashboard & My Bids */}
+        <div className="mybids-hero-banner-exact">
+          <div className="mybids-hero-bg" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+          <div className="mybids-hero-grid">
+            <div className="mybids-hero-left">
+              <div className="mybids-eyebrow-exact">
+                <span>OPPORTUNITY EXPLORER</span>
+                <div className="green-accent-underline"></div>
+              </div>
+              <h1 className="mybids-title-exact">
+                Available GeM Tenders,<br />
+                <span className="mybids-orange-text">Explore & Win Contracts.</span>
+              </h1>
+              <p className="mybids-desc-exact">
+                Browse matching government procurements, check statutory eligibility, and launch instant AI compliance pre-audits.
+              </p>
+            </div>
+
+            <div className="mybids-hero-center-cursive">
+              <div className="cursive-quote-text">
+                Explore<br />Participate<br />Win
+              </div>
+              <div className="tricolor-bar-sm"></div>
+            </div>
+
+            <div className="mybids-hero-glass-quote">
+              <p className="glass-quote-title">“Transparent Public Procurement for All Bidders”</p>
+              <div className="tricolor-bar-sm"></div>
+            </div>
           </div>
         </div>
 
-        <div className="section-panel studio-panel">
-          <div className="panel-table-header">
-            <h3>Live Procurement Opportunities</h3>
-            <div className="search-pill-box" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <div style={{ position: "relative", width: "280px" }}>
-                <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
-                <input
-                  type="text"
-                  placeholder="Search tenders by keyword, Ministry, or ID..."
-                  value={bidderSearchQuery}
-                  onChange={(e) => setBidderSearchQuery(e.target.value)}
-                  className="studio-search-input"
-                  style={{ width: "100%", paddingLeft: "32px" }}
-                />
-              </div>
-              <button
-                type="button"
-                style={{ background: "#10b981", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 16px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)" }}
-                onClick={() => {}}
-              >
-                <Search size={14} /> Search
-              </button>
+        {/* 4 Summary KPI Cards */}
+        <div className="mybids-kpis-row-exact">
+          <div className="mybids-kpi-card card-blue-exact" onClick={() => setCategoryFilter("all")} style={{ cursor: "pointer" }}>
+            <div className="mybids-kpi-icon blue">
+              <Search size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Live Tenders</span>
+              <h2 className="mybids-kpi-val">{tendersList.length > 9 ? tendersList.length : `0${tendersList.length}`}</h2>
+              <span className="mybids-kpi-sub green">↑ Published on GeM</span>
             </div>
           </div>
 
+          <div className="mybids-kpi-card card-mint-exact" onClick={() => setCategoryFilter("goods")} style={{ cursor: "pointer" }}>
+            <div className="mybids-kpi-icon mint">
+              <FileCheck2 size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Goods Procurements</span>
+              <h2 className="mybids-kpi-val">{goodsCount > 9 ? goodsCount : `0${goodsCount}`}</h2>
+              <span className="mybids-kpi-sub muted">⚙ Supply & Equipment</span>
+            </div>
+          </div>
+
+          <div className="mybids-kpi-card card-purple-exact" onClick={() => setCategoryFilter("services")} style={{ cursor: "pointer" }}>
+            <div className="mybids-kpi-icon purple">
+              <ClipboardList size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Services Tenders</span>
+              <h2 className="mybids-kpi-val">{servicesCount > 9 ? servicesCount : `0${servicesCount}`}</h2>
+              <span className="mybids-kpi-sub muted">⏱ IT & Manpower</span>
+            </div>
+          </div>
+
+          <div className="mybids-kpi-card card-amber-exact">
+            <div className="mybids-kpi-icon amber">
+              <ShieldCheck size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">MSME Exemptions</span>
+              <h2 className="mybids-kpi-val">100%</h2>
+              <span className="mybids-kpi-sub amber">🛡️ EMD Exempted</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Bar & Search */}
+        <div className="mybids-filter-bar-exact">
+          <div className="mybids-tabs-exact">
+            <button
+              className={`mybids-tab ${categoryFilter === "all" ? "active" : ""}`}
+              onClick={() => setCategoryFilter("all")}
+            >
+              All Tenders ({tendersList.length})
+            </button>
+            <button
+              className={`mybids-tab ${categoryFilter === "goods" ? "active" : ""}`}
+              onClick={() => setCategoryFilter("goods")}
+            >
+              Goods ({goodsCount})
+            </button>
+            <button
+              className={`mybids-tab ${categoryFilter === "services" ? "active" : ""}`}
+              onClick={() => setCategoryFilter("services")}
+            >
+              Services ({servicesCount})
+            </button>
+          </div>
+
+          <div className="mybids-search-right">
+            <div className="mybids-search-box">
+              <Search size={16} className="search-icon-gray" />
+              <input
+                type="text"
+                placeholder="Search tenders by keyword, Ministry, or ID..."
+                value={bidderSearchQuery}
+                onChange={(e) => setBidderSearchQuery(e.target.value)}
+              />
+            </div>
+            <button className="btn-mybids-filter">
+              <Filter size={14} /> Filter
+            </button>
+          </div>
+        </div>
+
+        {/* Tenders Table */}
+        <div className="mybids-table-card-exact">
           <div style={{ overflowX: "auto" }}>
-            <table className="studio-table">
+            <table className="mybids-table-exact">
               <thead>
                 <tr>
                   <th>Tender Reference</th>
@@ -477,39 +935,42 @@ const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setS
                   <th>Department</th>
                   <th>Estimated Value</th>
                   <th>Deadline</th>
-                  <th>Action</th>
+                  <th style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTenders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                    <td colSpan={6} style={{ textAlign: "center", padding: "36px", color: "#64748b" }}>
                       No matching live tenders found.
                     </td>
                   </tr>
                 ) : (
                   filteredTenders.map((tender) => (
-                    <tr key={tender.id}>
-                      <td><strong className="id-badge emerald">{tender.id}</strong></td>
-                      <td>
-                        <div className="tender-desc-cell">
-                          <strong>{tender.title}</strong>
-                          <span className="cat-tag">{tender.category}</span>
+                    <tr key={tender.id} className="mybids-tr-hover">
+                      <td><strong className="tender-id-text" style={{ color: "#2563eb" }}>{tender.id}</strong></td>
+                      <td className="td-title-col">
+                        <div className="title-text-stack">
+                          <span className="tender-main-title">{tender.title}</span>
+                          <span className={`category-tag-pill ${tender.category === "Services" ? "purple" : "blue"}`}>
+                            {tender.category}
+                          </span>
                         </div>
                       </td>
-                      <td>{tender.department}</td>
-                      <td><strong className="value-highlight">{tender.value}</strong></td>
-                      <td><span className="deadline-badge">{tender.deadline}</span></td>
-                      <td>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <td><span className="dept-text-stack">{tender.department}</span></td>
+                      <td><strong style={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: "800" }}>{tender.value}</strong></td>
+                      <td><span className="status-pill-exact orange">⏳ {tender.deadline}</span></td>
+                      <td style={{ textAlign: "center" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                           <button
-                            className="table-action-btn emerald"
+                            className="btn-orange-primary"
+                            style={{ padding: "6px 14px", fontSize: "0.82rem" }}
                             onClick={() => handleCreateBidForTender(tender)}
                           >
                             Create Bid →
                           </button>
                           <button
-                            className="secondary-action-btn"
+                            className="btn-action-view-outline"
                             onClick={() => setSelectedTender(tender)}
                           >
                             View Details
@@ -522,52 +983,154 @@ const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setS
               </tbody>
             </table>
           </div>
+
+          <div className="mybids-table-footer">
+            <span className="showing-bids-count">Showing 1–{filteredTenders.length} of {filteredTenders.length} tenders</span>
+            <div className="pagination-controls">
+              <button className="page-arrow-btn" disabled><ChevronLeft size={16} /></button>
+              <button className="page-number-btn active">1</button>
+              <button className="page-arrow-btn" disabled><ChevronRight size={16} /></button>
+            </div>
+          </div>
         </div>
       </div>
     );
   };
 
 
-const NotificationsSection = ({ notifications }) => {
+const NotificationsSection = ({ notifications = [] }) => {
+    const totalCount = notifications.length;
+    const auditCount = notifications.filter(n => 
+      (n.type || "").toLowerCase().includes("audit") || 
+      (n.text || n.title || "").toLowerCase().includes("verif") ||
+      (n.text || n.title || "").toLowerCase().includes("check")
+    ).length;
+    const warningCount = notifications.filter(n => 
+      (n.type || "").toLowerCase().includes("warn") || 
+      (n.type || "").toLowerCase().includes("alert") ||
+      (n.text || n.title || "").toLowerCase().includes("warning")
+    ).length;
+    const officerCount = notifications.filter(n => 
+      (n.type || "").toLowerCase().includes("officer") || 
+      (n.text || n.title || "").toLowerCase().includes("notice") ||
+      (n.text || n.title || "").toLowerCase().includes("decision")
+    ).length;
+
+    const formatVal = (val) => (val < 10 ? `0${val}` : `${val}`);
+
     return (
-      <div className="bidder-section-wrapper">
-        {/* Unique Amber/Indigo Hero Banner for Notifications */}
-        <div className="section-hero-banner indigo-theme">
-          <div>
-            <span className="hero-eyebrow">AUDIT DISPATCHES</span>
-            <h2>Notifications & Audit Stream</h2>
-            <p className="hero-subtext">Real-time automated warnings, cross-verification alerts, and system compliance logs.</p>
+      <div className="bidder-mybids-container">
+        {/* Navy/Indigo Hero Banner */}
+        <div className="bidder-hero-banner-exact">
+          <div className="hero-bg-backdrop" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+          <div className="hero-exact-grid">
+            <div className="hero-exact-left">
+              <span className="hero-eyebrow-exact">AUDIT DISPATCHES ▸</span>
+              <h1 className="hero-title-exact">
+                Notifications &<br />
+                <span className="hero-user-orange">Audit Stream.</span>
+              </h1>
+              <p className="hero-desc-exact">
+                Real-time automated warnings, cross-verification alerts, and system compliance logs.
+              </p>
+            </div>
+
+            <div className="hero-exact-center-script">
+              <div className="script-cursive-text">Stay Alert<br />Stay Compliant</div>
+              <div className="tricolor-ribbon-line"></div>
+            </div>
+
+            <div className="hero-exact-right-checklist">
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Real-time Dispatches</span>
+              </div>
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Audit Verification Logs</span>
+              </div>
+              <div className="check-feature-item">
+                <CheckSquare size={16} className="feature-icon" /> <span>Officer Communication</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="section-panel studio-panel">
-          <div className="notifications-stream">
+        {/* 4 Summary KPI Cards */}
+        <div className="mybids-kpis-row-exact">
+          <div className="mybids-kpi-card card-blue-exact">
+            <div className="mybids-kpi-icon blue">
+              <Bell size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Total Alerts</span>
+              <h2 className="mybids-kpi-val">{formatVal(totalCount)}</h2>
+              <span className="mybids-kpi-sub green">{totalCount > 0 ? "↑ Real-time active" : "✓ No active alerts"}</span>
+            </div>
+          </div>
+
+          <div className="mybids-kpi-card card-mint-exact">
+            <div className="mybids-kpi-icon mint">
+              <CheckCircle2 size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Audit Verifications</span>
+              <h2 className="mybids-kpi-val">{formatVal(auditCount)}</h2>
+              <span className="mybids-kpi-sub muted">{auditCount > 0 ? "⏱ Passed check" : "✓ Stream clear"}</span>
+            </div>
+          </div>
+
+          <div className="mybids-kpi-card card-amber-exact">
+            <div className="mybids-kpi-icon amber">
+              <AlertTriangle size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">System Warnings</span>
+              <h2 className="mybids-kpi-val">{formatVal(warningCount)}</h2>
+              <span className="mybids-kpi-sub amber">{warningCount > 0 ? "⏳ Action needed" : "✓ Zero warnings"}</span>
+            </div>
+          </div>
+
+          <div className="mybids-kpi-card card-purple-exact">
+            <div className="mybids-kpi-icon purple">
+              <ClipboardList size={22} />
+            </div>
+            <div className="mybids-kpi-content">
+              <span className="mybids-kpi-label">Officer Notices</span>
+              <h2 className="mybids-kpi-val">{formatVal(officerCount)}</h2>
+              <span className="mybids-kpi-sub muted">{officerCount > 0 ? "🛡️ Official dispatch" : "🛡️ Clean stream"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Notifications Stream Container */}
+        <div className="recent-activity-card-exact" style={{ padding: "28px" }}>
+          <div className="activity-header-exact" style={{ marginBottom: "20px" }}>
+            <h3>System Audit & Notification Stream</h3>
+            <span className="status-pill-exact blue">● Live Socket Active</span>
+          </div>
+
+          <ul className="activity-list-exact" style={{ gap: "18px" }}>
             {notifications.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: "#64748b" }}>
-                <Bell size={36} style={{ color: "#94a3b8", marginBottom: "12px" }} />
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 6px 0" }}>No Dispatch Notifications Yet</h3>
-                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>Real-time dispatches, verification receipts, and officer alerts will stream here as actions occur in current time.</p>
-              </div>
-            ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className={`stream-item ${notif.type || 'info'}`}
-                >
-                  <div className="stream-badge-col">
-                    <span className={`stream-type-pill ${notif.type || 'info'}`}>{(notif.type || 'INFO').toUpperCase()}</span>
-                  </div>
-                  <div className="stream-content-col">
-                    <h4>{notif.title}</h4>
-                    <p>{notif.text}</p>
-                  </div>
-                  <div className="stream-time-col">
-                    <span>{notif.time || "Just Now"}</span>
-                  </div>
+              <li className="activity-item-exact" style={{ padding: "20px 0", textAlign: "center" }}>
+                <div className="activity-dot-blue"></div>
+                <div className="activity-text-col">
+                  <p className="activity-main-title">Session initialized in Clean Launch Mode.</p>
+                  <span className="activity-sub-status">Automated audit stream initialized for current bidder session.</span>
                 </div>
+                <span className="activity-time-right">Just Now</span>
+              </li>
+            ) : (
+              notifications.map((notif, idx) => (
+                <li className="activity-item-exact" key={notif.id || idx} style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+                  <div className={`activity-dot-blue ${notif.type || 'info'}`}></div>
+                  <div className="activity-text-col">
+                    <p className="activity-main-title" style={{ fontSize: "0.92rem" }}>{notif.title || notif.text}</p>
+                    <span className="activity-sub-status" style={{ fontSize: "0.82rem" }}>{notif.text || "Verification dispatch notice recorded."}</span>
+                  </div>
+                  <span className="activity-time-right" style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "6px" }}>{notif.time || "Just Now"}</span>
+                </li>
               ))
             )}
-          </div>
+          </ul>
         </div>
       </div>
     );
@@ -9421,20 +9984,13 @@ function BlacklistManagementView({ API_BASE, token, user }) {
       <div className="bidder-dashboard-layout">
         <header className="bidder-header">
           <div className="bidder-header-left">
-            <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <img
                 src="/logo.png"
                 alt="BidVerify Logo"
-                style={{ height: "72px", objectFit: "contain", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}
+                style={{ height: "40px", objectFit: "contain" }}
               />
-              <div className="logo-text-block" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <span className="logo-title" style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.5px", background: "linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>
-                  BidVerify
-                </span>
-                <span className="logo-subtitle" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#cbd5e1", letterSpacing: "0.3px", marginTop: "2px", textTransform: "uppercase" }}>
-                  Government e-Auction & Compliance Platform
-                </span>
-              </div>
+              <span className="ai-verified-badge" style={{ marginLeft: "2px" }}>AI VERIFIED</span>
             </div>
           </div>
 
@@ -9443,44 +9999,52 @@ function BlacklistManagementView({ API_BASE, token, user }) {
               className={activeSection === "dashboard" ? "nav-item active" : "nav-item"}
               onClick={() => setActiveSection("dashboard")}
             >
-              Dashboard
+              <LayoutDashboard size={15} /> Dashboard
             </button>
             <button
               className={activeSection === "myBids" ? "nav-item active" : "nav-item"}
               onClick={() => setActiveSection("myBids")}
             >
-              My Bids
+              <FileCheck size={15} /> My Bids
             </button>
             <button
               className={activeSection === "documents" ? "nav-item active" : "nav-item"}
               onClick={() => setActiveSection("documents")}
             >
-              Documents
+              <CloudUpload size={15} /> Documents
             </button>
             <button
               className={activeSection === "tenders" ? "nav-item active" : "nav-item"}
               onClick={() => setActiveSection("tenders")}
             >
-              Tenders
+              <FolderOpen size={15} /> Tenders
             </button>
             <button
               className={activeSection === "notifications" ? "nav-item active" : "nav-item"}
               onClick={() => setActiveSection("notifications")}
             >
-              Notifications
+              <Bell size={15} /> Notifications
+              {notifications && notifications.length > 0 && (
+                <span className="nav-count-badge">{notifications.length}</span>
+              )}
             </button>
           </nav>
 
           <div className="bidder-header-right">
-            <button className="icon-btn relative" onClick={() => setActiveSection("notifications")}>
+            <button className="icon-btn relative" onClick={() => setActiveSection("notifications")} aria-label="Notifications">
               <Bell size={18} />
               <span className="notification-dot"></span>
             </button>
 
-            <div className="user-profile-dropdown" onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
-              <img src={profileImage} alt="User Profile" className="avatar-img" />
-              <span className="company-name">{user ? user.full_name : "ABC Engineering Pvt. Ltd."}</span>
-              <ChevronDown size={14} className="dropdown-arrow" />
+            <div className="user-profile-pill-exact" onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
+              <div className="avatar-initials-circle">
+                {user?.full_name ? user.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "KD"}
+              </div>
+              <div className="user-pill-text-col">
+                <span className="user-pill-fullname">{user ? user.full_name : "kushwaha deep kumar"}</span>
+                <span className="user-pill-role-title">Bidder</span>
+              </div>
+              <ChevronDown size={14} className="dropdown-arrow-icon" />
 
               {userDropdownOpen && (
                 <div
@@ -9728,20 +10292,13 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     <div className="bidder-dashboard-layout">
       <header className="bidder-header">
         <div className="bidder-header-left">
-          <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img
               src="/logo.png"
               alt="BidVerify Logo"
-              style={{ height: "72px", objectFit: "contain", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}
+              style={{ height: "40px", objectFit: "contain" }}
             />
-            <div className="logo-text-block" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <span className="logo-title" style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.5px", background: "linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #f59e0b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>
-                BidVerify
-              </span>
-              <span className="logo-subtitle" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#cbd5e1", letterSpacing: "0.3px", marginTop: "2px", textTransform: "uppercase" }}>
-                Government e-Auction & Compliance Platform
-              </span>
-            </div>
+            <span className="ai-verified-badge" style={{ marginLeft: "2px" }}>AI VERIFIED</span>
           </div>
         </div>
 

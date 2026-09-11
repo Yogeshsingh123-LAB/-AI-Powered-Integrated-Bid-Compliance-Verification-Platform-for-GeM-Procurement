@@ -39,6 +39,7 @@ from app.api.benchmark import router as benchmark_router
 from app.api.sync import router as sync_router
 from app.api.notifications import router as notifications_router
 from app.mock_apis import gst_router, pan_router, udyam_router, blacklist_router, aadhaar_router
+from app.mock_apis.verification_gateway_router import router as verification_gateway_router
 
 
 from contextlib import asynccontextmanager
@@ -105,6 +106,7 @@ app.include_router(pan_router)
 app.include_router(udyam_router)
 app.include_router(blacklist_router)
 app.include_router(aadhaar_router)
+app.include_router(verification_gateway_router)
 
 @app.get("/")
 def read_root():

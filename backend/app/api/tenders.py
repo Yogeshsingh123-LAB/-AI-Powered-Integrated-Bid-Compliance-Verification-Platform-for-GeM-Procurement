@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Body
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
@@ -610,5 +610,46 @@ def delete_tender(
             "bids_count": bids_count,
             "status": "Cancelled"
         }
+
+
+@router.post("/analyze-requirements", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+def analyze_tender_requirements_endpoint(
+    payload: Dict[str, Any] = Body(..., example={
+        "tender_title": "Supply of industrial safety helmets and protective equipment to CPCL",
+        "tender_description": "Supply of industrial safety helmets and protective equipment to CPCL. The bidder must be an authorized manufacturer or distributor and products must comply with applicable Indian safety standards. Preference will be given to Make in India products.",
+        "tender_category": "Industrial Safety Equipment",
+        "estimated_value": 4500000.0,
+        "additional_conditions": "Minimum 50% local content required."
+    })
+):
+    """
+    AI Tender Requirement Analyzer Endpoint:
+    Analyzes tender description, title, category, estimated value, and additional conditions
+    to intelligently suggest required bidder documents, compliance checks, and weighting.
+    All suggestions are returned with MANDATORY / OPTIONAL / REVIEW_REQUIRED statuses.
+    """
+    from app.ai_engine.tender_requirement_analyzer import TenderRequirementAnalyzer
+
+    title = payload.get("tender_title", "")
+    description = payload.get("tender_description", "")
+    category = payload.get("tender_category", "General Procurement")
+    estimated_value = payload.get("estimated_value")
+    additional_conditions = payload.get("additional_conditions")
+
+    if not title and not description:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either tender_title or tender_description is required for AI analysis."
+        )
+
+    analysis_result = TenderRequirementAnalyzer.analyze_tender_requirements(
+        tender_title=title,
+        tender_description=description,
+        tender_category=category,
+        estimated_value=estimated_value,
+        additional_conditions=additional_conditions
+    )
+
+    return analysis_result
 
 

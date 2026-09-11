@@ -72,6 +72,8 @@ class RecommendationEngine:
                 )
             
         if not recommendations:
-            recommendations.append("All parameters are highly compliant. No risks identified.")
+            recommendations.append("Bidder appears fully compliant. Procurement Officer Review Required for final sign-off.")
+        else:
+            recommendations.append("Procurement Officer Review Required: Assess findings, evidence, and request clarification if needed before rendering final decision.")
             
         return recommendations

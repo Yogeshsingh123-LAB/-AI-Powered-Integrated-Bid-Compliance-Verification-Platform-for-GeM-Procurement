@@ -5,6 +5,8 @@ import "../App.css";
 import DocumentUploadPage from "./DocumentUpload";
 import StatusPage from "./Status";
 import BidderProfile from "./BidderProfile";
+import CreateTenderWizard from "../components/CreateTenderWizard";
+import BidderVerificationView from "../components/BidderVerificationView";
 import {
   Building, Unlock, RefreshCw, X, Ban,
   LayoutDashboard,
@@ -9889,10 +9891,11 @@ function BlacklistManagementView({ API_BASE, token, user }) {
           <TendersSection tendersList={tendersList} setActiveSection={setActiveSection} setSelectedTender={setSelectedTender} setSelectedBid={setSelectedBid} token={token} API_BASE={API_BASE} bids={bids} fetchBids={fetchBids} />
         );
       case "createTender":
-        return isAdmin ? (
-          <TendersSection tendersList={tendersList} setActiveSection={setActiveSection} setSelectedTender={setSelectedTender} setSelectedBid={setSelectedBid} token={token} API_BASE={API_BASE} bids={bids} fetchBids={fetchBids} />
-        ) : (
-          <CreateTenderView tendersList={tendersList} setTendersList={setTendersList} fetchTenders={fetchTenders} setActiveSection={setActiveSection} API_BASE={API_BASE} token={token} user={user} bids={bids} />
+        return (
+          <CreateTenderWizard 
+            onTenderCreated={() => { fetchTenders(); setActiveSection("tenders"); }} 
+            onCancel={() => setActiveSection("tenders")} 
+          />
         );
       case "bidders":
         return (
@@ -10163,123 +10166,11 @@ function BlacklistManagementView({ API_BASE, token, user }) {
           <section className="bidder-content">{renderContent()}</section>
         </main>
 
-        {/* Selected Bid details inspection drawer for Supplier */}
+        {/* Selected Bid details inspection modal for Supplier */}
         {selectedBid && (
-          <div className="drawer-overlay" onClick={() => setSelectedBid(null)}>
-            <div className="audit-drawer" onClick={(e) => e.stopPropagation()}>
-              <div className="drawer-header">
-                <div className="drawer-title">
-                  <h2>{selectedBid.bidderName}</h2>
-                  <span>Bid System ID: {selectedBid.id} | Submitted: {selectedBid.submittedOn}</span>
-                </div>
-                <button className="close-btn" onClick={() => setSelectedBid(null)}></button>
-              </div>
-
-              <div className="drawer-content">
-                {/* Score section inside drawer */}
-                <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "#f8fafc", padding: "18px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                  <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="none"
-                        stroke={selectedBid.score >= 80 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(selectedBid.score / 100) * 251.2} 251.2`}
-                        strokeDashoffset="0"
-                        style={{ transition: "stroke-dasharray 0.6s ease" }}
-                      />
-                    </svg>
-                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                      <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{selectedBid.score}%</span>
-                      <span style={{ fontSize: "0.65rem", fontWeight: "700", color: selectedBid.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: "1rem", marginBottom: "4px" }}>Compliance Score & Risk</h3>
-                    <span className={`risk-badge ${selectedBid.risk.toLowerCase()}`}>
-                      {selectedBid.risk} Risk Rating
-                    </span>
-                    <span className={`status-badge ${selectedBid.status.toLowerCase().replace(" ", "")}`} style={{ marginLeft: "10px" }}>
-                      {selectedBid.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Cross Registry Verification Details */}
-                <div className="cross-verification-box">
-                  <h4 style={{ fontSize: "0.9rem", marginBottom: "8px", borderBottom: "1px solid var(--border)", paddingBottom: "6px" }}>
-                    Registry Cross-Verification Records
-                  </h4>
-                  <table className="cross-table">
-                    <thead>
-                      <tr>
-                        <th>Registry</th>
-                        <th>Identifier</th>
-                        <th>Registrant Name</th>
-                        <th>Verification</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>GSTIN</strong></td>
-                        <td>{selectedBid.gstin || <em style={{ color: "#ef4444" }}>Missing</em>}</td>
-                        <td>{selectedBid.bidderName}</td>
-                        <td>
-                          {selectedBid.gstin ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
-                          ) : (
-                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
-                          )}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><strong>PAN</strong></td>
-                        <td>{selectedBid.pan || <em style={{ color: "#ef4444" }}>Missing</em>}</td>
-                        <td>{selectedBid.bidderName}</td>
-                        <td>
-                          {selectedBid.pan ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
-                          ) : (
-                            <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
-                          )}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><strong>Udyam MSME</strong></td>
-                        <td>{selectedBid.udyam || <em>Not Provided</em>}</td>
-                        <td>{selectedBid.udyam ? selectedBid.bidderName : "N/A"}</td>
-                        <td>
-                          {selectedBid.udyam ? (
-                            <span style={{ color: "#10b981", fontWeight: 600 }}>Verified </span>
-                          ) : (
-                            <span style={{ color: "#f59e0b", fontWeight: 600 }}>Exempt / Missing</span>
-                          )}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Warnings List */}
-                {selectedBid.warnings && selectedBid.warnings.length > 0 && (
-                  <div>
-                    <h4 style={{ fontSize: "0.9rem", marginBottom: "10px" }}>Integrity Assessment & Deductions</h4>
-                    <div className="warnings-list">
-                      {selectedBid.warnings.map((w, idx) => (
-                        <div key={idx} className={`warning-item ${selectedBid.risk === "HIGH" ? "critical" : selectedBid.risk === "MEDIUM" ? "warning" : "info"}`}>
-                          <div className="warning-icon"></div>
-                          <div className="warning-text">{w}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="drawer-overlay" onClick={() => setSelectedBid(null)} style={{ background: "rgba(15, 23, 42, 0.85)", backdropFilter: "blur(6px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+            <div style={{ width: "100%", maxWidth: "1100px", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+              <BidderVerificationView bidData={selectedBid} isOfficer={false} onBack={() => setSelectedBid(null)} onRefresh={fetchBids} />
             </div>
           </div>
         )}
@@ -10590,171 +10481,11 @@ function BlacklistManagementView({ API_BASE, token, user }) {
         <section className="bidder-content">{renderContent()}</section>
       </main>
 
-      {/* Selected Bid details inspection drawer for Officer */}
+      {/* Selected Bid details inspection modal for Officer */}
       {selectedBid && (
-        <div className="drawer-overlay" onClick={() => setSelectedBid(null)}>
-          <div className="audit-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <div className="drawer-title">
-                <h2>{selectedBid.bidderName}</h2>
-                <span>Bid System ID: {selectedBid.id} | Submitted: {selectedBid.submittedOn}</span>
-              </div>
-              <button className="close-btn" onClick={() => setSelectedBid(null)}></button>
-            </div>
-
-            <div className="drawer-content">
-              {/* Score section inside drawer */}
-              <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "#f8fafc", padding: "18px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                <div style={{ position: "relative", width: "110px", height: "110px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "110px", height: "110px" }}>
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      strokeWidth="10"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke={selectedBid.score >= 80 ? "#10b981" : selectedBid.score >= 50 ? "#f59e0b" : "#ef4444"}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={`${(selectedBid.score / 100) * 251.2} 251.2`}
-                      strokeDashoffset="0"
-                      style={{ transition: "stroke-dasharray 0.6s ease" }}
-                    />
-                  </svg>
-                  <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                    <span style={{ fontSize: "1.5rem", fontWeight: "900", color: "#0f172a", lineHeight: 1 }}>{selectedBid.score}%</span>
-                    <span style={{ fontSize: "0.65rem", fontWeight: "700", color: selectedBid.score >= 80 ? "#10b981" : "#f59e0b", textTransform: "uppercase", marginTop: "4px", letterSpacing: "0.05em" }}>MATCH</span>
-                  </div>
-                </div>
-                <div>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: "700", color: "#0f172a", marginBottom: "4px" }}>Compliance Score & Risk Rating</h3>
-                  <p style={{ fontSize: "0.85rem", color: "#475569", textAlign: "left", marginBottom: "8px" }}>
-                    Weighted registry status, automated OCR verification, and GSTIN/PAN name matching.
-                  </p>
-                  <span className={`risk-badge ${selectedBid.risk.toLowerCase()}`}>
-                    {selectedBid.risk} Risk Rating
-                  </span>
-                  <span className={`status-badge ${selectedBid.status.toLowerCase().replace(" ", "")}`} style={{ marginLeft: "10px" }}>
-                    ● {selectedBid.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Cross Registry Verification Details */}
-              <div className="cross-verification-box">
-                <h4 style={{ fontSize: "0.9rem", marginBottom: "8px", borderBottom: "1px solid var(--border)", paddingBottom: "6px" }}>
-                  Registry Cross-Verification Records
-                </h4>
-                <table className="cross-table">
-                  <thead>
-                    <tr>
-                      <th>Registry</th>
-                      <th>Identifier</th>
-                      <th>Registrant Name</th>
-                      <th>Verification</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><strong>GSTIN</strong></td>
-                      <td>{selectedBid.gstin || <em style={{ color: "#ef4444" }}>Missing</em>}</td>
-                      <td>{selectedBid.bidderName}</td>
-                      <td>
-                        {selectedBid.gstin ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
-                        ) : (
-                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
-                        )}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><strong>PAN</strong></td>
-                      <td>{selectedBid.pan || <em style={{ color: "#ef4444" }}>Missing</em>}</td>
-                      <td>{selectedBid.bidderName}</td>
-                      <td>
-                        {selectedBid.pan ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Active </span>
-                        ) : (
-                          <span style={{ color: "#ef4444", fontWeight: 600 }}>Not Provided </span>
-                        )}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><strong>Udyam MSME</strong></td>
-                      <td>{selectedBid.udyam || <em>Not Provided</em>}</td>
-                      <td>{selectedBid.udyam ? selectedBid.bidderName : "N/A"}</td>
-                      <td>
-                        {selectedBid.udyam ? (
-                          <span style={{ color: "#10b981", fontWeight: 600 }}>Verified </span>
-                        ) : (
-                          <span style={{ color: "#f59e0b", fontWeight: 600 }}>Exempt / Missing</span>
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Warnings List */}
-              {selectedBid.warnings && selectedBid.warnings.length > 0 && (
-                <div>
-                  <h4 style={{ fontSize: "0.9rem", marginBottom: "10px" }}>Integrity Assessment & Deductions</h4>
-                  <div className="warnings-list">
-                    {selectedBid.warnings.map((w, idx) => (
-                      <div key={idx} className={`warning-item ${selectedBid.risk === "HIGH" ? "critical" : selectedBid.risk === "MEDIUM" ? "warning" : "info"}`}>
-                        <div className="warning-icon"></div>
-                        <div className="warning-text">{w}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Cryptographic Execution Logs */}
-              <div>
-                <h4 style={{ fontSize: "0.9rem", marginBottom: "10px" }}>Audit Execution Console Trace</h4>
-                <div className="terminal-window" style={{ marginTop: "0" }}>
-                  <div className="terminal-body" style={{ height: "180px" }}>
-                    {selectedBid.logs.map((log, idx) => {
-                      let typeClass = "info";
-                      if (log.includes("WARNING") || log.includes("Penalty")) typeClass = "warning";
-                      if (log.includes("CRITICAL") || log.includes("mismatch")) typeClass = "danger";
-                      if (log.includes("completed") || log.includes("Verified") || log.includes("confirmed")) typeClass = "success";
-                      return (
-                        <div key={idx} className={`term-line ${typeClass}`}>
-                          {log}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="audit-action-sheet">
-                <label>Auditor Sign-Off & Review Notes</label>
-                <textarea
-                  value={officerNotes}
-                  onChange={(e) => setOfficerNotes(e.target.value)}
-                  placeholder="Enter audit validation comments, details regarding requested revision documents, or justification notes..."
-                />
-              </div>
-            </div>
-
-            <div className="drawer-actions">
-              <button type="button" className="approve-btn" onClick={() => handleAuditAction(selectedBid.id, "Verified")}>
-                Approve Bid Compliance
-              </button>
-              <button type="button" className="reject-btn" onClick={() => handleAuditAction(selectedBid.id, "Rejected")}>
-                Reject Bid / Request Revision
-              </button>
-            </div>
+        <div className="drawer-overlay" onClick={() => setSelectedBid(null)} style={{ background: "rgba(15, 23, 42, 0.85)", backdropFilter: "blur(6px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "1100px", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+            <BidderVerificationView bidData={selectedBid} isOfficer={true} onBack={() => setSelectedBid(null)} onRefresh={fetchBids} />
           </div>
         </div>
       )}

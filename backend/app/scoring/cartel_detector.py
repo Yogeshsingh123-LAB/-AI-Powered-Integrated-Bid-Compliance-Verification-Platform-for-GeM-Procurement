@@ -24,14 +24,14 @@ class CartelDetector:
           {
              "bid_id": "BID-01",
              "bidder_name": "Alpha Corp",
-             "gstin": "27AAAAA0000A1Z5",
-             "pan": "AAAAA0000A",
+             "gstin": "27AAPCS1234M1Z5",
+             "pan": "AAPCS1234M",
              "quote_amount": 500000,
              "submission_timestamp": "2026-08-31T10:00:00Z",
-             "ip_address": "192.168.1.50",
+             "ip_address": "103.22.45.10",
              "directors": ["Rajesh Sharma", "Anita Sharma"],
-             "addresses": ["123 Industrial Area, Phase II, New Delhi"],
-             "bank_accounts": ["AC-9876543210"]
+             "addresses": ["Plot 42 Cyber City, Gurugram"],
+             "bank_accounts": ["HDFC-998877"]
           },
           ...
         ]

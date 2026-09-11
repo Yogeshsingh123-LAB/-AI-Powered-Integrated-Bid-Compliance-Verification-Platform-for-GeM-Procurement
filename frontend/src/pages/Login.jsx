@@ -1,25 +1,49 @@
 import { apiFetch, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from "react";
-import { User, Lock, Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  User,
+  Lock,
+  Mail,
+  RefreshCw,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Building,
+  FileText,
+  TrendingUp,
+  Shield,
+  Briefcase
+} from "lucide-react";
+import "./Login.css";
 
-function Login({ onLogin }) {
-  const [selectedPortal, setSelectedPortal] = useState("Supplier");
-  const [isSignUp, setIsSignUp] = useState(false);
+function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSection }) {
+  const [selectedPortal, setSelectedPortal] = useState("Supplier"); // Supplier (Bidder) or Buyer (Officer/Admin)
+  const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
-  const [captchaText, setCaptchaText] = useState("G7K4P");
+  const [captchaText, setCaptchaText] = useState("6MJLN");
 
   // Sign Up states
   const [signUpName, setSignUpName] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [organization, setOrganization] = useState("");
+
+  const handleNavClick = (sectionId) => {
+    if (onNavigateSection) {
+      onNavigateSection(sectionId);
+    } else if (onBackToHome) {
+      onBackToHome();
+    }
+  };
 
   const API_BASE = BACKEND_URL;
 
@@ -37,7 +61,7 @@ function Login({ onLogin }) {
     setCaptcha("");
   };
 
-  const handleLogin = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setAuthError("");
     setSuccessMsg("");
@@ -111,7 +135,7 @@ function Login({ onLogin }) {
     }
   };
 
-  const handleSignUp = async (e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault();
     setAuthError("");
     setSuccessMsg("");
@@ -144,7 +168,7 @@ function Login({ onLogin }) {
       setSuccessMsg("Registration successful! Directing to login.");
       setTimeout(() => {
         setLoginEmail(signUpEmail);
-        setIsSignUp(false); // Switch to sign in view
+        setIsSignUp(false);
         setSuccessMsg("");
         generateCaptcha();
       }, 1500);
@@ -156,196 +180,369 @@ function Login({ onLogin }) {
     }
   };
 
-
-
   return (
-    <div className="login-3d-page-wrapper">
-      <div className={`login-card-container ${isSignUp ? "right-panel-active" : ""}`}>
+    <div className="login-redesign-page-wrapper">
+      {/* NAVBAR */}
+      <header className="login-page-navbar">
+        <div className="login-nav-wrapper">
+          <div className="login-brand-logo" onClick={onBackToHome}>
+            <img src="/logo.png" alt="BidVerify Logo" className="login-brand-img" />
+          </div>
 
-        {/* SIGN IN CONTAINER */}
-        <div className="form-side sign-in-side">
-          <form onSubmit={handleLogin}>
-            <h2>Login</h2>
+          <nav className="login-nav-links">
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("home")}>Home</button>
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("about")}>About</button>
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("how-it-works")}>How It Works</button>
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("officers")}>For Procurement Officers</button>
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("bidders")}>For Bidders</button>
+            <button type="button" className="login-nav-item" onClick={() => handleNavClick("faqs")}>FAQs</button>
+          </nav>
 
-            {/* Portal Selection Tabs */}
-            <div className="portal-tabs">
-              <button 
-                type="button" 
-                className={`portal-tab ${selectedPortal === "Supplier" ? "active" : ""}`}
-                onClick={() => { setSelectedPortal("Supplier"); setAuthError(""); setSuccessMsg(""); }}
-              >
-                Bidder Portal
-              </button>
-              <button 
-                type="button" 
-                className={`portal-tab ${selectedPortal === "Buyer" ? "active" : ""}`}
-                onClick={() => { setSelectedPortal("Buyer"); setAuthError(""); setSuccessMsg(""); }}
-              >
-                Administrative Console
-              </button>
+          {onBackToHome && (
+            <button type="button" className="login-back-home-btn" onClick={onBackToHome}>
+              ← Back to Home
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* HERO / MAIN BODY */}
+      <main className="login-hero-container">
+        {/* Background Image Overlay */}
+        <div className="login-bg-overlay">
+          <img src="/hero_government_building.jpg" alt="Parliament backdrop" className="login-bg-img" />
+          <div className="login-bg-scrim"></div>
+        </div>
+
+        <div className="login-hero-content-grid">
+          {/* LEFT CONTENT COLUMN */}
+          <div className="login-left-hero-col">
+            <div className="login-eyebrow-pill">
+              <span className="pill-pulse-dot"></span>
+              <span className="pill-label">AI-POWERED BID COMPLIANCE PLATFORM</span>
             </div>
 
-            <div className="underline-input-group">
-              <label>Username</label>
-              <div className="input-with-icon">
-                <input
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  required
-                  placeholder="Enter email"
-                />
-                <User size={18} className="input-icon" />
-              </div>
-            </div>
+            <h1 className="login-hero-headline">
+              Secure Access<br />
+              for a Transparent<br />
+              <span className="highlight-orange">Procurement Ecosystem.</span>
+            </h1>
 
-            <div className="underline-input-group">
-              <label>Password</label>
-              <div className="input-with-icon">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="Enter password"
-                />
-                <Lock size={18} className="input-icon" />
-              </div>
-            </div>
+            <p className="login-hero-description">
+              Login to BidVerify and streamline bidder compliance verification with AI —
+              making public procurement faster, fairer and more transparent.
+            </p>
 
-            {/* Captcha */}
-            <div className="captcha-row">
-              <div className="underline-input-group captcha-input-box">
-                <label>Security Code</label>
-                <div className="input-with-icon">
-                  <input
-                    type="text"
-                    placeholder="Enter Captcha *"
-                    value={captcha}
-                    onChange={(e) => setCaptcha(e.target.value)}
-                    required
-                  />
-                  <ShieldCheck size={18} className="input-icon" />
+            {/* 3 Feature Boxes */}
+            <div className="login-features-boxes-row">
+              <div className="login-feature-card">
+                <div className="feature-card-icon-wrap">
+                  <Shield size={20} />
+                </div>
+                <div className="feature-card-text">
+                  <strong>Secure &</strong>
+                  <span>Role-Based Access</span>
                 </div>
               </div>
-              <div className="captcha-code-container">
-                <div className="captcha-display">{captchaText}</div>
-                <button type="button" className="refresh-btn" onClick={generateCaptcha}>
-                  <RefreshCw size={14} />
-                </button>
+
+              <div className="login-feature-card">
+                <div className="feature-card-icon-wrap">
+                  <FileText size={20} />
+                </div>
+                <div className="feature-card-text">
+                  <strong>Government</strong>
+                  <span>Portal Integration</span>
+                </div>
+              </div>
+
+              <div className="login-feature-card">
+                <div className="feature-card-icon-wrap">
+                  <TrendingUp size={20} />
+                </div>
+                <div className="feature-card-text">
+                  <strong>Accurate Insights</strong>
+                  <span>& Decisions</span>
+                </div>
               </div>
             </div>
 
-            {authError && <div className="error-message">{authError}</div>}
-            {successMsg && <div className="success-message">{successMsg}</div>}
-
-            <button type="submit" className="capsule-btn" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
-            </button>
-
-            <span className="switch-prompt">
-              Don't have an account?{" "}
-              <span className="switch-link" onClick={() => { setIsSignUp(true); setAuthError(""); setSuccessMsg(""); }}>
-                Sign Up
-              </span>
-            </span>
-          </form>
-        </div>
-
-        {/* SIGN UP CONTAINER */}
-        <div className="form-side sign-up-side">
-          <form onSubmit={handleSignUp}>
-            <h2>Register</h2>
-
-            <div className="underline-input-group">
-              <label>Username</label>
-              <div className="input-with-icon">
-                <input
-                  type="text"
-                  value={signUpName}
-                  onChange={(e) => setSignUpName(e.target.value)}
-                  required
-                  placeholder="Enter username"
-                />
-                <User size={18} className="input-icon" />
+            {/* Quote Box */}
+            <div className="login-quote-container">
+              <span className="quote-mark">“</span>
+              <div className="quote-content">
+                <p className="quote-text">
+                  “Technology for a more transparent and efficient Bharat.”
+                </p>
+                <div className="quote-tricolor-line">
+                  <span className="saffron"></span>
+                  <span className="white"></span>
+                  <span className="green"></span>
+                </div>
+                <div className="quote-sponsors">
+                  <span>Government e-Marketplace</span>
+                  <span className="dot">|</span>
+                  <span>Digital India</span>
+                  <span className="dot">|</span>
+                  <span>Aatmanirbhar Bharat</span>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="underline-input-group">
-              <label>Email</label>
-              <div className="input-with-icon">
-                <input
-                  type="email"
-                  value={signUpEmail}
-                  onChange={(e) => setSignUpEmail(e.target.value)}
-                  required
-                  placeholder="Enter email"
-                />
-                <Mail size={18} className="input-icon" />
-              </div>
-            </div>
+          {/* RIGHT COLUMN - WHITE LOGIN CARD */}
+          <div className="login-right-card-col">
+            <div className="login-form-white-card">
+              {!isSignUp ? (
+                /* SIGN IN FORM */
+                <form onSubmit={handleLoginSubmit} className="login-form-inner">
+                  <h2 className="card-welcome-title">
+                    Welcome to <span className="highlight-orange">BidVerify</span>
+                  </h2>
+                  <p className="card-welcome-subtitle">Login to access the platform</p>
 
-            <div className="underline-input-group">
-              <label>Password</label>
-              <div className="input-with-icon">
-                <input
-                  type="password"
-                  value={signUpPassword}
-                  onChange={(e) => setSignUpPassword(e.target.value)}
-                  required
-                  placeholder="Enter password"
-                />
-                <Lock size={18} className="input-icon" />
-              </div>
-            </div>
+                  {/* Portal Selection Tabs */}
+                  <div className="portal-selector-tabs">
+                    <button
+                      type="button"
+                      className={`portal-select-btn ${selectedPortal === "Supplier" ? "active" : ""}`}
+                      onClick={() => { setSelectedPortal("Supplier"); setAuthError(""); setSuccessMsg(""); }}
+                    >
+                      <User size={16} />
+                      <span>Bidder Portal</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`portal-select-btn ${selectedPortal === "Buyer" ? "active" : ""}`}
+                      onClick={() => { setSelectedPortal("Buyer"); setAuthError(""); setSuccessMsg(""); }}
+                    >
+                      <Building size={16} />
+                      <span>Administrative Console</span>
+                    </button>
+                  </div>
 
-            <div className="underline-input-group">
-              <label>Organization</label>
-              <div className="input-with-icon">
-                <input
-                  type="text"
-                  value={organization}
-                  onChange={(e) => setOrganization(e.target.value)}
-                  required
-                  placeholder="Enter organization"
-                />
-                <span className="input-icon" style={{ fontSize: "14px", fontWeight: "bold" }}>🏢</span>
-              </div>
-            </div>
+                  {/* Email Input */}
+                  <div className="form-input-group">
+                    <label>Email Address</label>
+                    <div className="input-field-wrapper">
+                      <Mail size={18} className="field-icon-left" />
+                      <input
+                        type="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder="Enter your email address"
+                        required
+                      />
+                    </div>
+                  </div>
 
-            {authError && <div className="error-message">{authError}</div>}
-            {successMsg && <div className="success-message">{successMsg}</div>}
+                  {/* Password Input */}
+                  <div className="form-input-group">
+                    <label>Password</label>
+                    <div className="input-field-wrapper">
+                      <Lock size={18} className="field-icon-left" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="toggle-password-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <div className="forgot-pass-wrapper">
+                      <span className="forgot-link" onClick={() => setAuthError("Reset instructions sent to your email.")}>
+                        Forgot Password?
+                      </span>
+                    </div>
+                  </div>
 
-            <button type="submit" className="capsule-btn" disabled={loading}>
-              {loading ? "Registering..." : "Register"}
-            </button>
+                  {/* Security Code (CAPTCHA) */}
+                  <div className="form-input-group">
+                    <label>Security Code</label>
+                    <div className="captcha-control-row">
+                      <div className="input-field-wrapper captcha-input-field">
+                        <ShieldCheck size={18} className="field-icon-left" />
+                        <input
+                          type="text"
+                          value={captcha}
+                          onChange={(e) => setCaptcha(e.target.value)}
+                          placeholder="Enter captcha code"
+                          required
+                        />
+                      </div>
+                      <div className="captcha-code-display">
+                        {captchaText.split("").join(" ")}
+                      </div>
+                      <button
+                        type="button"
+                        className="captcha-refresh-btn"
+                        onClick={generateCaptcha}
+                        title="Refresh Security Code"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                    </div>
+                  </div>
 
-            <span className="switch-prompt">
-              Already have an account?{" "}
-              <span className="switch-link" onClick={() => { setIsSignUp(false); setAuthError(""); setSuccessMsg(""); }}>
-                Sign In
-              </span>
-            </span>
-          </form>
-        </div>
+                  {authError && <div className="login-error-alert">{authError}</div>}
+                  {successMsg && <div className="login-success-alert">{successMsg}</div>}
 
-        {/* SLIDING OVERLAY CONTAINER */}
-        <div className="split-overlay-container">
-          <div className="split-overlay">
-            <div className="overlay-slide overlay-slide-left">
-              <img src="/logo.png" alt="BidVerify Logo" style={{ height: "80px", marginBottom: "12px", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }} />
-              <h2 style={{ fontSize: "2rem", fontWeight: 900, margin: 0, letterSpacing: "-0.5px" }}>BidVerify</h2>
-              <p style={{ fontSize: "0.85rem", opacity: 0.9, marginTop: "6px", fontWeight: 600 }}>AI-Powered Integrated Compliance Platform</p>
-            </div>
-            <div className="overlay-slide overlay-slide-right">
-              <img src="/logo.png" alt="BidVerify Logo" style={{ height: "80px", marginBottom: "12px", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }} />
-              <h2 style={{ fontSize: "2rem", fontWeight: 900, margin: 0, letterSpacing: "-0.5px" }}>BidVerify</h2>
-              <p style={{ fontSize: "0.85rem", opacity: 0.9, marginTop: "6px", fontWeight: 600 }}>Government e-Auction & Compliance Portal</p>
+                  {/* Submit Button */}
+                  <button type="submit" className="login-submit-orange-btn" disabled={loading}>
+                    {loading ? "Logging in..." : "Login →"}
+                  </button>
+
+                  {/* Switch to Register */}
+                  <div className="switch-auth-mode-prompt">
+                    <span>Don't have an account? </span>
+                    <button
+                      type="button"
+                      className="switch-auth-link"
+                      onClick={() => { setIsSignUp(true); setAuthError(""); setSuccessMsg(""); }}
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* SIGN UP FORM */
+                <form onSubmit={handleSignUpSubmit} className="login-form-inner">
+                  <h2 className="card-welcome-title">
+                    Create Account on <span className="highlight-orange">BidVerify</span>
+                  </h2>
+                  <p className="card-welcome-subtitle">Register to join the compliance platform</p>
+
+                  {/* Name Input */}
+                  <div className="form-input-group">
+                    <label>Full Name</label>
+                    <div className="input-field-wrapper">
+                      <User size={18} className="field-icon-left" />
+                      <input
+                        type="text"
+                        value={signUpName}
+                        onChange={(e) => setSignUpName(e.target.value)}
+                        placeholder="Enter your full name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Input */}
+                  <div className="form-input-group">
+                    <label>Email Address</label>
+                    <div className="input-field-wrapper">
+                      <Mail size={18} className="field-icon-left" />
+                      <input
+                        type="email"
+                        value={signUpEmail}
+                        onChange={(e) => setSignUpEmail(e.target.value)}
+                        placeholder="Enter your email address"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Input */}
+                  <div className="form-input-group">
+                    <label>Password</label>
+                    <div className="input-field-wrapper">
+                      <Lock size={18} className="field-icon-left" />
+                      <input
+                        type="password"
+                        value={signUpPassword}
+                        onChange={(e) => setSignUpPassword(e.target.value)}
+                        placeholder="Create a strong password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Organization Input */}
+                  <div className="form-input-group">
+                    <label>Organization / Company Name</label>
+                    <div className="input-field-wrapper">
+                      <Building size={18} className="field-icon-left" />
+                      <input
+                        type="text"
+                        value={organization}
+                        onChange={(e) => setOrganization(e.target.value)}
+                        placeholder="Enter company or department"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {authError && <div className="login-error-alert">{authError}</div>}
+                  {successMsg && <div className="login-success-alert">{successMsg}</div>}
+
+                  {/* Submit Button */}
+                  <button type="submit" className="login-submit-orange-btn" disabled={loading}>
+                    {loading ? "Registering..." : "Register →"}
+                  </button>
+
+                  {/* Switch to Login */}
+                  <div className="switch-auth-mode-prompt">
+                    <span>Already have an account? </span>
+                    <button
+                      type="button"
+                      className="switch-auth-link"
+                      onClick={() => { setIsSignUp(false); setAuthError(""); setSuccessMsg(""); }}
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
+      </main>
 
-      </div>
+      {/* FOOTER BAR */}
+      <footer className="login-page-footer-bar">
+        <div className="login-footer-content-wrapper">
+          <div className="government-partner-emblems">
+            <div className="emblem-item">
+              <span className="emblem-icon">🏛️</span>
+              <div className="emblem-text">
+                <strong>Ministry of Petroleum & Natural Gas</strong>
+                <span>Government of India</span>
+              </div>
+            </div>
+
+            <div className="emblem-divider"></div>
+
+            <div className="emblem-item">
+              <span className="emblem-icon">🏢</span>
+              <div className="emblem-text">
+                <strong>Chennai Petroleum Corporation Limited</strong>
+                <span>(CPCL)</span>
+              </div>
+            </div>
+
+            <div className="emblem-divider"></div>
+
+            <div className="emblem-item">
+              <img src="/logo.png" alt="GeM Logo" className="gem-footer-logo" />
+              <div className="emblem-text">
+                <strong>GeM Government eMarketplace</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="login-footer-legal-links">
+            <span>Privacy</span>
+            <span>Terms</span>
+            <span>Contact</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

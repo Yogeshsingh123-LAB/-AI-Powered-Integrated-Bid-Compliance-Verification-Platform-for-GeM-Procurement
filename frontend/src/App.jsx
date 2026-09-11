@@ -1,6 +1,7 @@
 import { apiFetch, BACKEND_URL } from "./services/api";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Login from "./pages/Login";
+import LandingPage from "./components/LandingPage";
 import "./App.css";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -11,6 +12,13 @@ function App() {
   const [userRole, setUserRole] = useState("Supplier"); // Supplier (BIDDER) or Buyer (OFFICER/ADMIN)
   const [currentUser, setCurrentUser] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [authView, setAuthView] = useState("landing"); // "landing", "login", "register"
+  const [targetSection, setTargetSection] = useState("home");
+
+  const handleNavigateSection = (sectionId) => {
+    setTargetSection(sectionId);
+    setAuthView("landing");
+  };
 
   const API_BASE = BACKEND_URL;
 
@@ -76,6 +84,7 @@ function App() {
     setCurrentUser(null);
     setUserRole("Supplier");
     setIsLoggedIn(false);
+    setAuthView("landing");
   };
 
   if (sessionLoading) {
@@ -95,8 +104,19 @@ function App() {
           <Home role={userRole} user={currentUser} onLogout={handleLogout} />
           <Chatbot key={currentUser?.id} userRole={userRole} isSupportAdmin={currentUser?.role?.toUpperCase() === "ADMIN"} />
         </Suspense>
+      ) : authView === "landing" ? (
+        <LandingPage
+          initialSection={targetSection}
+          onOpenLogin={() => setAuthView("login")}
+          onOpenRegister={() => setAuthView("register")}
+        />
       ) : (
-        <Login onLogin={handleLogin} />
+        <Login
+          initialIsSignUp={authView === "register"}
+          onBackToHome={() => handleNavigateSection("home")}
+          onNavigateSection={handleNavigateSection}
+          onLogin={handleLogin}
+        />
       )}
     </>
   );

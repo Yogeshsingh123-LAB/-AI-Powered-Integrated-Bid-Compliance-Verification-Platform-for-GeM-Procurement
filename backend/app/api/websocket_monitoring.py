@@ -33,6 +33,7 @@ async def authenticate_socket(websocket: WebSocket) -> bool:
         token = message.get("token")
         if not isinstance(token, str) or not token:
             raise ValueError("Missing token")
+        from app.db.database import SessionLocal
         with SessionLocal() as db:
             user = get_current_user(db=db, token=token)
             if user.role not in {"ADMIN", "OFFICER", "VERIFICATION OFFICER", "AUDITOR"}:

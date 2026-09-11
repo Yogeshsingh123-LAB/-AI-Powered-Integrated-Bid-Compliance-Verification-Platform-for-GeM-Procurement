@@ -383,13 +383,36 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
         style={{ display: "none" }}
       />
 
-      <div className="bidder-section-wrapper" style={{ marginBottom: "24px" }}>
-        {/* Sapphire Hero Banner for Documents Overview */}
-        <div className="section-hero-banner indigo-theme">
-          <div>
-            <span className="hero-eyebrow">COMPLIANCE VAULT</span>
-            <h2 style={{ fontSize: "1.6rem" }}>Bids & Document Compliance Matrix</h2>
-            <p className="hero-subtext">Review required certificates, pending submissions, and automated OCR verification status per bid.</p>
+      <div className="bidder-mybids-container" style={{ marginBottom: "24px" }}>
+        {/* Sky Blue Hero Banner matching Dashboard & My Bids */}
+        <div className="mybids-hero-banner-exact">
+          <div className="mybids-hero-bg" style={{ backgroundImage: "url(/hero_government_building.jpg)" }}></div>
+          <div className="mybids-hero-grid">
+            <div className="mybids-hero-left">
+              <div className="mybids-eyebrow-exact">
+                <span>COMPLIANCE VAULT</span>
+                <div className="green-accent-underline"></div>
+              </div>
+              <h1 className="mybids-title-exact">
+                Bids & Document<br />
+                <span className="mybids-orange-text">Compliance Matrix.</span>
+              </h1>
+              <p className="mybids-desc-exact">
+                Review required certificates, pending submissions, and automated OCR verification status per procurement bid.
+              </p>
+            </div>
+
+            <div className="mybids-hero-center-cursive">
+              <div className="cursive-quote-text">
+                Verified<br />Credentials<br />Stronger Bids
+              </div>
+              <div className="tricolor-bar-sm"></div>
+            </div>
+
+            <div className="mybids-hero-glass-quote">
+              <p className="glass-quote-title">“Automated AI Verification for GeM Bidders”</p>
+              <div className="tricolor-bar-sm"></div>
+            </div>
           </div>
         </div>
 

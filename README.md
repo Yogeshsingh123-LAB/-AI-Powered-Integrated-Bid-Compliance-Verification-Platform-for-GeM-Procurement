@@ -2,15 +2,15 @@
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
-[![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://reactjs.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+[![React 19](https://img.shields.io/badge/React-19.2-61DAFB.svg)](https://reactjs.org/)
+[![Vite 8](https://img.shields.io/badge/Vite-8.2-646CFF.svg)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Problem Statement ID**: PS26100  
 **Project Name**: BidVerify / GeM Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 
-An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, interactive multi-bidder cartel graph analysis, administrative bidder blacklist management with password-gated authorization, L1 price comparison ranking, Reverse Auction collusion monitoring, Post-Award CRAC 10-day payment SLA tracking & PFMS Treasury disbursement simulation, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, and high-volume performance benchmarking built for GeM procurement.
+An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause matching, structural document forgery detection, interactive multi-bidder cartel graph analysis, administrative bidder blacklist management with password-gated authorization, L1 price comparison ranking, Reverse Auction collusion monitoring, Post-Award CRAC 10-day payment SLA tracking & PFMS Treasury disbursement simulation, statutory cross-verification, Digital Signature Certificate (Class 3 DSC) validation, e-EMD / e-PBG digital bank guarantee validation, cryptographic Merkle tree blockchain auditing, multi-language regional OCR, real-time WebSocket monitoring, mobile officer quick actions, dynamic tender rule builder, direct GeM API OAuth 2.0 integration, Techno-Commercial Loading & Procurement Mode Auto-Detection, unified light-theme GeM procurement interface, and high-volume performance benchmarking built for GeM procurement.
 
 ---
 
@@ -20,7 +20,7 @@ An end-to-end AI-powered verification platform featuring Semantic NLP RFP clause
 - 🎬 **Presenter Walkthrough & Demo Guide**: [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 - 🏛️ **GSTN Sandbox Integration Spec**: [`docs/GEM_GSTN_SANDBOX_INTEGRATION.md`](docs/GEM_GSTN_SANDBOX_INTEGRATION.md)
 - 🐳 **Docker Deployment Spec**: [`docker-compose.yml`](docker-compose.yml)
-- ⚡ **Platform Launcher**: [`run_platform.bat`](run_platform.bat)
+- ⚡ **Platform Launcher Scripts**: [`run_platform.ps1`](run_platform.ps1) & [`run_platform.bat`](run_platform.bat)
 
 ---
 

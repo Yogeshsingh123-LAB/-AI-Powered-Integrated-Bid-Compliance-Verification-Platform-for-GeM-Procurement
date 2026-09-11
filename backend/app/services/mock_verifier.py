@@ -388,7 +388,7 @@ if __name__ == "__main__":
     # Test execution
     print("Testing MockVerifier with seeds:")
     sample = {
-        "gstin": ["27AAPCS1234M1Z5", "22AAAAA1111A1Z1"],
+        "gstin": ["27AAPCS1234M1Z5", "22AAACG1111A1Z1"],
         "pan": ["BBPPK5678Q"],
         "udyam": ["UDYAM-MH-12-0012345"]
     }

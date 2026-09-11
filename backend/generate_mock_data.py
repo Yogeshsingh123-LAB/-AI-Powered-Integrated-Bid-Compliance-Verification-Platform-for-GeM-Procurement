@@ -128,8 +128,8 @@ def generate_databases(n=60):
     blacklist_records[seed_gst_susp]["identifier"] = seed_gst_susp
     
     # Seed 3: Global Traders Inc (Blacklisted, GSTIN is Active)
-    seed_pan_global = "AAAAA1111A"
-    seed_gst_global = "22AAAAA1111A1Z1"
+    seed_pan_global = "AAACG1111A"
+    seed_gst_global = "22AAACG1111A1Z1"
     seed_udyam_global = "UDYAM-DL-01-0098765"
     global_name = "Global Traders Inc"
     

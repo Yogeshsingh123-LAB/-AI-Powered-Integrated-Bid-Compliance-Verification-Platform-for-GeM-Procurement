@@ -54,6 +54,7 @@ class ChatTests(unittest.TestCase):
             for user_id, role in ((self.owner, "BIDDER"), (self.other, "BIDDER"), (self.admin, "ADMIN")):
                 db.add(User(id=user_id, full_name="Test person", email=f"{user_id}@example.com", password_hash="unused", role=role, is_active=True))
             tender = Tender(id=str(uuid.uuid4()), title="Private tender", budget_limit=100)
+            self.tender_id = tender.id
             db.add(tender)
             db.flush()
             db.add(Bid(id=self.bid_id, bidder_id=self.owner, tender_id=tender.id, status="DOCUMENTS_SUBMITTED",
@@ -93,6 +94,62 @@ class ChatTests(unittest.TestCase):
         response = self.client.post("/api/chat/support/tickets", headers=self.headers, json=payload)
         self.assertEqual(response.status_code, 201, response.text)
         return response.json()["id"]
+
+    def test_bid_selection_is_authenticated_owner_scoped_and_minimal(self):
+        self.assertEqual(self.client.get("/api/chat/bids").status_code, 401)
+        # Another bidder on the same tender must not see this user's submission.
+        with SessionLocal() as db:
+            other_bid = Bid(bidder_id=self.other, tender_id=self.tender_id, status="Pending")
+            db.add(other_bid)
+            db.commit()
+            other_id = str(other_bid.id)
+        response = self.client.get("/api/chat/bids", headers=self.headers)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertFalse(response.json()["has_more"])
+        row, = response.json()["items"]
+        self.assertEqual(row["reference"], str(self.bid_id))
+        self.assertEqual(row["tender_id"], self.tender_id)
+        self.assertEqual(row["tender_title"], "Private tender")
+        self.assertEqual(row["status"], "under_review")
+        self.assertEqual(set(row), {"reference", "tender_id", "tender_title", "status", "submitted_at", "reviewed_at", "next_action"})
+        others = self.client.get("/api/chat/bids", headers=self.auth(self.other)).json()["items"]
+        self.assertEqual([bid["reference"] for bid in others], [other_id])
+        self.assertEqual(self.client.get("/api/chat/bids", headers=self.auth(self.admin, "ADMIN")).json()["items"], [])
+        self.assertEqual(self.track(row["reference"]).json()["status"], row["status"])
+
+    def test_bid_search_matches_title_and_literal_tender_id(self):
+        special_id = "GEM/2026/" + str(uuid.uuid4()) + "%_"
+        with SessionLocal() as db:
+            db.add(Tender(id=special_id, title="Office laptops", budget_limit=100))
+            db.flush()
+            db.add(Bid(bidder_id=self.owner, tender_id=special_id, status="Pending"))
+            db.commit()
+        for term in ("OFFICE", special_id, "%_", "  laptops  "):
+            rows = self.client.get("/api/chat/bids", headers=self.headers, params={"search": term}).json()["items"]
+            self.assertEqual([row["tender_id"] for row in rows], [special_id])
+        for term in ("nothing matches", "' OR 1=1 --"):
+            self.assertEqual(self.client.get("/api/chat/bids", headers=self.headers, params={"search": term}).json()["items"], [])
+        self.assertEqual(self.client.get("/api/chat/bids", headers=self.headers, params={"offset": -1}).status_code, 422)
+        self.assertEqual(self.client.get("/api/chat/bids", headers=self.headers, params={"search": "a" * 256}).status_code, 422)
+
+    def test_bid_list_pagination_and_status_mapping(self):
+        with SessionLocal() as db:
+            for i in range(24):
+                db.add(Bid(bidder_id=self.owner, tender_id=self.tender_id, status="Compliant",
+                           officer_status="Seek Clarification" if i == 0 else "Pending"))
+            db.commit()
+        first = self.client.get("/api/chat/bids", headers=self.headers).json()
+        second = self.client.get("/api/chat/bids", headers=self.headers, params={"offset": 20}).json()
+        self.assertEqual(len(first["items"]), 20)
+        self.assertTrue(first["has_more"])
+        self.assertEqual(len(second["items"]), 5)
+        self.assertFalse(second["has_more"])
+        rows = first["items"] + second["items"]
+        self.assertEqual(len({row["reference"] for row in rows}), 25)
+        self.assertEqual(sum(row["status"] == "clarification_needed" for row in rows), 1)
+        self.assertTrue(all(row["status"] in {"under_review", "clarification_needed"} for row in rows))
+        self.assertEqual([row["submitted_at"] for row in rows], sorted([row["submitted_at"] for row in rows], reverse=True))
 
     def test_tracking_requires_authentication(self):
         response = self.client.post("/api/chat/track", json={"reference": str(self.bid_id)})

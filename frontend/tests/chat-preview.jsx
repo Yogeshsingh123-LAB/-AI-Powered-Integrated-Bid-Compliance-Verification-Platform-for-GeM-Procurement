@@ -23,7 +23,8 @@ function Preview() {
     } catch (err) { setError(err.message); }
   }
   return <main style={{ fontFamily: "system-ui", padding: 24 }}>
-    <h1>Isolated MyGeM preview</h1><p>Synthetic data only. Application reference: 712fa735-c13b-487b-bad8-33c3f38dbf16</p>
+    <h1>Isolated MyGeM preview</h1><p>Synthetic data only. Tender ID: PREVIEW-2026. Select Preview applicant, then Track bid.</p>
+    <button onClick={() => setUser("Guest")}>Preview assistant design</button>{" "}
     <button onClick={() => signIn(false)}>Preview applicant</button>{" "}<button onClick={() => signIn(true)}>Preview support administrator</button>
     {error && <p role="alert">{error}</p>}
     {user && <Chatbot key={user} userRole={user} isSupportAdmin={user === "ADMIN"} />}

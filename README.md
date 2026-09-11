@@ -6,7 +6,7 @@
 [![Vite 8](https://img.shields.io/badge/Vite-8.2-646CFF.svg)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Problem Statement ID**: PS26100  
+**Problem Statement ID**: SIH26100  
 **Project Name**: BidVerify / GeM Integrated Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 

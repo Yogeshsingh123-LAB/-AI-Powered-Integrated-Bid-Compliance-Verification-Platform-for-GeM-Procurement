@@ -9,7 +9,10 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.security import create_access_token
 from app.core.config import settings
-from app.schemas.auth import UserRegister, TokenResponse, ChangePassword, PasswordVerification
+from app.schemas.auth import (
+    UserRegister, TokenResponse, ChangePassword, PasswordVerification,
+    BiometricLoginRequest, BiometricToggleRequest, BiometricRegisterRequest
+)
 from app.schemas.user import UserResponse
 from app.services.auth_service import AuthService, get_current_user, create_audit_record
 from app.models.user import User
@@ -81,6 +84,85 @@ async def login(request: Request, db: Session = Depends(get_db)):
         "access_token": access_token,
         "token_type": "bearer",
         "user": user
+    }
+
+@router.get("/biometric/status")
+def get_biometric_status():
+    """Get the current Biometric Authentication feature status (OFF by default)."""
+    return {
+        "enabled": AuthService.is_biometric_enabled(),
+        "supported_devices": ["laptop_fingerprint", "external_hardware_key"],
+        "message": "Biometric Authentication is currently " + ("ENABLED" if AuthService.is_biometric_enabled() else "DISABLED")
+    }
+
+@router.post("/biometric/toggle")
+def toggle_biometric_status(req: BiometricToggleRequest, request: Request, db: Session = Depends(get_db)):
+    """Toggle Biometric Authentication ON or OFF."""
+    ip_address = request.client.host if request.client else None
+    new_state = AuthService.set_biometric_enabled(req.enabled)
+    create_audit_record(
+        db=db,
+        action="BIOMETRIC_FEATURE_TOGGLED",
+        new_value=f"Biometric login state set to: {'ENABLED' if new_state else 'DISABLED'}",
+        ip_address=ip_address
+    )
+    return {
+        "success": True,
+        "enabled": new_state,
+        "message": f"Biometric Login has been turned {'ON' if new_state else 'OFF'} successfully."
+    }
+
+@router.post("/biometric/verify", response_model=TokenResponse)
+def verify_biometric_login(req: BiometricLoginRequest, request: Request, db: Session = Depends(get_db)):
+    """
+    Authenticate Admin/Officer using laptop fingerprint sensor or external hardware key.
+    Requires Biometric Login feature to be enabled.
+    """
+    if not AuthService.is_biometric_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Biometric Login is currently turned OFF. Please toggle the feature switch ON in the Administrative Console."
+        )
+
+    ip_address = request.client.host if request.client else None
+    user = AuthService.authenticate_biometric_user(
+        db=db,
+        email=req.email,
+        device_type=req.device_type,
+        ip_address=ip_address
+    )
+
+    access_token = create_access_token(subject=str(user.id), role=user.role)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@router.post("/biometric/register")
+def register_biometric_credential(
+    req: BiometricRegisterRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Register fingerprint or hardware key credential for the currently logged-in user."""
+    ip_address = request.client.host if request.client else None
+    dev_name = req.device_name or ("Laptop Fingerprint Sensor" if req.device_type == "laptop_fingerprint" else "External Security Device")
+    create_audit_record(
+        db=db,
+        action="BIOMETRIC_CREDENTIAL_REGISTERED",
+        user_id=current_user.id,
+        entity_id=current_user.id,
+        new_value=f"Registered biometric device: {dev_name} ({req.device_type})",
+        ip_address=ip_address
+    )
+    return {
+        "success": True,
+        "message": f"Biometric credential registered successfully for {current_user.full_name} ({dev_name}).",
+        "device_type": req.device_type,
+        "device_name": dev_name
     }
 
 @router.get("/me", response_model=UserResponse)

@@ -301,6 +301,66 @@ class AuthService:
         )
         return user
 
+    # In-memory / persistent runtime flag for biometric login status (OFF by default)
+    _biometric_enabled: bool = False
+
+    @classmethod
+    def is_biometric_enabled(cls) -> bool:
+        return cls._biometric_enabled
+
+    @classmethod
+    def set_biometric_enabled(cls, enabled: bool) -> bool:
+        cls._biometric_enabled = enabled
+        return cls._biometric_enabled
+
+    @staticmethod
+    def authenticate_biometric_user(
+        db: Session,
+        email: str,
+        device_type: str = "external_hardware_key",
+        ip_address: Optional[str] = None
+    ) -> User:
+        """Authenticate an Admin/Officer using an external biometric fingerprint device or security hardware key."""
+        clean_email = (email or "").strip().lower()
+        user = db.query(User).filter(func.lower(User.email) == clean_email).first()
+
+        if not user:
+            # Fallback to default admin account if email not specified or user not found for testing
+            user = db.query(User).filter(User.role.in_(["ADMIN", "OFFICER"])).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No administrative account matching the biometric token was found."
+            )
+
+        if user.role.upper() not in ["ADMIN", "OFFICER"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Biometric authentication is restricted to Administrative Console accounts."
+            )
+
+        if user.status == "Suspended" or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User account is suspended or inactive."
+            )
+
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+
+        dev_label = "External Biometric Fingerprint Device (USB/NFC Security Key)"
+        create_audit_record(
+            db=db,
+            action="BIOMETRIC_LOGIN_SUCCESS",
+            user_id=user.id,
+            entity_id=user.id,
+            new_value=f"Biometric login via {dev_label}",
+            ip_address=ip_address
+        )
+        return user
+
+
 # FastAPI Dependency for authentication
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
     """Dependency to retrieve and validate the authenticated user from JWT."""

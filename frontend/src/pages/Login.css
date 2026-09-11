@@ -664,3 +664,411 @@
     padding: 28px 20px;
   }
 }
+
+/* ==========================================================================
+   ADMIN BIOMETRIC AUTHENTICATION STYLES & FEATURE TOGGLE SWITCH
+   ========================================================================== */
+
+.admin-biometric-toggle-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.admin-biometric-toggle-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.bio-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bio-toggle-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bio-icon {
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.bio-icon.active-glow {
+  color: #10b981;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+}
+
+.bio-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bio-card-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.bio-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bio-badge.badge-off {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.bio-badge.badge-on {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.bio-card-sub {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Convenient Sliding Toggle Switch */
+.switch-toggle-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.switch-toggle-wrapper input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-round {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 26px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch-toggle-wrapper input:checked + .slider-round {
+  background-color: #10b981;
+}
+
+.switch-toggle-wrapper input:checked + .slider-round:before {
+  transform: translateX(22px);
+}
+
+/* Biometric Login Box Options */
+.biometric-login-box {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bio-device-selector-tabs {
+  display: flex;
+  gap: 8px;
+  background: #ffffff;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.bio-device-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-device-tab.selected {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+.biometric-scan-trigger-btn {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.biometric-scan-trigger-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+.pulse-fingerprint-icon {
+  animation: pulseIcon 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+.bio-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.bio-divider:before,
+.bio-divider:after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bio-divider span {
+  padding: 0 8px;
+}
+
+/* BIOMETRIC SCANNER MODAL */
+.biometric-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(8, 18, 36, 0.75);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.biometric-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px 28px;
+  position: relative;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.biometric-modal-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.biometric-modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.biometric-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.biometric-device-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.biometric-modal-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Fingerprint Visual Ring & Animation */
+.biometric-scanner-visual-container {
+  margin: 10px 0 24px;
+}
+
+.biometric-fingerprint-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 3px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.biometric-fingerprint-ring.scanning {
+  border-color: #10b981;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+}
+
+.biometric-fingerprint-ring.success {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.6);
+}
+
+.biometric-fingerprint-ring.error {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+}
+
+.biometric-glowing-fingerprint {
+  color: #10b981;
+  transition: all 0.3s ease;
+}
+
+.scanner-line-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #10b981, transparent);
+  box-shadow: 0 0 12px #10b981;
+  animation: scanBeam 1.6s infinite ease-in-out;
+}
+
+@keyframes scanBeam {
+  0% { top: 0%; opacity: 0.2; }
+  50% { top: 100%; opacity: 1; }
+  100% { top: 0%; opacity: 0.2; }
+}
+
+.biometric-status-msg-box {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bio-status-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bio-status-text.scanning {
+  color: #475569;
+}
+
+.bio-status-text.success {
+  color: #10b981;
+}
+
+.bio-status-text.error {
+  color: #ef4444;
+}
+
+.biometric-retry-btn {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.biometric-retry-btn:hover {
+  background: #1e293b;
+}
+

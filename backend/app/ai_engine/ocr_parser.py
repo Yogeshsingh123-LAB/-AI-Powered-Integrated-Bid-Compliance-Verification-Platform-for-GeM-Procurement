@@ -3,9 +3,19 @@ import os
 import logging
 from typing import Dict, Any
 from PIL import Image
-import numpy as np
-import cv2
-import pytesseract
+
+try:
+    import numpy as np
+    import cv2
+except ImportError:
+    np = None
+    cv2 = None
+
+try:
+    import pytesseract
+except ImportError:
+    pytesseract = None
+
 from shutil import which
 
 logger = logging.getLogger(__name__)
@@ -13,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Auto-configure Tesseract path on Windows
 def configure_tesseract():
     """Locates and configures Tesseract executable path on Windows."""
-    if os.name == 'nt':
+    if pytesseract is not None and os.name == 'nt':
         common_paths = [
             r"C:\Program Files\Tesseract-OCR\tesseract.exe",
             r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
@@ -42,6 +52,8 @@ class OCRParser:
     @staticmethod
     def preprocess_image(pil_image: Image.Image) -> Image.Image:
         """Applies OpenCV preprocessing (grayscale, blur, Otsu thresholding) for higher OCR accuracy."""
+        if cv2 is None or np is None:
+            return pil_image
         try:
             # Convert PIL to OpenCV format (numpy array)
             open_cv_image = np.array(pil_image)
@@ -57,6 +69,7 @@ class OCRParser:
             
             # Apply Gaussian Blur to reduce noise
             blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+
             
             # Apply Otsu's Thresholding to binarize the image (B&W)
             _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)

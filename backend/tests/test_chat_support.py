@@ -47,7 +47,6 @@ class ChatTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.client.__exit__(None, None, None)
         engine.dispose()
 
     def setUp(self):

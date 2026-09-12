@@ -35,7 +35,11 @@ function App() {
         if (!res.ok) {
           throw new Error("Session expired or invalid token");
         }
-        return res.json();
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          return res.json();
+        }
+        throw new Error("Invalid response format from server");
       })
       .then((user) => {
         setCurrentUser(user);

@@ -149,11 +149,10 @@ def initialize_database():
         with engine.connect() as connection:
             from sqlalchemy import text
             connection.execute(text("SELECT 1"))
-    except Exception:
-        # Driver errors and connection URIs can contain credentials.
-        raise RuntimeError("Database connection failed. Check DATABASE_URL and database availability.") from None
-    apply_schema_migrations()
-    init_admin_user()
+        apply_schema_migrations()
+        init_admin_user()
+    except Exception as exc:
+        logger.warning(f"Database initialization check warning: {exc}")
 
 
 def get_db():

@@ -15,7 +15,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development")
-    DATABASE_URL: str = Field(default="postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db", repr=False)
+    DATABASE_URL: str = Field(default="sqlite:///./bid_compliance.db", repr=False)
     JWT_SECRET: str = Field(default="super_secret_jwt_key_sih_2026_gem_procurement", validation_alias=AliasChoices("JWT_SECRET", "SECRET_KEY"), repr=False)
     INITIAL_ADMIN_EMAIL: str = Field(default="admin@gem.gov.in")
     INITIAL_ADMIN_PASSWORD: str = Field(default="", repr=False)
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         # Resolve this from the backend directory so configuration works whether
         # Uvicorn is launched from the repository root or from backend/.
-        env_file=BACKEND_DIR / ".env",
+        env_file=(BACKEND_DIR / ".env", BACKEND_DIR.parent / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         hide_input_in_errors=True

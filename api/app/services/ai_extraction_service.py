@@ -2,8 +2,12 @@ import json
 import logging
 import re
 from typing import Dict, Any, List, Optional
-# pyrefly: ignore [missing-import]
-import google.generativeai as genai
+try:
+    # pyrefly: ignore [missing-import]
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -76,7 +80,7 @@ class AIExtractionService:
     def classify_document_type_ai(cls, text: str) -> str:
         """Fallback AI method to classify a document if rule-based fails."""
         api_key = cls._get_effective_api_key()
-        if not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
+        if genai is None or not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
             # If mock, look at text content for generic fallback
             for doc_type in cls.SCHEMAS.keys():
                 if doc_type.split("_")[0].lower() in text.lower():
@@ -105,7 +109,7 @@ class AIExtractionService:
     def extract_fields(cls, text: str, document_type: str) -> Dict[str, Any]:
         """Extract structured fields from text based on document_type using Gemini or rule-based mock."""
         api_key = cls._get_effective_api_key()
-        if not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
+        if genai is None or not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
             logger.info("AIExtractionService: Using mock extraction fallback.")
             return cls._mock_extraction(text, document_type)
 

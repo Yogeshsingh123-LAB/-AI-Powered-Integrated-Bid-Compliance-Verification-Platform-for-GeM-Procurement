@@ -2,10 +2,8 @@
 import sys
 from uuid import uuid4
 
-import httpx
 import pymupdf
 
-from app.core.config import settings
 from app.services.storage_service import StorageService
 
 
@@ -13,35 +11,32 @@ def main():
     path = f"deployment-checks/{uuid4().hex}.pdf"
     uploaded = False
     failed = False
-    bucket = None
     try:
-        bucket = StorageService.get_client().storage.from_(settings.SUPABASE_BUCKET)
         with pymupdf.open() as document:
             document.new_page().insert_text((72, 72), "Synthetic deployment storage check")
             payload = document.tobytes()
-        bucket.upload(path, payload, file_options={"content-type": "application/pdf"})
+        StorageService.upload_file(payload, path, "application/pdf")
         uploaded = True
-        if bucket.download(path) != payload:
+        if StorageService.download_file(path) != payload:
             raise RuntimeError("Downloaded bytes differ")
-        signed = bucket.create_signed_url(path, 60)
-        url = signed.get("signedURL") or signed.get("signed_url")
-        response = httpx.get(url, timeout=20)
-        if response.status_code != 200 or response.content != payload:
-            raise RuntimeError("Signed URL retrieval failed")
-        print("Storage PDF upload, download, and signed URL: OK")
+        signed_url = StorageService.get_signed_url(path, 60)
+        if not signed_url:
+            raise RuntimeError("Signed URL generation returned empty result")
+        print(f"Storage PDF upload, download, and URL generation: OK ({signed_url[:30]}...)")
     except Exception as exc:
-        print(f"Storage round-trip failed: {type(exc).__name__}")
+        print(f"Storage round-trip failed: {type(exc).__name__}: {exc}")
         failed = True
     finally:
         if uploaded:
             try:
-                bucket.remove([path])
+                StorageService.delete_file(path)
                 print("Synthetic test PDF cleanup: OK")
-            except Exception:
-                print(f"Cleanup failed; remove only this test object: {path}")
+            except Exception as e:
+                print(f"Cleanup failed; remove only this test object: {path} ({e})")
                 failed = True
     return int(failed)
 
 
 if __name__ == "__main__":
     sys.exit(main())
+

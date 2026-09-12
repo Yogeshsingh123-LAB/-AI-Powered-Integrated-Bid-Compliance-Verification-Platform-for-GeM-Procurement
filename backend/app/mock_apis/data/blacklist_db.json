@@ -62,981 +62,891 @@
     "order_date": null,
     "valid_until": null
   },
-  "DZQPN1313X": {
-    "identifier": "DZQPN1313X",
-    "name": "Nikita Bahl",
+  "QYUPA2134I": {
+    "identifier": "QYUPA2134I",
+    "name": "Avni Srivastava",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "07DZQPN1313XNZ3": {
-    "identifier": "07DZQPN1313XNZ3",
-    "name": "Nikita Bahl",
+  "24QYUPA2134I7ZO": {
+    "identifier": "24QYUPA2134I7ZO",
+    "name": "Avni Srivastava",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "VGECM1322Q": {
-    "identifier": "VGECM1322Q",
-    "name": "Mani-Pau",
+  "QKXCB7902F": {
+    "identifier": "QKXCB7902F",
+    "name": "Borde-Sibal",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "27VGECM1322QKZQ": {
-    "identifier": "27VGECM1322QKZQ",
-    "name": "Mani-Pau",
+  "VAMCK6427V": {
+    "identifier": "VAMCK6427V",
+    "name": "Krishna Group",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "CDUPV1306C": {
-    "identifier": "CDUPV1306C",
-    "name": "Vihaan Karpe",
+  "24VAMCK6427VEZA": {
+    "identifier": "24VAMCK6427VEZA",
+    "name": "Krishna Group",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "KZPCD8452X": {
-    "identifier": "KZPCD8452X",
-    "name": "Dalal, Wali and Ravi",
+  "GTDPC7278C": {
+    "identifier": "GTDPC7278C",
+    "name": "Charles Viswanathan",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "09KZPCD8452XHZQ": {
-    "identifier": "09KZPCD8452XHZQ",
-    "name": "Dalal, Wali and Ravi",
+  "33GTDPC7278C2Z3": {
+    "identifier": "33GTDPC7278C2Z3",
+    "name": "Charles Viswanathan",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "LBBCS8357B": {
-    "identifier": "LBBCS8357B",
-    "name": "Sekhon LLC",
+  "MYRPV7412P": {
+    "identifier": "MYRPV7412P",
+    "name": "Vaishnavi Varkey",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "29LBBCS8357B7Z8": {
-    "identifier": "29LBBCS8357B7Z8",
-    "name": "Sekhon LLC",
+  "24MYRPV7412P1ZV": {
+    "identifier": "24MYRPV7412P1ZV",
+    "name": "Vaishnavi Varkey",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "TPMCV7435L": {
-    "identifier": "TPMCV7435L",
-    "name": "Vora, Sathe and Kala",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09TPMCV7435LQZK": {
-    "identifier": "09TPMCV7435LQZK",
-    "name": "Vora, Sathe and Kala",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "FABPA2240H": {
-    "identifier": "FABPA2240H",
-    "name": "Adweta Sabharwal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "24FABPA2240H3ZW": {
-    "identifier": "24FABPA2240H3ZW",
-    "name": "Adweta Sabharwal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "CEDPI1503C": {
-    "identifier": "CEDPI1503C",
-    "name": "Indali Rama",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "XRJCB1105L": {
-    "identifier": "XRJCB1105L",
-    "name": "Babu-Agrawal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "19XRJCB1105LQZ3": {
-    "identifier": "19XRJCB1105LQZ3",
-    "name": "Babu-Agrawal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "QBJPN2199Q": {
-    "identifier": "QBJPN2199Q",
-    "name": "Netra Jha",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "29QBJPN2199Q1ZB": {
-    "identifier": "29QBJPN2199Q1ZB",
-    "name": "Netra Jha",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "CZNCD4295I": {
-    "identifier": "CZNCD4295I",
-    "name": "Dada, Bakshi and Mitra",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09CZNCD4295IJZE": {
-    "identifier": "09CZNCD4295IJZE",
-    "name": "Dada, Bakshi and Mitra",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "LWHCP8460D": {
-    "identifier": "LWHCP8460D",
-    "name": "Palla and Sons",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33LWHCP8460DXZS": {
-    "identifier": "33LWHCP8460DXZS",
-    "name": "Palla and Sons",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "TSICW3971R": {
-    "identifier": "TSICW3971R",
-    "name": "Wable-Dey",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09TSICW3971RJZJ": {
-    "identifier": "09TSICW3971RJZJ",
-    "name": "Wable-Dey",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "OYCCG3455O": {
-    "identifier": "OYCCG3455O",
-    "name": "Gokhale-Jain",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33OYCCG3455OFZ6": {
-    "identifier": "33OYCCG3455OFZ6",
-    "name": "Gokhale-Jain",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "BFYPA8112P": {
-    "identifier": "BFYPA8112P",
-    "name": "Aryan Panchal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "32BFYPA8112PHZV": {
-    "identifier": "32BFYPA8112PHZV",
-    "name": "Aryan Panchal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "HYGCD3086F": {
-    "identifier": "HYGCD3086F",
-    "name": "Deep-Chokshi",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "03HYGCD3086F9ZC": {
-    "identifier": "03HYGCD3086F9ZC",
-    "name": "Deep-Chokshi",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "VZDPL9805Y": {
-    "identifier": "VZDPL9805Y",
-    "name": "Lohit Badal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "24VZDPL9805YWZF": {
-    "identifier": "24VZDPL9805YWZF",
-    "name": "Lohit Badal",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "ENKCB6178O": {
-    "identifier": "ENKCB6178O",
-    "name": "Boase Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "MQXCD4954N": {
-    "identifier": "MQXCD4954N",
-    "name": "Dua Group",
-    "blacklisting_status": "Blacklisted",
-    "authority": "Public Works Department (PWD)",
-    "order_number": "GEM/BL/2023/ORD-2976",
-    "order_date": "2023-10-12",
-    "valid_until": "2029-03-07"
-  },
-  "19MQXCD4954N1Z5": {
-    "identifier": "19MQXCD4954N1Z5",
-    "name": "Dua Group",
-    "blacklisting_status": "Blacklisted",
-    "authority": "Public Works Department (PWD)",
-    "order_number": "GEM/BL/2023/ORD-2976",
-    "order_date": "2023-10-12",
-    "valid_until": "2029-03-07"
-  },
-  "DUECM9771J": {
-    "identifier": "DUECM9771J",
-    "name": "Mahal Inc",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09DUECM9771JWZR": {
-    "identifier": "09DUECM9771JWZR",
-    "name": "Mahal Inc",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "OBNCV6629V": {
-    "identifier": "OBNCV6629V",
-    "name": "Vora, Mishra and Muni",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "32OBNCV6629VZZU": {
-    "identifier": "32OBNCV6629VZZU",
-    "name": "Vora, Mishra and Muni",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "MIECT8940P": {
-    "identifier": "MIECT8940P",
-    "name": "Thakkar Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33MIECT8940PRZL": {
-    "identifier": "33MIECT8940PRZL",
-    "name": "Thakkar Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "AAJCC8909U": {
-    "identifier": "AAJCC8909U",
-    "name": "Chana LLC",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "27AAJCC8909UBZJ": {
-    "identifier": "27AAJCC8909UBZJ",
-    "name": "Chana LLC",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "BNZPJ4890V": {
-    "identifier": "BNZPJ4890V",
-    "name": "Janaki Pillay",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33BNZPJ4890VGZ2": {
-    "identifier": "33BNZPJ4890VGZ2",
-    "name": "Janaki Pillay",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "COJCM7737L": {
-    "identifier": "COJCM7737L",
-    "name": "Mahajan, Khatri and Sawhney",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33COJCM7737LKZ3": {
-    "identifier": "33COJCM7737LKZ3",
-    "name": "Mahajan, Khatri and Sawhney",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "NSOCS6485A": {
-    "identifier": "NSOCS6485A",
-    "name": "Srinivas-Agate",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "QTKPN8627Z": {
-    "identifier": "QTKPN8627Z",
-    "name": "Nachiket Sunder",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "19QTKPN8627ZQZ2": {
-    "identifier": "19QTKPN8627ZQZ2",
-    "name": "Nachiket Sunder",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "VMMCM2304S": {
-    "identifier": "VMMCM2304S",
-    "name": "Mammen Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "29VMMCM2304S9ZE": {
-    "identifier": "29VMMCM2304S9ZE",
-    "name": "Mammen Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "TXFPA2507R": {
-    "identifier": "TXFPA2507R",
-    "name": "Andrew Verma",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "36TXFPA2507RZZV": {
-    "identifier": "36TXFPA2507RZZV",
-    "name": "Andrew Verma",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "UFSCB7157K": {
-    "identifier": "UFSCB7157K",
-    "name": "Basak-Seth",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "29UFSCB7157KLZA": {
-    "identifier": "29UFSCB7157KLZA",
-    "name": "Basak-Seth",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "RWHPH8816Y": {
-    "identifier": "RWHPH8816Y",
-    "name": "Hemani Trivedi",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "33RWHPH8816YZZW": {
-    "identifier": "33RWHPH8816YZZW",
-    "name": "Hemani Trivedi",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "TCSCB1046C": {
-    "identifier": "TCSCB1046C",
-    "name": "Bali and Sons",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "36TCSCB1046CCZW": {
-    "identifier": "36TCSCB1046CCZW",
-    "name": "Bali and Sons",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "CUUCK2833Z": {
-    "identifier": "CUUCK2833Z",
-    "name": "Korpal Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "19CUUCK2833ZVZX": {
-    "identifier": "19CUUCK2833ZVZX",
-    "name": "Korpal Group",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "ESRCD3897M": {
-    "identifier": "ESRCD3897M",
-    "name": "Dalal, Seth and Guha",
-    "blacklisting_status": "Blacklisted",
-    "authority": "Ministry of Defence, Government of India",
-    "order_number": "GEM/BL/2024/ORD-7946",
-    "order_date": "2026-04-01",
-    "valid_until": "2027-08-26"
-  },
-  "29ESRCD3897MTZH": {
-    "identifier": "29ESRCD3897MTZH",
-    "name": "Dalal, Seth and Guha",
-    "blacklisting_status": "Blacklisted",
-    "authority": "Ministry of Defence, Government of India",
-    "order_number": "GEM/BL/2024/ORD-7946",
-    "order_date": "2026-04-01",
-    "valid_until": "2027-08-26"
-  },
-  "FIJCL3400M": {
-    "identifier": "FIJCL3400M",
-    "name": "Lala, Kadakia and Taneja",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "29FIJCL3400MCZ6": {
-    "identifier": "29FIJCL3400MCZ6",
-    "name": "Lala, Kadakia and Taneja",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "EWVPS7831P": {
-    "identifier": "EWVPS7831P",
-    "name": "Samesh Nath",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "24EWVPS7831PPZG": {
-    "identifier": "24EWVPS7831PPZG",
-    "name": "Samesh Nath",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "XSTCS2712P": {
-    "identifier": "XSTCS2712P",
-    "name": "Sangha, Taneja and Banik",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "29XSTCS2712PKZC": {
-    "identifier": "29XSTCS2712PKZC",
-    "name": "Sangha, Taneja and Banik",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "RHOCN2957I": {
-    "identifier": "RHOCN2957I",
-    "name": "Nair-Mani",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09RHOCN2957IRZA": {
-    "identifier": "09RHOCN2957IRZA",
-    "name": "Nair-Mani",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "QNGPK4875G": {
-    "identifier": "QNGPK4875G",
-    "name": "Kabir Palla",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "24QNGPK4875GNZZ": {
-    "identifier": "24QNGPK4875GNZZ",
-    "name": "Kabir Palla",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "SLNCV8867I": {
-    "identifier": "SLNCV8867I",
-    "name": "Venkatesh Ltd",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "03SLNCV8867I7Z7": {
-    "identifier": "03SLNCV8867I7Z7",
-    "name": "Venkatesh Ltd",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "NVVCH1178A": {
-    "identifier": "NVVCH1178A",
-    "name": "Hora Inc",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "36NVVCH1178A6ZI": {
-    "identifier": "36NVVCH1178A6ZI",
-    "name": "Hora Inc",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "ZIQPO1205W": {
-    "identifier": "ZIQPO1205W",
-    "name": "Osha Bora",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "UOXPZ8545T": {
-    "identifier": "UOXPZ8545T",
-    "name": "Zayyan Cheema",
-    "blacklisting_status": "Blacklisted",
-    "authority": "Public Works Department (PWD)",
-    "order_number": "GEM/BL/2023/ORD-2613",
-    "order_date": "2026-02-10",
-    "valid_until": "2029-06-09"
-  },
-  "FKRCH3542I": {
-    "identifier": "FKRCH3542I",
-    "name": "Halder-Anand",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09FKRCH3542IWZS": {
-    "identifier": "09FKRCH3542IWZS",
-    "name": "Halder-Anand",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "JRECB7047F": {
-    "identifier": "JRECB7047F",
-    "name": "Bakshi, De and Natarajan",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "09JRECB7047F5ZC": {
-    "identifier": "09JRECB7047F5ZC",
-    "name": "Bakshi, De and Natarajan",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "HWYCA7584O": {
-    "identifier": "HWYCA7584O",
-    "name": "Apte Inc",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "CSBCT8725G": {
-    "identifier": "CSBCT8725G",
-    "name": "Tara, Palan and Raghavan",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "03CSBCT8725GPZC": {
-    "identifier": "03CSBCT8725GPZC",
-    "name": "Tara, Palan and Raghavan",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "TDXCM7533T": {
-    "identifier": "TDXCM7533T",
-    "name": "Mangat PLC",
+  "FLJPP4886E": {
+    "identifier": "FLJPP4886E",
+    "name": "Panini Kamdar",
     "blacklisting_status": "Blacklisted",
     "authority": "Indian Railways Procurement Division",
-    "order_number": "GEM/BL/2023/ORD-3654",
-    "order_date": "2026-07-14",
-    "valid_until": "2030-05-06"
+    "order_number": "GEM/BL/2023/ORD-4064",
+    "order_date": "2024-04-11",
+    "valid_until": "2028-11-02"
   },
-  "FCOPH1118W": {
-    "identifier": "FCOPH1118W",
-    "name": "Hitesh Sura",
+  "33FLJPP4886E9ZR": {
+    "identifier": "33FLJPP4886E9ZR",
+    "name": "Panini Kamdar",
+    "blacklisting_status": "Blacklisted",
+    "authority": "Indian Railways Procurement Division",
+    "order_number": "GEM/BL/2023/ORD-4064",
+    "order_date": "2024-04-11",
+    "valid_until": "2028-11-02"
+  },
+  "KUJCO6969S": {
+    "identifier": "KUJCO6969S",
+    "name": "Oommen-Sane",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "29FCOPH1118WAZM": {
-    "identifier": "29FCOPH1118WAZM",
-    "name": "Hitesh Sura",
+  "29KUJCO6969SAZY": {
+    "identifier": "29KUJCO6969SAZY",
+    "name": "Oommen-Sane",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "NGLCS2852Q": {
-    "identifier": "NGLCS2852Q",
-    "name": "Shenoy-Sharaf",
+  "HBWCS3467X": {
+    "identifier": "HBWCS3467X",
+    "name": "Singhal-Kade",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "EVPCM1423H": {
-    "identifier": "EVPCM1423H",
-    "name": "Mann Ltd",
+  "03HBWCS3467X9ZZ": {
+    "identifier": "03HBWCS3467X9ZZ",
+    "name": "Singhal-Kade",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "27EVPCM1423HXZN": {
-    "identifier": "27EVPCM1423HXZN",
-    "name": "Mann Ltd",
+  "UAIPD9490D": {
+    "identifier": "UAIPD9490D",
+    "name": "Dev Sachdeva",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "KVUPF2641E": {
-    "identifier": "KVUPF2641E",
-    "name": "Forum Purohit",
+  "03UAIPD9490DIZE": {
+    "identifier": "03UAIPD9490DIZE",
+    "name": "Dev Sachdeva",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "32KVUPF2641EMZU": {
-    "identifier": "32KVUPF2641EMZU",
-    "name": "Forum Purohit",
-    "blacklisting_status": "Not Blacklisted",
-    "authority": null,
-    "order_number": null,
-    "order_date": null,
-    "valid_until": null
-  },
-  "NNBPY8480J": {
-    "identifier": "NNBPY8480J",
-    "name": "Yagnesh Grewal",
+  "PJFPG6276P": {
+    "identifier": "PJFPG6276P",
+    "name": "Girish Hari",
     "blacklisting_status": "Blacklisted",
     "authority": "Public Works Department (PWD)",
-    "order_number": "GEM/BL/2025/ORD-3187",
-    "order_date": "2024-02-09",
-    "valid_until": "2029-09-15"
+    "order_number": "GEM/BL/2025/ORD-1974",
+    "order_date": "2025-12-19",
+    "valid_until": "2027-02-07"
   },
-  "24NNBPY8480J5ZW": {
-    "identifier": "24NNBPY8480J5ZW",
-    "name": "Yagnesh Grewal",
+  "36PJFPG6276P2ZW": {
+    "identifier": "36PJFPG6276P2ZW",
+    "name": "Girish Hari",
     "blacklisting_status": "Blacklisted",
     "authority": "Public Works Department (PWD)",
-    "order_number": "GEM/BL/2025/ORD-3187",
-    "order_date": "2024-02-09",
-    "valid_until": "2029-09-15"
+    "order_number": "GEM/BL/2025/ORD-1974",
+    "order_date": "2025-12-19",
+    "valid_until": "2027-02-07"
   },
-  "MNACS6099Z": {
-    "identifier": "MNACS6099Z",
-    "name": "Sarma, Balasubramanian and Sarraf",
+  "STYPU4087C": {
+    "identifier": "STYPU4087C",
+    "name": "Ubika Soman",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "19MNACS6099Z5ZN": {
-    "identifier": "19MNACS6099Z5ZN",
-    "name": "Sarma, Balasubramanian and Sarraf",
+  "19STYPU4087C2ZB": {
+    "identifier": "19STYPU4087C2ZB",
+    "name": "Ubika Soman",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "BBZPH8524O": {
-    "identifier": "BBZPH8524O",
-    "name": "Hema Datta",
+  "UJZCA2402V": {
+    "identifier": "UJZCA2402V",
+    "name": "Agarwal, Nagar and Chaudhry",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "09BBZPH8524O6ZP": {
-    "identifier": "09BBZPH8524O6ZP",
-    "name": "Hema Datta",
+  "33UJZCA2402VUZD": {
+    "identifier": "33UJZCA2402VUZD",
+    "name": "Agarwal, Nagar and Chaudhry",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "LPLCM3886H": {
-    "identifier": "LPLCM3886H",
-    "name": "Mittal, Nazareth and Kulkarni",
+  "RKDCS8339J": {
+    "identifier": "RKDCS8339J",
+    "name": "Solanki Group",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "27LPLCM3886H2ZH": {
-    "identifier": "27LPLCM3886H2ZH",
-    "name": "Mittal, Nazareth and Kulkarni",
+  "XMLCS4654B": {
+    "identifier": "XMLCS4654B",
+    "name": "Shan and Sons",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "URFCP1767T": {
-    "identifier": "URFCP1767T",
-    "name": "Purohit, Oak and Peri",
+  "09XMLCS4654BJZ3": {
+    "identifier": "09XMLCS4654BJZ3",
+    "name": "Shan and Sons",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "03URFCP1767T1Z8": {
-    "identifier": "03URFCP1767T1Z8",
-    "name": "Purohit, Oak and Peri",
+  "WZUCS4159H": {
+    "identifier": "WZUCS4159H",
+    "name": "Shere and Sons",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "MITCJ3458V": {
-    "identifier": "MITCJ3458V",
-    "name": "Jayaraman-Chaudhari",
+  "HGPPO2399Q": {
+    "identifier": "HGPPO2399Q",
+    "name": "Onveer Bhalla",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "27MITCJ3458V2ZZ": {
-    "identifier": "27MITCJ3458V2ZZ",
-    "name": "Jayaraman-Chaudhari",
+  "19HGPPO2399QKZB": {
+    "identifier": "19HGPPO2399QKZB",
+    "name": "Onveer Bhalla",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "RXRPC5050H": {
-    "identifier": "RXRPC5050H",
-    "name": "Charan Srinivas",
+  "BYBPJ2955Y": {
+    "identifier": "BYBPJ2955Y",
+    "name": "Jacob Rajan",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,
     "order_date": null,
     "valid_until": null
   },
-  "VUKCS7917N": {
-    "identifier": "VUKCS7917N",
-    "name": "Sarin-Bhalla",
+  "03BYBPJ2955Y2ZQ": {
+    "identifier": "03BYBPJ2955Y2ZQ",
+    "name": "Jacob Rajan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "EADCB2787Z": {
+    "identifier": "EADCB2787Z",
+    "name": "Butala-Chokshi",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19EADCB2787Z8ZQ": {
+    "identifier": "19EADCB2787Z8ZQ",
+    "name": "Butala-Chokshi",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "KSCCA4751X": {
+    "identifier": "KSCCA4751X",
+    "name": "Aurora LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "03KSCCA4751XYZX": {
+    "identifier": "03KSCCA4751XYZX",
+    "name": "Aurora LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "SPCPI7787L": {
+    "identifier": "SPCPI7787L",
+    "name": "Irya Raghavan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "09SPCPI7787LIZX": {
+    "identifier": "09SPCPI7787LIZX",
+    "name": "Irya Raghavan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "VJYCW7010H": {
+    "identifier": "VJYCW7010H",
+    "name": "Wali Ltd",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "36VJYCW7010HMZG": {
+    "identifier": "36VJYCW7010HMZG",
+    "name": "Wali Ltd",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "RHKPF3740J": {
+    "identifier": "RHKPF3740J",
+    "name": "Farhan Sood",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "03RHKPF3740JFZW": {
+    "identifier": "03RHKPF3740JFZW",
+    "name": "Farhan Sood",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "UNLCS7532O": {
+    "identifier": "UNLCS7532O",
+    "name": "Soman LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19UNLCS7532OKZO": {
+    "identifier": "19UNLCS7532OKZO",
+    "name": "Soman LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "SOICB2871F": {
+    "identifier": "SOICB2871F",
+    "name": "Bhat-Bajwa",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19SOICB2871F7Z3": {
+    "identifier": "19SOICB2871F7Z3",
+    "name": "Bhat-Bajwa",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "QOYCD1490N": {
+    "identifier": "QOYCD1490N",
+    "name": "Divan, Magar and Sabharwal",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "QRHPH8306M": {
+    "identifier": "QRHPH8306M",
+    "name": "Hitesh Mane",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "36QRHPH8306MOZC": {
+    "identifier": "36QRHPH8306MOZC",
+    "name": "Hitesh Mane",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "ECXCP9353P": {
+    "identifier": "ECXCP9353P",
+    "name": "Pal, Gupta and Mohan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19ECXCP9353P1Z7": {
+    "identifier": "19ECXCP9353P1Z7",
+    "name": "Pal, Gupta and Mohan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "WNZPB6494N": {
+    "identifier": "WNZPB6494N",
+    "name": "Bina Tandon",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "YKMPJ1459O": {
+    "identifier": "YKMPJ1459O",
+    "name": "Januja Tak",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "LLOPA3861C": {
+    "identifier": "LLOPA3861C",
+    "name": "Aayush Kulkarni",
+    "blacklisting_status": "Blacklisted",
+    "authority": "Directorate General of Supplies & Disposals (DGS&D)",
+    "order_number": "GEM/BL/2023/ORD-7542",
+    "order_date": "2024-11-08",
+    "valid_until": "2029-03-26"
+  },
+  "19LLOPA3861CSZB": {
+    "identifier": "19LLOPA3861CSZB",
+    "name": "Aayush Kulkarni",
+    "blacklisting_status": "Blacklisted",
+    "authority": "Directorate General of Supplies & Disposals (DGS&D)",
+    "order_number": "GEM/BL/2023/ORD-7542",
+    "order_date": "2024-11-08",
+    "valid_until": "2029-03-26"
+  },
+  "BQICB9113L": {
+    "identifier": "BQICB9113L",
+    "name": "Bahl-Naidu",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "GXZPN6441I": {
+    "identifier": "GXZPN6441I",
+    "name": "Nirja Pai",
+    "blacklisting_status": "Blacklisted",
+    "authority": "Indian Railways Procurement Division",
+    "order_number": "GEM/BL/2023/ORD-7173",
+    "order_date": "2025-05-23",
+    "valid_until": "2030-12-19"
+  },
+  "09GXZPN6441IYZM": {
+    "identifier": "09GXZPN6441IYZM",
+    "name": "Nirja Pai",
+    "blacklisting_status": "Blacklisted",
+    "authority": "Indian Railways Procurement Division",
+    "order_number": "GEM/BL/2023/ORD-7173",
+    "order_date": "2025-05-23",
+    "valid_until": "2030-12-19"
+  },
+  "KRCPC1598K": {
+    "identifier": "KRCPC1598K",
+    "name": "Chaitaly Iyer",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "NQJPA1560Q": {
+    "identifier": "NQJPA1560Q",
+    "name": "Advaith Pau",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "33NQJPA1560QPZG": {
+    "identifier": "33NQJPA1560QPZG",
+    "name": "Advaith Pau",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "FYPPI3668R": {
+    "identifier": "FYPPI3668R",
+    "name": "Imaran Balan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "RTPCM6614A": {
+    "identifier": "RTPCM6614A",
+    "name": "Mani-Mital",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "33RTPCM6614A1Z3": {
+    "identifier": "33RTPCM6614A1Z3",
+    "name": "Mani-Mital",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "JJXCD1315R": {
+    "identifier": "JJXCD1315R",
+    "name": "Dey LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "33JJXCD1315RFZC": {
+    "identifier": "33JJXCD1315RFZC",
+    "name": "Dey LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "XONCL6628F": {
+    "identifier": "XONCL6628F",
+    "name": "Lad-Walia",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "36XONCL6628F7ZM": {
+    "identifier": "36XONCL6628F7ZM",
+    "name": "Lad-Walia",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "VVUPI9846V": {
+    "identifier": "VVUPI9846V",
+    "name": "Inaya Nazareth",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "24VVUPI9846VUZK": {
+    "identifier": "24VVUPI9846VUZK",
+    "name": "Inaya Nazareth",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "YUDPB8997D": {
+    "identifier": "YUDPB8997D",
+    "name": "Bhanumati Dalal",
+    "blacklisting_status": "Blacklisted",
+    "authority": "GeM SPV Administration",
+    "order_number": "GEM/BL/2024/ORD-1530",
+    "order_date": "2025-05-20",
+    "valid_until": "2030-10-20"
+  },
+  "MQRCP8207B": {
+    "identifier": "MQRCP8207B",
+    "name": "Padmanabhan Group",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "24MQRCP8207BKZE": {
+    "identifier": "24MQRCP8207BKZE",
+    "name": "Padmanabhan Group",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "FXDCS9200V": {
+    "identifier": "FXDCS9200V",
+    "name": "Singhal, Nagi and Sodhi",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "24FXDCS9200VZZA": {
+    "identifier": "24FXDCS9200VZZA",
+    "name": "Singhal, Nagi and Sodhi",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "CCFCJ7307G": {
+    "identifier": "CCFCJ7307G",
+    "name": "Jhaveri and Sons",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19CCFCJ7307G2ZB": {
+    "identifier": "19CCFCJ7307G2ZB",
+    "name": "Jhaveri and Sons",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "YWKCM6259G": {
+    "identifier": "YWKCM6259G",
+    "name": "Mohan LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "09YWKCM6259GAZQ": {
+    "identifier": "09YWKCM6259GAZQ",
+    "name": "Mohan LLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "JWRCP7448X": {
+    "identifier": "JWRCP7448X",
+    "name": "Palla-Kunda",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "FSICB4066F": {
+    "identifier": "FSICB4066F",
+    "name": "Batta, Ranganathan and Behl",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "HZTCK9325V": {
+    "identifier": "HZTCK9325V",
+    "name": "Khosla-Sridhar",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "36HZTCK9325V7ZK": {
+    "identifier": "36HZTCK9325V7ZK",
+    "name": "Khosla-Sridhar",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "GOICG5573H": {
+    "identifier": "GOICG5573H",
+    "name": "Gour, Hayre and Bains",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "RXICG7661F": {
+    "identifier": "RXICG7661F",
+    "name": "Ganesh, Prashad and Madan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "19RXICG7661FTZ7": {
+    "identifier": "19RXICG7661FTZ7",
+    "name": "Ganesh, Prashad and Madan",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "KNCCC2740Y": {
+    "identifier": "KNCCC2740Y",
+    "name": "Chawla, Khare and Khosla",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "BPTCP2489Z": {
+    "identifier": "BPTCP2489Z",
+    "name": "Patel, Shanker and Banerjee",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "27BPTCP2489ZOZ8": {
+    "identifier": "27BPTCP2489ZOZ8",
+    "name": "Patel, Shanker and Banerjee",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "ZVCCG5200K": {
+    "identifier": "ZVCCG5200K",
+    "name": "Garg, Sethi and Mukhopadhyay",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "RGJPI4297Y": {
+    "identifier": "RGJPI4297Y",
+    "name": "Ikbal Contractor",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "OARCM5915E": {
+    "identifier": "OARCM5915E",
+    "name": "Majumdar PLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "IRUPA3944F": {
+    "identifier": "IRUPA3944F",
+    "name": "Arjun Chowdhury",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "VLPCH6608V": {
+    "identifier": "VLPCH6608V",
+    "name": "Handa PLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "29VLPCH6608V3Z6": {
+    "identifier": "29VLPCH6608V3Z6",
+    "name": "Handa PLC",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "WYWCC5500G": {
+    "identifier": "WYWCC5500G",
+    "name": "Contractor Group",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "GEGCS1175C": {
+    "identifier": "GEGCS1175C",
+    "name": "Sarma-Nagar",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "NOACR2773C": {
+    "identifier": "NOACR2773C",
+    "name": "Rau-Sagar",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "24NOACR2773C4ZO": {
+    "identifier": "24NOACR2773C4ZO",
+    "name": "Rau-Sagar",
+    "blacklisting_status": "Not Blacklisted",
+    "authority": null,
+    "order_number": null,
+    "order_date": null,
+    "valid_until": null
+  },
+  "BBUPK6903M": {
+    "identifier": "BBUPK6903M",
+    "name": "Kavya Mani",
     "blacklisting_status": "Not Blacklisted",
     "authority": null,
     "order_number": null,

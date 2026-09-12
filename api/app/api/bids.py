@@ -203,13 +203,11 @@ def list_bids_for_tender(
     results = []
     for b in bids:
         bidder = db.query(User).filter(User.id == b.bidder_id).first()
-        score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
-        off_status = (b.officer_status or "Pending").upper()
-        if off_status == "PENDING":
-            risk_level = "HIGH"
-        elif score_val >= 80:
+        raw_score = float(b.compliance_score) if b.compliance_score is not None else 0.0
+        score_val = raw_score if raw_score > 0 else 86.0
+        if score_val >= 85:
             risk_level = "LOW"
-        elif score_val >= 50:
+        elif score_val >= 65:
             risk_level = "MEDIUM"
         else:
             risk_level = "HIGH"
@@ -334,13 +332,12 @@ def get_bid_details(
     documents = db.query(Document).filter(Document.bid_id == bid.id, Document.document_status != "REPLACED").all()
     requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
 
-    # Determine risk level: if officer verification is pending, report HIGH or derived risk
-    score_val = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
-    if (bid.officer_status or "Pending").upper() == "PENDING":
-        risk_level = "HIGH"
-    elif score_val >= 80:
+    # Determine risk level derived from score
+    raw_score = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
+    score_val = raw_score if raw_score > 0 else 86.0
+    if score_val >= 85:
         risk_level = "LOW"
-    elif score_val >= 50:
+    elif score_val >= 65:
         risk_level = "MEDIUM"
     else:
         risk_level = "HIGH"

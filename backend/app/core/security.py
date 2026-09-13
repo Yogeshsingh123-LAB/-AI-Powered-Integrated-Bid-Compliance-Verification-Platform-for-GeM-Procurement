@@ -5,20 +5,40 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
 
+import bcrypt
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _prepare_password(password: str) -> str:
+    if not password:
+        return ""
+    if isinstance(password, str):
+        return password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+    return str(password)[:72]
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plain password against hashed password with timing attack mitigation."""
-    try:
-        return pwd_context.verify(plain_password, hashed_password)
-    except Exception:
-        # Perform dummy hash operation to prevent timing side-channel leaks
-        pwd_context.hash("dummy_password_for_timing_mitigation")
+    if not plain_password or not hashed_password:
         return False
+    clean_pass = _prepare_password(plain_password)
+    try:
+        if hashed_password.startswith("$2"):
+            return bcrypt.checkpw(clean_pass.encode("utf-8"), hashed_password.encode("utf-8"))
+        return pwd_context.verify(clean_pass, hashed_password)
+    except Exception:
+        try:
+            return pwd_context.verify(clean_pass, hashed_password)
+        except Exception:
+            return False
 
 def get_password_hash(password: str) -> str:
     """Generate bcrypt hash of password."""
-    return pwd_context.hash(password)
+    clean_pass = _prepare_password(password)
+    try:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(clean_pass.encode("utf-8"), salt).decode("utf-8")
+    except Exception:
+        return pwd_context.hash(clean_pass)
 
 def validate_password_strength(password: str) -> bool:
     """

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     INITIAL_ADMIN_PASSWORD: str = Field(default="", repr=False)
     JWT_ALGORITHM: str = Field(default="HS256")
     UPLOAD_DIR: str = Field(default="storage/uploads")
-    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174")
+    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,https://bidverify.vercel.app,https://api-bidverify.vercel.app")
     SUPABASE_URL: str = Field(default="")
     SUPABASE_SECRET_KEY: str = Field(default="", repr=False)
     SUPABASE_BUCKET: str = Field(default="bid-documents")

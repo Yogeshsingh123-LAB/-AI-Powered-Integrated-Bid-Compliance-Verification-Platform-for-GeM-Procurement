@@ -1,4 +1,4 @@
-import { apiFetch, BACKEND_URL } from "../services/api";
+import { apiFetch, safeJson, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from "react";
 import {
   User,
@@ -67,8 +67,8 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
   useEffect(() => {
     generateCaptcha();
     // Sync backend biometric feature status on mount
-    apiFetch(`${API_BASE}/api/auth/biometric/status`)
-      .then((res) => res.json())
+    apiFetch(`${BACKEND_URL}/api/auth/biometric/status`)
+      .then((res) => safeJson(res))
       .then((data) => {
         if (data && typeof data.enabled === "boolean") {
           // If local storage is not set yet, sync with backend state (OFF by default)
@@ -80,13 +80,13 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       .catch(() => {
         // Fallback silently if offline or endpoint unreachable
       });
-  }, [API_BASE]);
+  }, []);
 
   const handleToggleBiometric = async (newVal) => {
     setBiometricEnabled(newVal);
     localStorage.setItem("admin_biometric_enabled", newVal ? "true" : "false");
     try {
-      await apiFetch(`${API_BASE}/api/auth/biometric/toggle`, {
+      await apiFetch(`${BACKEND_URL}/api/auth/biometric/toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: newVal })
@@ -129,7 +129,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       try {
         setBiometricScanMsg("Verifying biometric hash & cryptographic challenge...");
         const targetEmail = loginEmail.trim() || "admin@example.com";
-        const response = await apiFetch(`${API_BASE}/api/auth/biometric/verify`, {
+        const response = await apiFetch(`${BACKEND_URL}/api/auth/biometric/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -139,12 +139,11 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
           })
         });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.detail || "Biometric authentication failed.");
+        const data = await safeJson(response);
+        if (!response.ok || !data || data.success === false) {
+          throw new Error(data?.detail || "Biometric authentication failed.");
         }
 
-        const data = await response.json();
         setBiometricScanStatus("success");
         setBiometricScanMsg(`Biometric Verification Successful! Welcome, ${data.user?.full_name || 'Admin'}.`);
 
@@ -191,8 +190,9 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
     }
 
     setLoading(true);
+    setLoading(true);
     try {
-      const response = await apiFetch(`${API_BASE}/api/auth/login`, {
+      const response = await apiFetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -203,12 +203,12 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Authentication failed. Check your credentials.");
+      const data = await safeJson(response);
+
+      if (!response.ok || !data || data.success === false) {
+        throw new Error(data?.detail || data?.message || "Authentication failed. Check your credentials.");
       }
 
-      const data = await response.json();
       const token = data.access_token;
       const user = data.user;
 
@@ -279,7 +279,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
 
     setLoading(true);
     try {
-      const response = await apiFetch(`${API_BASE}/api/auth/register`, {
+      const response = await apiFetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -292,9 +292,10 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Registration failed.");
+      const data = await safeJson(response);
+
+      if (!response.ok || !data || data.success === false) {
+        throw new Error(data?.detail || data?.message || "Registration failed.");
       }
 
       setSuccessMsg("Registration successful! Directing to login.");

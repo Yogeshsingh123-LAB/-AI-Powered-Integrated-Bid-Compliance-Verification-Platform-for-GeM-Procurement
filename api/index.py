@@ -11,7 +11,9 @@ backend_path = os.path.abspath(os.path.join(api_dir, "..", "backend"))
 if os.path.exists(backend_path) and backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
-from app.main import app
+from app.main import app as fastapi_app
+
+app = fastapi_app
 
 # Export the ASGI app for Vercel Python runtime
 __all__ = ["app"]

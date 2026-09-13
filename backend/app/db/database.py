@@ -38,11 +38,19 @@ def create_resilient_engine(url: str):
     last_error = None
     for target_url in drivers_to_try:
         try:
-            eng = create_engine(target_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
+            eng = create_engine(
+                target_url,
+                connect_args={"connect_timeout": 10},
+                pool_size=10,
+                max_overflow=20,
+                pool_timeout=30,
+                pool_recycle=1800,
+                pool_pre_ping=True
+            )
             with eng.connect() as conn:
                 from sqlalchemy import text
                 conn.execute(text("SELECT 1"))
-            logger.info("Successfully established PostgreSQL connection.")
+            logger.info("Successfully established pooled PostgreSQL connection.")
             return eng
         except Exception as e:
             logger.warning(f"Engine connection attempt failed with driver URL: {e}")
@@ -62,7 +70,7 @@ except Exception as err:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def apply_schema_migrations():
-    """Self-healing migration: Ensure all tables and columns exist in PostgreSQL or SQLite."""
+    """Self-healing migration: Ensure all tables, columns, and indexes exist in PostgreSQL or SQLite."""
     try:
         import app.models  # Ensure models register with Base.metadata
         Base.metadata.create_all(bind=engine)
@@ -96,7 +104,7 @@ def apply_schema_migrations():
                 except Exception as e:
                     logger.warning(f"Failed to add column blockchain_hash to audit_logs: {e}")
 
-            # Tender columns self-healing migrations
+        # Tender columns self-healing migrations
         if "tenders" in inspector.get_table_names():
             existing_tender_cols = [c["name"] for c in inspector.get_columns("tenders")]
             tender_columns = [
@@ -154,7 +162,28 @@ def apply_schema_migrations():
                 except Exception as e:
                     logger.warning(f"Failed to add column rejection_reason to documents: {e}")
 
-        logger.info("Schema migrations applied successfully.")
+        # Ensure performance indexes exist
+        if engine.dialect.name != "sqlite":
+            index_statements = [
+                "CREATE INDEX IF NOT EXISTS idx_bids_tender_id ON bids(tender_id)",
+                "CREATE INDEX IF NOT EXISTS idx_bids_bidder_id ON bids(bidder_id)",
+                "CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)",
+                "CREATE INDEX IF NOT EXISTS idx_bids_officer_status ON bids(officer_status)",
+                "CREATE INDEX IF NOT EXISTS idx_bids_compliance_score ON bids(compliance_score)",
+                "CREATE INDEX IF NOT EXISTS idx_bids_submitted_at ON bids(submitted_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_tenders_status ON tenders(status)",
+                "CREATE INDEX IF NOT EXISTS idx_tenders_created_by ON tenders(created_by)",
+                "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+                "CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)"
+            ]
+            for idx_sql in index_statements:
+                try:
+                    with engine.begin() as ddl_conn:
+                        ddl_conn.execute(text(idx_sql))
+                except Exception as idx_err:
+                    logger.warning(f"Note on index creation statement '{idx_sql}': {idx_err}")
+
+        logger.info("Schema migrations and performance indexes applied successfully.")
     except Exception as create_err:
         raise RuntimeError("Database schema initialization failed. Check database permissions and migrations.") from None
 

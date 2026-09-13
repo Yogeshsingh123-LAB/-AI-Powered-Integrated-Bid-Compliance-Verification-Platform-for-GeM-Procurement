@@ -87,6 +87,7 @@ def apply_bid(
     db.add(new_bid)
     db.commit()
     db.refresh(new_bid)
+    invalidate_stats_cache()
 
     # 5. Create audit record
     create_audit_record(
@@ -234,65 +235,91 @@ def list_bids_for_tender(
 
     return results
 
+# In-memory stats cache: { cache_key: (timestamp, stats_dict) }
+_stats_cache: Dict[str, Any] = {}
+STATS_CACHE_TTL_SECONDS = 30
+
+def invalidate_stats_cache():
+    global _stats_cache
+    _stats_cache.clear()
+
 @router.get("/stats", response_model=Dict[str, Any])
+@router.get("/summary", response_model=Dict[str, Any])
 def get_officer_bid_stats(
     token: Optional[str] = Depends(oauth2_scheme_optional),
     db: Session = Depends(get_db)
 ):
     """
     Retrieve real database KPI statistics for Officer/Admin/Bidder dashboard:
-    - active_tenders: Total count of active/published tenders
-    - total_bids: Total count of bids submitted
-    - pending_verification: Total count of bids requiring review
-    - high_risk: Total count of bids with HIGH risk tiering
-    - completed: Total count of bids completed
+    Optimized with single-query PostgreSQL database-side aggregations and short TTL cache.
     """
     try:
+        from sqlalchemy import case, func
         current_user = get_optional_current_user(db=db, token=token)
+        user_key = str(current_user.id) if (current_user and current_user.role and current_user.role.upper() == "BIDDER") else "ALL"
+        
+        now_ts = datetime.now(timezone.utc).timestamp()
+        if user_key in _stats_cache:
+            cached_ts, cached_data = _stats_cache[user_key]
+            if now_ts - cached_ts < STATS_CACHE_TTL_SECONDS:
+                return cached_data
 
-        active_tenders = db.query(Tender).filter(
+        # 1. Total Active Tenders count
+        active_tenders_count = db.query(func.count(Tender.id)).filter(
             func.upper(func.coalesce(Tender.status, "")).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
-        ).all()
-        active_tender_ids = [t.id for t in active_tenders if t.id]
-        active_tenders_count = len(active_tenders) if active_tenders else db.query(Tender).count()
+        ).scalar() or 0
+
+        # Fallback count if 0 active tenders matched
+        if active_tenders_count == 0:
+            active_tenders_count = db.query(func.count(Tender.id)).scalar() or 0
+
+        # 2. Aggregated Bids Metrics in ONE single database query
+        bids_query = db.query(
+            func.count(Bid.id).label("total_bids"),
+            func.count(case(
+                (func.upper(func.coalesce(Bid.officer_status, Bid.status, "PENDING")).in_(
+                    ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]
+                ), 1)
+            )).label("completed"),
+            func.count(case(
+                (func.upper(func.coalesce(Bid.officer_status, Bid.status, "PENDING")).not_in(
+                    ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]
+                ), 1)
+            )).label("pending_verification"),
+            func.count(case(
+                (func.coalesce(Bid.compliance_score, 0.0) < 50.0, 1)
+            )).label("high_risk"),
+            func.coalesce(func.avg(Bid.compliance_score), 0.0).label("avg_compliance_score")
+        )
 
         if current_user and current_user.role and current_user.role.upper() == "BIDDER":
-            all_bids = db.query(Bid).filter(Bid.bidder_id == current_user.id).all()
-        else:
-            all_bids = db.query(Bid).all()
+            bids_query = bids_query.filter(Bid.bidder_id == current_user.id)
 
-        valid_bids = [b for b in all_bids if not active_tender_ids or b.tender_id in active_tender_ids]
+        stats_row = bids_query.first()
 
-        total_bids = len(valid_bids)
-        pending_verification = 0
-        high_risk = 0
-        completed = 0
-
-        for b in valid_bids:
-            st = (b.officer_status or b.status or "Pending").upper()
-            if st in ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]:
-                completed += 1
-            else:
-                pending_verification += 1
-
-            score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
-            risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
-            if risk_level == "HIGH":
-                high_risk += 1
+        total_bids = int(stats_row.total_bids) if stats_row and stats_row.total_bids else 0
+        completed = int(stats_row.completed) if stats_row and stats_row.completed else 0
+        pending_verification = int(stats_row.pending_verification) if stats_row and stats_row.pending_verification else 0
+        high_risk = int(stats_row.high_risk) if stats_row and stats_row.high_risk else 0
+        avg_score = round(float(stats_row.avg_compliance_score), 2) if stats_row and stats_row.avg_compliance_score else 0.0
 
         stats_payload = {
             "active_tenders": active_tenders_count,
             "total_bids": total_bids,
             "pending_verification": pending_verification,
             "high_risk": high_risk,
-            "completed": completed
+            "completed": completed,
+            "average_compliance_score": avg_score
         }
 
-        return {
+        response_payload = {
             "success": True,
             "data": stats_payload,
             **stats_payload
         }
+
+        _stats_cache[user_key] = (now_ts, response_payload)
+        return response_payload
     except Exception as err:
         import logging
         logging.getLogger(__name__).error(f"Error fetching production bid statistics: {err}", exc_info=True)
@@ -301,7 +328,8 @@ def get_officer_bid_stats(
             "total_bids": 0,
             "pending_verification": 0,
             "high_risk": 0,
-            "completed": 0
+            "completed": 0,
+            "average_compliance_score": 0.0
         }
         return {
             "success": False,

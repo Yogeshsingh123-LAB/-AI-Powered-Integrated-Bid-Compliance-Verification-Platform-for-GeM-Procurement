@@ -13,9 +13,6 @@ tests
 .git
 .vercel
 
-# Heavy media assets
-*.png
-*.webp
-*.mp4
+# Compressed archives
 *.zip
 *.tar.gz

@@ -45,8 +45,8 @@ def localized_fallback(message, language):
     suggestions = (["आवेदन कैसे करें?", "दस्तावेज़ कैसे अपलोड करें?", "आवेदन की स्थिति कैसे देखें?"] if hindi else
                    ["Apply kaise kare?", "Documents upload kaise kare?", "Application status kaise dekhe?"])
     if any(word in text for word in ("status", "track", "स्थिति", "reference", "संदर्भ")):
-        answer = ("आवेदन की स्थिति के लिए ‘आवेदन ट्रैक करें’ चुनें और पूरा संदर्भ नंबर डालें। केवल आपके खाते के आवेदन दिखेंगे। टिकट की स्थिति के लिए ‘टिकट ट्रैक करें’ चुनें।" if hindi else
-                  "Application ki sthiti ke liye ‘Track application’ chune aur poora reference number dale. Sirf aapke account ki application dikhegi. Ticket ke liye ‘Track ticket’ chune.")
+        answer = ("आवेदन की स्थिति के लिए ‘आवेदन ट्रैक करें’ चुनें और अपनी जमा की गई निविदा चुनें। निविदा के नाम या Tender ID से खोजें। केवल आपके खाते के आवेदन दिखेंगे। टिकट की स्थिति के लिए ‘टिकट ट्रैक करें’ चुनें।" if hindi else
+                  "Application ki sthiti ke liye ‘Application track kare’ chune aur apna submitted tender select kare. Tender ke naam ya Tender ID se search kare. Sirf aapke account ki application dikhegi. Ticket ke liye ‘Ticket track kare’ chune.")
     elif any(word in text for word in ("ticket", "टिकट", "agent", "support", "सहायता")):
         answer = ("समस्या भेजने के लिए ‘टिकट बनाएँ’ चुनें। आपको एक टिकट नंबर मिलेगा। सहायता टीम से बात करने के लिए ‘सहायता एजेंट’ चुनें। टीम उपलब्ध न होने पर भी आप टिकट भेज सकते हैं।" if hindi else
                   "Issue bhejne ke liye ‘Raise ticket’ chune. Aapko ticket number milega. Support team se baat karne ke liye ‘Live support’ chune. Team offline ho tab bhi ticket bhej sakte hain.")
@@ -54,8 +54,8 @@ def localized_fallback(message, language):
         answer = ("Supplier खाते में Documents खोलें। संबंधित निविदा की आवश्यक दस्तावेज़ सूची में Upload Document चुनें। PDF, JPG/JPEG, PNG, TIFF और BMP स्वीकार हैं; हर फ़ाइल की सीमा 10 MB है। Buyer खाते में Verification से दस्तावेज़ देखें।" if hindi else
                   "Supplier account mein Documents khole. Tender ki required checklist mein Upload Document chune. PDF, JPG/JPEG, PNG, TIFF aur BMP allowed hain; har file ki limit 10 MB hai. Buyer account mein Verification se documents dekhe.")
     elif any(word in text for word in ("apply", "आवेदन", "tender", "निविदा")):
-        answer = ("Supplier खाते से Tenders खोलें, सक्रिय निविदा चुनें और Apply दबाएँ। फिर Documents में आवश्यक फ़ाइलें जमा करें। My Bids में अपना पूरा आवेदन संदर्भ नंबर देखें।" if hindi else
-                  "Supplier account se Tenders khole, active tender chune aur Apply dabaye. Phir Documents mein required files submit kare. My Bids mein apna poora application reference milega.")
+        answer = ("Supplier खाते से Tenders खोलें, सक्रिय निविदा चुनें और Apply दबाएँ। फिर Documents में आवश्यक फ़ाइलें जमा करें। My Bids में आवेदन की स्थिति देखें।" if hindi else
+                  "Supplier account se Tenders khole, active tender chune aur Apply dabaye. Phir Documents mein required files submit kare. My Bids mein application ki sthiti dekhe.")
     else:
         answer = ("मैं पोर्टल के सामान्य सवालों में मदद कर सकता हूँ। आवेदन की स्थिति, टिकट या सहायता टीम के लिए ऊपर का मेनू चुनें। निविदा के विशिष्ट नियम उसके दस्तावेज़ में जाँचें।" if hindi else
                   "Main portal ke general sawalon mein madad kar sakta hoon. Application status, ticket ya support team ke liye upar ka menu chune. Tender ke specific rules uske document mein check kare.")

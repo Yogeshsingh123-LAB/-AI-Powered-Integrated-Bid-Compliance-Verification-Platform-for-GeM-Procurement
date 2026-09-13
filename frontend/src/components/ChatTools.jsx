@@ -132,12 +132,12 @@ export function SupportPanel({ mode, language }) {
   useEffect(() => {
     if (mode !== "live") return;
     let stopped = false;
-    async function check() {
-      const result = await request(`${BASE}/availability`, {}, true);
+    async function check(quiet = false) {
+      const result = await request(`${BASE}/availability`, {}, quiet);
       if (!stopped) setAvailable(result ? result.available : null);
     }
     check();
-    const timer = setInterval(check, 30000);
+    const timer = setInterval(() => check(true), 30000);
     return () => { stopped = true; clearInterval(timer); };
   }, [mode, request]);
   async function submit(event) {
@@ -157,7 +157,7 @@ export function SupportPanel({ mode, language }) {
   }
   if (ticket) return <TicketConversation initialTicket={ticket} language={language} onBack={() => setTicket(null)} />;
   return <div className="gemmy-tool">
-    {mode === "live" && <p role="status">{available === null ? t.loading : available ? t.online : t.offline}</p>}
+    {mode === "live" && !error && <p role="status">{available === null ? t.loading : available ? t.online : t.offline}</p>}
     <form onSubmit={submit}>
       {mode === "ticket" ? <ReferenceInput label={t.ticketReference} /> : <>
         <label>{t.subject}<input name="subject" required minLength={3} maxLength={160} /></label>
@@ -184,13 +184,13 @@ function TicketConversation({ initialTicket, language, onBack, staff = false }) 
   useEffect(() => {
     let stopped = false;
     let timer;
-    async function refresh() {
-      const rows = await request(`${path}/messages`, {}, true);
+    async function refresh(quiet = false) {
+      const rows = await request(`${path}/messages`, {}, quiet);
       if (stopped) return;
       if (rows) setMessages(rows);
       const status = await request(path, {}, true);
       if (!stopped && status) setTicket(status);
-      if (!stopped) timer = setTimeout(refresh, 10000);
+      if (!stopped) timer = setTimeout(() => refresh(true), 10000);
     }
     refresh();
     return () => { stopped = true; clearTimeout(timer); };
@@ -224,6 +224,7 @@ function TicketConversation({ initialTicket, language, onBack, staff = false }) 
         <button type="button" disabled={busy} onClick={update}>{staff ? ticket.status === "resolved" ? t.reopen : t.resolve : t.escalate}</button>}
     </article>
     <p className="gemmy-muted">{t.conversation}</p>
+    {busy && <p role="status">{t.loading}</p>}
     <div className="gemmy-support-messages" aria-live="polite">
       {messages.map((m) => <div key={m.id} className={`gemmy-support-message ${m.sender_kind}`}>
         <strong>{m.sender_kind === "agent" ? t.agent : staff ? t.applicantName : t.applicant}</strong>
@@ -240,18 +241,21 @@ function TicketConversation({ initialTicket, language, onBack, staff = false }) 
 
 export function SupportInbox({ language }) {
   const t = translations[language];
-  const { request, error } = useRequest(t);
-  const [tickets, setTickets] = useState([]);
+  const { request, error, busy } = useRequest(t);
+  const [tickets, setTickets] = useState(null);
   const [selected, setSelected] = useState(null);
   const [offset, setOffset] = useState(0);
-  const refresh = useCallback(async () => {
-    const rows = await request(`${BASE}/staff/tickets?offset=${offset}`, {}, true);
-    if (rows) setTickets(rows);
+  const pageGeneration = useRef(0);
+  const refresh = useCallback(async (quiet = false) => {
+    const generation = pageGeneration.current;
+    const rows = await request(`${BASE}/staff/tickets?offset=${offset}`, {}, quiet);
+    if (rows && generation === pageGeneration.current) setTickets(rows);
   }, [request, offset]);
   useEffect(() => {
+    setTickets(null);
     refresh();
-    const timer = setInterval(refresh, 15000);
-    return () => clearInterval(timer);
+    const timer = setInterval(() => refresh(true), 15000);
+    return () => { pageGeneration.current += 1; clearInterval(timer); };
   }, [refresh]);
   useEffect(() => {
     const ping = () => request(`${BASE}/staff/presence`, { method: "POST" }, true);
@@ -264,14 +268,15 @@ export function SupportInbox({ language }) {
   }, [request]);
   if (selected) return <TicketConversation key={selected.id} initialTicket={selected} language={language} staff onBack={() => { setSelected(null); refresh(); }} />;
   return <div className="gemmy-tool">
-    <h3>{t.inbox}</h3><button onClick={refresh}>{t.refresh}</button>
-    {tickets.length === 0 && <p>{t.noTickets}</p>}
-    {tickets.map((ticket) => <button className="gemmy-ticket-row" key={ticket.id} onClick={() => setSelected(ticket)}>
+    <h3>{t.inbox}</h3><button disabled={busy} onClick={() => refresh()}>{t.refresh}</button>
+    {busy && <p role="status">{t.loading}</p>}
+    {tickets?.length === 0 && !error && <p>{t.noTickets}</p>}
+    {tickets?.map((ticket) => <button className="gemmy-ticket-row" key={ticket.id} onClick={() => setSelected(ticket)}>
       <strong>{ticket.subject}</strong><span>{t.statuses[ticket.status]}{ticket.escalated_at ? ` · ${t.escalated}` : ""}</span>
       <small className="gemmy-reference">{ticket.id}</small>
     </button>)}
-    <button disabled={!offset} onClick={() => setOffset((n) => Math.max(0, n - 50))}>{t.previous}</button>
-    <button disabled={tickets.length < 50} onClick={() => setOffset((n) => n + 50)}>{t.more}</button>
+    <button disabled={busy || !offset} onClick={() => setOffset((n) => Math.max(0, n - 50))}>{t.previous}</button>
+    <button disabled={busy || !tickets || tickets.length < 50} onClick={() => setOffset((n) => n + 50)}>{t.more}</button>
     {error && <p role="alert">{error}</p>}
   </div>;
 }

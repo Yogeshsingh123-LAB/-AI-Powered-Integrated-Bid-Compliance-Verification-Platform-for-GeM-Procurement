@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = Field(default="gemini")
     AI_API_KEY: str = Field(default="")
     GEMINI_API_KEY: str = Field(default="")
-    AI_MODEL: str = Field(default="gemini-1.5-flash")
+    AI_MODEL: str = Field(default="gemini-2.5-flash")
     GROQ_API_KEY: str = Field(default="")
     GROQ_MODEL: str = Field(default="openai/gpt-oss-20b")
     GROQ_WEB_SEARCH_ENABLED: bool = Field(default=True)
@@ -102,7 +102,7 @@ class Settings(BaseSettings):
 
     @property
     def effective_gemini_api_key(self) -> str:
-        return self.GEMINI_API_KEY or self.AI_API_KEY
+        return self.GEMINI_API_KEY.strip() or self.AI_API_KEY.strip()
 
     @property
     def cors_origins_list(self) -> List[str]:

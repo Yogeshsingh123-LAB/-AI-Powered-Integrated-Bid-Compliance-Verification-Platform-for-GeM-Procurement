@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 
 TEMP = tempfile.TemporaryDirectory(prefix="chat-tests-")
 os.environ.update({"ENVIRONMENT": "test", "DATABASE_URL": "sqlite:///" + str(Path(TEMP.name) / "chat.db").replace("\\", "/"),
-                   "JWT_SECRET": "chat-tests-only-secret-for-isolated-test-data", "AI_API_KEY": "", "GROQ_API_KEY": ""})
+                   "JWT_SECRET": "chat-tests-only-secret-for-isolated-test-data", "AI_API_KEY": "", "GEMINI_API_KEY": "", "GROQ_API_KEY": ""})
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi import FastAPI, Depends

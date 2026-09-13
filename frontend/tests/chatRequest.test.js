@@ -1,12 +1,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requestChatJson } from '../src/components/chatRequest.js';
+import { requestChatJson, buildChatHistory, validateChatResponse } from '../src/components/chatRequest.js';
 import { translations } from '../src/components/chatText.js';
 
 function state(overrides = {}) {
   const errors = [];
   return { errors, settings: { signal: new AbortController().signal, quiet: false, isCurrent: () => true, onError: value => errors.push(value), translations: translations.en, ...overrides } };
 }
+
+test('long provider replies remain visible but cannot invalidate the next request', () => {
+  const messages = [{ id: 'welcome', role: 'assistant', content: 'Welcome' },
+    { role: 'user', content: 'Hello' }, { role: 'assistant', content: '🙂'.repeat(4500) },
+    { role: 'assistant', content: 'Failed', isError: true }];
+  const history = buildChatHistory(messages);
+  assert.equal(history.length, 2);
+  assert.equal(Array.from(history[1].content).length, 4000);
+  assert.equal(Array.from(messages[2].content).length, 4500);
+  assert.equal(buildChatHistory(Array.from({ length: 15 }, () => ({ role: 'user', content: 'Hello' }))).length, 10);
+});
+
+test('malformed successful responses are rejected before rendering', () => {
+  for (const data of [null, {}, { answer: null }, { answer: '' }, { answer: '  ' }, { answer: 42 }]) {
+    assert.throws(() => validateChatResponse(data));
+  }
+  assert.deepEqual(validateChatResponse({ answer: 'Reply', suggestions: ['Next?', null, {}, ''] }).suggestions, ['Next?']);
+  assert.deepEqual(validateChatResponse({ answer: 'Reply', suggestions: 'bad' }).suggestions, []);
+});
 test('quiet HTTP, network, timeout and JSON failures do not change form errors', async () => {
   for (const fetcher of [
     async () => new Response('', { status: 500 }),

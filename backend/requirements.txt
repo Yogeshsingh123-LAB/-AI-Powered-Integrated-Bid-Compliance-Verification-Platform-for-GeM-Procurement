@@ -15,5 +15,7 @@ email-validator>=2.0.0
 pdfplumber>=0.11.0
 requests>=2.31.0
 pymupdf>=1.22.0
+pillow>=10.0.0
+pdfminer.six>=20221105
 faker>=24.0.0
 networkx>=3.0

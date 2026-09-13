@@ -9096,11 +9096,22 @@ function Home({ role, user, onLogout }) {
       setDashboardStatsError(false);
       const activeToken = localStorage.getItem("gem_token") || token;
       const headers = activeToken ? { Authorization: `Bearer ${activeToken}` } : {};
-      const res = await apiFetch(`${API_BASE}/api/bids/stats`, { headers });
+
+      let res = await apiFetch(`${API_BASE}/api/bids/stats`, { headers });
+      if (!res.ok && res.status === 404) {
+        res = await apiFetch(`${API_BASE}/bids/stats`, { headers });
+      }
+
       if (res.ok) {
-        const data = await res.json();
-        const statsData = data?.data || data;
-        setDashboardStats(statsData);
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const data = await res.json();
+          const statsData = data?.data || data;
+          setDashboardStats(statsData);
+        } else {
+          console.warn("Non-JSON content returned by stats endpoint:", contentType);
+          setDashboardStatsError(true);
+        }
       } else {
         console.warn("Server returned error status fetching bid stats:", res.status);
         setDashboardStatsError(true);

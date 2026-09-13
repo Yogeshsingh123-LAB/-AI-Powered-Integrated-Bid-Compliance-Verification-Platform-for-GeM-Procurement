@@ -121,11 +121,15 @@ from app.api.bids import router as bids_router
 
 from app.services.auth_service import get_current_user, require_role
 
-# Register routers
+# Register routers (dual-mounted with and without /api prefix for Vercel Serverless Function compatibility)
 app.include_router(auth_router, prefix="/api")
+app.include_router(auth_router)
 app.include_router(users_router, prefix="/api")
+app.include_router(users_router)
 app.include_router(tenders_router, prefix="/api")
+app.include_router(tenders_router)
 app.include_router(bids_router, prefix="/api")
+app.include_router(bids_router)
 app.include_router(documents_router, prefix="/api", dependencies=[Depends(get_current_user)])
 app.include_router(chat_router, prefix="/api", dependencies=[Depends(get_current_user)])
 app.include_router(chat_support_router, prefix="/api", dependencies=[Depends(get_current_user)])
@@ -143,6 +147,7 @@ app.include_router(mobile_officer_router, prefix="/api", dependencies=[Depends(r
 app.include_router(benchmark_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
 app.include_router(sync_router, prefix="/api", dependencies=[Depends(require_role("OFFICER", "ADMIN"))])
 app.include_router(notifications_router, prefix="/api")
+app.include_router(notifications_router)
 
 
 app.include_router(gst_router)

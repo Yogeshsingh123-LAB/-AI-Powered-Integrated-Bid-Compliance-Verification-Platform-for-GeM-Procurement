@@ -50,9 +50,7 @@ class Settings(BaseSettings):
         if not value:
             return value
         if value.startswith("postgres://"):
-            return "postgresql+psycopg2://" + value[len("postgres://"):]
-        if value.startswith("postgresql://") and not ("+psycopg" in value or "+psycopg2" in value):
-            return "postgresql+psycopg2://" + value[len("postgresql://"):]
+            return "postgresql://" + value[len("postgres://"):]
         return value
 
     @model_validator(mode="after")

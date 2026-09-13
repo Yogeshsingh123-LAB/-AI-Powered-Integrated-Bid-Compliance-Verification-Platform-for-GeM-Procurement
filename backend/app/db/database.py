@@ -16,25 +16,40 @@ def create_resilient_engine(url: str):
 
     clean_url = url
     if clean_url.startswith("postgres://"):
-        clean_url = "postgresql+psycopg2://" + clean_url[len("postgres://"):]
-    elif clean_url.startswith("postgresql://") and not ("+psycopg" in clean_url or "+psycopg2" in clean_url):
-        clean_url = "postgresql+psycopg2://" + clean_url[len("postgresql://"):]
+        clean_url = "postgresql://" + clean_url[len("postgres://"):]
 
-    try:
-        return create_engine(clean_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
-    except Exception as primary_err:
-        logger.warning(f"Primary PostgreSQL engine creation attempt failed for driver URL: {primary_err}")
-        alt_url = clean_url
-        if "postgresql+psycopg://" in clean_url:
-            alt_url = clean_url.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
-        elif "postgresql+psycopg2://" in clean_url:
-            alt_url = clean_url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
-        
+    drivers_to_try = [clean_url]
+    if "postgresql+psycopg2://" in clean_url:
+        drivers_to_try.extend([
+            clean_url.replace("postgresql+psycopg2://", "postgresql://", 1),
+            clean_url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+        ])
+    elif "postgresql+psycopg://" in clean_url:
+        drivers_to_try.extend([
+            clean_url.replace("postgresql+psycopg://", "postgresql://", 1),
+            clean_url.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
+        ])
+    elif clean_url.startswith("postgresql://"):
+        drivers_to_try.extend([
+            clean_url.replace("postgresql://", "postgresql+psycopg2://", 1),
+            clean_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        ])
+
+    last_error = None
+    for target_url in drivers_to_try:
         try:
-            return create_engine(alt_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
-        except Exception as alt_err:
-            logger.error(f"Alternate PostgreSQL driver attempt failed: {alt_err}")
-            raise primary_err
+            eng = create_engine(target_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
+            with eng.connect() as conn:
+                from sqlalchemy import text
+                conn.execute(text("SELECT 1"))
+            logger.info("Successfully established PostgreSQL connection.")
+            return eng
+        except Exception as e:
+            logger.warning(f"Engine connection attempt failed with driver URL: {e}")
+            last_error = e
+
+    if last_error:
+        raise last_error
 
 try:
     engine = create_resilient_engine(settings.DATABASE_URL)

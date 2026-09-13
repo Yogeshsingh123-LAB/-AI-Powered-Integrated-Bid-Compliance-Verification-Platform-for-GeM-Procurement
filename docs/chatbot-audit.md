@@ -69,3 +69,34 @@ verified in this audit. Automated tests do not prove every runtime path is bug-f
 
 Changes are local: restart the backend and rebuild/redeploy the frontend and API
 to apply them to a running deployment.
+
+## Follow-up: session-expired error after deployment
+
+Further inspection of Login.jsx found two ways to enter the authenticated
+workspace with a fabricated token: the Quick Demo Workspace Access button and
+an automatic demo fallback after login network failures. Neither token is a
+server-issued JWT, so protected chat endpoints correctly reject it with HTTP 401.
+The chatbot labels every 401 as an expired session, masking the invalid login.
+
+Removed both fabricated-session paths. Password and biometric login responses
+now require a structurally valid token and user record before opening the
+workspace. Server-side signature and account verification remain required.
+Network errors now stay on the sign-in page instead of becoming apparent success.
+Explicit demo access is now a separate, temporary workspace state with no token.
+The chatbot is hidden for both supplier and officer demos and displayed only for
+authenticated sessions. A banner provides an Exit demo / Sign in button. Shared
+API requests and live monitoring WebSockets are blocked during demo visits;
+exiting demo restores normal API behavior. Failed real logins never enter demo.
+
+All 27 frontend tests and the production build pass. Local browser fixtures
+confirmed both demo roles hide the chatbot, demo exit returns to login, and an
+authenticated workspace shows and opens the chatbot. The fixtures stub backend
+responses and do not verify production credentials or the live AI provider.
+Run npm run dev and open /tests/session-preview.html locally to repeat these UI
+checks; the fixture page is not included in the production build.
+
+This is a verified code defect, but the user's current live URL and sign-in method
+were not supplied, so it is not yet confirmed as the cause of that specific live
+session. After deploying this follow-up, refresh and sign in with a registered
+account. Persistent failure immediately after a genuine login needs inspection
+of that deployment's authentication response and configuration.

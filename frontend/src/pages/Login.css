@@ -1134,3 +1134,16 @@
   background: #1e293b;
 }
 
+.login-demo-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-demo-btn:disabled { opacity: .5; cursor: default; }

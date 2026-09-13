@@ -9013,7 +9013,7 @@ const SettingsView = ({ user, announcementConfig, setAnnouncementConfig, bids, n
   };
 
 
-function Home({ role, user, onLogout }) {
+function Home({ role, user, onLogout, isDemo = false }) {
   const [activeSection, setActiveSection] = useState(() => {
     if (typeof window !== "undefined" && window.location.pathname === "/bidder/profile") {
       return "profile";
@@ -9144,6 +9144,7 @@ function Home({ role, user, onLogout }) {
   };
 
   useEffect(() => {
+    if (isDemo) return;
     fetchTenders();
     fetchBids();
     fetchNotifications();
@@ -9156,7 +9157,7 @@ function Home({ role, user, onLogout }) {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [role, user]);
+  }, [role, user, isDemo]);
 
 
   const [announcementConfig, setAnnouncementConfig] = useState(() => {

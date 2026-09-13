@@ -1,0 +1,23 @@
+.demo-mode-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #fff7ed;
+  color: #7c2d12;
+  border-bottom: 1px solid #fdba74;
+  font-size: 14px;
+}
+.demo-mode-banner button {
+  padding: 8px 12px;
+  border: 1px solid #c2410c;
+  border-radius: 8px;
+  background: #fff;
+  color: #9a3412;
+  cursor: pointer;
+}

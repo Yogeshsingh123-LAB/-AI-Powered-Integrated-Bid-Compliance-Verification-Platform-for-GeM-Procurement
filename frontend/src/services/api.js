@@ -2,6 +2,11 @@
 // the same origin (Vite's development proxy or the production Nginx proxy).
 export const BACKEND_URL = (import.meta.env?.VITE_API_URL || "").trim().replace(/\/+$/, "");
 
+// Demo access is local UI state, never an authentication credential.
+let demoMode = false;
+export function setDemoMode(enabled) { demoMode = Boolean(enabled); }
+export function isDemoMode() { return demoMode; }
+
 export function apiUrl(path) {
   return `${BACKEND_URL}/${path.replace(/^\/+/, "")}`;
 }
@@ -13,6 +18,11 @@ export function websocketUrl(path) {
 }
 
 export function apiFetch(input, options = {}) {
+  if (demoMode) {
+    return Promise.resolve(Response.json({
+      success: false, detail: 'Demo mode: sign in to access live data or save changes.',
+    }, { status: 403 }));
+  }
   const url = typeof input === "string" && input.startsWith("/api/") ? apiUrl(input) : input;
   const headers = new Headers(options.headers);
   const token = localStorage.getItem("gem_token");

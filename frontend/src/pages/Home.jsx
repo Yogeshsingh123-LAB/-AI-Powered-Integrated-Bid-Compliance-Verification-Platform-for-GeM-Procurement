@@ -9107,63 +9107,18 @@ function Home({ role, user, onLogout }) {
         if (contentType.includes("application/json")) {
           const data = await res.json();
           const statsData = data?.data || data;
-          if (statsData && typeof statsData === "object" && (statsData.active_tenders !== undefined || statsData.total_bids !== undefined)) {
-            setDashboardStats(statsData);
-            setDashboardStatsError(false);
-            return;
-          }
+          setDashboardStats(statsData);
+        } else {
+          console.warn("Non-JSON content returned by stats endpoint:", contentType);
+          setDashboardStatsError(true);
         }
-      }
-
-      // If endpoint returns non-JSON or status error, derive stats from live PostgreSQL bids & tenders array
-      if (bids && Array.isArray(bids)) {
-        const liveDerivedStats = {
-          active_tenders: tendersList?.length || 0,
-          total_bids: bids.length,
-          pending_verification: bids.filter(b => {
-            const st = (b.officer_status || b.status || "").toLowerCase();
-            return st.includes("pending") || st.includes("under") || st.includes("review") || st.includes("processing");
-          }).length,
-          high_risk: bids.filter(b => (b.risk || "").toUpperCase() === "HIGH" || (b.compliance_score !== undefined && b.compliance_score < 50)).length,
-          completed: bids.filter(b => {
-            const st = (b.officer_status || b.status || "").toLowerCase();
-            return st.includes("verified") || st.includes("completed") || st.includes("qualified") || st.includes("approved");
-          }).length,
-          average_compliance_score: bids.length > 0
-            ? Math.round(bids.reduce((acc, curr) => acc + (curr.compliance_score || 0), 0) / bids.length)
-            : 0.0
-        };
-        setDashboardStats(liveDerivedStats);
-        setDashboardStatsError(false);
-        return;
-      }
-
-      console.warn("Server returned non-JSON or error status fetching bid stats:", res.status);
-      setDashboardStatsError(true);
-    } catch (err) {
-      console.warn("Failed to fetch dashboard bid statistics:", err);
-      if (bids && Array.isArray(bids)) {
-        const liveDerivedStats = {
-          active_tenders: tendersList?.length || 0,
-          total_bids: bids.length,
-          pending_verification: bids.filter(b => {
-            const st = (b.officer_status || b.status || "").toLowerCase();
-            return st.includes("pending") || st.includes("under") || st.includes("review") || st.includes("processing");
-          }).length,
-          high_risk: bids.filter(b => (b.risk || "").toUpperCase() === "HIGH" || (b.compliance_score !== undefined && b.compliance_score < 50)).length,
-          completed: bids.filter(b => {
-            const st = (b.officer_status || b.status || "").toLowerCase();
-            return st.includes("verified") || st.includes("completed") || st.includes("qualified") || st.includes("approved");
-          }).length,
-          average_compliance_score: bids.length > 0
-            ? Math.round(bids.reduce((acc, curr) => acc + (curr.compliance_score || 0), 0) / bids.length)
-            : 0.0
-        };
-        setDashboardStats(liveDerivedStats);
-        setDashboardStatsError(false);
       } else {
+        console.warn("Server returned error status fetching bid stats:", res.status);
         setDashboardStatsError(true);
       }
+    } catch (err) {
+      console.warn("Failed to fetch dashboard bid statistics:", err);
+      setDashboardStatsError(true);
     } finally {
       setLoadingDashboardStats(false);
     }

@@ -40,10 +40,10 @@ def create_resilient_engine(url: str):
         try:
             eng = create_engine(
                 target_url,
-                connect_args={"connect_timeout": 3},
+                connect_args={"connect_timeout": 10},
                 pool_size=10,
                 max_overflow=20,
-                pool_timeout=5,
+                pool_timeout=30,
                 pool_recycle=1800,
                 pool_pre_ping=True
             )

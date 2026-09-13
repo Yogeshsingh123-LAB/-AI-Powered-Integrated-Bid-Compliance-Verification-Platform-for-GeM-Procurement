@@ -269,8 +269,76 @@ def initialize_database():
     try:
         apply_schema_migrations()
         init_admin_user()
+        seed_initial_tenders()
     except Exception as exc:
         logger.warning(f"Database schema initialization check warning: {exc}")
+
+
+def seed_initial_tenders():
+    """Seed realistic initial procurement tenders into database if empty."""
+    from datetime import datetime, timezone, timedelta
+    from app.models.tender import Tender
+    from app.models.user import User
+
+    with SessionLocal() as db:
+        try:
+            count = db.query(Tender).count()
+            if count > 0:
+                return
+
+            admin_user = db.query(User).filter(User.role == "ADMIN").first()
+            admin_id = admin_user.id if admin_user else None
+
+            sample_tenders = [
+                Tender(
+                    id="GEM/2026/T-1001",
+                    title="Supply, Installation & Commissioning of High-Performance Enterprise Servers",
+                    description="Procurement of rack-mountable server nodes, NVMe storage arrays, and redundant power units for GeM Central Data Facility.",
+                    category="IT Infrastructure & Servers",
+                    department="Chennai Petroleum Corporation Limited (CPCL)",
+                    tender_type="Open Tender / Custom Bid",
+                    budget_limit=12500000.0,
+                    status="Active",
+                    eligibility_requirements="GST Registration, PAN Card, Udyam MSME Certificate, OEM Authorization Certificate, Make in India Declaration",
+                    created_by=admin_id,
+                    published_at=datetime.now(timezone.utc),
+                    closing_date=datetime.now(timezone.utc) + timedelta(days=30)
+                ),
+                Tender(
+                    id="GEM/2026/T-1002",
+                    title="Enterprise Cybersecurity Audit & Penetration Testing Services",
+                    description="Comprehensive vulnerability assessment, penetration testing (VAPT), and ISO 27001 compliance audit for procurement portals.",
+                    category="Consulting & Security Services",
+                    department="Ministry of Electronics & Information Technology (MeitY)",
+                    tender_type="QCBS / Custom Bid",
+                    budget_limit=4500000.0,
+                    status="Active",
+                    eligibility_requirements="GST Registration, PAN Card, CERT-In Empanelled Auditor Certificate, Cybersecurity Past Experience",
+                    created_by=admin_id,
+                    published_at=datetime.now(timezone.utc),
+                    closing_date=datetime.now(timezone.utc) + timedelta(days=21)
+                ),
+                Tender(
+                    id="GEM/2026/T-1003",
+                    title="Procurement of Commercial Laptops & Mobile Workstations",
+                    description="Supply of 250 Intel Core i7 13th Gen commercial laptops with 3-year onsite OEM warranty for regional procurement offices.",
+                    category="Computer Hardware",
+                    department="Directorate General of Supplies & Disposals (DGS&D)",
+                    tender_type="Custom Bid",
+                    budget_limit=18000000.0,
+                    status="Active",
+                    eligibility_requirements="GST Registration, PAN Card, Udyam MSME Certificate, OEM Authorization Certificate, Class-1 Local Content (MII)",
+                    created_by=admin_id,
+                    published_at=datetime.now(timezone.utc),
+                    closing_date=datetime.now(timezone.utc) + timedelta(days=15)
+                )
+            ]
+            db.add_all(sample_tenders)
+            db.commit()
+            logger.info("Successfully seeded initial sample tenders into PostgreSQL database.")
+        except Exception as err:
+            logger.warning(f"Note on initial tender seeding: {err}")
+            db.rollback()
 
 
 def get_db():

@@ -150,6 +150,12 @@ def create_tender(
             db.add(req_obj)
         db.commit()
 
+    try:
+        from app.api.bids import invalidate_stats_cache
+        invalidate_stats_cache()
+    except Exception:
+        pass
+
     create_audit_record(
         db=db,
         action="TENDER_CREATED",

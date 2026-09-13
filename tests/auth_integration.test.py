@@ -118,5 +118,22 @@ class TestAuthIntegration(unittest.TestCase):
         data = res.json()
         self.assertTrue(data.get("success"))
 
+    def test_09_get_bids_stats(self):
+        """Test GET /api/bids/stats for both authenticated and unauthenticated callers."""
+        # Unauthenticated request
+        res_anon = self.client.get("/api/bids/stats")
+        self.assertEqual(res_anon.status_code, 200)
+        data_anon = res_anon.json()
+        self.assertIn("active_tenders", data_anon)
+        self.assertIn("total_bids", data_anon)
+
+        # Authenticated bidder request
+        headers = {"Authorization": f"Bearer {TestAuthIntegration.test_token}"}
+        res_auth = self.client.get("/api/bids/stats", headers=headers)
+        self.assertEqual(res_auth.status_code, 200)
+        data_auth = res_auth.json()
+        self.assertIn("active_tenders", data_auth)
+        self.assertIn("total_bids", data_auth)
+
 if __name__ == "__main__":
     unittest.main()

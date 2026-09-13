@@ -14,7 +14,7 @@ from app.models.bid import Bid
 from app.models.document import Document
 from app.models.requirement import Requirement
 from app.schemas.bid import BidCreate, BidResponse
-from app.services.auth_service import get_current_user, require_role, create_audit_record
+from app.services.auth_service import get_current_user, get_optional_current_user, oauth2_scheme_optional, require_role, create_audit_record
 
 router = APIRouter(prefix="/bids", tags=["Bid Applications & Management"])
 
@@ -236,22 +236,18 @@ def list_bids_for_tender(
 
 @router.get("/stats", response_model=Dict[str, Any])
 def get_officer_bid_stats(
-    current_user: User = Depends(get_current_user),
+    token: Optional[str] = Depends(oauth2_scheme_optional),
     db: Session = Depends(get_db)
 ):
     """
-    Retrieve real database KPI statistics for Officer/Admin dashboard:
+    Retrieve real database KPI statistics for Officer/Admin/Bidder dashboard:
     - active_tenders: Total count of active/published tenders
-    - total_bids: Total count of bids submitted for active tenders
-    - pending_verification: Total count of bids requiring officer review
+    - total_bids: Total count of bids submitted
+    - pending_verification: Total count of bids requiring review
     - high_risk: Total count of bids with HIGH risk tiering
-    - completed: Total count of bids where officer review is completed/qualified/disqualified
+    - completed: Total count of bids completed
     """
-    if current_user.role.upper() not in ["OFFICER", "ADMIN"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only Officers and Admins can view platform bid statistics."
-        )
+    current_user = get_optional_current_user(db=db, token=token)
 
     active_tenders = db.query(Tender).filter(
         func.upper(Tender.status).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
@@ -259,7 +255,11 @@ def get_officer_bid_stats(
     active_tender_ids = [t.id for t in active_tenders]
     active_tenders_count = len(active_tenders) if active_tenders else db.query(Tender).count()
 
-    all_bids = db.query(Bid).all()
+    if current_user and current_user.role.upper() == "BIDDER":
+        all_bids = db.query(Bid).filter(Bid.bidder_id == current_user.id).all()
+    else:
+        all_bids = db.query(Bid).all()
+
     valid_bids = [b for b in all_bids if not active_tender_ids or b.tender_id in active_tender_ids]
 
     total_bids = len(valid_bids)

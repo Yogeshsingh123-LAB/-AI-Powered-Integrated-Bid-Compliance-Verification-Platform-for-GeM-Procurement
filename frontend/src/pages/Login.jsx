@@ -238,6 +238,23 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       }, 1000);
 
     } catch (err) {
+      // Fallback for static/offline deployment mode (e.g. Vercel static demo)
+      if (err.message.includes("Failed to fetch") || err.message.includes("Connection refused") || err.message.includes("NetworkError")) {
+        const isOfficer = selectedPortal === "Buyer";
+        const mockUser = {
+          id: isOfficer ? "off_01" : "bid_01",
+          email: loginEmail || (isOfficer ? "officer@gem.gov.in" : "bidder@tech.com"),
+          full_name: isOfficer ? "Procurement Officer" : "Demo Bidder Entity",
+          role: isOfficer ? "OFFICER" : "BIDDER",
+          organization: isOfficer ? "GeM Procurement Authority" : "Tech Solutions Pvt Ltd"
+        };
+        const mockToken = "demo-jwt-token-12345";
+        setSuccessMsg(`Welcome, ${mockUser.full_name}! Launching interactive workspace...`);
+        setTimeout(() => {
+          onLogin(mockToken, mockUser);
+        }, 800);
+        return;
+      }
       setAuthError(err.message || "Connection refused by authentication server.");
       generateCaptcha();
     } finally {
@@ -563,6 +580,38 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
                     {loading ? "Logging in..." : "Login →"}
                   </button>
+
+                  {/* Quick Demo Access Button */}
+                  <div style={{ marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      style={{
+                        width: '100%',
+                        padding: '11px 16px',
+                        background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+                        border: '1px solid #fdba74',
+                        color: '#c2410c',
+                        borderRadius: '10px',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify-content: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => {
+                        const isOfficer = selectedPortal === "Buyer";
+                        const mockUser = isOfficer
+                          ? { id: "off_01", email: "officer@gem.gov.in", full_name: "Procurement Officer", role: "OFFICER", organization: "GeM Procurement Authority" }
+                          : { id: "bid_01", email: "bidder@techsolutions.com", full_name: "Compliant Tech Solutions", role: "BIDDER", organization: "Tech Solutions Pvt Ltd" };
+                        onLogin("demo-token-12345", mockUser);
+                      }}
+                    >
+                      <span>⚡ Quick Demo Workspace Access ({selectedPortal === "Buyer" ? "Officer" : "Bidder"})</span>
+                    </button>
+                  </div>
 
                   {/* Switch to Register */}
                   <div className="switch-auth-mode-prompt">

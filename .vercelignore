@@ -2,7 +2,8 @@
 node_modules
 frontend/node_modules
 
-# Non-production storage and logs
+# Non-frontend code and data
+backend
 storage
 uploads
 scratch
@@ -13,6 +14,9 @@ tests
 .git
 .vercel
 
-# Compressed archives
+# Heavy videos & archives
+*.mp4
+*.avi
+*.mov
 *.zip
 *.tar.gz

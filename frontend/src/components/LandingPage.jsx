@@ -612,17 +612,19 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             </button>
             <div className="demo-modal-header">
               <Sparkles size={20} className="icon-orange" />
-              <h3>BidVerify Interactive Compliance Engine Demo</h3>
+              <h3>BidVerify Platform Demonstration</h3>
             </div>
             <div className="demo-modal-body">
-              <div className="demo-video-placeholder">
-                <Play size={48} className="demo-play-icon" />
-                <p>Click below to launch interactive bidder compliance verification demo</p>
-                <div className="demo-actions-row">
-                  <button className="btn-hero-primary-orange" onClick={() => { setShowDemoModal(false); onOpenRegister("register"); }}>
-                    Start Live Evaluation <ArrowRight size={16} />
-                  </button>
-                </div>
+              <div className="demo-video-wrapper">
+                <video
+                  src="/SIH_USER.mp4"
+                  controls
+                  autoPlay
+                  playsInline
+                  className="demo-video-player"
+                >
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>

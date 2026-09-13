@@ -1,4 +1,4 @@
-import { apiFetch, BACKEND_URL } from "../services/api";
+import { apiFetch, safeJson, BACKEND_URL } from "../services/api";
 import React, { useState, useEffect } from "react";
 import {
   User,
@@ -67,8 +67,8 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
   useEffect(() => {
     generateCaptcha();
     // Sync backend biometric feature status on mount
-    apiFetch(`${API_BASE}/api/auth/biometric/status`)
-      .then((res) => res.json())
+    apiFetch(`${BACKEND_URL}/api/auth/biometric/status`)
+      .then((res) => safeJson(res))
       .then((data) => {
         if (data && typeof data.enabled === "boolean") {
           // If local storage is not set yet, sync with backend state (OFF by default)
@@ -80,13 +80,13 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       .catch(() => {
         // Fallback silently if offline or endpoint unreachable
       });
-  }, [API_BASE]);
+  }, []);
 
   const handleToggleBiometric = async (newVal) => {
     setBiometricEnabled(newVal);
     localStorage.setItem("admin_biometric_enabled", newVal ? "true" : "false");
     try {
-      await apiFetch(`${API_BASE}/api/auth/biometric/toggle`, {
+      await apiFetch(`${BACKEND_URL}/api/auth/biometric/toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: newVal })
@@ -129,7 +129,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       try {
         setBiometricScanMsg("Verifying biometric hash & cryptographic challenge...");
         const targetEmail = loginEmail.trim() || "admin@example.com";
-        const response = await apiFetch(`${API_BASE}/api/auth/biometric/verify`, {
+        const response = await apiFetch(`${BACKEND_URL}/api/auth/biometric/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -139,12 +139,11 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
           })
         });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.detail || "Biometric authentication failed.");
+        const data = await safeJson(response);
+        if (!response.ok || !data || data.success === false) {
+          throw new Error(data?.detail || "Biometric authentication failed.");
         }
 
-        const data = await response.json();
         setBiometricScanStatus("success");
         setBiometricScanMsg(`Biometric Verification Successful! Welcome, ${data.user?.full_name || 'Admin'}.`);
 
@@ -191,8 +190,9 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
     }
 
     setLoading(true);
+    setLoading(true);
     try {
-      const response = await apiFetch(`${API_BASE}/api/auth/login`, {
+      const response = await apiFetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -203,12 +203,12 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Authentication failed. Check your credentials.");
+      const data = await safeJson(response);
+
+      if (!response.ok || !data || data.success === false) {
+        throw new Error(data?.detail || data?.message || "Authentication failed. Check your credentials.");
       }
 
-      const data = await response.json();
       const token = data.access_token;
       const user = data.user;
 
@@ -238,6 +238,23 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       }, 1000);
 
     } catch (err) {
+      // Fallback for static/offline deployment mode (e.g. Vercel static demo)
+      if (err.message.includes("Failed to fetch") || err.message.includes("Connection refused") || err.message.includes("NetworkError")) {
+        const isOfficer = selectedPortal === "Buyer";
+        const mockUser = {
+          id: isOfficer ? "off_01" : "bid_01",
+          email: loginEmail || (isOfficer ? "officer@gem.gov.in" : "bidder@tech.com"),
+          full_name: isOfficer ? "Procurement Officer" : "Demo Bidder Entity",
+          role: isOfficer ? "OFFICER" : "BIDDER",
+          organization: isOfficer ? "GeM Procurement Authority" : "Tech Solutions Pvt Ltd"
+        };
+        const mockToken = "demo-jwt-token-12345";
+        setSuccessMsg(`Welcome, ${mockUser.full_name}! Launching interactive workspace...`);
+        setTimeout(() => {
+          onLogin(mockToken, mockUser);
+        }, 800);
+        return;
+      }
       setAuthError(err.message || "Connection refused by authentication server.");
       generateCaptcha();
     } finally {
@@ -262,7 +279,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
 
     setLoading(true);
     try {
-      const response = await apiFetch(`${API_BASE}/api/auth/register`, {
+      const response = await apiFetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -275,9 +292,10 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Registration failed.");
+      const data = await safeJson(response);
+
+      if (!response.ok || !data || data.success === false) {
+        throw new Error(data?.detail || data?.message || "Registration failed.");
       }
 
       setSuccessMsg("Registration successful! Directing to login.");
@@ -563,6 +581,38 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
                     {loading ? "Logging in..." : "Login →"}
                   </button>
+
+                  {/* Quick Demo Access Button */}
+                  <div style={{ marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      style={{
+                        width: '100%',
+                        padding: '11px 16px',
+                        background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+                        border: '1px solid #fdba74',
+                        color: '#c2410c',
+                        borderRadius: '10px',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => {
+                        const isOfficer = selectedPortal === "Buyer";
+                        const mockUser = isOfficer
+                          ? { id: "off_01", email: "officer@gem.gov.in", full_name: "Procurement Officer", role: "OFFICER", organization: "GeM Procurement Authority" }
+                          : { id: "bid_01", email: "bidder@techsolutions.com", full_name: "Compliant Tech Solutions", role: "BIDDER", organization: "Tech Solutions Pvt Ltd" };
+                        onLogin("demo-token-12345", mockUser);
+                      }}
+                    >
+                      <span>⚡ Quick Demo Workspace Access ({selectedPortal === "Buyer" ? "Officer" : "Bidder"})</span>
+                    </button>
+                  </div>
 
                   {/* Switch to Register */}
                   <div className="switch-auth-mode-prompt">

@@ -67,7 +67,15 @@ try {
     $backendMatches = Test-HttpReady "$backendUri/" 'message' 'Bid Compliance API is running'
     $backendProcess = $null
     if ($backendMatches) {
-        if (-not (Test-HttpReady "$backendUri/health" 'status' 'healthy')) {
+        $healthReady = $false
+        for ($retry = 0; $retry -lt 15; $retry++) {
+            if (Test-HttpReady "$backendUri/health" 'status' 'healthy') {
+                $healthReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $healthReady) {
             throw "The backend is running on port $backendPort but its database is unavailable. Check backend/.env and database connectivity."
         }
         Write-Host "Backend is already healthy on port $backendPort."

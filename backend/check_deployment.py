@@ -24,17 +24,20 @@ def main():
                 missing.extend(f"{table.name}.{col.name}" for col in table.columns if col.name not in existing)
         print("Database schema: " + ("missing " + ", ".join(missing) if missing else "OK"))
         failed = failed or bool(missing)
-    except Exception:
-        print("Database check failed: verify network access, DATABASE_URL, and database permissions.")
+    except Exception as exc:
+        print(f"Database check failed: verify network access, DATABASE_URL, and database permissions ({exc}).")
         failed = True
     finally:
         engine.dispose()
     try:
         from app.services.storage_service import StorageService
-        bucket = StorageService.get_client().storage.get_bucket(settings.SUPABASE_BUCKET)
-        public = bucket.get("public", False) if isinstance(bucket, dict) else bucket.public
-        print("Document storage: " + ("bucket is PUBLIC; make it private" if public else "private bucket OK"))
-        failed = failed or public
+        if StorageService.is_supabase_configured():
+            bucket = StorageService.get_client().storage.get_bucket(settings.SUPABASE_BUCKET)
+            public = bucket.get("public", False) if isinstance(bucket, dict) else bucket.public
+            print("Document storage: " + ("bucket is PUBLIC; make it private" if public else "Supabase private bucket OK"))
+            failed = failed or public
+        else:
+            print("Document storage: Local filesystem fallback OK (Supabase unconfigured)")
     except Exception as exc:
         print(f"Storage error category: {type(exc).__name__}; status: {getattr(exc, 'status', 'unknown')}; code: {getattr(exc, 'code', 'unknown')}")
         print("Storage check failed: verify network access, SUPABASE_URL, SUPABASE_SECRET_KEY, and bucket existence.")
@@ -44,3 +47,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

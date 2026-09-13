@@ -26,445 +26,373 @@
     "returns_filed": 4,
     "registration_date": "2020-09-01"
   },
-  "07DZQPN1313XNZ3": {
-    "gstin": "07DZQPN1313XNZ3",
-    "legal_name": "Nikita Bahl",
-    "trade_name": "Nikita",
+  "36WJDCN4084BQZ6": {
+    "gstin": "36WJDCN4084BQZ6",
+    "legal_name": "Naik-Agrawal",
+    "trade_name": "Naik-Agrawal",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 1,
+    "registration_date": "2023-07-04"
+  },
+  "03NXECB3926KNZ4": {
+    "gstin": "03NXECB3926KNZ4",
+    "legal_name": "Bhatnagar-Sant",
+    "trade_name": "Bhatnagar-Sant",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 9,
+    "registration_date": "2019-05-07"
+  },
+  "19JXUCM4065QUZW": {
+    "gstin": "19JXUCM4065QUZW",
+    "legal_name": "Murty and Sons",
+    "trade_name": "Murty",
+    "status": "Active",
+    "business_type": "Partnership",
+    "returns_filed": 9,
+    "registration_date": "2019-07-28"
+  },
+  "29RVYCC3474XJZV": {
+    "gstin": "29RVYCC3474XJZV",
+    "legal_name": "Chana, Tiwari and Wadhwa",
+    "trade_name": "Chana,",
+    "status": "Suspended",
+    "business_type": "Partnership",
+    "returns_filed": 9,
+    "registration_date": "2021-03-07"
+  },
+  "27KBNCG1014I6Z8": {
+    "gstin": "27KBNCG1014I6Z8",
+    "legal_name": "Gandhi, Dutta and Ganguly",
+    "trade_name": "Gandhi,",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 6,
+    "registration_date": "2019-06-21"
+  },
+  "24VNGCP3900VIZN": {
+    "gstin": "24VNGCP3900VIZN",
+    "legal_name": "Pal PLC",
+    "trade_name": "Pal",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 1,
+    "registration_date": "2025-05-12"
+  },
+  "27DYLCS3613F6Z8": {
+    "gstin": "27DYLCS3613F6Z8",
+    "legal_name": "Sastry LLC",
+    "trade_name": "Sastry",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 7,
+    "registration_date": "2021-04-23"
+  },
+  "24BKSPY4276HOZP": {
+    "gstin": "24BKSPY4276HOZP",
+    "legal_name": "Yauvani Borde",
+    "trade_name": "Yauvani",
+    "status": "Active",
+    "business_type": "Partnership",
+    "returns_filed": 2,
+    "registration_date": "2021-03-03"
+  },
+  "33NKECT1467FQZD": {
+    "gstin": "33NKECT1467FQZD",
+    "legal_name": "Tandon, Minhas and Yadav",
+    "trade_name": "Tandon,",
+    "status": "Suspended",
+    "business_type": "Private Limited",
+    "returns_filed": 2,
+    "registration_date": "2019-11-09"
+  },
+  "07BFMCC5367MWZU": {
+    "gstin": "07BFMCC5367MWZU",
+    "legal_name": "Choudhary, Sane and Ratta",
+    "trade_name": "Choudhary,",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 10,
+    "registration_date": "2022-12-28"
+  },
+  "03RYLCM1160MKZC": {
+    "gstin": "03RYLCM1160MKZC",
+    "legal_name": "More Group",
+    "trade_name": "More",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 2,
+    "registration_date": "2022-04-20"
+  },
+  "03FZJPA5205ZAZL": {
+    "gstin": "03FZJPA5205ZAZL",
+    "legal_name": "Aashi D\u2019Alia",
+    "trade_name": "Aashi",
+    "status": "Inactive",
+    "business_type": "LLP",
+    "returns_filed": 4,
+    "registration_date": "2021-12-22"
+  },
+  "24HSOCC5763PEZ9": {
+    "gstin": "24HSOCC5763PEZ9",
+    "legal_name": "Cheema and Sons",
+    "trade_name": "Cheema",
     "status": "Active",
     "business_type": "LLP",
     "returns_filed": 7,
-    "registration_date": "2019-06-28"
+    "registration_date": "2018-12-06"
   },
-  "27VGECM1322QKZQ": {
-    "gstin": "27VGECM1322QKZQ",
-    "legal_name": "Mani-Pau",
-    "trade_name": "Mani-Pau",
+  "36ZDECK3015D2ZP": {
+    "gstin": "36ZDECK3015D2ZP",
+    "legal_name": "Kurian Inc",
+    "trade_name": "Kurian",
     "status": "Active",
     "business_type": "LLP",
-    "returns_filed": 9,
-    "registration_date": "2021-05-31"
+    "returns_filed": 12,
+    "registration_date": "2020-11-13"
   },
-  "09KZPCD8452XHZQ": {
-    "gstin": "09KZPCD8452XHZQ",
-    "legal_name": "Dalal, Wali and Ravi",
-    "trade_name": "Dalal,",
+  "29MEACP1189T6Z2": {
+    "gstin": "29MEACP1189T6Z2",
+    "legal_name": "Pillay and Sons",
+    "trade_name": "Pillay",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 0,
+    "registration_date": "2024-05-13"
+  },
+  "29VBXPB7011PZZ6": {
+    "gstin": "29VBXPB7011PZZ6",
+    "legal_name": "Bhavya Ratti",
+    "trade_name": "Bhavya",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 10,
+    "registration_date": "2020-11-13"
+  },
+  "03DZRCK3079ODZK": {
+    "gstin": "03DZRCK3079ODZK",
+    "legal_name": "Kaur-Varughese",
+    "trade_name": "Kaur-Varughese",
+    "status": "Suspended",
+    "business_type": "Partnership",
+    "returns_filed": 9,
+    "registration_date": "2023-01-16"
+  },
+  "32AOACW2971ETZL": {
+    "gstin": "32AOACW2971ETZL",
+    "legal_name": "Walla-Gade",
+    "trade_name": "Walla-Gade",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 3,
+    "registration_date": "2022-07-27"
+  },
+  "09GMJPM1286BOZJ": {
+    "gstin": "09GMJPM1286BOZJ",
+    "legal_name": "Manbir Walla",
+    "trade_name": "Manbir",
     "status": "Active",
     "business_type": "Partnership",
     "returns_filed": 12,
-    "registration_date": "2024-12-05"
+    "registration_date": "2020-02-22"
   },
-  "29LBBCS8357B7Z8": {
-    "gstin": "29LBBCS8357B7Z8",
-    "legal_name": "Sekhon LLC",
-    "trade_name": "Sekhon",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 9,
-    "registration_date": "2024-11-23"
-  },
-  "09TPMCV7435LQZK": {
-    "gstin": "09TPMCV7435LQZK",
-    "legal_name": "Vora, Sathe and Kala",
-    "trade_name": "Vora,",
-    "status": "Inactive",
-    "business_type": "Private Limited",
-    "returns_filed": 2,
-    "registration_date": "2023-06-17"
-  },
-  "24FABPA2240H3ZW": {
-    "gstin": "24FABPA2240H3ZW",
-    "legal_name": "Adweta Sabharwal",
-    "trade_name": "Adweta",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 1,
-    "registration_date": "2024-11-03"
-  },
-  "19XRJCB1105LQZ3": {
-    "gstin": "19XRJCB1105LQZ3",
-    "legal_name": "Babu-Agrawal",
-    "trade_name": "Babu-Agrawal",
+  "32JLKPB7950B4ZW": {
+    "gstin": "32JLKPB7950B4ZW",
+    "legal_name": "Baljiwan Subramaniam",
+    "trade_name": "Baljiwan",
     "status": "Active",
     "business_type": "Partnership",
-    "returns_filed": 1,
-    "registration_date": "2025-05-04"
+    "returns_filed": 5,
+    "registration_date": "2022-11-16"
   },
-  "29QBJPN2199Q1ZB": {
-    "gstin": "29QBJPN2199Q1ZB",
-    "legal_name": "Netra Jha",
-    "trade_name": "Netra",
+  "24AUQCV3100BAZR": {
+    "gstin": "24AUQCV3100BAZR",
+    "legal_name": "Varkey Group",
+    "trade_name": "Varkey",
+    "status": "Inactive",
+    "business_type": "Proprietorship",
+    "returns_filed": 6,
+    "registration_date": "2021-06-11"
+  },
+  "33GBVCR3804QGZI": {
+    "gstin": "33GBVCR3804QGZI",
+    "legal_name": "Raj, Gala and Dada",
+    "trade_name": "Raj,",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 8,
+    "registration_date": "2022-12-22"
+  },
+  "07RJUCD4632MFZY": {
+    "gstin": "07RJUCD4632MFZY",
+    "legal_name": "Dutt Ltd",
+    "trade_name": "Dutt",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 5,
+    "registration_date": "2021-02-23"
+  },
+  "33UTOPU2984WSZG": {
+    "gstin": "33UTOPU2984WSZG",
+    "legal_name": "Urvashi Mahajan",
+    "trade_name": "Urvashi",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 2,
+    "registration_date": "2023-11-30"
+  },
+  "09TLGCK6599T4ZS": {
+    "gstin": "09TLGCK6599T4ZS",
+    "legal_name": "Kanda, Samra and Kumer",
+    "trade_name": "Kanda,",
     "status": "Active",
     "business_type": "LLP",
     "returns_filed": 5,
-    "registration_date": "2023-03-07"
+    "registration_date": "2023-07-02"
   },
-  "09CZNCD4295IJZE": {
-    "gstin": "09CZNCD4295IJZE",
-    "legal_name": "Dada, Bakshi and Mitra",
-    "trade_name": "Dada,",
+  "09OOPCN9135FIZC": {
+    "gstin": "09OOPCN9135FIZC",
+    "legal_name": "Nagarajan-Dua",
+    "trade_name": "Nagarajan-Dua",
     "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 8,
-    "registration_date": "2020-01-18"
-  },
-  "33LWHCP8460DXZS": {
-    "gstin": "33LWHCP8460DXZS",
-    "legal_name": "Palla and Sons",
-    "trade_name": "Palla",
-    "status": "Active",
-    "business_type": "Partnership",
-    "returns_filed": 2,
-    "registration_date": "2023-03-18"
-  },
-  "09TSICW3971RJZJ": {
-    "gstin": "09TSICW3971RJZJ",
-    "legal_name": "Wable-Dey",
-    "trade_name": "Wable-Dey",
-    "status": "Suspended",
-    "business_type": "Partnership",
-    "returns_filed": 2,
-    "registration_date": "2019-06-04"
-  },
-  "33OYCCG3455OFZ6": {
-    "gstin": "33OYCCG3455OFZ6",
-    "legal_name": "Gokhale-Jain",
-    "trade_name": "Gokhale-Jain",
-    "status": "Active",
-    "business_type": "Partnership",
-    "returns_filed": 0,
-    "registration_date": "2020-01-16"
-  },
-  "32BFYPA8112PHZV": {
-    "gstin": "32BFYPA8112PHZV",
-    "legal_name": "Aryan Panchal",
-    "trade_name": "Aryan",
-    "status": "Inactive",
     "business_type": "Proprietorship",
-    "returns_filed": 9,
-    "registration_date": "2019-08-14"
+    "returns_filed": 8,
+    "registration_date": "2023-03-23"
   },
-  "03HYGCD3086F9ZC": {
-    "gstin": "03HYGCD3086F9ZC",
-    "legal_name": "Deep-Chokshi",
-    "trade_name": "Deep-Chokshi",
+  "33CLOPM1279M4ZQ": {
+    "gstin": "33CLOPM1279M4ZQ",
+    "legal_name": "Maya Rau",
+    "trade_name": "Maya",
     "status": "Active",
     "business_type": "Private Limited",
-    "returns_filed": 12,
-    "registration_date": "2022-09-13"
-  },
-  "24VZDPL9805YWZF": {
-    "gstin": "24VZDPL9805YWZF",
-    "legal_name": "Lohit Badal",
-    "trade_name": "Lohit",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 1,
-    "registration_date": "2020-12-31"
-  },
-  "19MQXCD4954N1Z5": {
-    "gstin": "19MQXCD4954N1Z5",
-    "legal_name": "Dua Group",
-    "trade_name": "Dua",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 2,
-    "registration_date": "2018-10-25"
-  },
-  "09DUECM9771JWZR": {
-    "gstin": "09DUECM9771JWZR",
-    "legal_name": "Mahal Inc",
-    "trade_name": "Mahal",
-    "status": "Active",
-    "business_type": "Partnership",
-    "returns_filed": 7,
-    "registration_date": "2022-03-24"
-  },
-  "32OBNCV6629VZZU": {
-    "gstin": "32OBNCV6629VZZU",
-    "legal_name": "Vora, Mishra and Muni",
-    "trade_name": "Vora,",
-    "status": "Active",
-    "business_type": "LLP",
     "returns_filed": 11,
-    "registration_date": "2023-01-17"
+    "registration_date": "2024-02-23"
   },
-  "33MIECT8940PRZL": {
-    "gstin": "33MIECT8940PRZL",
-    "legal_name": "Thakkar Group",
-    "trade_name": "Thakkar",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 2,
-    "registration_date": "2020-09-04"
-  },
-  "27AAJCC8909UBZJ": {
-    "gstin": "27AAJCC8909UBZJ",
-    "legal_name": "Chana LLC",
-    "trade_name": "Chana",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 0,
-    "registration_date": "2019-05-13"
-  },
-  "33BNZPJ4890VGZ2": {
-    "gstin": "33BNZPJ4890VGZ2",
-    "legal_name": "Janaki Pillay",
-    "trade_name": "Janaki",
-    "status": "Suspended",
-    "business_type": "LLP",
-    "returns_filed": 8,
-    "registration_date": "2023-12-20"
-  },
-  "33COJCM7737LKZ3": {
-    "gstin": "33COJCM7737LKZ3",
-    "legal_name": "Mahajan, Khatri and Sawhney",
-    "trade_name": "Mahajan,",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 3,
-    "registration_date": "2021-10-12"
-  },
-  "19QTKPN8627ZQZ2": {
-    "gstin": "19QTKPN8627ZQZ2",
-    "legal_name": "Nachiket Sunder",
-    "trade_name": "Nachiket",
-    "status": "Suspended",
-    "business_type": "Proprietorship",
-    "returns_filed": 1,
-    "registration_date": "2021-06-18"
-  },
-  "29VMMCM2304S9ZE": {
-    "gstin": "29VMMCM2304S9ZE",
-    "legal_name": "Mammen Group",
-    "trade_name": "Mammen",
-    "status": "Suspended",
-    "business_type": "Proprietorship",
-    "returns_filed": 10,
-    "registration_date": "2020-01-22"
-  },
-  "36TXFPA2507RZZV": {
-    "gstin": "36TXFPA2507RZZV",
-    "legal_name": "Andrew Verma",
-    "trade_name": "Andrew",
-    "status": "Active",
-    "business_type": "Partnership",
-    "returns_filed": 9,
-    "registration_date": "2020-05-06"
-  },
-  "29UFSCB7157KLZA": {
-    "gstin": "29UFSCB7157KLZA",
-    "legal_name": "Basak-Seth",
-    "trade_name": "Basak-Seth",
+  "32SADPK7424C8ZV": {
+    "gstin": "32SADPK7424C8ZV",
+    "legal_name": "Kalpit Natt",
+    "trade_name": "Kalpit",
     "status": "Active",
     "business_type": "Proprietorship",
-    "returns_filed": 8,
-    "registration_date": "2019-03-22"
-  },
-  "33RWHPH8816YZZW": {
-    "gstin": "33RWHPH8816YZZW",
-    "legal_name": "Hemani Trivedi",
-    "trade_name": "Hemani",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 9,
-    "registration_date": "2022-11-19"
-  },
-  "36TCSCB1046CCZW": {
-    "gstin": "36TCSCB1046CCZW",
-    "legal_name": "Bali and Sons",
-    "trade_name": "Bali",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 12,
-    "registration_date": "2021-11-11"
-  },
-  "19CUUCK2833ZVZX": {
-    "gstin": "19CUUCK2833ZVZX",
-    "legal_name": "Korpal Group",
-    "trade_name": "Korpal",
-    "status": "Active",
-    "business_type": "Proprietorship",
-    "returns_filed": 2,
-    "registration_date": "2024-02-18"
-  },
-  "29ESRCD3897MTZH": {
-    "gstin": "29ESRCD3897MTZH",
-    "legal_name": "Dalal, Seth and Guha",
-    "trade_name": "Dalal,",
-    "status": "Active",
-    "business_type": "Proprietorship",
-    "returns_filed": 9,
-    "registration_date": "2019-01-20"
-  },
-  "29FIJCL3400MCZ6": {
-    "gstin": "29FIJCL3400MCZ6",
-    "legal_name": "Lala, Kadakia and Taneja",
-    "trade_name": "Lala,",
-    "status": "Active",
-    "business_type": "Partnership",
-    "returns_filed": 12,
-    "registration_date": "2018-09-12"
-  },
-  "24EWVPS7831PPZG": {
-    "gstin": "24EWVPS7831PPZG",
-    "legal_name": "Samesh Nath",
-    "trade_name": "Samesh",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 10,
-    "registration_date": "2022-03-15"
-  },
-  "29XSTCS2712PKZC": {
-    "gstin": "29XSTCS2712PKZC",
-    "legal_name": "Sangha, Taneja and Banik",
-    "trade_name": "Sangha,",
-    "status": "Active",
-    "business_type": "LLP",
     "returns_filed": 6,
-    "registration_date": "2020-01-20"
+    "registration_date": "2020-03-18"
   },
-  "09RHOCN2957IRZA": {
-    "gstin": "09RHOCN2957IRZA",
-    "legal_name": "Nair-Mani",
-    "trade_name": "Nair-Mani",
+  "33WZPCD7889WZZ5": {
+    "gstin": "33WZPCD7889WZZ5",
+    "legal_name": "Deshmukh Inc",
+    "trade_name": "Deshmukh",
+    "status": "Suspended",
+    "business_type": "Private Limited",
+    "returns_filed": 12,
+    "registration_date": "2024-04-18"
+  },
+  "29GQGCB4204IFZP": {
+    "gstin": "29GQGCB4204IFZP",
+    "legal_name": "Batta-Banerjee",
+    "trade_name": "Batta-Banerjee",
+    "status": "Suspended",
+    "business_type": "LLP",
+    "returns_filed": 0,
+    "registration_date": "2021-03-11"
+  },
+  "36DPXPA2901TMZU": {
+    "gstin": "36DPXPA2901TMZU",
+    "legal_name": "Akshay Sridhar",
+    "trade_name": "Akshay",
     "status": "Active",
     "business_type": "Partnership",
+    "returns_filed": 5,
+    "registration_date": "2025-04-01"
+  },
+  "03TYUCV8792H6Z7": {
+    "gstin": "03TYUCV8792H6Z7",
+    "legal_name": "Vora-Bose",
+    "trade_name": "Vora-Bose",
+    "status": "Active",
+    "business_type": "LLP",
     "returns_filed": 4,
-    "registration_date": "2024-11-05"
+    "registration_date": "2024-06-12"
   },
-  "24QNGPK4875GNZZ": {
-    "gstin": "24QNGPK4875GNZZ",
-    "legal_name": "Kabir Palla",
-    "trade_name": "Kabir",
-    "status": "Inactive",
-    "business_type": "Private Limited",
+  "29OQMCS5825IAZK": {
+    "gstin": "29OQMCS5825IAZK",
+    "legal_name": "Sagar-Mital",
+    "trade_name": "Sagar-Mital",
+    "status": "Active",
+    "business_type": "Proprietorship",
     "returns_filed": 11,
-    "registration_date": "2021-06-17"
+    "registration_date": "2022-09-26"
   },
-  "03SLNCV8867I7Z7": {
-    "gstin": "03SLNCV8867I7Z7",
-    "legal_name": "Venkatesh Ltd",
-    "trade_name": "Venkatesh",
+  "29GRQCW2198ZYZD": {
+    "gstin": "29GRQCW2198ZYZD",
+    "legal_name": "Wable, Oza and Lall",
+    "trade_name": "Wable,",
     "status": "Active",
     "business_type": "Partnership",
-    "returns_filed": 6,
-    "registration_date": "2019-03-14"
+    "returns_filed": 12,
+    "registration_date": "2021-04-26"
   },
-  "36NVVCH1178A6ZI": {
-    "gstin": "36NVVCH1178A6ZI",
-    "legal_name": "Hora Inc",
-    "trade_name": "Hora",
-    "status": "Active",
-    "business_type": "Proprietorship",
-    "returns_filed": 3,
-    "registration_date": "2025-03-01"
-  },
-  "09FKRCH3542IWZS": {
-    "gstin": "09FKRCH3542IWZS",
-    "legal_name": "Halder-Anand",
-    "trade_name": "Halder-Anand",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 7,
-    "registration_date": "2022-06-25"
-  },
-  "09JRECB7047F5ZC": {
-    "gstin": "09JRECB7047F5ZC",
-    "legal_name": "Bakshi, De and Natarajan",
-    "trade_name": "Bakshi,",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 2,
-    "registration_date": "2023-01-31"
-  },
-  "03CSBCT8725GPZC": {
-    "gstin": "03CSBCT8725GPZC",
-    "legal_name": "Tara, Palan and Raghavan",
-    "trade_name": "Tara,",
-    "status": "Active",
-    "business_type": "Proprietorship",
-    "returns_filed": 11,
-    "registration_date": "2020-04-24"
-  },
-  "29FCOPH1118WAZM": {
-    "gstin": "29FCOPH1118WAZM",
-    "legal_name": "Hitesh Sura",
-    "trade_name": "Hitesh",
-    "status": "Suspended",
-    "business_type": "Partnership",
-    "returns_filed": 8,
-    "registration_date": "2023-03-06"
-  },
-  "27EVPCM1423HXZN": {
-    "gstin": "27EVPCM1423HXZN",
-    "legal_name": "Mann Ltd",
-    "trade_name": "Mann",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 6,
-    "registration_date": "2024-11-02"
-  },
-  "32KVUPF2641EMZU": {
-    "gstin": "32KVUPF2641EMZU",
-    "legal_name": "Forum Purohit",
-    "trade_name": "Forum",
-    "status": "Active",
-    "business_type": "Proprietorship",
-    "returns_filed": 11,
-    "registration_date": "2019-06-23"
-  },
-  "24NNBPY8480J5ZW": {
-    "gstin": "24NNBPY8480J5ZW",
-    "legal_name": "Yagnesh Grewal",
-    "trade_name": "Yagnesh",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 3,
-    "registration_date": "2023-09-03"
-  },
-  "19MNACS6099Z5ZN": {
-    "gstin": "19MNACS6099Z5ZN",
-    "legal_name": "Sarma, Balasubramanian and Sarraf",
-    "trade_name": "Sarma,",
-    "status": "Active",
-    "business_type": "Private Limited",
-    "returns_filed": 11,
-    "registration_date": "2020-06-24"
-  },
-  "09BBZPH8524O6ZP": {
-    "gstin": "09BBZPH8524O6ZP",
-    "legal_name": "Hema Datta",
-    "trade_name": "Hema",
-    "status": "Active",
-    "business_type": "LLP",
-    "returns_filed": 6,
-    "registration_date": "2024-07-11"
-  },
-  "27LPLCM3886H2ZH": {
-    "gstin": "27LPLCM3886H2ZH",
-    "legal_name": "Mittal, Nazareth and Kulkarni",
-    "trade_name": "Mittal,",
+  "07ZTECB4257NOZL": {
+    "gstin": "07ZTECB4257NOZL",
+    "legal_name": "Bahl Inc",
+    "trade_name": "Bahl",
     "status": "Active",
     "business_type": "LLP",
     "returns_filed": 1,
-    "registration_date": "2019-10-24"
+    "registration_date": "2024-08-04"
   },
-  "03URFCP1767T1Z8": {
-    "gstin": "03URFCP1767T1Z8",
-    "legal_name": "Purohit, Oak and Peri",
-    "trade_name": "Purohit,",
-    "status": "Active",
+  "07EHJCM3448MGZ2": {
+    "gstin": "07EHJCM3448MGZ2",
+    "legal_name": "Madan-Sangha",
+    "trade_name": "Madan-Sangha",
+    "status": "Suspended",
     "business_type": "Private Limited",
-    "returns_filed": 0,
-    "registration_date": "2023-08-03"
+    "returns_filed": 3,
+    "registration_date": "2024-04-06"
   },
-  "27MITCJ3458V2ZZ": {
-    "gstin": "27MITCJ3458V2ZZ",
-    "legal_name": "Jayaraman-Chaudhari",
-    "trade_name": "Jayaraman-Chaudhari",
+  "07WISCR2953JTZM": {
+    "gstin": "07WISCR2953JTZM",
+    "legal_name": "Ray Group",
+    "trade_name": "Ray",
     "status": "Active",
     "business_type": "Proprietorship",
+    "returns_filed": 6,
+    "registration_date": "2023-01-22"
+  },
+  "29DIAPP6832YSZC": {
+    "gstin": "29DIAPP6832YSZC",
+    "legal_name": "Pranit Sarkar",
+    "trade_name": "Pranit",
+    "status": "Active",
+    "business_type": "Proprietorship",
+    "returns_filed": 8,
+    "registration_date": "2022-09-14"
+  },
+  "19WXJCK9133IKZ4": {
+    "gstin": "19WXJCK9133IKZ4",
+    "legal_name": "Kadakia and Sons",
+    "trade_name": "Kadakia",
+    "status": "Inactive",
+    "business_type": "LLP",
+    "returns_filed": 9,
+    "registration_date": "2024-06-30"
+  },
+  "03HAVCC9416E7Z9": {
+    "gstin": "03HAVCC9416E7Z9",
+    "legal_name": "Chanda-Grover",
+    "trade_name": "Chanda-Grover",
+    "status": "Suspended",
+    "business_type": "Partnership",
+    "returns_filed": 5,
+    "registration_date": "2020-12-23"
+  },
+  "07KKOCH6046OZZV": {
+    "gstin": "07KKOCH6046OZZV",
+    "legal_name": "Handa Group",
+    "trade_name": "Handa",
+    "status": "Active",
+    "business_type": "LLP",
     "returns_filed": 0,
-    "registration_date": "2023-04-21"
+    "registration_date": "2025-03-12"
   }
 }

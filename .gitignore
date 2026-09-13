@@ -73,3 +73,4 @@ node_modules
 !**/.env.example
 backend/uploads/
 backend/storage/
+.vercel

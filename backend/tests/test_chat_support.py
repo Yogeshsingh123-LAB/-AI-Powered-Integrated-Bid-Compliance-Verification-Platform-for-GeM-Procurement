@@ -45,6 +45,10 @@ class ChatTests(unittest.TestCase):
         Base.metadata.create_all(engine)
         cls.client = TestClient(app, raise_server_exceptions=False)
 
+    @classmethod
+    def tearDownClass(cls):
+        engine.dispose()
+
     def setUp(self):
         self.owner = uuid.uuid4()
         self.other = uuid.uuid4()

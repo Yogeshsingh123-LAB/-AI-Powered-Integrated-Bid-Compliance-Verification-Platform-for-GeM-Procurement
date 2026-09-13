@@ -1,0 +1,22 @@
+# Dependency & build folders
+node_modules
+frontend/node_modules
+
+# Non-frontend code and data
+backend
+storage
+uploads
+scratch
+logs
+docs
+tests
+.pytest_cache
+.git
+.vercel
+
+# Heavy videos & archives
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar.gz

@@ -597,7 +597,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        justify-content: 'center',
+                        justifyContent: 'center',
                         gap: '8px',
                         transition: 'all 0.2s ease'
                       }}

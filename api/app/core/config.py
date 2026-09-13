@@ -47,10 +47,12 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL")
     @classmethod
     def normalize_database_url(cls, value: str) -> str:
-        # Hosted providers commonly supply the default psycopg2 scheme.
-        for prefix in ("postgres://", "postgresql://"):
-            if value.startswith(prefix):
-                return "postgresql+psycopg://" + value[len(prefix):]
+        if not value:
+            return value
+        if value.startswith("postgres://"):
+            return "postgresql+psycopg2://" + value[len("postgres://"):]
+        if value.startswith("postgresql://") and not ("+psycopg" in value or "+psycopg2" in value):
+            return "postgresql+psycopg2://" + value[len("postgresql://"):]
         return value
 
     @model_validator(mode="after")

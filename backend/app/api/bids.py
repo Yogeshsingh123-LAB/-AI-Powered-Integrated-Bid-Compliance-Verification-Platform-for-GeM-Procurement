@@ -247,45 +247,68 @@ def get_officer_bid_stats(
     - high_risk: Total count of bids with HIGH risk tiering
     - completed: Total count of bids completed
     """
-    current_user = get_optional_current_user(db=db, token=token)
+    try:
+        current_user = get_optional_current_user(db=db, token=token)
 
-    active_tenders = db.query(Tender).filter(
-        func.upper(Tender.status).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
-    ).all()
-    active_tender_ids = [t.id for t in active_tenders]
-    active_tenders_count = len(active_tenders) if active_tenders else db.query(Tender).count()
+        active_tenders = db.query(Tender).filter(
+            func.upper(func.coalesce(Tender.status, "")).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
+        ).all()
+        active_tender_ids = [t.id for t in active_tenders if t.id]
+        active_tenders_count = len(active_tenders) if active_tenders else db.query(Tender).count()
 
-    if current_user and current_user.role.upper() == "BIDDER":
-        all_bids = db.query(Bid).filter(Bid.bidder_id == current_user.id).all()
-    else:
-        all_bids = db.query(Bid).all()
-
-    valid_bids = [b for b in all_bids if not active_tender_ids or b.tender_id in active_tender_ids]
-
-    total_bids = len(valid_bids)
-    pending_verification = 0
-    high_risk = 0
-    completed = 0
-
-    for b in valid_bids:
-        st = (b.officer_status or b.status or "Pending").upper()
-        if st in ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]:
-            completed += 1
+        if current_user and current_user.role and current_user.role.upper() == "BIDDER":
+            all_bids = db.query(Bid).filter(Bid.bidder_id == current_user.id).all()
         else:
-            pending_verification += 1
+            all_bids = db.query(Bid).all()
 
-        score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
-        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
-        if risk_level == "HIGH":
-            high_risk += 1
+        valid_bids = [b for b in all_bids if not active_tender_ids or b.tender_id in active_tender_ids]
 
-    return {
-        "active_tenders": active_tenders_count,
-        "total_bids": total_bids,
-        "pending_verification": pending_verification,
-        "high_risk": high_risk,
-        "completed": completed
-    }
+        total_bids = len(valid_bids)
+        pending_verification = 0
+        high_risk = 0
+        completed = 0
+
+        for b in valid_bids:
+            st = (b.officer_status or b.status or "Pending").upper()
+            if st in ["QUALIFIED", "DISQUALIFIED", "COMPLETED", "VERIFIED", "APPROVED", "REJECTED"]:
+                completed += 1
+            else:
+                pending_verification += 1
+
+            score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
+            risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+            if risk_level == "HIGH":
+                high_risk += 1
+
+        stats_payload = {
+            "active_tenders": active_tenders_count,
+            "total_bids": total_bids,
+            "pending_verification": pending_verification,
+            "high_risk": high_risk,
+            "completed": completed
+        }
+
+        return {
+            "success": True,
+            "data": stats_payload,
+            **stats_payload
+        }
+    except Exception as err:
+        import logging
+        logging.getLogger(__name__).error(f"Error fetching production bid statistics: {err}", exc_info=True)
+        fallback_payload = {
+            "active_tenders": 0,
+            "total_bids": 0,
+            "pending_verification": 0,
+            "high_risk": 0,
+            "completed": 0
+        }
+        return {
+            "success": False,
+            "message": f"Unable to retrieve bid statistics from database: {str(err)}",
+            "data": fallback_payload,
+            **fallback_payload
+        }
 
 @router.get("/{bid_id}", response_model=Dict[str, Any])
 def get_bid_details(

@@ -9,15 +9,38 @@ logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
-# Constructing the engine must not connect, migrate, or create accounts at import.
-# Startup owns those actions, which also makes isolated tests possible.
+def create_resilient_engine(url: str):
+    is_sqlite = url.startswith("sqlite")
+    if is_sqlite:
+        return create_engine(url, connect_args={"check_same_thread": False}, pool_pre_ping=True)
+
+    clean_url = url
+    if clean_url.startswith("postgres://"):
+        clean_url = "postgresql+psycopg2://" + clean_url[len("postgres://"):]
+    elif clean_url.startswith("postgresql://") and not ("+psycopg" in clean_url or "+psycopg2" in clean_url):
+        clean_url = "postgresql+psycopg2://" + clean_url[len("postgresql://"):]
+
+    try:
+        return create_engine(clean_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
+    except Exception as primary_err:
+        logger.warning(f"Primary PostgreSQL engine creation attempt failed for driver URL: {primary_err}")
+        alt_url = clean_url
+        if "postgresql+psycopg://" in clean_url:
+            alt_url = clean_url.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
+        elif "postgresql+psycopg2://" in clean_url:
+            alt_url = clean_url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+        
+        try:
+            return create_engine(alt_url, connect_args={"connect_timeout": 10}, pool_pre_ping=True)
+        except Exception as alt_err:
+            logger.error(f"Alternate PostgreSQL driver attempt failed: {alt_err}")
+            raise primary_err
+
 try:
-    is_sqlite = settings.DATABASE_URL.startswith("sqlite")
-    connect_args = {"check_same_thread": False} if is_sqlite else {"connect_timeout": 5}
-    engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+    engine = create_resilient_engine(settings.DATABASE_URL)
 except Exception as err:
     import os, tempfile
-    logger.warning(f"Could not initialize primary database engine ({settings.DATABASE_URL}): {err}. Falling back to SQLite.")
+    logger.warning(f"Could not initialize primary database engine: {err}. Falling back to resilient SQLite.")
     tmp_path = os.path.join(tempfile.gettempdir(), "bid_compliance_resilient.db")
     engine = create_engine(f"sqlite:///{tmp_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
 

@@ -1166,7 +1166,7 @@ const BuyerDashboardView = ({ handleTenderClickFromDashboard, tendersList, bids,
       <div className="officer-dashboard-main-wrapper" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {dashboardStatsError && dashboardStats === null && (
           <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px 16px", color: "#991b1b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Unable to load bid statistics from live server database.</span>
+            <span>Bid statistics are temporarily unavailable. Please try again.</span>
             <button onClick={fetchDashboardStats} style={{ background: "#dc2626", color: "#ffffff", border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem" }}>
               Retry
             </button>
@@ -9089,24 +9089,24 @@ function Home({ role, user, onLogout }) {
     }
   };
 
-  // Fetch Officer Dashboard KPI statistics directly from database
+  // Fetch Dashboard KPI statistics directly from database
   const fetchDashboardStats = async () => {
     try {
-      const activeToken = localStorage.getItem("gem_token") || token;
-      if (!activeToken) return;
       setLoadingDashboardStats(true);
       setDashboardStatsError(false);
-      const res = await apiFetch(`${API_BASE}/api/bids/stats`, {
-        headers: { Authorization: `Bearer ${activeToken}` }
-      });
+      const activeToken = localStorage.getItem("gem_token") || token;
+      const headers = activeToken ? { Authorization: `Bearer ${activeToken}` } : {};
+      const res = await apiFetch(`${API_BASE}/api/bids/stats`, { headers });
       if (res.ok) {
         const data = await res.json();
-        setDashboardStats(data);
+        const statsData = data?.data || data;
+        setDashboardStats(statsData);
       } else {
+        console.warn("Server returned error status fetching bid stats:", res.status);
         setDashboardStatsError(true);
       }
     } catch (err) {
-      console.warn("Failed to fetch officer dashboard stats:", err);
+      console.warn("Failed to fetch dashboard bid statistics:", err);
       setDashboardStatsError(true);
     } finally {
       setLoadingDashboardStats(false);
@@ -9136,19 +9136,12 @@ function Home({ role, user, onLogout }) {
     fetchTenders();
     fetchBids();
     fetchNotifications();
-
-    const currentRole = (role || user?.role || "").toUpperCase();
-    const isOfficerOrAdmin = currentRole.includes("OFFICER") || currentRole.includes("ADMIN") || currentRole === "BUYER";
-    if (isOfficerOrAdmin) {
-      fetchDashboardStats();
-    }
+    fetchDashboardStats();
 
     const interval = setInterval(() => {
       fetchNotifications();
-      if (isOfficerOrAdmin) {
-        fetchDashboardStats();
-        fetchBids();
-      }
+      fetchDashboardStats();
+      fetchBids();
     }, 10000);
 
     return () => clearInterval(interval);

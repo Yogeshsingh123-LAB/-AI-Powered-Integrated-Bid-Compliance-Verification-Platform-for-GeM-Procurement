@@ -61,14 +61,19 @@ def create_resilient_engine(url: str):
 
 import os
 
-is_production = settings.ENVIRONMENT.lower() == "production" or os.environ.get("VERCEL") == "1"
+is_production = settings.ENVIRONMENT.lower() in ("production", "prod", "staging") or bool(
+    os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV") or os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+)
 
 try:
     db_url = settings.DATABASE_URL
     if not db_url:
         if is_production:
-            raise RuntimeError("DATABASE_URL environment variable is required in production environment. Ephemeral SQLite fallback is prohibited.")
+            raise RuntimeError("DATABASE_URL environment variable is required in production environment. Ephemeral SQLite fallback is strictly prohibited.")
         db_url = "postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db"
+    elif is_production and ("localhost" in db_url or "127.0.0.1" in db_url):
+        raise RuntimeError("Production DATABASE_URL must not point to localhost or 127.0.0.1. A managed PostgreSQL database (e.g. Supabase/Neon) is required.")
+
     engine = create_resilient_engine(db_url)
 except Exception as err:
     if is_production:

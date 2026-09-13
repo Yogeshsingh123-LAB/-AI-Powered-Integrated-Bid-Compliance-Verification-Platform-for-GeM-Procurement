@@ -12,13 +12,45 @@ function App() {
   const [userRole, setUserRole] = useState("Supplier"); // Supplier (BIDDER) or Buyer (OFFICER/ADMIN)
   const [currentUser, setCurrentUser] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const [authView, setAuthView] = useState("landing"); // "landing", "login", "register"
+  const [authView, setAuthView] = useState(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname.toLowerCase();
+      if (path === "/login" || path.startsWith("/login")) return "login";
+      if (path === "/register" || path === "/signup") return "register";
+    }
+    return "landing";
+  });
   const [targetSection, setTargetSection] = useState("home");
 
-  const handleNavigateSection = (sectionId) => {
-    setTargetSection(sectionId);
-    setAuthView("landing");
+  const navigateTo = (view, section = "home") => {
+    setTargetSection(section);
+    setAuthView(view);
+    if (typeof window !== "undefined") {
+      const targetPath = view === "login" ? "/login" : view === "register" ? "/register" : "/";
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, "", targetPath);
+      }
+    }
   };
+
+  const handleNavigateSection = (sectionId) => {
+    navigateTo("landing", sectionId);
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase();
+      if (path === "/login" || path.startsWith("/login")) {
+        setAuthView("login");
+      } else if (path === "/register" || path === "/signup") {
+        setAuthView("register");
+      } else {
+        setAuthView("landing");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const API_BASE = BACKEND_URL;
 
@@ -111,13 +143,13 @@ function App() {
       ) : authView === "landing" ? (
         <LandingPage
           initialSection={targetSection}
-          onOpenLogin={() => setAuthView("login")}
-          onOpenRegister={() => setAuthView("register")}
+          onOpenLogin={() => navigateTo("login")}
+          onOpenRegister={() => navigateTo("register")}
         />
       ) : (
         <Login
           initialIsSignUp={authView === "register"}
-          onBackToHome={() => handleNavigateSection("home")}
+          onBackToHome={() => navigateTo("landing", "home")}
           onNavigateSection={handleNavigateSection}
           onLogin={handleLogin}
         />

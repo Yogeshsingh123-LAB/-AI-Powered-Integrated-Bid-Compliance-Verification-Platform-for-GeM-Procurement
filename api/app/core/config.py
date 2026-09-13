@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 def _get_default_upload_dir() -> str:
-    return os.path.join(tempfile.gettempdir(), "bidverify_uploads")
+    tmp = os.path.join(tempfile.gettempdir(), "bidverify_uploads")
+    try:
+        os.makedirs(tmp, exist_ok=True)
+    except Exception:
+        pass
+    return tmp
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development")
@@ -27,7 +32,7 @@ class Settings(BaseSettings):
     INITIAL_ADMIN_PASSWORD: str = Field(default="", repr=False)
     JWT_ALGORITHM: str = Field(default="HS256")
     UPLOAD_DIR: str = Field(default_factory=_get_default_upload_dir)
-    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,https://bidverify.vercel.app,https://api-bidverify.vercel.app")
+    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,https://bidverify.vercel.app,https://bidverify-blue.vercel.app,https://api-bidverify.vercel.app")
     SUPABASE_URL: str = Field(default="")
     SUPABASE_SECRET_KEY: str = Field(default="", repr=False)
     SUPABASE_BUCKET: str = Field(default="bid-documents")
@@ -58,6 +63,28 @@ class Settings(BaseSettings):
         if value.startswith("postgres://"):
             return "postgresql://" + value[len("postgres://"):]
         return value
+
+    @field_validator("UPLOAD_DIR")
+    @classmethod
+    def validate_upload_dir(cls, value: str) -> str:
+        if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+            return _get_default_upload_dir()
+        if not value or not os.path.isabs(value):
+            return _get_default_upload_dir()
+        return value
+
+    @property
+    def safe_upload_dir(self) -> str:
+        if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+            return _get_default_upload_dir()
+        target = self.UPLOAD_DIR
+        if not target or not os.path.isabs(target):
+            return _get_default_upload_dir()
+        try:
+            os.makedirs(target, exist_ok=True)
+            return target
+        except OSError:
+            return _get_default_upload_dir()
 
     @model_validator(mode="after")
     def validate_production_settings(self):

@@ -427,9 +427,28 @@ def _generate_ai_answer(
     history: list[ChatMessage],
     user_role: str | None,
 ) -> tuple[str, bool]:
+    api_key = settings.AI_API_KEY
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        history_lines = [f"{item.role}: {item.content}" for item in history[-10:]]
+        full_prompt = f"System: {SYSTEM_PROMPT}\nCurrent portal role: {user_role or 'unknown'}\n"
+        if history_lines:
+            full_prompt += "\nChat History:\n" + "\n".join(history_lines) + "\n"
+        full_prompt += f"\nUser: {message}"
+        response = client.models.generate_content(
+            model=settings.AI_MODEL,
+            contents=full_prompt
+        )
+        answer = (response.text or "").strip()
+        if answer:
+            return answer, False
+    except Exception as genai_err:
+        logger.warning(f"Google GenAI chat failed, attempting legacy fallback: {genai_err}")
+
     import google.generativeai as genai
 
-    genai.configure(api_key=settings.AI_API_KEY)
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel(
         model_name=settings.AI_MODEL,
         system_instruction=SYSTEM_PROMPT,

@@ -24,9 +24,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Analysis"])
 
-# Create temp path for processing uploaded documents safely across Vercel / serverless / local
-UPLOAD_DIR = getattr(settings, "UPLOAD_DIR", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+def get_safe_upload_dir() -> str:
+    target = getattr(settings, "safe_upload_dir", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
+    try:
+        os.makedirs(target, exist_ok=True)
+    except OSError:
+        target = tempfile.gettempdir()
+    return target
+
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 
@@ -79,7 +84,8 @@ async def analyze_document(
         raw_basename = os.path.basename(file.filename or "upload.pdf")
         clean_basename = re.sub(r'[^a-zA-Z0-9._-]', '_', raw_basename).strip("._")
         safe_filename = f"{file_id}_{clean_basename}"
-        file_path = os.path.join(UPLOAD_DIR, safe_filename)
+        upload_dir = get_safe_upload_dir()
+        file_path = os.path.join(upload_dir, safe_filename)
 
         with open(file_path, "wb") as f:
             f.write(file_bytes)

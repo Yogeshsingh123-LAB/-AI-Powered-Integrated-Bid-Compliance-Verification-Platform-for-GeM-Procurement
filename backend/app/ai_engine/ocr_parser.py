@@ -169,15 +169,33 @@ class OCRParser:
             api_key = settings.effective_gemini_api_key or os.getenv("GEMINI_API_KEY")
             if not api_key or api_key in {"YOUR_KEY", "your_gemini_api_key_here"}:
                 return ""
+
+            prompt = (
+                "Transcribe all text from this official government/business document image verbatim. "
+                "Ensure all numbers, names, PAN card numbers (e.g. DBKPJ6832F), GSTIN numbers, dates, and details are included accurately."
+            )
+
+            try:
+                from google import genai
+                from google.genai import types
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model=settings.AI_MODEL,
+                    contents=[
+                        prompt,
+                        types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                    ]
+                )
+                if response and response.text:
+                    return response.text.strip()
+            except Exception as genai_err:
+                logger.warning(f"Google GenAI Vision OCR failed, falling back: {genai_err}")
+
             import google.generativeai as genai
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(settings.AI_MODEL)
             
             image = Image.open(io.BytesIO(image_bytes))
-            prompt = (
-                "Transcribe all text from this official government/business document image verbatim. "
-                "Ensure all numbers, names, PAN card numbers (e.g. DBKPJ6832F), GSTIN numbers, dates, and details are included accurately."
-            )
             response = model.generate_content([prompt, image])
             return response.text.strip() if response and response.text else ""
         except Exception as e:

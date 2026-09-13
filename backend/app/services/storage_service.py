@@ -36,14 +36,17 @@ class StorageService:
 
     @classmethod
     def get_local_path(cls, storage_path: str) -> str:
-        import tempfile
-        upload_dir = getattr(settings, "UPLOAD_DIR", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
+        upload_dir = getattr(settings, "safe_upload_dir", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
         clean_path = storage_path.lstrip("/\\")
         full_path = os.path.abspath(os.path.join(upload_dir, clean_path))
         return full_path
 
     @classmethod
     def upload_file(cls, file_data: bytes, storage_path: str, mime_type: str) -> str:
+        is_production = settings.ENVIRONMENT.lower() in ("production", "prod", "staging") or bool(
+            os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
+        )
+
         if cls.is_supabase_configured():
             try:
                 client = cls.get_client()
@@ -56,12 +59,21 @@ class StorageService:
                 logger.info(f"Successfully uploaded file to Supabase Cloud Storage: {storage_path}")
                 return storage_path
             except Exception as e:
-                logger.warning(f"Cloud Storage upload failed, fallback to local storage: {e}")
-        
+                logger.error(f"Cloud Storage upload failed: {e}")
+                if is_production:
+                    raise RuntimeError(f"Failed to upload document to production Supabase Storage: {e}") from e
+
+        if is_production:
+            raise RuntimeError("Supabase Cloud Storage must be configured in production. Local storage is prohibited.")
+
         full_path = cls.get_local_path(storage_path)
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        with open(full_path, "wb") as f:
-            f.write(file_data)
+        try:
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, "wb") as f:
+                f.write(file_data)
+        except OSError as e:
+            logger.error(f"Failed to save file to local temporary storage: {e}")
+            raise RuntimeError(f"Local storage write failed: {e}") from e
         logger.info(f"Successfully saved file to Local Storage: {full_path}")
         return storage_path
 

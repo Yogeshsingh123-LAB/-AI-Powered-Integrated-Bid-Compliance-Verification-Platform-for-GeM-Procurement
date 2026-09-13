@@ -191,11 +191,6 @@ class SemanticRFPComparator:
 
 
         try:
-            # pyrefly: ignore [missing-import]
-            import google.generativeai as genai
-            genai.configure(api_key=gemini_api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-
             prompt = f"""
 You are an expert procurement auditor for the Government e-Marketplace (GeM).
 Analyze the following Bid Text against the provided Tender RFP Clauses.
@@ -225,6 +220,24 @@ Return a JSON object with:
 }}
 Output pure JSON with no markdown backticks.
 """
+            try:
+                from google import genai
+                client = genai.Client(api_key=gemini_api_key)
+                response = client.models.generate_content(
+                    model="gemini-1.5-flash",
+                    contents=prompt
+                )
+                if response and response.text:
+                    clean_res = re.sub(r'```json\s*|\s*```', '', response.text).strip()
+                    return json.loads(clean_res)
+            except Exception as genai_err:
+                logger.warning(f"Google GenAI SDK semantic analysis failed, trying legacy fallback: {genai_err}")
+
+            # Legacy fallback
+            # pyrefly: ignore [missing-import]
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_api_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(prompt)
             clean_res = re.sub(r'```json\s*|\s*```', '', response.text).strip()
             parsed = json.loads(clean_res)

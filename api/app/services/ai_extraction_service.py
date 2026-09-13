@@ -8,10 +8,13 @@ try:
 except ImportError:
     new_genai = None
 
-try:
-    # pyrefly: ignore [missing-import]
-    import google.generativeai as genai
-except ImportError:
+if new_genai is None:
+    try:
+        # pyrefly: ignore [missing-import]
+        import google.generativeai as genai
+    except ImportError:
+        genai = None
+else:
     genai = None
 
 from app.core.config import settings

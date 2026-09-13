@@ -446,13 +446,17 @@ def _generate_ai_answer(
     except Exception as genai_err:
         logger.warning(f"Google GenAI chat failed, attempting legacy fallback: {genai_err}")
 
-    import google.generativeai as genai
+    try:
+        import google.generativeai as genai
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        model_name=settings.AI_MODEL,
-        system_instruction=SYSTEM_PROMPT,
-    )
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(
+            model_name=settings.AI_MODEL,
+            system_instruction=SYSTEM_PROMPT,
+        )
+    except Exception as legacy_err:
+        logger.error(f"Legacy google.generativeai SDK unavailable: {legacy_err}")
+        return "I am currently unable to process AI chat requests. Please verify system AI credentials.", False
     gemini_history = [
         {
             "role": "user" if item.role == "user" else "model",

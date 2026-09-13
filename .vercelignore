@@ -1,0 +1,21 @@
+# Dependency & build folders
+node_modules
+frontend/node_modules
+
+# Non-production storage and logs
+storage
+uploads
+scratch
+logs
+docs
+tests
+.pytest_cache
+.git
+.vercel
+
+# Heavy media assets
+*.png
+*.webp
+*.mp4
+*.zip
+*.tar.gz

@@ -16,13 +16,16 @@ from app.services.mock_verifier import MockVerifier
 from app.scoring import ComplianceScorer
 from app.scoring.fraud_detector import ProcurementFraudDetector
 from app.services.auth_service import create_audit_record, get_optional_current_user
+from app.core.config import settings
+
+import tempfile
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Analysis"])
 
-# Create path for saving uploads locally
-UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
+# Create temp path for processing uploaded documents safely across Vercel / serverless / local
+UPLOAD_DIR = getattr(settings, "UPLOAD_DIR", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 

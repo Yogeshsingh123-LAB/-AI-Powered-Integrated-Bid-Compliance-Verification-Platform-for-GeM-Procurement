@@ -4,6 +4,12 @@ import re
 from typing import Dict, Any, List, Optional
 try:
     # pyrefly: ignore [missing-import]
+    from google import genai as new_genai
+except ImportError:
+    new_genai = None
+
+try:
+    # pyrefly: ignore [missing-import]
     import google.generativeai as genai
 except ImportError:
     genai = None
@@ -80,43 +86,57 @@ class AIExtractionService:
     def classify_document_type_ai(cls, text: str) -> str:
         """Fallback AI method to classify a document if rule-based fails."""
         api_key = cls._get_effective_api_key()
-        if genai is None or not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
-            # If mock, look at text content for generic fallback
+        if not api_key or api_key in {"YOUR_KEY", "your_gemini_api_key_here"}:
             for doc_type in cls.SCHEMAS.keys():
                 if doc_type.split("_")[0].lower() in text.lower():
                     return doc_type
             return "OTHER"
 
-        try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(settings.AI_MODEL)
-            prompt = (
-                "You are an AI document classifier. Classify the following text into one of these types:\n"
-                "PAN, GST_CERTIFICATE, GST_RETURN, UDYAM, INCOME_TAX, EPFO, ESIC, STARTUP_INDIA, NSIC, OEM_AUTHORIZATION, MAKE_IN_INDIA, BIS, DPIIT, BLACKLIST_DECLARATION, OTHER.\n"
-                "Respond with ONLY the type string, nothing else.\n\n"
-                f"Text:\n{text[:2000]}"
-            )
-            response = model.generate_content(prompt)
-            classification = response.text.strip().upper()
-            if classification in cls.SCHEMAS or classification in {"GST_RETURN", "INCOME_TAX", "STARTUP_INDIA", "NSIC", "BIS", "DPIIT", "OTHER"}:
-                return classification
-            return "OTHER"
-        except Exception as e:
-            logger.warning(f"AI classification failed: {e}")
-            return "OTHER"
+        prompt = (
+            "You are an AI document classifier. Classify the following text into one of these types:\n"
+            "PAN, GST_CERTIFICATE, GST_RETURN, UDYAM, INCOME_TAX, EPFO, ESIC, STARTUP_INDIA, NSIC, OEM_AUTHORIZATION, MAKE_IN_INDIA, BIS, DPIIT, BLACKLIST_DECLARATION, OTHER.\n"
+            "Respond with ONLY the type string, nothing else.\n\n"
+            f"Text:\n{text[:2000]}"
+        )
+
+        if new_genai is not None:
+            try:
+                client = new_genai.Client(api_key=api_key)
+                response = client.models.generate_content(model=settings.AI_MODEL, contents=prompt)
+                classification = response.text.strip().upper()
+                if classification in cls.SCHEMAS or classification in {"GST_RETURN", "INCOME_TAX", "STARTUP_INDIA", "NSIC", "BIS", "DPIIT", "OTHER"}:
+                    return classification
+                return "OTHER"
+            except Exception as e:
+                logger.warning(f"Google GenAI SDK classification failed: {e}")
+
+        if genai is not None:
+            try:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel(settings.AI_MODEL)
+                response = model.generate_content(prompt)
+                classification = response.text.strip().upper()
+                if classification in cls.SCHEMAS or classification in {"GST_RETURN", "INCOME_TAX", "STARTUP_INDIA", "NSIC", "BIS", "DPIIT", "OTHER"}:
+                    return classification
+                return "OTHER"
+            except Exception as e:
+                logger.warning(f"Legacy Gemini AI classification failed: {e}")
+
+        for doc_type in cls.SCHEMAS.keys():
+            if doc_type.split("_")[0].lower() in text.lower():
+                return doc_type
+        return "OTHER"
 
     @classmethod
     def extract_fields(cls, text: str, document_type: str) -> Dict[str, Any]:
         """Extract structured fields from text based on document_type using Gemini or rule-based mock."""
         api_key = cls._get_effective_api_key()
-        if genai is None or not api_key or api_key == "YOUR_KEY" or api_key == "your_gemini_api_key_here":
+        if not api_key or api_key in {"YOUR_KEY", "your_gemini_api_key_here"}:
             logger.info("AIExtractionService: Using mock extraction fallback.")
             return cls._mock_extraction(text, document_type)
 
-
         schema = cls.SCHEMAS.get(document_type)
         if not schema:
-            # For unsupported/OTHER, store raw text and return empty fields
             return {
                 "document_type": document_type,
                 "fields": {},
@@ -125,31 +145,47 @@ class AIExtractionService:
                 "requires_review": False
             }
 
+        prompt = (
+            "You are a highly accurate document data extraction assistant.\n"
+            f"Analyze the following text from a {document_type} document.\n"
+            "Extract the following fields according to these definitions:\n"
+            f"{json.dumps(schema, indent=2)}\n\n"
+            "Follow these instructions strictly:\n"
+            "1. If a field is not present, or you cannot find it with high confidence, set it to null. Do NOT invent/guess/fabricate any information.\n"
+            "2. Return a valid JSON object ONLY. Do not include markdown wraps like ```json or any other text.\n"
+            "3. The output JSON must have this structure:\n"
+            "{\n"
+            "  \"fields\": { ... extracted fields ... },\n"
+            "  \"confidence\": 0.95, // overall confidence score between 0.0 and 1.0\n"
+            "  \"missing_fields\": [ ... list of keys in schema not found ... ],\n"
+            "  \"requires_review\": false // set to true if critical fields are missing or if you are highly uncertain\n"
+            "}\n\n"
+            f"Text:\n{text}"
+        )
+
+        raw_response_text = None
+        if new_genai is not None:
+            try:
+                client = new_genai.Client(api_key=api_key)
+                response = client.models.generate_content(model=settings.AI_MODEL, contents=prompt)
+                raw_response_text = response.text
+            except Exception as e:
+                logger.warning(f"Google GenAI SDK extract_fields failed: {e}")
+
+        if raw_response_text is None and genai is not None:
+            try:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel(settings.AI_MODEL)
+                response = model.generate_content(prompt)
+                raw_response_text = response.text
+            except Exception as e:
+                logger.warning(f"Legacy Gemini AI extract_fields failed: {e}")
+
+        if not raw_response_text:
+            return cls._mock_extraction(text, document_type)
+
         try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(settings.AI_MODEL)
-            
-            prompt = (
-                "You are a highly accurate document data extraction assistant.\n"
-                f"Analyze the following text from a {document_type} document.\n"
-                "Extract the following fields according to these definitions:\n"
-                f"{json.dumps(schema, indent=2)}\n\n"
-                "Follow these instructions strictly:\n"
-                "1. If a field is not present, or you cannot find it with high confidence, set it to null. Do NOT invent/guess/fabricate any information.\n"
-                "2. Return a valid JSON object ONLY. Do not include markdown wraps like ```json or any other text.\n"
-                "3. The output JSON must have this structure:\n"
-                "{\n"
-                "  \"fields\": { ... extracted fields ... },\n"
-                "  \"confidence\": 0.95, // overall confidence score between 0.0 and 1.0\n"
-                "  \"missing_fields\": [ ... list of keys in schema not found ... ],\n"
-                "  \"requires_review\": false // set to true if critical fields are missing or if you are highly uncertain\n"
-                "}\n\n"
-                f"Text:\n{text}"
-            )
-            
-            response = model.generate_content(prompt)
-            # Parse response. Try to clean up any markdown code block wraps.
-            clean_res = response.text.strip()
+            clean_res = raw_response_text.strip()
             if clean_res.startswith("```json"):
                 clean_res = clean_res[7:]
             if clean_res.endswith("```"):

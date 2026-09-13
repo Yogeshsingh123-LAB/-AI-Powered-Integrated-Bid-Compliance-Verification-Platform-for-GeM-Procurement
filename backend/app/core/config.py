@@ -9,18 +9,24 @@ from pydantic import Field, AliasChoices, field_validator, model_validator
 
 import logging
 
+import tempfile
+import os
+
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
+def _get_default_upload_dir() -> str:
+    return os.path.join(tempfile.gettempdir(), "bidverify_uploads")
+
 class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development")
-    DATABASE_URL: str = Field(default="postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db", repr=False)
+    DATABASE_URL: str = Field(default="", repr=False)
     JWT_SECRET: str = Field(default="super_secret_jwt_key_sih_2026_gem_procurement", validation_alias=AliasChoices("JWT_SECRET", "SECRET_KEY"), repr=False)
     INITIAL_ADMIN_EMAIL: str = Field(default="admin@gem.gov.in")
     INITIAL_ADMIN_PASSWORD: str = Field(default="", repr=False)
     JWT_ALGORITHM: str = Field(default="HS256")
-    UPLOAD_DIR: str = Field(default="storage/uploads")
+    UPLOAD_DIR: str = Field(default_factory=_get_default_upload_dir)
     CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,https://bidverify.vercel.app,https://api-bidverify.vercel.app")
     SUPABASE_URL: str = Field(default="")
     SUPABASE_SECRET_KEY: str = Field(default="", repr=False)

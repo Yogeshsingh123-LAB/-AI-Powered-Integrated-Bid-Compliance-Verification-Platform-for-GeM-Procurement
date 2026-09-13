@@ -59,11 +59,23 @@ def create_resilient_engine(url: str):
     if last_error:
         raise last_error
 
+import os
+
+is_production = settings.ENVIRONMENT.lower() == "production" or os.environ.get("VERCEL") == "1"
+
 try:
-    engine = create_resilient_engine(settings.DATABASE_URL)
+    db_url = settings.DATABASE_URL
+    if not db_url:
+        if is_production:
+            raise RuntimeError("DATABASE_URL environment variable is required in production environment. Ephemeral SQLite fallback is prohibited.")
+        db_url = "postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db"
+    engine = create_resilient_engine(db_url)
 except Exception as err:
-    import os, tempfile
-    logger.warning(f"Could not initialize primary database engine: {err}. Falling back to resilient SQLite.")
+    if is_production:
+        logger.error(f"Production database initialization failed: {err}")
+        raise RuntimeError(f"Database connection failed in production: {err}. Ephemeral SQLite fallback is strictly prohibited in production.") from err
+    import tempfile
+    logger.warning(f"Could not initialize primary database engine in development: {err}. Falling back to local development SQLite.")
     tmp_path = os.path.join(tempfile.gettempdir(), "bid_compliance_resilient.db")
     engine = create_engine(f"sqlite:///{tmp_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
 
@@ -234,12 +246,16 @@ def create_fallback_engine():
 
 def initialize_database():
     global engine
+    is_prod = settings.ENVIRONMENT.lower() == "production" or os.environ.get("VERCEL") == "1"
     try:
         with engine.connect() as connection:
             from sqlalchemy import text
             connection.execute(text("SELECT 1"))
     except Exception as exc:
-        logger.warning(f"Primary database connection warning ({exc}); initializing resilient fallback SQLite engine.")
+        if is_prod:
+            logger.error(f"Production database connection check failed: {exc}")
+            raise RuntimeError(f"Production database connection failed: {exc}. Ephemeral SQLite fallback is prohibited in production.") from exc
+        logger.warning(f"Development database connection warning ({exc}); initializing development SQLite engine.")
         try:
             create_fallback_engine()
         except Exception as fb_err:

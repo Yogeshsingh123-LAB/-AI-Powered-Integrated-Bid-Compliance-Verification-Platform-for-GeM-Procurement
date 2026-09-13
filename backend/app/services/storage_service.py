@@ -36,7 +36,8 @@ class StorageService:
 
     @classmethod
     def get_local_path(cls, storage_path: str) -> str:
-        upload_dir = getattr(settings, "UPLOAD_DIR", "storage/uploads") or "storage/uploads"
+        import tempfile
+        upload_dir = getattr(settings, "UPLOAD_DIR", None) or os.path.join(tempfile.gettempdir(), "bidverify_uploads")
         clean_path = storage_path.lstrip("/\\")
         full_path = os.path.abspath(os.path.join(upload_dir, clean_path))
         return full_path

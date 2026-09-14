@@ -218,7 +218,9 @@ def seed_dev_data(db: Session = Depends(get_db)):
     users_data = [
         {"email": "bidder@example.com", "role": "BIDDER", "full_name": "Mock Bidder Company", "password": "BidderPassword123"},
         {"email": "officer@example.com", "role": "OFFICER", "full_name": "Procurement Officer 1", "password": "OfficerPassword123"},
-        {"email": "admin@example.com", "role": "ADMIN", "full_name": "Admin User", "password": "AdminPassword123"}
+        {"email": "admin@example.com", "role": "ADMIN", "full_name": "Admin User", "password": "AdminPassword123"},
+        {"email": "admin@gem.gov.in", "role": "ADMIN", "full_name": "Platform Administrator", "password": "AdminSecret2026!"},
+        {"email": "admin@bidverify.gov.in", "role": "ADMIN", "full_name": "BidVerify Admin", "password": "AdminSecret2026!"}
     ]
     
     seeded_users = {}

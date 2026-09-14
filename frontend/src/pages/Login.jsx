@@ -240,13 +240,16 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
     } catch (err) {
       // Fallback for static/offline deployment mode (e.g. Vercel static demo)
       if (err.message.includes("Failed to fetch") || err.message.includes("Connection refused") || err.message.includes("NetworkError")) {
-        const isOfficer = selectedPortal === "Buyer";
+        const lowerEmail = (loginEmail || "").toLowerCase();
+        const isAdminUser = lowerEmail.includes("admin");
+        const isOfficer = selectedPortal === "Buyer" && !isAdminUser;
+        const role = isAdminUser ? "ADMIN" : isOfficer ? "OFFICER" : "BIDDER";
         const mockUser = {
-          id: isOfficer ? "off_01" : "bid_01",
-          email: loginEmail || (isOfficer ? "officer@gem.gov.in" : "bidder@tech.com"),
-          full_name: isOfficer ? "Procurement Officer" : "Demo Bidder Entity",
-          role: isOfficer ? "OFFICER" : "BIDDER",
-          organization: isOfficer ? "GeM Procurement Authority" : "Tech Solutions Pvt Ltd"
+          id: isAdminUser ? "adm_01" : isOfficer ? "off_01" : "bid_01",
+          email: loginEmail || (isAdminUser ? "admin@gem.gov.in" : isOfficer ? "officer@gem.gov.in" : "bidder@tech.com"),
+          full_name: isAdminUser ? "Platform Administrator" : isOfficer ? "Procurement Officer" : "Demo Bidder Entity",
+          role: role,
+          organization: isAdminUser ? "GeM Central Administration" : isOfficer ? "GeM Procurement Authority" : "Tech Solutions Pvt Ltd"
         };
         const mockToken = "demo-jwt-token-12345";
         setSuccessMsg(`Welcome, ${mockUser.full_name}! Launching interactive workspace...`);
@@ -577,41 +580,114 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                   {authError && <div className="login-error-alert">{authError}</div>}
                   {successMsg && <div className="login-success-alert">{successMsg}</div>}
 
+                  {/* Admin Credential Hint Box (Shown on Administrative Console Tab) */}
+                  {selectedPortal === "Buyer" && (
+                    <div style={{
+                      margin: '10px 0 14px 0',
+                      padding: '10px 14px',
+                      background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                      border: '1px solid #86efac',
+                      borderRadius: '10px',
+                      fontSize: '0.82rem',
+                      color: '#166534'
+                    }}>
+                      <strong style={{ display: 'block', marginBottom: '4px' }}>🔑 Default Admin Credentials:</strong>
+                      <div>Email: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@gem.gov.in</code> or <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@bidverify.gov.in</code></div>
+                      <div style={{ marginTop: '2px' }}>Password: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>AdminSecret2026!</code></div>
+                    </div>
+                  )}
+
                   {/* Submit Button */}
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
                     {loading ? "Logging in..." : "Login →"}
                   </button>
 
-                  {/* Quick Demo Access Button */}
-                  <div style={{ marginTop: '12px' }}>
-                    <button
-                      type="button"
-                      style={{
-                        width: '100%',
-                        padding: '11px 16px',
-                        background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
-                        border: '1px solid #fdba74',
-                        color: '#c2410c',
-                        borderRadius: '10px',
-                        fontWeight: 700,
-                        fontSize: '0.9rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => {
-                        const isOfficer = selectedPortal === "Buyer";
-                        const mockUser = isOfficer
-                          ? { id: "off_01", email: "officer@gem.gov.in", full_name: "Procurement Officer", role: "OFFICER", organization: "GeM Procurement Authority" }
-                          : { id: "bid_01", email: "bidder@techsolutions.com", full_name: "Compliant Tech Solutions", role: "BIDDER", organization: "Tech Solutions Pvt Ltd" };
-                        onLogin("demo-token-12345", mockUser);
-                      }}
-                    >
-                      <span>⚡ Quick Demo Workspace Access ({selectedPortal === "Buyer" ? "Officer" : "Bidder"})</span>
-                    </button>
+                  {/* Quick Demo Access Buttons */}
+                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {selectedPortal === "Buyer" ? (
+                      <>
+                        <button
+                          type="button"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)',
+                            border: '1px solid #d8b4fe',
+                            color: '#7e22ce',
+                            borderRadius: '10px',
+                            fontWeight: 700,
+                            fontSize: '0.88rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => {
+                            setLoginEmail("admin@gem.gov.in");
+                            setPassword("AdminSecret2026!");
+                            const mockUser = { id: "adm_01", email: "admin@gem.gov.in", full_name: "Platform Administrator", role: "ADMIN", organization: "GeM Central Administration" };
+                            onLogin("demo-token-12345", mockUser);
+                          }}
+                        >
+                          <span>👑 Quick Demo Access (Super Admin)</span>
+                        </button>
+                        <button
+                          type="button"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                            border: '1px solid #93c5fd',
+                            color: '#1d4ed8',
+                            borderRadius: '10px',
+                            fontWeight: 700,
+                            fontSize: '0.88rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => {
+                            setLoginEmail("officer@gem.gov.in");
+                            setPassword("OfficerPassword123");
+                            const mockUser = { id: "off_01", email: "officer@gem.gov.in", full_name: "Procurement Officer", role: "OFFICER", organization: "GeM Procurement Authority" };
+                            onLogin("demo-token-12345", mockUser);
+                          }}
+                        >
+                          <span>🛡️ Quick Demo Access (Procurement Officer)</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        style={{
+                          width: '100%',
+                          padding: '11px 16px',
+                          background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+                          border: '1px solid #fdba74',
+                          color: '#c2410c',
+                          borderRadius: '10px',
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onClick={() => {
+                          const mockUser = { id: "bid_01", email: "bidder@techsolutions.com", full_name: "Compliant Tech Solutions", role: "BIDDER", organization: "Tech Solutions Pvt Ltd" };
+                          onLogin("demo-token-12345", mockUser);
+                        }}
+                      >
+                        <span>⚡ Quick Demo Workspace Access (Bidder)</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Switch to Register */}

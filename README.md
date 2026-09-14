@@ -161,5 +161,6 @@ npm run build
 ---
 
 ## 🔑 Default Administrator Credentials
-- **Email**: `admin@bidverify.gov.in`
-- **Password**: Configurable via `INITIAL_ADMIN_PASSWORD` in `.env`
+- **Primary Admin Email**: `admin@gem.gov.in` (or `admin@bidverify.gov.in`)
+- **Default Password**: `AdminSecret2026!` (Configurable via `INITIAL_ADMIN_PASSWORD` in `.env`)
+- **Demo Admin Email**: `admin@example.com` (Password: `AdminPassword123`)

@@ -27,8 +27,30 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const fileInputRef = useRef(null);
   const terminalEndRef = useRef(null);
 
+  const getInitialRequirements = (tender, bid) => {
+    if (!tender && !bid) return [];
+    const tId = (tender && tender.id) || (bid && bid.tenderId) || "GEM/2026/B/8912";
+    const tTitle = (tender && tender.title) || (bid && bid.bidTitle) || "Government Procurement Tender";
+    const bId = (bid && bid.id) || `GEM-BID-${tId.replace(/[^a-zA-Z0-9]/g, "")}`;
+
+    return [{
+      bidId: bId,
+      tenderId: tId,
+      bidTitle: tTitle,
+      org: "Chennai Petroleum Corporation Limited (CPCL)",
+      summaryCounts: { required: 5, uploaded: 0, verified: 0, pending: 0, rejected: 0, missing: 5 },
+      documents: [
+        { requirementId: 1, code: "DOC-GST", name: "GST Registration Certificate", file: null, status: "MISSING", uploadedAt: null },
+        { requirementId: 2, code: "DOC-PAN", name: "PAN Card & Tax Assessment", file: null, status: "MISSING", uploadedAt: null },
+        { requirementId: 3, code: "DOC-MSME", name: "MSME / Udyam Certificate", file: null, status: "MISSING", uploadedAt: null },
+        { requirementId: 4, code: "DOC-TECH", name: "Technical Capabilities & Experience", file: null, status: "MISSING", uploadedAt: null },
+        { requirementId: 5, code: "DOC-FIN", name: "Audited Financial Balance Sheets (3 Yrs)", file: null, status: "MISSING", uploadedAt: null }
+      ]
+    }];
+  };
+
   const [activeTargetDoc, setActiveTargetDoc] = useState(null);
-  const [requirementsList, setRequirementsList] = useState([]);
+  const [requirementsList, setRequirementsList] = useState(() => getInitialRequirements(selectedTender, selectedBid));
   const [docFilter, setDocFilter] = useState("all");
 
   // Submit Modal States
@@ -103,42 +125,60 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
       if (!res.ok) return;
       const myBidsData = await res.json();
       if (!Array.isArray(myBidsData) || myBidsData.length === 0) {
-        setRequirementsList([]);
+        setRequirementsList(prev => (prev && prev.length > 0) ? prev : []);
         return;
       }
 
-      const groups = [];
-      for (const b of myBidsData) {
-        const detailsRes = await apiFetch(`${API_BASE}/api/bids/${b.id}`, {
-          headers: { "Authorization": `Bearer ${activeToken}` }
-        });
-        if (detailsRes.ok) {
-          const details = await detailsRes.json();
-          const matrix = details.compliance_matrix || [];
-          groups.push({
-            bidId: details.id,
-            tenderId: details.tender_id,
-            bidTitle: details.tender_title,
-            org: "Chennai Petroleum Corporation Limited (CPCL)",
-            summaryCounts: details.summary_counts || {},
-            documents: matrix.map(m => ({
-              requirementId: m.requirement_id,
-              code: m.code,
-              name: m.description || m.code,
-              file: m.file_name,
-              status: m.status, // "MISSING", "UPLOADED", "PROCESSING", "VERIFIED", "REJECTED"
-              uploadedAt: m.uploaded_at
-            }))
+      const groupPromises = myBidsData.map(async (b) => {
+        try {
+          const detailsRes = await apiFetch(`${API_BASE}/api/bids/${b.id}`, {
+            headers: { "Authorization": `Bearer ${activeToken}` }
           });
+          if (detailsRes.ok) {
+            const details = await detailsRes.json();
+            const matrix = details.compliance_matrix || [];
+            return {
+              bidId: details.id,
+              tenderId: details.tender_id,
+              bidTitle: details.tender_title,
+              org: "Chennai Petroleum Corporation Limited (CPCL)",
+              summaryCounts: details.summary_counts || {},
+              documents: matrix.map(m => ({
+                requirementId: m.requirement_id,
+                code: m.code,
+                name: m.description || m.code,
+                file: m.file_name,
+                status: m.status, // "MISSING", "UPLOADED", "PROCESSING", "VERIFIED", "REJECTED"
+                uploadedAt: m.uploaded_at
+              }))
+            };
+          }
+        } catch (err) {
+          console.warn("Failed to fetch details for bid", b.id, err);
         }
+        return null;
+      });
+
+      const resolvedGroups = (await Promise.all(groupPromises)).filter(Boolean);
+      if (resolvedGroups.length > 0) {
+        setRequirementsList(prev => {
+          const prevJson = JSON.stringify(prev);
+          const newJson = JSON.stringify(resolvedGroups);
+          return prevJson === newJson ? prev : resolvedGroups;
+        });
       }
-      setRequirementsList(groups);
     } catch (err) {
       console.error("Failed to fetch bidder compliance matrix:", err);
     }
   };
 
   useEffect(() => {
+    if (selectedTender || selectedBid) {
+      setRequirementsList((prev) => {
+        if (prev && prev.length > 0) return prev;
+        return getInitialRequirements(selectedTender, selectedBid);
+      });
+    }
     fetchMyBidsAndRequirements();
   }, [selectedBid, selectedTender]);
 

@@ -345,25 +345,36 @@ def get_bid_details(
     db: Session = Depends(get_db)
 ):
     """Retrieve detailed verification status of a specific bid."""
+    import uuid
     bid = None
-    clean_id = str(bid_id).replace("-", "").lower()
-    clean_target = clean_id.replace("/", "")
-    all_bids = db.query(Bid).all()
-    for b in all_bids:
-        b_id_clean = str(b.id).replace("-", "").lower()
-        b_bidder_clean = str(b.bidder_id).replace("-", "").lower() if b.bidder_id else ""
-        b_tender_clean = str(b.tender_id).replace("-", "").replace("/", "").lower() if b.tender_id else ""
-        
-        b_email_clean = str(b.bidder.email).lower() if b.bidder and b.bidder.email else ""
-        b_name_clean = str(b.bidder.full_name).lower() if b.bidder and b.bidder.full_name else ""
-        
-        if (b_id_clean == clean_id or 
-            b_bidder_clean == clean_id or 
-            b_tender_clean == clean_target or 
-            b_email_clean == str(bid_id).lower() or 
-            b_name_clean == str(bid_id).lower()):
-            bid = b
-            break
+    try:
+        bid_uuid = uuid.UUID(str(bid_id))
+        bid = db.query(Bid).filter(Bid.id == bid_uuid).first()
+    except Exception:
+        pass
+
+    if not bid:
+        bid = db.query(Bid).filter((Bid.id == bid_id) | (Bid.tender_id == bid_id)).first()
+
+    if not bid:
+        clean_id = str(bid_id).replace("-", "").lower()
+        clean_target = clean_id.replace("/", "")
+        all_bids = db.query(Bid).all()
+        for b in all_bids:
+            b_id_clean = str(b.id).replace("-", "").lower()
+            b_bidder_clean = str(b.bidder_id).replace("-", "").lower() if b.bidder_id else ""
+            b_tender_clean = str(b.tender_id).replace("-", "").replace("/", "").lower() if b.tender_id else ""
+            
+            b_email_clean = str(b.bidder.email).lower() if b.bidder and b.bidder.email else ""
+            b_name_clean = str(b.bidder.full_name).lower() if b.bidder and b.bidder.full_name else ""
+            
+            if (b_id_clean == clean_id or 
+                b_bidder_clean == clean_id or 
+                b_tender_clean == clean_target or 
+                b_email_clean == str(bid_id).lower() or 
+                b_name_clean == str(bid_id).lower()):
+                bid = b
+                break
 
     if not bid:
         raise HTTPException(

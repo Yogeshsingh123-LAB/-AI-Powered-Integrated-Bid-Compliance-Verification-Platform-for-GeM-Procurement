@@ -217,24 +217,12 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       const token = data.access_token;
       const user = data.user;
 
-      // Access control rule: User do not have admin power
-      if (selectedPortal === "Buyer") {
-        if (user.role.toUpperCase() !== "OFFICER" && user.role.toUpperCase() !== "ADMIN") {
-          setAuthError("Access Denied: Supplier accounts do not have clearance level permissions for the Audit Console Terminal.");
-          setLoading(false);
-          generateCaptcha();
-          return;
-        }
-      }
-
-      // Access control rule: Admin/Officer portal tab clearance
-      if (selectedPortal === "Supplier") {
-        if (user.role.toUpperCase() !== "BIDDER" && user.role.toUpperCase() !== "ADMIN") {
-          setAuthError("Access Denied: Administrative accounts should log in through the Audit Console Portal.");
-          setLoading(false);
-          generateCaptcha();
-          return;
-        }
+      // Seamless auto-detection and portal routing based on user's authorized role
+      const userRole = (user?.role || "").toUpperCase();
+      if (userRole.includes("OFFICER") || userRole.includes("AUDITOR") || userRole.includes("ADMIN")) {
+        setSelectedPortal("Buyer");
+      } else {
+        setSelectedPortal("Supplier");
       }
 
       setSuccessMsg(`Welcome, ${user.full_name || 'User'}! Redirecting...`);

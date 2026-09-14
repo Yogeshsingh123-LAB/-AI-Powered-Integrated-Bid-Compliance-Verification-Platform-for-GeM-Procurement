@@ -2663,10 +2663,9 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
 
     useEffect(() => {
       let mounted = true;
-      setLoadingBidders(true);
-      setBiddersError(null);
 
-      const fetchBiddersData = async () => {
+      const fetchBiddersData = async (isBackground = false) => {
+        if (!isBackground) setLoadingBidders(true);
         try {
           const activeToken = localStorage.getItem("gem_token") || token;
           const res = await apiFetch(`${API_BASE}/api/bidders`, {
@@ -2676,7 +2675,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
             const data = await res.json();
             if (mounted && Array.isArray(data)) {
               setRegisteredBidders(data);
-              setLoadingBidders(false);
+              if (!isBackground) setLoadingBidders(false);
               return;
             }
           }
@@ -2691,14 +2690,29 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
           }
         } catch (err) {
           console.error("Error fetching bidders data:", err);
-          if (mounted) setBiddersError("Failed to connect to database.");
+          if (mounted && !isBackground) setBiddersError("Failed to connect to database.");
         } finally {
           if (mounted) setLoadingBidders(false);
         }
       };
 
-      fetchBiddersData();
-      return () => { mounted = false; };
+      fetchBiddersData(false);
+      const interval = setInterval(() => {
+        fetchBiddersData(true);
+      }, 3500);
+
+      const handleFocus = () => {
+        if (document.visibilityState === "visible") fetchBiddersData(true);
+      };
+      window.addEventListener("focus", handleFocus);
+      document.addEventListener("visibilitychange", handleFocus);
+
+      return () => {
+        mounted = false;
+        clearInterval(interval);
+        window.removeEventListener("focus", handleFocus);
+        document.removeEventListener("visibilitychange", handleFocus);
+      };
     }, [API_BASE, token]);
 
     const sourceList = (registeredBidders && registeredBidders.length > 0) ? registeredBidders : (bids || []);
@@ -9391,12 +9405,8 @@ function BlacklistManagementView({ API_BASE, token, user }) {
   const [actionError, setActionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchBlacklistRegistry();
-  }, []);
-
-  const fetchBlacklistRegistry = async () => {
-    setLoading(true);
+  const fetchBlacklistRegistry = async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     setError("");
     try {
       const activeToken = localStorage.getItem("gem_token") || token;
@@ -9410,14 +9420,33 @@ function BlacklistManagementView({ API_BASE, token, user }) {
         setBidders(data);
       } else {
         const errData = await res.json().catch(() => ({}));
-        setError(errData.detail || "Failed to fetch blacklist registry.");
+        if (!isBackground) setError(errData.detail || "Failed to fetch blacklist registry.");
       }
     } catch (err) {
-      setError("Network error fetching blacklist registry.");
+      if (!isBackground) setError("Network error fetching blacklist registry.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchBlacklistRegistry(false);
+    const interval = setInterval(() => {
+      fetchBlacklistRegistry(true);
+    }, 3500);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") fetchBlacklistRegistry(true);
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, []);
 
   const openActionModal = (bidder, type) => {
     setModalState({ isOpen: true, type, bidder });

@@ -6014,7 +6014,7 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `BidVerify_Audit_Trail_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute("download", `BidZee_Audit_Trail_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -6880,7 +6880,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
         if (res.ok) {
           await fetchTenders();
           setCurrentStep(5);
-          showToast(` Tender ${finalTenderId} Successfully Published to the BidVerify Bidder Portal! Redirecting to Tenders List...`);
+          showToast(` Tender ${finalTenderId} Successfully Published to the Bid Zee Bidder Portal! Redirecting to Tenders List...`);
           setTimeout(() => {
             setActiveSection("tenders");
           }, 1500);
@@ -9167,7 +9167,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
       : {
         enabled: true,
         badgeText: " LIVE ANNOUNCEMENTS",
-        text: " Welcome to BidVerify Government e-Auction & Compliance Verification Portal  Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active  Tender GEM-CPCL-2026-001 Live  Helpdesk: 1800-425-8888 (Toll Free) ",
+        text: " Welcome to Bid Zee Government e-Auction & Compliance Verification Portal  Real-Time GSTIN, PAN, Udyam MSME & OEM Authorization Verification Active  Tender GEM-CPCL-2026-001 Live  Helpdesk: 1800-425-8888 (Toll Free) ",
         type: "NOTICE",
         speed: "NORMAL"
       };
@@ -9995,7 +9995,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
             <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <img
                 src="/logo.png"
-                alt="BidVerify Logo"
+                alt="Bid Zee Logo"
                 style={{ height: "40px", objectFit: "contain" }}
               />
               <span className="ai-verified-badge" style={{ marginLeft: "2px" }}>AI VERIFIED</span>
@@ -10191,7 +10191,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
           <div className="bidder-logo" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img
               src="/logo.png"
-              alt="BidVerify Logo"
+              alt="Bid Zee Logo"
               style={{ height: "40px", objectFit: "contain" }}
             />
             <span className="ai-verified-badge" style={{ marginLeft: "2px" }}>AI VERIFIED</span>

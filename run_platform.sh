@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # =======================================================
-#   BidVerify - GeM Bid Compliance Platform Launcher (macOS / Linux)
+#   Bid Zee - GeM Bid Compliance Platform Launcher (macOS / Linux)
 # =======================================================
 
 echo "======================================================="
-echo "  BidVerify - GeM Bid Compliance Platform Launcher"
+echo "  Bid Zee - GeM Bid Compliance Platform Launcher"
 echo "======================================================="
 echo ""
 

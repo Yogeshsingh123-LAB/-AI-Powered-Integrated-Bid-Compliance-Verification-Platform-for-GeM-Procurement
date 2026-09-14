@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title BidVerify Platform runner
+title Bid Zee Platform runner
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_platform.ps1"
 set "launcher_exit=%ERRORLEVEL%"
 if %launcher_exit% neq 0 (

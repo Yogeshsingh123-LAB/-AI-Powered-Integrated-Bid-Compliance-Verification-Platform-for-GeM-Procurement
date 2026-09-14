@@ -296,7 +296,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       <header className="login-page-navbar">
         <div className="login-nav-wrapper">
           <div className="login-brand-logo" onClick={onBackToHome}>
-            <img src="/logo.png" alt="BidVerify Logo" className="login-brand-img" />
+            <img src="/logo.png" alt="Bid Zee Logo" className="login-brand-img" />
           </div>
 
           <nav className="login-nav-links">
@@ -339,7 +339,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
             </h1>
 
             <p className="login-hero-description">
-              Login to BidVerify and streamline bidder compliance verification with AI —
+              Login to Bid Zee and streamline bidder compliance verification with AI —
               making public procurement faster, fairer and more transparent.
             </p>
 
@@ -406,7 +406,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                 /* SIGN IN FORM */
                 <form onSubmit={handleLoginSubmit} className="login-form-inner">
                   <h2 className="card-welcome-title">
-                    Welcome to <span className="highlight-orange">BidVerify</span>
+                    Welcome to <span className="highlight-orange">Bid Zee</span>
                   </h2>
                   <p className="card-welcome-subtitle">Login to access the platform</p>
 
@@ -566,7 +566,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                       color: '#166534'
                     }}>
                       <strong style={{ display: 'block', marginBottom: '4px' }}>🔑 Default Admin Credentials:</strong>
-                      <div>Email: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@gem.gov.in</code> or <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@bidverify.gov.in</code></div>
+                      <div>Email: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@gem.gov.in</code> or <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@bidzee.gov.in</code></div>
                       <div style={{ marginTop: '2px' }}>Password: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>AdminSecret2026!</code></div>
                     </div>
                   )}
@@ -687,7 +687,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                 /* SIGN UP FORM */
                 <form onSubmit={handleSignUpSubmit} className="login-form-inner">
                   <h2 className="card-welcome-title">
-                    Create Account on <span className="highlight-orange">BidVerify</span>
+                    Create Account on <span className="highlight-orange">Bid Zee</span>
                   </h2>
                   <p className="card-welcome-subtitle">Register to join the compliance platform</p>
 

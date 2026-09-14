@@ -49,16 +49,16 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
 
   const faqs = [
     {
-      q: "How does BidVerify integrate with GeM procurement?",
-      a: "BidVerify seamlessly cross-references tender document submissions against statutory government databases (PAN, GSTIN, Udyam MSME, EPFO/ESIC) to automate pre-qualification verification for GeM tenders."
+      q: "How does Bid Zee integrate with GeM procurement?",
+      a: "Bid Zee seamlessly cross-references tender document submissions against statutory government databases (PAN, GSTIN, Udyam MSME, EPFO/ESIC) to automate pre-qualification verification for GeM tenders."
     },
     {
-      q: "Is BidVerify secure and compliant with government data standards?",
-      a: "Yes. BidVerify uses end-to-end encryption, consent-driven API access, role-based access control (RBAC), and immutable audit logging for full legal transparency and compliance."
+      q: "Is Bid Zee secure and compliant with government data standards?",
+      a: "Yes. Bid Zee uses end-to-end encryption, consent-driven API access, role-based access control (RBAC), and immutable audit logging for full legal transparency and compliance."
     },
     {
       q: "Can procurement officers override AI compliance recommendations?",
-      a: "Absolutely. BidVerify is designed as an Officer Decision Support System. AI recommendations include clear explainability logs, but final authority always rests with designated procurement officers."
+      a: "Absolutely. Bid Zee is designed as an Officer Decision Support System. AI recommendations include clear explainability logs, but final authority always rests with designated procurement officers."
     },
     {
       q: "How long does automated bid verification take?",
@@ -67,13 +67,13 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
   ];
 
   return (
-    <div className="bidverify-landing-container">
+    <div className="bidzee-landing-container">
       {/* TOP NAVBAR */}
       <header className="landing-navbar">
         <div className="nav-content-wrapper">
           {/* Brand Logo */}
           <div className="brand-logo-container" onClick={() => scrollToSection("home")}>
-            <img src="/logo.png" alt="BidVerify Logo" className="brand-logo-img" />
+            <img src="/logo.png" alt="Bid Zee Logo" className="brand-logo-img" />
           </div>
 
           {/* Navigation Links */}
@@ -156,7 +156,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
 
             {/* Hero Subtitle */}
             <p className="hero-subtitle-description">
-              BidVerify automates and simplifies bidder compliance verification for GeM procurement —
+              Bid Zee automates and simplifies bidder compliance verification for GeM procurement —
               helping procurement officers make faster, fairer and more transparent decisions.
             </p>
 
@@ -315,11 +315,11 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
         </div>
       </section>
 
-      {/* SECTION: HOW BIDVERIFY BRIDGES THE GAP */}
+      {/* SECTION: HOW BID ZEE BRIDGES THE GAP */}
       <section id="about" className="bridges-gap-section">
         <div className="section-header-center">
           <h2>
-            How BidVerify <span className="highlight-orange">Bridges the Gap</span>
+            How Bid Zee <span className="highlight-orange">Bridges the Gap</span>
           </h2>
           <p className="section-subtitle">
             From fragmented documents to a unified compliance view — powered by AI.
@@ -452,7 +452,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             <span className="role-eyebrow">FOR PROCUREMENT OFFICERS</span>
             <h2>Make Confident, Defensible Procurement Decisions</h2>
             <p>
-              BidVerify empowers government procurement officers with real-time audit tools, cartel pattern visualization,
+              Bid Zee empowers government procurement officers with real-time audit tools, cartel pattern visualization,
               and explainable AI overrides.
             </p>
             <ul className="role-features-list">
@@ -516,7 +516,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             <span className="role-eyebrow">FOR BIDDERS & SUPPLIERS</span>
             <h2>Pre-Audit Your Compliance Before Submission</h2>
             <p>
-              Eliminate rejection due to missing statutory documentation. BidVerify helps suppliers verify compliance
+              Eliminate rejection due to missing statutory documentation. Bid Zee helps suppliers verify compliance
               credentials in advance for frictionless GeM procurement.
             </p>
             <ul className="role-features-list">
@@ -537,7 +537,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
           <span className="section-tag">FREQUENTLY ASKED QUESTIONS</span>
           <h2>Got Questions? We Have Answers</h2>
           <p className="section-subtitle">
-            Everything you need to know about BidVerify compliance automation.
+            Everything you need to know about Bid Zee compliance automation.
           </p>
         </div>
 
@@ -562,7 +562,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
       <footer className="landing-footer">
         <div className="footer-top-row">
           <div className="footer-col-brand">
-            <img src="/logo.png" alt="BidVerify Logo" className="footer-logo-img" />
+            <img src="/logo.png" alt="Bid Zee Logo" className="footer-logo-img" />
             <p className="footer-desc">
               AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement.
               Delivering speed, transparency, and accountability for government purchasing.
@@ -594,7 +594,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
         </div>
 
         <div className="footer-bottom-row">
-          <p>© 2026 BidVerify Platform. Developed for GeM Procurement Verification. All rights reserved.</p>
+          <p>© 2026 Bid Zee Platform. Developed for GeM Procurement Verification. All rights reserved.</p>
           <div className="footer-legal-links">
             <span>Privacy Policy</span>
             <span>Terms of Service</span>
@@ -612,7 +612,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             </button>
             <div className="demo-modal-header">
               <Sparkles size={20} className="icon-orange" />
-              <h3>BidVerify Platform Demonstration</h3>
+              <h3>Bid Zee Platform Demonstration</h3>
             </div>
             <div className="demo-modal-body">
               <div className="demo-video-wrapper">

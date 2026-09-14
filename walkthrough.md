@@ -1,7 +1,7 @@
-# BidVerify Platform Walkthrough & Demo Guide
+# Bid Zee Platform Walkthrough & Demo Guide
 
 **Problem Statement ID**: SIH26100  
-**Project Name**: BidVerify / GeM Integrated Bid Compliance Verification Platform  
+**Project Name**: Bid Zee / GeM Integrated Bid Compliance Verification Platform  
 
 ---
 
@@ -84,9 +84,9 @@ npm run build
 
 ---
 
-# Walkthrough & Launch Guide — BidVerify Platform
+# Walkthrough & Launch Guide — Bid Zee Platform
 
-BidVerify is an AI-powered integrated bid compliance verification platform designed for GeM government procurement.
+Bid Zee is an AI-powered integrated bid compliance verification platform designed for GeM government procurement.
 
 The following implementation notes and test results were recorded on the incoming branch; they are historical reports, not verification of this merged revision.
 

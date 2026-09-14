@@ -49,7 +49,7 @@ function Wait-ServiceReady {
 }
 
 try {
-    Write-Host 'BidVerify platform launcher'
+    Write-Host 'Bid Zee platform launcher'
     New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
 
     Write-Host '[1/2] Checking backend...'

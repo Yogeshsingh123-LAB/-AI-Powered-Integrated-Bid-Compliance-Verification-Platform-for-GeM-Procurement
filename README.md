@@ -1,4 +1,4 @@
-# BidVerify — AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement
+# Bid Zee — AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
@@ -7,15 +7,15 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Problem Statement ID**: SIH26100  
-**Project Name**: BidVerify / GeM Integrated Bid Compliance Verification Platform  
+**Project Name**: Bid Zee / GeM Integrated Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 **Live Demo**: https://your-live-demo-url  
 **Demo Video**: https://your-video-url  
 
 > [!IMPORTANT]
-> **Core Product Principle**: BidVerify is an **AI-assisted decision-support & verification platform**. The AI NEVER independently qualifies or disqualifies a bidder. All final qualification and disqualification decisions remain exclusively with the Procurement Officer.
+> **Core Product Principle**: Bid Zee is an **AI-assisted decision-support & verification platform**. The AI NEVER independently qualifies or disqualifies a bidder. All final qualification and disqualification decisions remain exclusively with the Procurement Officer.
 
-![BidVerify Compliance Dashboard](docs/screenshots/compliance-dashboard.png)
+![Bid Zee Compliance Dashboard](docs/screenshots/compliance-dashboard.png)
 
 [▶ Watch the 2-minute demo](https://your-demo-link)
 
@@ -104,7 +104,7 @@ The prototype uses mock government APIs for safe local development. Production i
 
 ## MyGeM AI Assistant
 
-**MyGeM** is BidVerify's built-in conversational assistant for bidders, procurement officers, and administrators. Available after login, it helps users understand portal workflows, bid documents, and compliance requirements.
+**MyGeM** is Bid Zee's built-in conversational assistant for bidders, procurement officers, and administrators. Available after login, it helps users understand portal workflows, bid documents, and compliance requirements.
 
 ### Features
 
@@ -134,7 +134,7 @@ The prototype uses mock government APIs for safe local development. Production i
 
 ```mermaid
 flowchart TD
-    A["BidVerify Web UI (Officer / Bidder / Admin)"] -->|"REST API / Auth (JWT)"| B["FastAPI Backend Service"]
+    A["Bid Zee Web UI (Officer / Bidder / Admin)"] -->|"REST API / Auth (JWT)"| B["FastAPI Backend Service"]
     A2["Mobile Officer App (PWA & Web Push Alerts)"] -->|"REST API / Auth (JWT)"| B
     B -->|"Verification Gateway"| G["Mock Govt APIs (GST, PAN, Udyam, EPFO, ESIC, MCA, Blacklist)"]
     B -->|"SQLAlchemy ORM"| C[("PostgreSQL / SQLite Database")]

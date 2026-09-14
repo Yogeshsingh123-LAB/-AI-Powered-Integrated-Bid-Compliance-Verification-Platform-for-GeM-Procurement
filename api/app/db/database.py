@@ -68,14 +68,22 @@ is_production = settings.ENVIRONMENT.lower() in ("production", "prod", "staging"
 try:
     db_url = settings.DATABASE_URL
     if not db_url:
-        db_url = "postgresql+psycopg://postgres:postgres@localhost:5432/bid_compliance_db"
+        if is_production:
+            raise RuntimeError("DATABASE_URL environment variable is required in production environment.")
+        dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
+        db_url = f"sqlite:///{dev_db_path}"
 
-    engine = create_resilient_engine(db_url)
+    if db_url.startswith("sqlite"):
+        engine = create_engine(db_url, connect_args={"check_same_thread": False}, pool_pre_ping=True)
+    else:
+        engine = create_resilient_engine(db_url)
 except Exception as err:
-    import tempfile
-    logger.warning(f"Could not initialize primary database engine: {err}. Falling back to resilient SQLite database.")
-    tmp_path = os.path.join(tempfile.gettempdir(), "bid_compliance_resilient.db")
-    engine = create_engine(f"sqlite:///{tmp_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
+    if is_production:
+        logger.error(f"Could not connect to production primary database: {err}")
+        raise RuntimeError(f"Could not connect to production database: {err}. Silent database fallback is prohibited in production.") from err
+    dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
+    logger.warning(f"Could not initialize primary database engine: {err}. Using persistent local database at {dev_db_path}.")
+    engine = create_engine(f"sqlite:///{dev_db_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -228,9 +236,9 @@ def init_admin_user():
 
 def create_fallback_engine():
     global engine, SessionLocal
-    import os, tempfile
-    tmp_path = os.path.join(tempfile.gettempdir(), "bid_compliance_resilient.db")
-    fallback_url = f"sqlite:///{tmp_path}"
+    import os
+    dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
+    fallback_url = f"sqlite:///{dev_db_path}"
     logger.info(f"Initializing fallback SQLite database at {fallback_url}")
     engine = create_engine(fallback_url, connect_args={"check_same_thread": False}, pool_pre_ping=True)
     SessionLocal.configure(bind=engine)

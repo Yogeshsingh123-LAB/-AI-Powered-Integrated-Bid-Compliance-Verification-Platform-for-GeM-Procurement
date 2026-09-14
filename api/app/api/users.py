@@ -108,6 +108,29 @@ def get_all_bidders(
 
 # --- Admin User Management Endpoints ---
 
+@router.get("/admin/users/stats", response_model=Dict[str, Any])
+def admin_get_user_stats(
+    current_user: User = Depends(require_role("ADMIN", "OFFICER")),
+    db: Session = Depends(get_db)
+):
+    """Retrieve database-aggregated user statistics."""
+    from sqlalchemy import func
+    total_users = db.query(func.count(User.id)).scalar() or 0
+    active_users = db.query(func.count(User.id)).filter(User.status == "Active", User.is_active == True).scalar() or 0
+    suspended_users = db.query(func.count(User.id)).filter((User.status == "Suspended") | (User.is_active == False)).scalar() or 0
+    officers = db.query(func.count(User.id)).filter(func.upper(User.role).in_(["OFFICER", "VERIFICATION OFFICER", "AUDITOR"])).scalar() or 0
+    bidders = db.query(func.count(User.id)).filter(func.upper(User.role) == "BIDDER").scalar() or 0
+    admins = db.query(func.count(User.id)).filter(func.upper(User.role) == "ADMIN").scalar() or 0
+
+    return {
+        "total_users": total_users,
+        "active_users": active_users,
+        "suspended_users": suspended_users,
+        "officers": officers,
+        "bidders": bidders,
+        "admins": admins
+    }
+
 @router.get("/admin/users", response_model=List[UserResponse])
 def admin_get_all_users(
     admin_user: User = Depends(require_role("ADMIN")),

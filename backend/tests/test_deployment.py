@@ -184,5 +184,46 @@ class DeploymentTests(unittest.TestCase):
             self.assertEqual(socket.receive_text(), "pong")
 
 
+    def test_admin_creates_officer_and_officer_login_flow(self):
+        officer_data = {
+            "full_name": "Test Officer",
+            "email": "test.officer@bidzee.com",
+            "password": "TestOfficer@123",
+            "role": "OFFICER",
+            "department": "Procurement",
+            "admin_authorization_password": "TestAdmin!8Secure"
+        }
+        res_create = self.client.post("/api/admin/users", headers=self.admin, json=officer_data)
+        self.assertEqual(res_create.status_code, 201, res_create.text)
+        created_user = res_create.json()
+        self.assertEqual(created_user["email"], "test.officer@bidzee.com")
+        self.assertEqual(created_user["role"], "OFFICER")
+
+        login_payload = {
+            "email": "Test.Officer@BidZee.com ",
+            "password": "TestOfficer@123"
+        }
+        res_login = self.client.post("/api/auth/login", json=login_payload)
+        self.assertEqual(res_login.status_code, 200, res_login.text)
+        login_data = res_login.json()
+        officer_token = login_data["access_token"]
+        self.assertTrue(officer_token)
+        self.assertEqual(login_data["user"]["email"], "test.officer@bidzee.com")
+        self.assertEqual(login_data["user"]["role"], "OFFICER")
+
+        officer_headers = {"Authorization": f"Bearer {officer_token}"}
+        res_me = self.client.get("/api/auth/me", headers=officer_headers)
+        self.assertEqual(res_me.status_code, 200, res_me.text)
+        me_data = res_me.json()
+        self.assertEqual(me_data["email"], "test.officer@bidzee.com")
+        self.assertEqual(me_data["role"], "OFFICER")
+
+        res_stats = self.client.get("/api/admin/users/stats", headers=officer_headers)
+        self.assertEqual(res_stats.status_code, 200, res_stats.text)
+        stats_data = res_stats.json()
+        self.assertGreaterEqual(stats_data["total_users"], 1)
+        self.assertGreaterEqual(stats_data["officers"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

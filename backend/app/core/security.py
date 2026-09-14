@@ -21,13 +21,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     if not plain_password or not hashed_password:
         return False
     clean_pass = _prepare_password(plain_password)
+    clean_hash = hashed_password.strip()
     try:
-        if hashed_password.startswith("$2"):
-            return bcrypt.checkpw(clean_pass.encode("utf-8"), hashed_password.encode("utf-8"))
-        return pwd_context.verify(clean_pass, hashed_password)
+        if clean_hash.startswith("$2"):
+            return bcrypt.checkpw(clean_pass.encode("utf-8"), clean_hash.encode("utf-8"))
+        return pwd_context.verify(clean_pass, clean_hash)
     except Exception:
         try:
-            return pwd_context.verify(clean_pass, hashed_password)
+            return pwd_context.verify(clean_pass, clean_hash)
         except Exception:
             return False
 

@@ -4841,10 +4841,10 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const [deptFilter, setDeptFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
 
-    const fetchUsersList = async () => {
+    const fetchUsersList = async (isBackground = false) => {
       const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
-      setLoadingUsers(true);
+      if (!isBackground) setLoadingUsers(true);
       try {
         const res = await apiFetch(`${apiBaseUrl}/api/admin/users`, {
           headers: {
@@ -4874,7 +4874,25 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     };
 
     useEffect(() => {
-      fetchUsersList();
+      fetchUsersList(false);
+      const userSyncInterval = setInterval(() => {
+        fetchUsersList(true);
+      }, 3500);
+
+      const handleUserFocus = () => {
+        if (document.visibilityState === "visible") {
+          fetchUsersList(true);
+        }
+      };
+
+      window.addEventListener("focus", handleUserFocus);
+      document.addEventListener("visibilitychange", handleUserFocus);
+
+      return () => {
+        clearInterval(userSyncInterval);
+        window.removeEventListener("focus", handleUserFocus);
+        document.removeEventListener("visibilitychange", handleUserFocus);
+      };
     }, []);
 
     // Modal & Dialog States

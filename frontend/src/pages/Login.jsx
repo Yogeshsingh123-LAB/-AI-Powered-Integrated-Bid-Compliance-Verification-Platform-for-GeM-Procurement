@@ -200,13 +200,14 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     setLoading(true);
     setLoading(true);
     try {
+      const cleanLoginEmail = (loginEmail || "").trim().toLowerCase();
       const response = await apiFetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          email: loginEmail,
+          email: cleanLoginEmail,
           password: password
         })
       });
@@ -264,6 +265,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       return;
     }
 
+    const cleanSignUpEmail = (signUpEmail || "").trim().toLowerCase();
     setLoading(true);
     try {
       const response = await apiFetch(`${BACKEND_URL}/api/auth/register`, {
@@ -272,8 +274,8 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          full_name: `${signUpName} (${organization})`,
-          email: signUpEmail,
+          full_name: `${signUpName.trim()} (${organization.trim()})`,
+          email: cleanSignUpEmail,
           password: signUpPassword,
           role: "BIDDER"
         })
@@ -287,7 +289,8 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
       setSuccessMsg("Registration successful! Directing to login.");
       setTimeout(() => {
-        setLoginEmail(signUpEmail);
+        setLoginEmail(cleanSignUpEmail);
+        setSelectedPortal("Supplier");
         setIsSignUp(false);
         setSuccessMsg("");
         generateCaptcha();

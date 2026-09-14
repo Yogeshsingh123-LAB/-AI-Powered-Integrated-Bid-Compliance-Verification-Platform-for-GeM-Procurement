@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = Field(default="gemini")
     AI_API_KEY: str = Field(default="")
     GEMINI_API_KEY: str = Field(default="")
-    AI_MODEL: str = Field(default="gemini-1.5-flash")
+    AI_MODEL: str = Field(default="gemini-2.5-flash")
     GROQ_API_KEY: str = Field(default="")
     GROQ_MODEL: str = Field(default="openai/gpt-oss-20b")
     GROQ_WEB_SEARCH_ENABLED: bool = Field(default=True)
@@ -61,7 +61,9 @@ class Settings(BaseSettings):
         if not value:
             return value
         if value.startswith("postgres://"):
-            return "postgresql://" + value[len("postgres://"):]
+            value = "postgresql://" + value[len("postgres://"):]
+        if value.startswith("postgresql://"):
+            value = "postgresql+psycopg://" + value[len("postgresql://"):]
         return value
 
     @field_validator("UPLOAD_DIR")
@@ -102,7 +104,7 @@ class Settings(BaseSettings):
 
     @property
     def effective_gemini_api_key(self) -> str:
-        return self.GEMINI_API_KEY or self.AI_API_KEY
+        return self.GEMINI_API_KEY.strip() or self.AI_API_KEY.strip()
 
     @property
     def cors_origins_list(self) -> List[str]:
@@ -112,7 +114,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         # Resolve this from the backend directory so configuration works whether
         # Uvicorn is launched from the repository root or from backend/.
-        env_file=BACKEND_DIR / ".env",
+        env_file=(BACKEND_DIR / ".env", BACKEND_DIR.parent / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         hide_input_in_errors=True

@@ -99,6 +99,7 @@ Run these commands from their corresponding directories:
 ```powershell
 # backend
 .\venv\Scripts\python.exe tests/test_chat_support.py
+.\venv\Scripts\python.exe tests/test_chat_providers.py
 .\venv\Scripts\python.exe tests/test_deployment.py
 
 # frontend
@@ -107,7 +108,8 @@ npm run build
 npm run lint
 ```
 
-Both Python suites use temporary databases, never the configured cloud database.
+The support and deployment suites use temporary databases, never the configured cloud database.
+The provider suite mocks network transports and does not open a database.
 The new suite checks ownership, minimal columns, non-enumerating errors, validation,
 rate-limit reset, provider formatting, language fallbacks, ticket permissions and
 the administrator reply/resolve/reopen lifecycle.

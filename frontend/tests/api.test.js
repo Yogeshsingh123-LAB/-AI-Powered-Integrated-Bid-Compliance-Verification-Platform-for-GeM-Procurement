@@ -1,9 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { apiFetch, apiUrl, websocketUrl } from '../src/services/api.js';
+import { apiFetch, apiUrl, websocketUrl, setDemoMode } from '../src/services/api.js';
 
 globalThis.window = { location: { origin: 'https://frontend.example.com' } };
 globalThis.localStorage = { getItem: () => 'test-token' };
+
+test('demo mode blocks live reads and writes even with an existing credential, then restores normal requests on exit', async () => {
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return Response.json({ ok: true }); };
+  setDemoMode(true);
+  try {
+    for (const method of ['GET', 'POST', 'PATCH', 'DELETE']) {
+      const response = await apiFetch('/api/tenders', { method, headers: { Authorization: 'Bearer existing-token' } });
+      assert.equal(response.status, 403);
+      assert.match((await response.json()).detail, /Demo mode/);
+    }
+    assert.equal(calls, 0);
+  } finally {
+    setDemoMode(false);
+  }
+  assert.equal((await apiFetch('/api/tenders')).status, 200);
+  assert.equal(calls, 1);
+});
 
 test('same-origin API and WebSocket URLs support HTTPS and tender slashes', () => {
   assert.equal(apiUrl('/api/auth/me'), '/api/auth/me');

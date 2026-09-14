@@ -9,6 +9,7 @@ from app.schemas.chat import ChatMessage
 
 
 logger = logging.getLogger(__name__)
+CHAT_TIMEOUT_SECONDS = 10
 
 SYSTEM_PROMPT = """You are MyGeM, the helpful assistant inside the GeM Bid Compliance
 Verification Platform. Give concise, practical answers for Indian Government e-Marketplace
@@ -139,11 +140,20 @@ def _knowledge_base_answer(message: str, user_role: str | None) -> tuple[str, li
     text = _normalize(message)
     normalized_role = (user_role or "").strip().lower()
     is_supplier = normalized_role in {"supplier", "bidder"}
-    is_buyer = normalized_role in {"buyer", "officer", "admin", "administrator"}
+    is_buyer = normalized_role in {"buyer", "officer", "verification officer", "auditor", "admin", "administrator"}
 
     calculation_answer = _basic_calculation_answer(text)
     if calculation_answer:
         return calculation_answer, DEFAULT_SUGGESTIONS
+
+    if _contains_any(text, ("ticket", "support", "human agent", "live agent", "escalate", "escalation", "helpdesk")):
+        return (
+            "Open Support in this assistant. Use Raise ticket to send an issue, Track ticket with your saved "
+            "ticket reference to read replies, or Live support to check staff availability. Open a ticket to "
+            "request escalation. The support team consists of this platform’s administrators; this is not the "
+            "official GeM helpdesk.",
+            ["How do I upload a document?", "Where can I track my bid?", "Why is my document flagged?"],
+        )
 
     if (
         re.search(r"\b(?:full form|stands? for|meaning|expansion)\b.*\bgem\b", text)
@@ -337,6 +347,7 @@ def _knowledge_base_answer(message: str, user_role: str | None) -> tuple[str, li
                 ["How do I review a bid?", "Where is the Audit Trail?", "How is the score calculated?"],
             )
         return (
+            "Choose Track bid in this assistant and select your submitted tender; search by tender title or Tender ID. "
             "Open My Bids in the top navigation to see your filed and draft bids, compliance rating, and audit status. "
             "Open Documents for requirement-level states such as Missing, Processing / Pending, Verified, or Rejected. "
             "Notifications shows recent updates. I cannot see a specific bid unless the application supplies its data to this chat.",
@@ -427,19 +438,22 @@ def _generate_ai_answer(
     history: list[ChatMessage],
     user_role: str | None,
 ) -> tuple[str, bool]:
-    api_key = settings.AI_API_KEY
+    api_key = settings.effective_gemini_api_key.strip()
     try:
         from google import genai
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=api_key, http_options={"timeout": 8000})
         history_lines = [f"{item.role}: {item.content}" for item in history[-10:]]
         full_prompt = f"System: {SYSTEM_PROMPT}\nCurrent portal role: {user_role or 'unknown'}\n"
         if history_lines:
             full_prompt += "\nChat History:\n" + "\n".join(history_lines) + "\n"
         full_prompt += f"\nUser: {message}"
-        response = client.models.generate_content(
-            model=settings.AI_MODEL,
-            contents=full_prompt
-        )
+        try:
+            response = client.models.generate_content(
+                model=settings.AI_MODEL,
+                contents=full_prompt,
+            )
+        finally:
+            client.close()
         answer = (response.text or "").strip()
         if answer:
             return answer, False
@@ -456,7 +470,7 @@ def _generate_ai_answer(
         )
     except Exception as legacy_err:
         logger.error(f"Legacy google.generativeai SDK unavailable: {legacy_err}")
-        return "I am currently unable to process AI chat requests. Please verify system AI credentials.", False
+        raise RuntimeError("Gemini SDK unavailable") from legacy_err
     gemini_history = [
         {
             "role": "user" if item.role == "user" else "model",
@@ -466,7 +480,7 @@ def _generate_ai_answer(
     ]
     chat = model.start_chat(history=gemini_history)
     role_context = f"Current portal role: {user_role or 'unknown'}.\n"
-    response = chat.send_message(role_context + message)
+    response = chat.send_message(role_context + message, request_options={"timeout": 8})
     answer = (response.text or "").strip()
     if not answer:
         raise ValueError("AI provider returned an empty response")
@@ -498,8 +512,10 @@ def _generate_groq_answer(
         "model": model,
         "messages": messages,
         "temperature": 0.2,
-        "max_completion_tokens": 700,
+        "max_completion_tokens": 2048,
     }
+    if model.startswith("openai/gpt-oss-"):
+        request_payload["reasoning_effort"] = "low"
 
     try:
         response = requests.post(
@@ -509,12 +525,17 @@ def _generate_groq_answer(
                 "Content-Type": "application/json",
             },
             json=request_payload,
-            timeout=18,
+            timeout=(2, 6),
         )
         response.raise_for_status()
     except Exception as err:
+        if not web_search_requested or model == settings.GROQ_MODEL:
+            raise
         logger.warning("Groq web search model attempt failed, falling back to standard model: %s", err)
         request_payload["model"] = settings.GROQ_MODEL
+        request_payload.pop("reasoning_effort", None)
+        if settings.GROQ_MODEL.startswith("openai/gpt-oss-"):
+            request_payload["reasoning_effort"] = "low"
         if "search_settings" in request_payload:
             del request_payload["search_settings"]
         response = requests.post(
@@ -524,7 +545,7 @@ def _generate_groq_answer(
                 "Content-Type": "application/json",
             },
             json=request_payload,
-            timeout=18,
+            timeout=(2, 6),
         )
         response.raise_for_status()
 
@@ -567,9 +588,9 @@ async def answer_question(
             return fallback_answer, "knowledge_base", suggestions
         generator = _generate_groq_answer
     elif provider == "gemini":
-        if not settings.AI_API_KEY.strip():
+        if not settings.effective_gemini_api_key.strip():
             logger.warning(
-                "Gemini is selected but AI_API_KEY is empty; using the local knowledge base"
+                "Gemini is selected but no API key is configured; using the local knowledge base"
             )
             return fallback_answer, "knowledge_base", suggestions
         generator = _generate_ai_answer
@@ -580,8 +601,10 @@ async def answer_question(
     try:
         answer, used_live_tool = await asyncio.wait_for(
             asyncio.to_thread(generator, provider_message, history, user_role),
-            timeout=20,
+            timeout=CHAT_TIMEOUT_SECONDS,
         )
+        if not isinstance(answer, str) or not answer.strip():
+            raise ValueError("AI provider returned an empty response")
         if has_latex(answer):
             logger.warning("AI chat returned unsupported math markup; using plain-text guidance")
             return fallback_answer, "knowledge_base", suggestions

@@ -1,14 +1,16 @@
-import { apiFetch, BACKEND_URL } from "./services/api";
+import { apiFetch, BACKEND_URL, setDemoMode } from "./services/api";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Login from "./pages/Login";
 import LandingPage from "./components/LandingPage";
 import "./App.css";
+import "./demoMode.css";
 
 const Home = lazy(() => import("./pages/Home"));
 const Chatbot = lazy(() => import("./components/Chatbot"));
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   const [userRole, setUserRole] = useState("Supplier"); // Supplier (BIDDER) or Buyer (OFFICER/ADMIN)
   const [currentUser, setCurrentUser] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -93,11 +95,36 @@ function App() {
   }, [API_BASE]);
 
   const handleLogin = (token, user) => {
+    setDemoMode(false);
+    setIsDemo(false);
     localStorage.setItem("gem_token", token);
     localStorage.setItem("gem_user", JSON.stringify(user));
     setCurrentUser(user);
     setUserRole(user.role.toUpperCase() === "BIDDER" ? "Supplier" : "Buyer");
     setIsLoggedIn(true);
+  };
+
+  const handleDemo = (portal) => {
+    // Keep a demo visit separate from account/session persistence.
+    localStorage.removeItem("gem_token");
+    localStorage.removeItem("gem_user");
+    setDemoMode(true);
+    setIsDemo(true);
+    setIsLoggedIn(false);
+    setUserRole(portal === "Buyer" ? "Buyer" : "Supplier");
+    setCurrentUser({
+      id: portal === "Buyer" ? "demo-officer" : "demo-bidder",
+      full_name: portal === "Buyer" ? "Demo Procurement Officer" : "Demo Supplier",
+      role: portal === "Buyer" ? "OFFICER" : "BIDDER",
+      organization: "Sample organization",
+    });
+  };
+
+  const exitDemo = () => {
+    setDemoMode(false);
+    setIsDemo(false);
+    setCurrentUser(null);
+    navigateTo("login");
   };
 
   const handleLogout = () => {
@@ -135,10 +162,14 @@ function App() {
 
   return (
     <>
-      {isLoggedIn ? (
+      {isLoggedIn || isDemo ? (
         <Suspense fallback={<div role="status">Loading your workspace...</div>}>
-          <Home role={userRole} user={currentUser} onLogout={handleLogout} />
-          <Chatbot key={currentUser?.id} userRole={userRole} isSupportAdmin={currentUser?.role?.toUpperCase() === "ADMIN"} />
+          {isDemo && <div className="demo-mode-banner" role="status">
+            <span><strong>Demo mode</strong> — Sample workspace. Sign in to use the chatbot and live features.</span>
+            <button type="button" onClick={exitDemo}>Exit demo / Sign in</button>
+          </div>}
+          <Home key={isDemo ? "demo-workspace" : `workspace-${currentUser?.id}`} role={userRole} user={currentUser} isDemo={isDemo} onLogout={isDemo ? exitDemo : handleLogout} />
+          {isLoggedIn && !isDemo && <Chatbot key={`chat-${currentUser?.id}`} userRole={userRole} isSupportAdmin={currentUser?.role?.toUpperCase() === "ADMIN"} />}
         </Suspense>
       ) : authView === "landing" ? (
         <LandingPage
@@ -152,6 +183,7 @@ function App() {
           onBackToHome={() => navigateTo("landing", "home")}
           onNavigateSection={handleNavigateSection}
           onLogin={handleLogin}
+          onDemo={handleDemo}
         />
       )}
     </>

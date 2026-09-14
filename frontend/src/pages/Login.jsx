@@ -1,4 +1,5 @@
 import { apiFetch, safeJson, BACKEND_URL } from "../services/api";
+import { readLoginSession } from "../services/loginSession";
 import React, { useState, useEffect } from "react";
 import {
   User,
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 import "./Login.css";
 
-function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSection }) {
+function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavigateSection }) {
   const [selectedPortal, setSelectedPortal] = useState("Supplier"); // Supplier (Bidder) or Buyer (Officer/Admin)
   const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
   const [loading, setLoading] = useState(false);
@@ -139,10 +140,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
           })
         });
 
-        const data = await safeJson(response);
-        if (!response.ok || !data || data.success === false) {
-          throw new Error(data?.detail || "Biometric authentication failed.");
-        }
+        const data = await readLoginSession(response);
 
         setBiometricScanStatus("success");
         setBiometricScanMsg(`Biometric Verification Successful! Welcome, ${data.user?.full_name || 'Admin'}.`);
@@ -203,11 +201,7 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
         })
       });
 
-      const data = await safeJson(response);
-
-      if (!response.ok || !data || data.success === false) {
-        throw new Error(data?.detail || data?.message || "Authentication failed. Check your credentials.");
-      }
+      const data = await readLoginSession(response);
 
       const token = data.access_token;
       const user = data.user;
@@ -238,26 +232,6 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
       }, 1000);
 
     } catch (err) {
-      // Fallback for static/offline deployment mode (e.g. Vercel static demo)
-      if (err.message.includes("Failed to fetch") || err.message.includes("Connection refused") || err.message.includes("NetworkError")) {
-        const lowerEmail = (loginEmail || "").toLowerCase();
-        const isAdminUser = lowerEmail.includes("admin");
-        const isOfficer = selectedPortal === "Buyer" && !isAdminUser;
-        const role = isAdminUser ? "ADMIN" : isOfficer ? "OFFICER" : "BIDDER";
-        const mockUser = {
-          id: isAdminUser ? "adm_01" : isOfficer ? "off_01" : "bid_01",
-          email: loginEmail || (isAdminUser ? "admin@gem.gov.in" : isOfficer ? "officer@gem.gov.in" : "bidder@tech.com"),
-          full_name: isAdminUser ? "Platform Administrator" : isOfficer ? "Procurement Officer" : "Demo Bidder Entity",
-          role: role,
-          organization: isAdminUser ? "GeM Central Administration" : isOfficer ? "GeM Procurement Authority" : "Tech Solutions Pvt Ltd"
-        };
-        const mockToken = "demo-jwt-token-12345";
-        setSuccessMsg(`Welcome, ${mockUser.full_name}! Launching interactive workspace...`);
-        setTimeout(() => {
-          onLogin(mockToken, mockUser);
-        }, 800);
-        return;
-      }
       setAuthError(err.message || "Connection refused by authentication server.");
       generateCaptcha();
     } finally {
@@ -627,11 +601,9 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                           onClick={() => {
                             setLoginEmail("admin@gem.gov.in");
                             setPassword("AdminSecret2026!");
-                            const mockUser = { id: "adm_01", email: "admin@gem.gov.in", full_name: "Platform Administrator", role: "ADMIN", organization: "GeM Central Administration" };
-                            onLogin("demo-token-12345", mockUser);
                           }}
                         >
-                          <span>👑 Quick Demo Access (Super Admin)</span>
+                          <span>👑 Autofill Super Admin Credentials</span>
                         </button>
                         <button
                           type="button"
@@ -654,11 +626,9 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                           onClick={() => {
                             setLoginEmail("officer@gem.gov.in");
                             setPassword("OfficerPassword123");
-                            const mockUser = { id: "off_01", email: "officer@gem.gov.in", full_name: "Procurement Officer", role: "OFFICER", organization: "GeM Procurement Authority" };
-                            onLogin("demo-token-12345", mockUser);
                           }}
                         >
-                          <span>🛡️ Quick Demo Access (Procurement Officer)</span>
+                          <span>🛡️ Autofill Officer Credentials</span>
                         </button>
                       </>
                     ) : (
@@ -681,11 +651,22 @@ function Login({ onLogin, initialIsSignUp = false, onBackToHome, onNavigateSecti
                           transition: 'all 0.2s ease'
                         }}
                         onClick={() => {
-                          const mockUser = { id: "bid_01", email: "bidder@techsolutions.com", full_name: "Compliant Tech Solutions", role: "BIDDER", organization: "Tech Solutions Pvt Ltd" };
-                          onLogin("demo-token-12345", mockUser);
+                          setLoginEmail("bidder@techsolutions.com");
+                          setPassword("BidderPassword123!");
                         }}
                       >
-                        <span>⚡ Quick Demo Workspace Access (Bidder)</span>
+                        <span>⚡ Autofill Bidder Credentials</span>
+                      </button>
+                    )}
+
+                    {onDemo && (
+                      <button
+                        type="button"
+                        className="login-demo-btn"
+                        disabled={loading || Boolean(successMsg)}
+                        onClick={() => onDemo(selectedPortal)}
+                      >
+                        Explore demo workspace ({selectedPortal === "Buyer" ? "Officer" : "Supplier"})
                       </button>
                     )}
                   </div>

@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 
 TEMP = tempfile.TemporaryDirectory(prefix="chat-tests-")
 os.environ.update({"ENVIRONMENT": "test", "DATABASE_URL": "sqlite:///" + str(Path(TEMP.name) / "chat.db").replace("\\", "/"),
-                   "JWT_SECRET": "chat-tests-only-secret-for-isolated-test-data", "AI_API_KEY": "", "GROQ_API_KEY": ""})
+                   "JWT_SECRET": "chat-tests-only-secret-for-isolated-test-data", "AI_API_KEY": "", "GEMINI_API_KEY": "", "GROQ_API_KEY": ""})
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi import FastAPI, Depends
@@ -315,9 +315,11 @@ class ChatTests(unittest.TestCase):
 
     def test_additive_migration_is_repeatable(self):
         import importlib.util
-        from sqlalchemy import create_engine, inspect, text
-        from alembic.migration import MigrationContext
-        from alembic.operations import Operations
+        try:
+            from alembic.migration import MigrationContext
+            from alembic.operations import Operations
+        except ImportError:
+            self.skipTest("alembic is not installed in current environment")
         path = Path(__file__).resolve().parents[1] / "alembic/versions/c72f61a9e403_add_chat_support.py"
         spec = importlib.util.spec_from_file_location("support_migration", path)
         migration = importlib.util.module_from_spec(spec)

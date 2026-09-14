@@ -1,4 +1,4 @@
-import { apiFetch, websocketUrl } from "../services/api";
+import { apiFetch, websocketUrl, isDemoMode } from "../services/api";
 import React, { useState, useEffect, useRef } from 'react';
 import { Radio, Zap, Inbox, AlertTriangle, ChevronRight } from 'lucide-react';
 import './LiveBidMonitoring.css';
@@ -21,6 +21,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
   }, [tenderId]);
 
   const connectWebSocket = () => {
+    if (isDemoMode()) return;
     const wsUrl = websocketUrl(tenderId
       ? `/api/v1/monitoring/tender/${encodeURIComponent(tenderId)}`
       : '/api/v1/monitoring/live');

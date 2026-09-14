@@ -17,6 +17,7 @@ import { detectLanguage, errorText, translations, languageOptions } from "./chat
 import { useChatWindow } from "./chatWindow";
 import { renderChatMessage } from "./chatMessage";
 import { trackingTranslations } from "./chatTrackingText";
+import { buildChatHistory, validateChatResponse } from "./chatRequest";
 
 const API_URL = BACKEND_URL;
 
@@ -100,10 +101,7 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
       role: "user",
       content: trimmedQuestion,
     };
-    const conversationHistory = messages
-      .filter((message) => message.id !== "welcome" && !message.isError)
-      .slice(-10)
-      .map(({ role, content }) => ({ role, content }));
+    const conversationHistory = buildChatHistory(messages);
 
     setMessages((current) => [...current, userMessage]);
     setSuggestions([]);
@@ -133,7 +131,7 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
         throw failure;
       }
 
-      const data = await response.json();
+      const data = validateChatResponse(await response.json());
       if (generation !== generationRef.current) return;
       setMessages((current) => [
         ...current,

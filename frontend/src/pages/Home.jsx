@@ -1829,7 +1829,8 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
           if (res.ok) {
             const data = await res.json();
             if (mounted) {
-              setTenderBiddersList(Array.isArray(data) ? data : []);
+              const list = Array.isArray(data) ? data : [];
+              setTenderBiddersList(prev => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
             }
           } else {
             if (mounted) setTenderBiddersError("Failed to fetch bidder applications from database.");
@@ -2674,7 +2675,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
           if (res.ok) {
             const data = await res.json();
             if (mounted && Array.isArray(data)) {
-              setRegisteredBidders(data);
+              setRegisteredBidders(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
               if (!isBackground) setLoadingBidders(false);
               return;
             }
@@ -2685,7 +2686,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
           if (bidsRes.ok) {
             const bidsData = await bidsRes.json();
             if (mounted && Array.isArray(bidsData)) {
-              setRegisteredBidders(bidsData);
+              setRegisteredBidders(prev => (JSON.stringify(prev) === JSON.stringify(bidsData) ? prev : bidsData));
             }
           }
         } catch (err) {
@@ -3306,7 +3307,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
           });
           if (res.ok) {
             const data = await res.json();
-            if (mounted) setFetchedBidDetails(data);
+            if (mounted) setFetchedBidDetails(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
           }
         } catch (err) {
           console.warn("Could not fetch detailed bid info:", err);
@@ -4878,7 +4879,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             lastLogin: u.last_login ? new Date(u.last_login).toLocaleString("en-IN") : "Never logged in",
             permissions: u.permissions ? (typeof u.permissions === "string" ? (u.permissions.startsWith("[") ? JSON.parse(u.permissions) : u.permissions.split(",")) : u.permissions) : ["Manage Tenders", "Verify Documents", "View Reports"]
           }));
-          setUsersList(mapped);
+          setUsersList(prev => (JSON.stringify(prev) === JSON.stringify(mapped) ? prev : mapped));
         }
       } catch (err) {
         console.warn("Failed to fetch admin users list:", err);
@@ -9417,7 +9418,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setBidders(data);
+        setBidders(prev => (JSON.stringify(prev) === JSON.stringify(data) ? prev : data));
       } else {
         const errData = await res.json().catch(() => ({}));
         if (!isBackground) setError(errData.detail || "Failed to fetch blacklist registry.");

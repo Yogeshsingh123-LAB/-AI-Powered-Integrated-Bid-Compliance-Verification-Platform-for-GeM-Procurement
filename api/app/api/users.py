@@ -114,7 +114,7 @@ def admin_get_all_users(
     db: Session = Depends(get_db)
 ):
     """Retrieve all users in the system (ADMIN only)."""
-    users = db.query(User).order_by(User.created_at.desc()).all()
+    users = db.query(User).order_by(User.created_at.desc(), User.id.asc()).all()
     return users
 
 @router.post("/admin/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

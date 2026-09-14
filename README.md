@@ -10,14 +10,14 @@
 **Project Name**: Bid Zee / GeM Integrated Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
 **Live Demo**: https://your-live-demo-url  
-**Demo Video**: https://your-video-url  
+**Demo Video**: https://youtu.be/-qEZH7ONSDo  
 
 > [!IMPORTANT]
 > **Core Product Principle**: Bid Zee is an **AI-assisted decision-support & verification platform**. The AI NEVER independently qualifies or disqualifies a bidder. All final qualification and disqualification decisions remain exclusively with the Procurement Officer.
 
 ![Bid Zee Compliance Dashboard](docs/screenshots/compliance-dashboard.png)
 
-[▶ Watch the 2-minute demo](https://your-demo-link)
+[▶ Watch the Demo Video](https://youtu.be/-qEZH7ONSDo)
 
 ---
 
@@ -126,7 +126,7 @@ The prototype uses mock government APIs for safe local development. Production i
 - 🎬 **Walkthrough & Demo Guide**: [`walkthrough.md`](walkthrough.md)
 - ⚡ **Platform Launcher Scripts**: [`run_platform.ps1`](run_platform.ps1) & [`run_platform.bat`](run_platform.bat)
 - 🔴 **Live Demo**: *(add link once deployed)*
-- 🎥 **Demo Video**: [▶ Watch the 2-minute demo](https://your-demo-link)
+- 🎥 **Demo Video**: [▶ Watch the Demo Video](https://youtu.be/-qEZH7ONSDo)
 
 ---
 

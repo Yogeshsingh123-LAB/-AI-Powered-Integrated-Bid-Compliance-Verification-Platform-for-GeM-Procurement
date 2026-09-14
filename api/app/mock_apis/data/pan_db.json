@@ -6,6 +6,20 @@
     "category": "Company",
     "date_of_issue": "2018-03-15"
   },
+  "BZXPV9876K": {
+    "pan": "BZXPV9876K",
+    "name": "Zenith Energy Services Pvt Ltd",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2019-05-10"
+  },
+  "CKLPA4321R": {
+    "pan": "CKLPA4321R",
+    "name": "Apex Infra Logistics Pvt Ltd",
+    "status": "Active",
+    "category": "Company",
+    "date_of_issue": "2020-11-05"
+  },
   "AAPCS5678N": {
     "pan": "AAPCS5678N",
     "name": "Suspended Enterprise Private Limited",

@@ -9,6 +9,26 @@
     "state": "Maharashtra",
     "district": "Mumbai City"
   },
+  "UDYAM-DL-07-0098765": {
+    "udyam_number": "UDYAM-DL-07-0098765",
+    "enterprise_name": "Zenith Energy Services Pvt Ltd",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2021-03-15",
+    "state": "Delhi",
+    "district": "New Delhi"
+  },
+  "UDYAM-TN-33-0043210": {
+    "udyam_number": "UDYAM-TN-33-0043210",
+    "enterprise_name": "Apex Infra Logistics Pvt Ltd",
+    "enterprise_type": "Small",
+    "major_activity": "Services",
+    "status": "Active",
+    "date_of_registration": "2022-01-10",
+    "state": "Tamil Nadu",
+    "district": "Chennai"
+  },
   "UDYAM-MH-12-0056789": {
     "udyam_number": "UDYAM-MH-12-0056789",
     "enterprise_name": "Suspended Enterprise Private Limited",

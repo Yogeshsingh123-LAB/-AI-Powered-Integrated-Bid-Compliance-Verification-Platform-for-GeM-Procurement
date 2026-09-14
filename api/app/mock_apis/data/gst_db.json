@@ -8,6 +8,24 @@
     "returns_filed": 12,
     "registration_date": "2018-04-12"
   },
+  "07BZXPV9876K1Z9": {
+    "gstin": "07BZXPV9876K1Z9",
+    "legal_name": "Zenith Energy Services Pvt Ltd",
+    "trade_name": "Zenith Energy",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 12,
+    "registration_date": "2019-06-15"
+  },
+  "33CKLPA4321R1Z2": {
+    "gstin": "33CKLPA4321R1Z2",
+    "legal_name": "Apex Infra Logistics Pvt Ltd",
+    "trade_name": "Apex Logistics",
+    "status": "Active",
+    "business_type": "Private Limited",
+    "returns_filed": 10,
+    "registration_date": "2021-01-20"
+  },
   "27AAPCS5678N1Z0": {
     "gstin": "27AAPCS5678N1Z0",
     "legal_name": "Suspended Enterprise Private Limited",

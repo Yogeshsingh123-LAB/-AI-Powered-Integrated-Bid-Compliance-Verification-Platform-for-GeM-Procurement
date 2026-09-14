@@ -14,61 +14,26 @@ export default function BidderVerificationView({ bidData, onBack, isOfficer, onR
   const [decisionJustification, setDecisionJustification] = useState('All statutory documents and OEM Authorization verified. Bidder meets all technical requirements.');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Requirements checklist dynamically derived from bidData and logged-in user identity
-  const requirementsList = (() => {
-    if (Array.isArray(bidData?.requirements) && bidData.requirements.length > 0) {
-      return bidData.requirements;
-    }
+  // Extract dynamic legal entity credentials from bidData
+  const companyName = bidData?.company_name || bidData?.company || bidData?.bidder_name || bidData?.bidderName || 'Bidder Entity';
+  const panNum = bidData?.pan || 'AAPCS1234M';
+  const gstinNum = bidData?.gstin || '27AAPCS1234M1Z5';
+  const udyamNum = bidData?.udyam || 'UDYAM-MH-12-0012345';
 
-    const matrix = bidData?.compliance_matrix || [];
-    const bName = bidData?.bidder_name || bidData?.bidderName || bidData?.bidder_organization || "Authorized Representative";
-    const bOrg = bidData?.bidder_organization || bName || "Bidder Enterprise";
-    const bPan = bidData?.pan || (bidData?.id ? `${str(bidData.id).substring(0, 5).toUpperCase()}1234M` : "Pending Upload");
-    const bGst = bidData?.gstin || (bidData?.id ? `27${str(bidData.id).substring(0, 5).toUpperCase()}1Z5` : "Pending Upload");
-    const bUdyam = bidData?.udyam || "UDYAM-REG-ACTIVE";
-
-    const stdRequirements = [
-      { code: 'PAN', name: 'PAN Card Verification', source: 'INCOME-TAX-IN-MOCK', extracted: `${bPan} (${bOrg})`, registry: `${bPan} - ACTIVE (${bOrg})`, defaultStatus: 'VERIFIED' },
-      { code: 'GST', name: 'GSTIN Registration', source: 'GSTN-MOCK', extracted: `${bGst} (${bOrg})`, registry: `${bGst} - ACTIVE (${bOrg})`, defaultStatus: 'VERIFIED' },
-      { code: 'UDYAM', name: 'Udyam MSME Registration', source: 'UDYAM-MSME-MOCK', extracted: bUdyam, registry: `${bUdyam} - Active Enterprise`, defaultStatus: 'VERIFIED' },
-      { code: 'INCOME_TAX', name: 'Income Tax Return Compliance', source: 'INCOME-TAX-E-FILING-MOCK', extracted: 'ITR-V FY 2023-24, FY 2024-25, FY 2025-26', registry: 'E-filing Portal Verified', defaultStatus: 'VERIFIED' },
-      { code: 'EPFO', name: 'EPFO Compliance', source: 'EPFO-MOCK', extracted: `EPFO ID: EPFO-ACTIVE-001`, registry: `Active EPFO Employer Record (${bOrg})`, defaultStatus: 'VERIFIED' },
-      { code: 'ESIC', name: 'ESIC Compliance', source: 'ESIC-MOCK', extracted: 'ESIC Employer Code Active', registry: 'ESIC Active Portal Record', defaultStatus: 'VERIFIED' },
-      { code: 'OEM_AUTH', name: 'OEM Authorization (MAF)', source: 'OEM-VERIFIER-MOCK', extracted: bidData?.has_oem ? 'Valid OEM Authorization Certificate' : 'Pending OEM Certificate', registry: bidData?.has_oem ? 'Verified OEM Partner' : 'No OEM Certificate Found', defaultStatus: bidData?.has_oem ? 'VERIFIED' : 'NEEDS_REVIEW' },
-      { code: 'MAKE_IN_INDIA', name: 'Make in India Declaration', source: 'DECLARATION-AI-EXTRACTOR', extracted: 'Local Content: 65% (Class-I Local Supplier)', registry: 'Verified Declaration Format', defaultStatus: 'VERIFIED' },
-      { code: 'BLACKLIST', name: 'Blacklisting / Debarment', source: 'CENTRAL-DEBARMENT-REGISTRY-MOCK', extracted: `PAN: ${bPan} / GSTIN: ${bGst}`, registry: 'NOT BLACKLISTED', defaultStatus: 'VERIFIED' }
-    ];
-
-    if (matrix.length === 0) {
-      return stdRequirements.map(item => ({
-        ...item,
-        status: item.defaultStatus,
-        risk: item.defaultStatus === 'VERIFIED' ? 'LOW' : 'MEDIUM',
-        match: 'MATCH (100%)',
-        timestamp: new Date().toISOString(),
-        explanation: `${item.name} checked against statutory government portal for ${bOrg}.`
-      }));
-    }
-
-    return stdRequirements.map(req => {
-      const matchDoc = matrix.find(m => (m.code || "").toUpperCase().includes(req.code) || (m.description || "").toUpperCase().includes(req.code));
-      const isMissing = matchDoc ? (matchDoc.status || "").toUpperCase() === "MISSING" : false;
-      const isVerified = matchDoc ? (matchDoc.status || "").toUpperCase() === "VERIFIED" || (matchDoc.status || "").toUpperCase() === "PROCESSED" : true;
-
-      return {
-        code: req.code,
-        name: req.name,
-        status: isMissing ? "MISSING" : (isVerified ? "VERIFIED" : "NEEDS_REVIEW"),
-        risk: isMissing ? "HIGH" : (isVerified ? "LOW" : "MEDIUM"),
-        source: req.source,
-        extracted: matchDoc?.file_name ? `${matchDoc.file_name} (${bOrg})` : req.extracted,
-        registry: req.registry,
-        match: isMissing ? "MISSING" : "MATCH (100%)",
-        timestamp: matchDoc?.uploaded_at ? new Date(matchDoc.uploaded_at).toLocaleString() : new Date().toISOString(),
-        explanation: isMissing ? `${req.name} has not been uploaded yet.` : `${req.name} verified against statutory records for ${bOrg}.`
-      };
-    });
-  })();
+  // Requirements checklist
+  const requirementsList = Array.isArray(bidData?.requirements) && bidData.requirements.length > 0
+    ? bidData.requirements
+    : [
+        { code: 'PAN', name: 'PAN Card Verification', status: 'VERIFIED', risk: 'LOW', source: 'INCOME-TAX-IN-MOCK', extracted: `${panNum} (${companyName})`, registry: `${panNum} - ACTIVE (${companyName})`, match: 'MATCH (100%)', timestamp: '2026-09-11 10:32:00 Z', explanation: `Extracted PAN matched Income Tax registry active record for ${companyName}.` },
+        { code: 'GST', name: 'GSTIN Registration', status: 'VERIFIED', risk: 'LOW', source: 'GSTN-MOCK', extracted: `${gstinNum} (${companyName})`, registry: `${gstinNum} - ACTIVE (${companyName})`, match: 'MATCH (100%)', timestamp: '2026-09-11 10:32:05 Z', explanation: `GSTIN active in GSTN portal for ${companyName}.` },
+        { code: 'UDYAM', name: 'Udyam MSME Registration', status: 'VERIFIED', risk: 'LOW', source: 'UDYAM-MSME-MOCK', extracted: `${udyamNum}`, registry: `${udyamNum} - Micro Enterprise (Active)`, match: 'MATCH (100%)', timestamp: '2026-09-11 10:32:10 Z', explanation: 'Valid MSME certificate. Eligible for EMD exemption.' },
+        { code: 'INCOME_TAX', name: 'Income Tax Return Compliance', status: 'VERIFIED', risk: 'LOW', source: 'INCOME-TAX-E-FILING-MOCK', extracted: 'ITR-V FY 2023-24, FY 2024-25, FY 2025-26', registry: 'E-filing Portal Verified', match: 'MATCH', timestamp: '2026-09-11 10:32:15 Z', explanation: 'Income tax returns filed consistently for last 3 financial years.' },
+        { code: 'EPFO', name: 'EPFO Compliance', status: bidData?.has_epfo_mismatch ? 'NEEDS_REVIEW' : 'VERIFIED', risk: bidData?.has_epfo_mismatch ? 'MEDIUM' : 'LOW', source: 'EPFO-MOCK', extracted: 'EPFO ID: MH/BAN/0045123/000', registry: `EPFO ID: MH/BAN/0045123/000 (Legal Name: ${companyName})`, match: bidData?.has_epfo_mismatch ? 'NAME VARIATION WARNING' : 'MATCH', timestamp: '2026-09-11 10:33:00 Z', explanation: bidData?.has_epfo_mismatch ? 'EPFO registration active, but employer legal name shows minor variation.' : 'EPFO active and matched.' },
+        { code: 'ESIC', name: 'ESIC Compliance', status: 'VERIFIED', risk: 'LOW', source: 'ESIC-MOCK', extracted: 'ESIC Employer Code: 31000451230000101', registry: 'ESIC Active (35 Covered Employees)', match: 'MATCH', timestamp: '2026-09-11 10:33:10 Z', explanation: 'Employer code verified with covered employees.' },
+        { code: 'OEM_AUTH', name: 'OEM Authorization (MAF)', status: bidData?.has_oem !== false ? 'VERIFIED' : 'MISSING', risk: bidData?.has_oem !== false ? 'LOW' : 'HIGH', source: 'OEM-VERIFIER-MOCK', extracted: bidData?.has_oem !== false ? 'Valid OEM Authorization Form for Equipment Models' : 'Not Uploaded', registry: bidData?.has_oem !== false ? 'Verified OEM Partner' : 'No OEM Certificate Found', match: bidData?.has_oem !== false ? 'MATCH' : 'MISSING', timestamp: '2026-09-11 10:33:15 Z', explanation: bidData?.has_oem !== false ? 'Valid OEM authorization uploaded and verified.' : 'OEM Authorization certificate is missing from the bid submission package.' },
+        { code: 'MAKE_IN_INDIA', name: 'Make in India Declaration', status: 'VERIFIED', risk: 'LOW', source: 'DECLARATION-AI-EXTRACTOR', extracted: 'Local Content: 65% (Class-I Local Supplier)', registry: 'Verified Declaration Format', match: 'MATCH', timestamp: '2026-09-11 10:33:20 Z', explanation: 'Bidder declares 65% local content, exceeding mandatory threshold.' },
+        { code: 'BLACKLIST', name: 'Blacklisting / Debarment', status: 'VERIFIED', risk: 'LOW', source: 'CENTRAL-DEBARMENT-REGISTRY-MOCK', extracted: `PAN: ${panNum} / GSTIN: ${gstinNum}`, registry: 'NOT BLACKLISTED', match: 'CLEAR', timestamp: '2026-09-11 10:33:25 Z', explanation: 'No debarment or blacklisting orders found in Central Debarment Database.' }
+      ];
 
   const verifiedCount = requirementsList.filter(r => r.status === 'VERIFIED').length;
   const reviewCount = requirementsList.filter(r => r.status === 'NEEDS_REVIEW').length;
@@ -163,31 +128,30 @@ export default function BidderVerificationView({ bidData, onBack, isOfficer, onR
   };
 
   return (
-    <div style={{ background: '#ffffff', color: '#0f172a', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', maxWidth: '1100px', margin: '0 auto', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)' }}>
-      
-      {/* Top Bar with Navigation */}
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Top Header Row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <button 
           onClick={onBack}
-          style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s ease' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }}
         >
-          <ArrowLeft size={16} color="#0f172a" /> Back to Dashboard
+          <ArrowLeft size={16} /> Back to Bidders
         </button>
+
         <div style={{ display: 'flex', gap: '12px' }}>
           {isOfficer && (
             <>
               <button 
-                onClick={handleReVerifyTrigger}
-                disabled={actionLoading}
-                style={{ background: '#0284c7', border: 'none', color: '#ffffff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 700, boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)' }}
+                onClick={() => setShowClarificationModal(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #7dd3fc', borderRadius: '8px', padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }}
               >
-                <RefreshCw size={16} className={actionLoading ? 'animate-spin' : ''} color="#ffffff" /> Run Re-Verification
+                <MessageSquare size={16} /> Request Clarification
               </button>
               <button 
                 onClick={() => setDecisionModal(true)}
-                style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', border: 'none', color: '#ffffff', padding: '8px 18px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 700, boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 20px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)' }}
               >
-                <ShieldCheck size={16} color="#ffffff" /> Render Final Decision
+                <ShieldCheck size={16} /> Official Decision
               </button>
             </>
           )}
@@ -201,10 +165,10 @@ export default function BidderVerificationView({ bidData, onBack, isOfficer, onR
             Bidder Compliance Profile
           </span>
           <h1 style={{ margin: '4px 0 6px', fontSize: '1.6rem', color: '#0f172a', fontWeight: 800 }}>
-            {bidData?.bidder_name || bidData?.bidderName || bidData?.bidder_email || 'Authorized Representative'}
+            {bidData?.bidder_name || bidData?.bidderName || bidData?.bidderEmail || 'Authorized Representative'}
           </h1>
           <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569', fontWeight: 500 }}>
-            Tender: <span style={{ color: '#0f172a', fontWeight: 700 }}>{bidData?.tender_title || bidData?.tenderTitle || 'Procurement Bid Submission'}</span>
+            Tender: <span style={{ color: '#0f172a', fontWeight: 700 }}>{bidData?.tender_title || bidData?.tenderTitle || 'Procurement Tender'}</span>
           </p>
         </div>
 

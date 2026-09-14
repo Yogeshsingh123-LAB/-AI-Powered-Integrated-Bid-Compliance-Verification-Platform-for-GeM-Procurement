@@ -4510,12 +4510,12 @@ const IntegrationsView = ({ API_BASE, token }) => {
     };
 
     const activities = [
-      { id: "REQ-9012", timestamp: "12:52:10 PM", portal: "GSTN", query: "POST /taxpayer/v1/search (GSTIN: 27AAPCS1234M1Z5)", status: "200 OK", latency: "18ms", result: "Verified Active" },
-      { id: "REQ-9011", timestamp: "12:51:45 PM", portal: "Udyam / MSME", query: "GET /v1/verify?id=UDYAM-MH-12-0012345", status: "200 OK", latency: "24ms", result: "Verified Micro" },
-      { id: "REQ-9010", timestamp: "12:50:02 PM", portal: "PAN / Income Tax", query: "POST /v2/pan-val (PAN: AAPCS1234M)", status: "200 OK", latency: "31ms", result: "PAN Active Match" },
-      { id: "REQ-9009", timestamp: "12:48:15 PM", portal: "EPFO", query: "GET /api/v1/est-search?reg=GJ/AHM/1234567", status: "200 OK", latency: "420ms", result: "Verification Delayed" },
+      { id: "REQ-9012", timestamp: "12:52:10 PM", portal: "GSTN", query: "POST /taxpayer/v1/search (GSTIN: Statutory Portal Lookup)", status: "200 OK", latency: "18ms", result: "Verified Active" },
+      { id: "REQ-9011", timestamp: "12:51:45 PM", portal: "Udyam / MSME", query: "GET /v1/verify?id=UDYAM-PORTAL-SEARCH", status: "200 OK", latency: "24ms", result: "Verified Micro" },
+      { id: "REQ-9010", timestamp: "12:50:02 PM", portal: "PAN / Income Tax", query: "POST /v2/pan-val (PAN: Tax Registry Lookup)", status: "200 OK", latency: "31ms", result: "PAN Active Match" },
+      { id: "REQ-9009", timestamp: "12:48:15 PM", portal: "EPFO", query: "GET /api/v1/est-search?reg=EPFO-PORTAL-SEARCH", status: "200 OK", latency: "420ms", result: "Verification Delayed" },
       { id: "REQ-9008", timestamp: "12:45:00 PM", portal: "ESIC", query: "POST /api/v1/employer-status", status: "504 Timeout", latency: "5000ms", result: "Retry Scheduled" },
-      { id: "REQ-9007", timestamp: "12:40:33 PM", portal: "DigiLocker", query: "GET /v2/oauth/doc-hash?id=EMD-98765", status: "200 OK", latency: "12ms", result: "Token Confirmed" },
+      { id: "REQ-9007", timestamp: "12:40:33 PM", portal: "DigiLocker", query: "GET /v2/oauth/doc-hash?id=EMD-DOC-HASH", status: "200 OK", latency: "12ms", result: "Token Confirmed" },
       { id: "REQ-9006", timestamp: "12:35:19 PM", portal: "Make in India", query: "POST /v1/class1-cert/validate", status: "200 OK", latency: "28ms", result: "Class 1 Valid" }
     ];
 
@@ -6387,12 +6387,9 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
                 style={{ width: "100%", padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.78rem", color: "#0f172a", background: "#ffffff" }}
               >
                 <option value="All">All Bidders</option>
-                <option value="Acme Tech Solutions">Acme Tech Solutions</option>
-                <option value="Global Traders">Global Traders Inc</option>
-                <option value="Vanguard Systems">Vanguard Systems Ltd</option>
-                <option value="ABC Engineering">ABC Engineering Pvt Ltd</option>
-                <option value="XYZ Industries">XYZ Industries Pvt Ltd</option>
-                <option value="TechVision Solutions">TechVision Solutions</option>
+                {registeredBidders.map(b => (
+                  <option key={b.id || b.email} value={b.full_name || b.name}>{b.full_name || b.name}</option>
+                ))}
               </select>
             </div>
 

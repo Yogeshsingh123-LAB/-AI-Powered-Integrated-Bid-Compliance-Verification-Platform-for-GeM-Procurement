@@ -5059,7 +5059,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             },
             body: JSON.stringify({
               full_name: userForm.name,
-              email: userForm.email,
+              email: (userForm.email || "").trim().toLowerCase(),
               phone: userForm.phone,
               department: userForm.department,
               role: targetRole,

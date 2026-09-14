@@ -159,11 +159,21 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
 
   const generateCaptcha = () => {
-    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const charSets = [
+      "ABCDEFGHJKLMNPQRSTUVWXYZ",
+      "abcdefghijkmnpqrstuvwxyz",
+      "23456789",
+      "@#$%&*!"
+    ];
     let newCaptcha = "";
-    for (let i = 0; i < 5; i++) {
-      newCaptcha += characters.charAt(Math.floor(Math.random() * characters.length));
+    charSets.forEach(set => {
+      newCaptcha += set.charAt(Math.floor(Math.random() * set.length));
+    });
+    const allChars = charSets.join("");
+    for (let i = 0; i < 2; i++) {
+      newCaptcha += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
+    newCaptcha = newCaptcha.split('').sort(() => 0.5 - Math.random()).join('');
     setCaptchaText(newCaptcha);
     setCaptcha("");
   };
@@ -181,8 +191,8 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       setAuthError("Please enter the security verification CAPTCHA.");
       return;
     }
-    if (captcha.toUpperCase() !== captchaText) {
-      setAuthError("Verification failed. The CAPTCHA code is incorrect.");
+    if ((captcha || "").trim() !== captchaText) {
+      setAuthError("Verification failed. The CAPTCHA security code is incorrect.");
       generateCaptcha();
       return;
     }
@@ -575,101 +585,6 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
                     {loading ? "Logging in..." : "Login →"}
                   </button>
-
-                  {/* Quick Demo Access Buttons */}
-                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {selectedPortal === "Buyer" ? (
-                      <>
-                        <button
-                          type="button"
-                          style={{
-                            width: '100%',
-                            padding: '10px 14px',
-                            background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)',
-                            border: '1px solid #d8b4fe',
-                            color: '#7e22ce',
-                            borderRadius: '10px',
-                            fontWeight: 700,
-                            fontSize: '0.88rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onClick={() => {
-                            setLoginEmail("admin@gem.gov.in");
-                            setPassword("AdminSecret2026!");
-                          }}
-                        >
-                          <span>👑 Autofill Super Admin Credentials</span>
-                        </button>
-                        <button
-                          type="button"
-                          style={{
-                            width: '100%',
-                            padding: '10px 14px',
-                            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                            border: '1px solid #93c5fd',
-                            color: '#1d4ed8',
-                            borderRadius: '10px',
-                            fontWeight: 700,
-                            fontSize: '0.88rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onClick={() => {
-                            setLoginEmail("officer@gem.gov.in");
-                            setPassword("OfficerPassword123");
-                          }}
-                        >
-                          <span>🛡️ Autofill Officer Credentials</span>
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        style={{
-                          width: '100%',
-                          padding: '11px 16px',
-                          background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
-                          border: '1px solid #fdba74',
-                          color: '#c2410c',
-                          borderRadius: '10px',
-                          fontWeight: 700,
-                          fontSize: '0.9rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onClick={() => {
-                          setLoginEmail("bidder@techsolutions.com");
-                          setPassword("BidderPassword123!");
-                        }}
-                      >
-                        <span>⚡ Autofill Bidder Credentials</span>
-                      </button>
-                    )}
-
-                    {onDemo && (
-                      <button
-                        type="button"
-                        className="login-demo-btn"
-                        disabled={loading || Boolean(successMsg)}
-                        onClick={() => onDemo(selectedPortal)}
-                      >
-                        Explore demo workspace ({selectedPortal === "Buyer" ? "Officer" : "Supplier"})
-                      </button>
-                    )}
-                  </div>
 
                   {/* Switch to Register */}
                   <div className="switch-auth-mode-prompt">

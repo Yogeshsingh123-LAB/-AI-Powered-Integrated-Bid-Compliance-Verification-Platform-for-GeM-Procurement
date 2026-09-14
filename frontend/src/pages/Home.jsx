@@ -9145,18 +9145,34 @@ function Home({ role, user, onLogout, isDemo = false }) {
 
   useEffect(() => {
     if (isDemo) return;
-    fetchTenders();
-    fetchBids();
-    fetchNotifications();
-    fetchDashboardStats();
 
-    const interval = setInterval(() => {
+    const refreshAllRealtimeData = () => {
+      fetchTenders();
+      fetchBids();
       fetchNotifications();
       fetchDashboardStats();
-      fetchBids();
-    }, 10000);
+    };
 
-    return () => clearInterval(interval);
+    refreshAllRealtimeData();
+
+    const interval = setInterval(() => {
+      refreshAllRealtimeData();
+    }, 3500);
+
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === "visible") {
+        refreshAllRealtimeData();
+      }
+    };
+
+    window.addEventListener("focus", handleFocusOrVisible);
+    document.addEventListener("visibilitychange", handleFocusOrVisible);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocusOrVisible);
+      document.removeEventListener("visibilitychange", handleFocusOrVisible);
+    };
   }, [role, user, isDemo]);
 
 

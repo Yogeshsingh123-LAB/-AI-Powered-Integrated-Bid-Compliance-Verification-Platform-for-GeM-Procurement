@@ -1,6 +1,6 @@
 // Use VITE_API_URL for separate frontend/backend hosting. An empty value uses
 // the same origin (Vite's development proxy or the production Nginx proxy).
-export const BACKEND_URL = (import.meta.env?.VITE_API_URL || "").trim().replace(/\/+$/, "");
+export const BACKEND_URL = (import.meta.env?.VITE_API_URL || "http://127.0.0.1:8000").trim().replace(/\/+$/, "");
 
 // Demo access is local UI state, never an authentication credential.
 let demoMode = false;

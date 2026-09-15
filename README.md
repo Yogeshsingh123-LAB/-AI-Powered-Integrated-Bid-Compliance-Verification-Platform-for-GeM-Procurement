@@ -71,7 +71,32 @@ The platform uses a pluggable **adapter pattern** for verification services:
 | **EPFO / ESIC** | `EPFOAdapter` / `ESICAdapter` | Simulated Demo Mode | Prepared for Employer verification gateways |
 | **Blacklist** | `DebarmentAdapter` | Simulated Demo Mode | Central Debarment Database |
 
+#### 🌐 Open Government Data Platform (`data.gov.in`) Live API Specs
+
+Bid Zee integrates live with the **Government of India Open Data Platform (`data.gov.in`)** for instant verification of corporate entities under the **Government Open Data License – India (GODL)**:
+
+- **API Endpoint**: `https://api.data.gov.in/resource/41233261-26c9-4f24-9b1a-ae970c675f92`
+- **Resource ID**: `41233261-26c9-4f24-9b1a-ae970c675f92` (Ministry of Corporate Affairs - Master Data)
+- **Coverage**: ~3.67 Million active & registered Indian companies
+- **License**: Government Open Data License – India (GODL)
+- **Live Extracted Attributes**:
+  - `corporate_identification_number` (CIN)
+  - `company_name` & `company_status` (Active / Active in Progress / Struck Off)
+  - `roc_code` (Registrar of Companies regional authority)
+  - `authorized_capital` & `paid_up_capital`
+  - `date_of_registration` & `registered_office_address`
+
+##### Configuration (`backend/.env`)
+```ini
+MCA_GATEWAY_MODE=live
+DATA_GOV_IN_API_KEY=
+DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
+```
+
+> **Automatic Graceful Fallback**: If the external `data.gov.in` API endpoint is unreachable or encounters network latency, `DataGovMCAAdapter` automatically falls back to internal database verification to guarantee uninterrupted platform availability.
+
 ---
+
 
 ### 4. Evidence-First AI & Bidder Verification View
 - Displays overall compliance score dial (`86 / 100`), risk classification (`MEDIUM`), and status (`UNDER REVIEW`).

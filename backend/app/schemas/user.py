@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, EmailStr, Field
 from uuid import UUID
 
@@ -36,6 +37,7 @@ class UserUpdate(BaseModel):
 class UserStatusUpdate(BaseModel):
     is_active: Optional[bool] = None
     status: Optional[str] = None
+    admin_authorization_password: Optional[str] = None
 
 class AdminUserCreate(BaseModel):
     full_name: str = Field(..., max_length=100)
@@ -47,6 +49,22 @@ class AdminUserCreate(BaseModel):
     password: str = Field(..., min_length=4)
     permissions: Optional[list[str]] = []
     admin_authorization_password: Optional[str] = None
+
+class AdminUserUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, max_length=100)
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    department: Optional[str] = None
+    role: Optional[str] = None
+    status: Optional[str] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
+    permissions: Optional[list[str]] = None
+    admin_authorization_password: Optional[str] = None
+
+class AdminPasswordResetRequest(BaseModel):
+    admin_password: str = Field(..., description="Admin password required to authorize password reset")
+    new_password: Optional[str] = Field(None, min_length=4)
 
 class BlacklistBidderRequest(BaseModel):
     user_id: Optional[UUID] = None
@@ -62,5 +80,6 @@ class UnblacklistBidderRequest(BaseModel):
     identifier: Optional[str] = None # PAN, GSTIN, or email
     reason: Optional[str] = "Sanction period expired / Cleared upon audit appeal"
     admin_password: str = Field(..., description="Admin password required to authorize unblacklisting")
+
 
 

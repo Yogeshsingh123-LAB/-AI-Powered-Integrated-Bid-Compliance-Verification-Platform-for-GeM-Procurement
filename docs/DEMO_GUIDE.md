@@ -34,7 +34,7 @@ npm run dev
 
 ### Step 1: Login & Dashboard Overview (0:00 - 0:30)
 1. Navigate to `http://localhost:3000` (or your live deployed link).
-2. Log in as a **Procurement Officer** (`officer@gem.gov.in` / `officer123`).
+2. Log in as a **Procurement Officer** (`officer@cpcl.gov.in` or `officer@example.com` / `OfficerPassword123`) or **Admin** (`admin@gem.gov.in` / `AdminSecret2026!`).
 3. Point out key dashboard metrics:
    - Total Bids Processed
    - Average Compliance Score

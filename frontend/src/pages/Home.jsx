@@ -4449,7 +4449,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
       { id: 1, name: "Udyam / MSME", key: "udyam", category: "Statutory", status: "Connected", lastSync: "2 mins ago", requests: "42,850", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.udyamregistration.gov.in/v1/verify", icon: "" },
       { id: 2, name: "GSTN", key: "gstn", category: "Taxation", status: "Connected", lastSync: "5 mins ago", requests: "128,420", apiStatus: "Healthy (99.8% Uptime)", endpoint: "https://api.gst.gov.in/taxpayer/v1/search", icon: "️" },
       { id: 3, name: "PAN / Income Tax", key: "pan", category: "Taxation", status: "Connected", lastSync: "12 mins ago", requests: "96,110", apiStatus: "Healthy (100% Uptime)", endpoint: "https://incometaxindia.gov.in/api/v2/pan-val", icon: "" },
-      { id: 4, name: "MCA21", key: "mca21", category: "Corporate", status: "Connected", lastSync: "18 mins ago", requests: "34,500", apiStatus: "Healthy (99.7% Uptime)", endpoint: "https://mca.gov.in/mcafoportal/api/company", icon: "" },
+      { id: 4, name: "MCA21 (data.gov.in)", key: "mca21", category: "Corporate", status: "Connected", lastSync: "Live GODL Feed", requests: "34,500", apiStatus: "LIVE API (data.gov.in)", endpoint: "https://api.data.gov.in/resource/41233261-26c9-4f24-9b1a-ae970c675f92", icon: "🏛️" },
       { id: 5, name: "Startup India", key: "startup_india", category: "Incentives", status: "Connected", lastSync: "25 mins ago", requests: "18,290", apiStatus: "Healthy (99.9% Uptime)", endpoint: "https://api.startupindia.gov.in/v1/dpiit-val", icon: "" },
       { id: 6, name: "NSIC", key: "nsic", category: "MSME", status: "Connected", lastSync: "32 mins ago", requests: "12,400", apiStatus: "Healthy (99.5% Uptime)", endpoint: "https://nsic.co.in/api/v1/single-point-reg", icon: "" },
       { id: 7, name: "EPFO", key: "epfo", category: "Labor", status: "Needs Attention", lastSync: "45 mins ago", requests: "52,100", apiStatus: "Latency Warning (450ms)", endpoint: "https://unifiedportal-epfo.gov.in/api/v1/est-search", icon: "" },
@@ -4868,17 +4868,26 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          const mapped = data.map(u => ({
-            id: u.id,
-            name: u.full_name || u.email.split("@")[0],
-            email: u.email,
-            phone: u.phone || "N/A",
-            role: u.role === "ADMIN" ? "Super Admin" : u.role === "OFFICER" ? "Procurement Officer" : u.role,
-            department: u.department || "Procurement",
-            status: u.status || (u.is_active ? "Active" : "Suspended"),
-            lastLogin: u.last_login ? new Date(u.last_login).toLocaleString("en-IN") : "Never logged in",
-            permissions: u.permissions ? (typeof u.permissions === "string" ? (u.permissions.startsWith("[") ? JSON.parse(u.permissions) : u.permissions.split(",")) : u.permissions) : ["Manage Tenders", "Verify Documents", "View Reports"]
-          }));
+          const mapped = data.map(u => {
+            const rUp = (u.role || "").toUpperCase();
+            let displayRole = "Procurement Officer";
+            if (rUp === "ADMIN" || rUp === "SUPER ADMIN") displayRole = "Super Admin";
+            else if (rUp === "VERIFICATION OFFICER") displayRole = "Verification Officer";
+            else if (rUp === "AUDITOR") displayRole = "Auditor";
+            else if (rUp === "BIDDER" || rUp === "SUPPLIER") displayRole = "Bidder";
+
+            return {
+              id: u.id,
+              name: u.full_name || u.email.split("@")[0],
+              email: u.email,
+              phone: u.phone || "N/A",
+              role: displayRole,
+              department: u.department || "Procurement",
+              status: u.status || (u.is_active ? "Active" : "Suspended"),
+              lastLogin: u.last_login ? new Date(u.last_login).toLocaleString("en-IN") : "Never logged in",
+              permissions: u.permissions ? (typeof u.permissions === "string" ? (u.permissions.startsWith("[") ? JSON.parse(u.permissions) : u.permissions.split(",")) : u.permissions) : ["Manage Tenders", "Verify Documents", "View Reports"]
+            };
+          });
           setUsersList(prev => (JSON.stringify(prev) === JSON.stringify(mapped) ? prev : mapped));
         }
       } catch (err) {
@@ -5035,17 +5044,31 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
       const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
 
+      let targetRole = "OFFICER";
+      if (userForm.role === "Super Admin") targetRole = "ADMIN";
+      else if (userForm.role === "Verification Officer") targetRole = "VERIFICATION OFFICER";
+      else if (userForm.role === "Auditor") targetRole = "AUDITOR";
+      else if (userForm.role === "Bidder") targetRole = "BIDDER";
+
       if (editingUser) {
         try {
-          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${editingUser.id}/status`, {
-            method: "PATCH",
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${editingUser.id}`, {
+            method: "PUT",
             headers: {
               "Content-Type": "application/json",
               "Authorization": token ? `Bearer ${token}` : ""
             },
             body: JSON.stringify({
+              full_name: userForm.name,
+              email: (userForm.email || "").trim().toLowerCase(),
+              phone: userForm.phone,
+              department: userForm.department,
+              role: targetRole,
               status: userForm.status,
-              is_active: userForm.status !== "Suspended"
+              is_active: userForm.status === "Active",
+              permissions: userForm.permissions,
+              password: userForm.password ? userForm.password : undefined,
+              admin_authorization_password: inputAdminPass
             })
           });
           if (res.ok) {
@@ -5060,11 +5083,6 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
           alert(`Error updating user: ${err.message}`);
         }
       } else {
-        let targetRole = "OFFICER";
-        if (userForm.role === "Super Admin") targetRole = "ADMIN";
-        else if (userForm.role === "Verification Officer") targetRole = "VERIFICATION OFFICER";
-        else if (userForm.role === "Auditor") targetRole = "AUDITOR";
-
         try {
           const res = await apiFetch(`${apiBaseUrl}/api/admin/users`, {
             method: "POST",
@@ -5103,7 +5121,15 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const triggerConfirmDialog = (type, u) => {
       setConfirmPasswordInput("");
       setConfirmPasswordError("");
-      if (type === "SUSPEND") {
+      if (type === "GRANT_ACCESS" || (type === "SUSPEND" && u.status === "Pending")) {
+        setConfirmDialog({
+          isOpen: true,
+          title: "Grant Officer Access",
+          message: `Are you sure you want to approve access and activate the user account for ${u.name} (${u.email}) as Procurement Officer?`,
+          actionType: "GRANT_ACCESS",
+          targetUser: u
+        });
+      } else if (type === "SUSPEND") {
         const isCurrentlySuspended = u.status === "Suspended";
         setConfirmDialog({
           isOpen: true,
@@ -5118,7 +5144,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
         setConfirmDialog({
           isOpen: true,
           title: "Reset User Password",
-          message: `Send an official secure password reset link to ${u.name} at '${u.email}'?`,
+          message: `Send an official secure password reset and generate credentials for ${u.name} at '${u.email}'?`,
           actionType: type,
           targetUser: u
         });
@@ -5147,7 +5173,32 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
       const apiBaseUrl = BACKEND_URL;
       const token = localStorage.getItem("gem_token");
 
-      if (actionType === "SUSPEND") {
+      if (actionType === "GRANT_ACCESS") {
+        try {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": token ? `Bearer ${token}` : ""
+            },
+            body: JSON.stringify({
+              role: "OFFICER",
+              status: "Active",
+              is_active: true,
+              admin_authorization_password: inputPass
+            })
+          });
+          if (res.ok) {
+            alert(`Officer access successfully granted to ${targetUser.name}! Account is now Active.`);
+            fetchUsersList();
+          } else {
+            const err = await res.json();
+            alert(`Failed to grant access: ${err.detail || "Operation denied"}`);
+          }
+        } catch (e) {
+          alert(`Network error: ${e.message}`);
+        }
+      } else if (actionType === "SUSPEND") {
         const newStatus = targetUser.status === "Suspended" ? "Active" : "Suspended";
         try {
           const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}/status`, {
@@ -5156,7 +5207,10 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
               "Content-Type": "application/json",
               "Authorization": token ? `Bearer ${token}` : ""
             },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({
+              status: newStatus,
+              admin_authorization_password: inputPass
+            })
           });
           if (res.ok) {
             alert(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`);
@@ -5169,13 +5223,32 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
           alert(`Network error: ${e.message}`);
         }
       } else if (actionType === "RESET_PASSWORD") {
-        alert(`Password reset link successfully dispatched to ${targetUser.email}.`);
+        try {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}/reset-password`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": token ? `Bearer ${token}` : ""
+            },
+            body: JSON.stringify({ admin_password: inputPass })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            alert(`Password reset successfully!\nNew Temporary Password for ${targetUser.email}: ${data.temp_password}`);
+          } else {
+            const err = await res.json();
+            alert(`Password reset failed: ${err.detail}`);
+          }
+        } catch (e) {
+          alert(`Network error: ${e.message}`);
+        }
       } else if (actionType === "DELETE") {
         try {
-          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}`, {
+          const res = await apiFetch(`${apiBaseUrl}/api/admin/users/${targetUser.id}?admin_password=${encodeURIComponent(inputPass)}`, {
             method: "DELETE",
             headers: {
-              "Authorization": token ? `Bearer ${token}` : ""
+              "Authorization": token ? `Bearer ${token}` : "",
+              "X-Admin-Password": inputPass
             }
           });
           if (res.ok) {
@@ -5192,6 +5265,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
 
       setConfirmDialog({ isOpen: false, title: "", message: "", actionType: "", targetUser: null });
     };
+
 
     // Filter Logic
     const filteredUsers = usersList.filter((u) => {
@@ -5507,6 +5581,17 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                     <td style={{ padding: "14px 18px", textAlign: "right" }}>
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
 
+                        {/* Grant Access Button for Pending Users */}
+                        {u.status === "Pending" && (
+                          <button
+                            onClick={() => triggerConfirmDialog("GRANT_ACCESS", u)}
+                            title="Approve & Grant Officer Access"
+                            style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", padding: "6px 9px", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}
+                          >
+                            <UserCheck size={14} /> Grant Access
+                          </button>
+                        )}
+
                         {/* View Button */}
                         <button
                           onClick={() => setViewingUser(u)}
@@ -5526,22 +5611,24 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
                         </button>
 
                         {/* Suspend / Reactivate Button */}
-                        <button
-                          onClick={() => triggerConfirmDialog("SUSPEND", u)}
-                          title={u.status === "Suspended" ? "Reactivate User" : "Suspend User"}
-                          style={{
-                            background: u.status === "Suspended" ? "#dcfce7" : "#fef2f2",
-                            color: u.status === "Suspended" ? "#16a34a" : "#dc2626",
-                            border: u.status === "Suspended" ? "1px solid #bbf7d0" : "1px solid #fecaca",
-                            padding: "6px 9px",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            fontSize: "0.75rem",
-                            fontWeight: 700
-                          }}
-                        >
-                          {u.status === "Suspended" ? "Reactivate" : "Suspend"}
-                        </button>
+                        {u.status !== "Pending" && (
+                          <button
+                            onClick={() => triggerConfirmDialog("SUSPEND", u)}
+                            title={u.status === "Suspended" ? "Reactivate User" : "Suspend User"}
+                            style={{
+                              background: u.status === "Suspended" ? "#dcfce7" : "#fef2f2",
+                              color: u.status === "Suspended" ? "#16a34a" : "#dc2626",
+                              border: u.status === "Suspended" ? "1px solid #bbf7d0" : "1px solid #fecaca",
+                              padding: "6px 9px",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              fontSize: "0.75rem",
+                              fontWeight: 700
+                            }}
+                          >
+                            {u.status === "Suspended" ? "Reactivate" : "Suspend"}
+                          </button>
+                        )}
 
                         {/* Reset Password Button */}
                         <button

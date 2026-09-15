@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import List, Dict, Any
 # pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -7,8 +8,9 @@ from uuid import UUID
 
 from app.db.database import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate, UserStatusUpdate, AdminUserCreate, BlacklistBidderRequest, UnblacklistBidderRequest
+from app.schemas.user import UserResponse, UserUpdate, UserStatusUpdate, AdminUserCreate, AdminUserUpdate, AdminPasswordResetRequest, BlacklistBidderRequest, UnblacklistBidderRequest
 from app.services.auth_service import AuthService, get_current_user, require_role, create_audit_record
+from app.core.security import get_password_hash, verify_password
 import os
 import json
 from datetime import datetime, timezone
@@ -114,6 +116,7 @@ def admin_get_user_stats(
     db: Session = Depends(get_db)
 ):
     """Retrieve database-aggregated user statistics."""
+    # pyrefly: ignore [missing-import]
     from sqlalchemy import func
     total_users = db.query(func.count(User.id)).scalar() or 0
     active_users = db.query(func.count(User.id)).filter(User.status == "Active", User.is_active == True).scalar() or 0
@@ -151,7 +154,6 @@ def admin_create_user(
     ip_address = request.client.host if request.client else None
     
     if req.admin_authorization_password and req.admin_authorization_password.strip():
-        from app.core.security import verify_password
         if not verify_password(req.admin_authorization_password, admin_user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -176,6 +178,96 @@ def admin_get_user_by_id(
         )
     return user
 
+@router.put("/admin/users/{user_id}", response_model=UserResponse)
+@router.patch("/admin/users/{user_id}", response_model=UserResponse)
+def admin_update_user(
+    user_id: UUID,
+    req: AdminUserUpdate,
+    request: Request,
+    admin_user: User = Depends(require_role("ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Full update of user details, role, department, permissions, status, or password (ADMIN only)."""
+    ip_address = request.client.host if request.client else None
+
+    if req.admin_authorization_password and req.admin_authorization_password.strip():
+        if not verify_password(req.admin_authorization_password, admin_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Admin Authorization Password."
+            )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
+    # Don't allow admins to deactivate or remove their own admin role
+    if user.id == admin_user.id:
+        if req.status and req.status == "Suspended":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Administrators cannot deactivate their own accounts."
+            )
+        if req.role and "ADMIN" not in req.role.upper():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Administrators cannot remove their own administrator role."
+            )
+
+    old_val = f"Name: {user.full_name}, Role: {user.role}, Status: {user.status}, Dept: {user.department}"
+
+    if req.full_name is not None:
+        user.full_name = req.full_name
+    if req.phone is not None:
+        user.phone = req.phone
+    if req.department is not None:
+        user.department = req.department
+    if req.role is not None:
+        r_upper = req.role.upper()
+        if "ADMIN" in r_upper:
+            target_role = "ADMIN"
+        elif "BIDDER" in r_upper or "SUPPLIER" in r_upper:
+            target_role = "BIDDER"
+        elif "VERIFICATION" in r_upper:
+            target_role = "VERIFICATION OFFICER"
+        elif "AUDITOR" in r_upper:
+            target_role = "AUDITOR"
+        else:
+            target_role = "OFFICER"
+        user.role = target_role
+
+    if req.status is not None:
+        user.status = req.status
+        user.is_active = (req.status == "Active")
+    elif req.is_active is not None:
+        user.is_active = req.is_active
+        user.status = "Active" if req.is_active else "Suspended"
+
+    if req.permissions is not None:
+        user.permissions = json.dumps(req.permissions) if isinstance(req.permissions, list) else str(req.permissions)
+
+    if req.password and req.password.strip():
+        user.password_hash = get_password_hash(req.password.strip())
+
+    db.commit()
+    db.refresh(user)
+
+    new_val = f"Name: {user.full_name}, Role: {user.role}, Status: {user.status}, Dept: {user.department}"
+
+    create_audit_record(
+        db=db,
+        action="ADMIN_UPDATED_USER",
+        user_id=admin_user.id,
+        entity_id=user.id,
+        old_value=old_val,
+        new_value=new_val,
+        ip_address=ip_address
+    )
+    return user
+
 @router.patch("/admin/users/{user_id}/status", response_model=UserResponse)
 def admin_patch_user_status(
     user_id: UUID,
@@ -186,6 +278,14 @@ def admin_patch_user_status(
 ):
     """Activate or deactivate a user account (ADMIN only)."""
     ip_address = request.client.host if request.client else None
+
+    if req.admin_authorization_password and req.admin_authorization_password.strip():
+        if not verify_password(req.admin_authorization_password, admin_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Admin Authorization Password."
+            )
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
@@ -203,7 +303,7 @@ def admin_patch_user_status(
     old_status = user.status
     if req.status is not None:
         user.status = req.status
-        user.is_active = (req.status != "Suspended")
+        user.is_active = (req.status == "Active")
     elif req.is_active is not None:
         user.is_active = req.is_active
         user.status = "Active" if req.is_active else "Suspended"
@@ -223,15 +323,69 @@ def admin_patch_user_status(
     )
     return user
 
+@router.post("/admin/users/{user_id}/reset-password", response_model=Dict[str, Any])
+def admin_reset_user_password(
+    user_id: UUID,
+    req: AdminPasswordResetRequest,
+    request: Request,
+    admin_user: User = Depends(require_role("ADMIN")),
+    db: Session = Depends(get_db)
+):
+    """Reset a user's password (ADMIN only)."""
+    ip_address = request.client.host if request.client else None
+
+    if not req.admin_password or not verify_password(req.admin_password.strip(), admin_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Admin Password. Password reset denied."
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
+    new_pass = req.new_password.strip() if (req.new_password and req.new_password.strip()) else f"GeM#{user.email.split('@')[0]}2026!"
+    user.password_hash = get_password_hash(new_pass)
+    db.commit()
+
+    create_audit_record(
+        db=db,
+        action="ADMIN_RESET_USER_PASSWORD",
+        user_id=admin_user.id,
+        entity_id=user.id,
+        new_value=f"Password reset for user {user.email}",
+        ip_address=ip_address
+    )
+
+    return {
+        "success": True,
+        "message": f"Password for '{user.full_name}' ({user.email}) has been reset successfully.",
+        "temp_password": new_pass
+    }
+
 @router.delete("/admin/users/{user_id}", response_model=Dict[str, Any])
 def admin_delete_user(
     user_id: UUID,
     request: Request,
+    admin_password: Optional[str] = None,
     admin_user: User = Depends(require_role("ADMIN")),
     db: Session = Depends(get_db)
 ):
     """Delete a user account (ADMIN only)."""
     ip_address = request.client.host if request.client else None
+
+    # Check password from query param or header if provided
+    input_pass = admin_password or request.headers.get("X-Admin-Password")
+    if input_pass and input_pass.strip():
+        if not verify_password(input_pass.strip(), admin_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Admin Authorization Password."
+            )
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
@@ -262,6 +416,7 @@ def admin_delete_user(
         "success": True,
         "message": f"User account {deleted_email} deleted successfully."
     }
+
 
 # --- Admin Blacklist Management Endpoints ---
 

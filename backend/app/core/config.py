@@ -52,8 +52,16 @@ class Settings(BaseSettings):
     GEM_BASE_URL: str = Field(default="https://api.gem.gov.in/v1")
     GEM_CLIENT_ID: str = Field(default="gem_production_client_2026")
     GEM_CLIENT_CERT: str = Field(default="certs/gem_client_cert.pem")
-    GEM_CLIENT_KEY: str = Field(default="certs/gem_client_key.pem")
     GEM_USE_MOCK: bool = Field(default=True)
+    MCA_GATEWAY_MODE: str = Field(default="live")
+    GSTN_GATEWAY_MODE: str = Field(default="mock")
+    PAN_GATEWAY_MODE: str = Field(default="mock")
+    EPFO_GATEWAY_MODE: str = Field(default="mock")
+    ESIC_GATEWAY_MODE: str = Field(default="mock")
+    DIGILOCKER_GATEWAY_MODE: str = Field(default="mock")
+    DATA_GOV_IN_API_KEY: str = Field(default="579b464db66ec23bdd000001cdd3946968444ef77000e0461fb3a123")
+    DATA_GOV_IN_MCA_RESOURCE_ID: str = Field(default="41233261-26c9-4f24-9b1a-ae970c675f92")
+
 
     @field_validator("DATABASE_URL")
     @classmethod

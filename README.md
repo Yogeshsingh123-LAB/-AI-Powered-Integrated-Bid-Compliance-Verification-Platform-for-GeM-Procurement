@@ -55,19 +55,21 @@ Provides modular verification endpoints simulating live government portals:
 - `GET /api/verify/blacklist/{identifier}` — Central Debarment Database lookup
 - `GET /api/verify/digilocker/{doc_id}` — DigiLocker official document verification
 
-### Mock APIs → Production Roadmap
+### Verification Gateway — Hybrid Live & Simulated Adapters
 
-The prototype uses mock government APIs for safe local development. Production integration is planned through a **swap-in adapter layer**, so business logic does not change when live endpoints replace mocks.
+The platform uses a pluggable **adapter pattern** for verification services:
 
-| System | Prototype | Production |
-|---|---|---|
-| GSTN | Mock | GSTN Sandbox v2.0 |
-| PAN | Mock | NSDL PAN verification |
-| Udyam | Mock | Udyam API |
-| DigiLocker | Mock | DigiLocker consent flow |
-| EPFO / ESIC | Mock | Employer verification APIs |
-| MCA21 | Mock | MCA21 API |
-| Blacklist | Mock | Central Debarment Database |
+> **Verification Gateway**: MCA21 registry is queried live via the Government of India Open Data platform (`data.gov.in`, GODL-licensed). Other registries (GSTN, PAN, EPFO, ESIC, DigiLocker) use simulated adapters in demo mode; a production adapter layer is ready for Sandbox.co.in / Setu integration.
+
+| System | Gateway Adapter | Gateway Mode | Data Source & License |
+|---|---|---|---|
+| **MCA21** | `DataGovMCAAdapter` | **Live (`data.gov.in`)** | Government of India Open Data Platform (~3.67M MCA Records, GODL License) |
+| **GSTN** | `GSTAdapter` | Simulated Demo Mode | Prepared for GSTN Sandbox v2.0 / Sandbox.co.in |
+| **PAN** | `PANAdapter` | Simulated Demo Mode | Prepared for NSDL / ITD verification API |
+| **Udyam** | `UdyamAdapter` | Simulated Demo Mode | Prepared for Udyam MSME verification API |
+| **DigiLocker** | `DigiLockerAdapter` | Simulated Demo Mode | Prepared for DigiLocker OAuth2 consent flow |
+| **EPFO / ESIC** | `EPFOAdapter` / `ESICAdapter` | Simulated Demo Mode | Prepared for Employer verification gateways |
+| **Blacklist** | `DebarmentAdapter` | Simulated Demo Mode | Central Debarment Database |
 
 ---
 
@@ -87,10 +89,10 @@ The prototype uses mock government APIs for safe local development. Production i
 
 ---
 
-### 6. Role-Based Workflows
+### 6. Role-Based Workflows & User Management
 - **Procurement Officer**: Create/configure tenders, view submitted bidders, run/re-run verification, review AI findings & evidence, request clarification, approve/reject requirements, make final qualification decision, view audit trail.
 - **Bidder**: Explore active tenders, apply to tender, drag-and-drop document uploader with real-time status & replacement controls, view compliance status, respond to clarification requests.
-- **Admin**: User management, verification gateway providers, compliance rules, system-wide audit logs, mock database configuration.
+- **Admin Console**: Full user profile editing (`PUT /api/admin/users/{id}`), role assignment (`Super Admin`, `Procurement Officer`, `Verification Officer`, `Auditor`, `Bidder`), department & permission configuration, quick **[ Grant Access ]** account approvals for pending officers, password resets, account suspension/reactivation, system-wide audit logs, and mandatory Admin Password Authorization.
 
 ---
 
@@ -205,10 +207,15 @@ cd frontend
 npm run build
 ```
 
-## 🔑 Default Administrator Credentials
-- **Primary Admin Email**: `admin@gem.gov.in` (or `admin@bidverify.gov.in`)
-- **Default Password**: `AdminSecret2026!` (Configurable via `INITIAL_ADMIN_PASSWORD` in `.env`)
-- **Demo Admin Email**: `admin@example.com` (Password: `AdminPassword123`)
+## 🔑 Default Platform Credentials
+
+| Account Role | Display Name | Email | Password |
+|---|---|---|---|
+| **Super Admin** | Platform Super Admin | `admin@example.com` | `AdminPassword123` |
+| **System Admin** | Platform Administrator | `admin@gem.gov.in` | `AdminSecret2026!` |
+| **Procurement Officer** | Procurement Officer | `officer@example.com` | `OfficerPassword123` |
+| **Procurement Officer (CPCL)** | Procurement Officer | `officer@cpcl.gov.in` | `OfficerPassword123` |
+| **Demo Bidder** | Demo Supplier | `bidder@example.com` | `BidderPassword123` |
 
 ---
 

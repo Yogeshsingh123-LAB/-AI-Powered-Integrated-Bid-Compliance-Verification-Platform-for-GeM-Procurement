@@ -130,21 +130,12 @@ def verify_udyam_portal(udyam_id: str):
         "verified_at": datetime.utcnow().isoformat() + "Z"
     }
 
-# 4. MCA / Corporate Verification
+# 4. MCA / Corporate Verification (data.gov.in Live API with simulated fallback)
 @router.get("/mca/{cin}")
 def verify_mca_portal(cin: str):
-    cin = cin.upper().strip()
-    return {
-        "cin": cin,
-        "company_name": "ABC TECHNOLOGIES PRIVATE LIMITED",
-        "company_status": "ACTIVE",
-        "incorporation_date": "2018-02-14",
-        "company_category": "Company limited by Shares",
-        "authorized_capital": 5000000.0,
-        "paid_up_capital": 1000000.0,
-        "source": "MCA21-MOCK",
-        "verified_at": datetime.utcnow().isoformat() + "Z"
-    }
+    from app.mock_apis.datagov_mca_adapter import DataGovMCAAdapter
+    return DataGovMCAAdapter.verify_company(cin)
+
 
 # 5. EPFO Compliance Verification
 @router.get("/epfo/{epfo_id}")

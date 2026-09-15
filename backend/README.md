@@ -85,7 +85,48 @@ The compliance score evaluates `presence (30) + database verification (40) + reg
 
 ---
 
+## Admin User Management & Officer Access APIs
+
+The platform provides administrative APIs for managing user accounts, officer access requests, password resets, and user roles:
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/admin/users` | List all registered users with role & status filters | Admin (`ADMIN`, `SUPER_ADMIN`) |
+| `PUT` | `/api/admin/users/{user_id}` | Full profile update (name, email, department, role, active status). Requires `admin_authorization_password`. | Admin |
+| `PATCH` | `/api/admin/users/{user_id}` | Partial profile update (name, email, department, role, active status). Requires `admin_authorization_password`. | Admin |
+| `PATCH` | `/api/admin/users/{user_id}/status` | Update account status (`Active`, `Pending Approval`, `Suspended`, `Inactive`) / Grant Access. Requires `admin_authorization_password`. | Admin |
+| `POST` | `/api/admin/users/{user_id}/reset-password` | Administrative password reset for user account. Requires `admin_authorization_password`. | Admin |
+| `DELETE` | `/api/admin/users/{user_id}` | Delete user account (with audit log safeguard). Requires `admin_authorization_password`. | Admin |
+
+> **Security Requirement**: All sensitive administrative write actions require validating the current administrator's password via the `admin_authorization_password` field to prevent unauthorized role escalation or status modifications.
+
+---
+
+## Verification Gateway — MCA21 Live Adapter (`data.gov.in`)
+
+The verification gateway uses an extensible **Adapter Pattern** with per-registry mode configuration:
+
+- **MCA21 Adapter (`DataGovMCAAdapter`)**: Queries the Government of India Open Data Platform (`data.gov.in`) MCA Company Master Data dataset (~3.67 million company records under GODL license).
+  - Configurable via `MCA_GATEWAY_MODE=live` (or `simulated`) and `DATA_GOV_IN_API_KEY` in `backend/.env`.
+  - Includes local fallback mechanism if external API is unreachable.
+- **Other Registries**: GSTN, PAN, Udyam, EPFO, ESIC, DigiLocker, and Debarment use simulated adapters pre-wired for production gateway swap (Sandbox.co.in / Setu).
+
+---
+
 ## Security & Audit Features
 - **Cryptographic Audit Trail**: Every security and compliance action writes a SHA-256 chain hash (`blockchain_hash`) linking to the previous audit log entry.
 - **Constant-Time Verification**: Password verification includes side-channel timing attack defenses.
 - **Filename Sanitization**: Uploaded files undergo regex sanitization (`re.sub(r'[^a-zA-Z0-9._-]', '_', ...)`) and payload size validation.
+
+---
+
+## 🔑 Default Platform Credentials
+
+| Account Role | Display Name | Email | Password |
+|---|---|---|---|
+| **System Admin** | Platform Administrator | `admin@gem.gov.in` | `AdminSecret2026!` |
+| **Super Admin** | Platform Super Admin | `admin@example.com` | `AdminPassword123` |
+| **Procurement Officer (CPCL)** | Procurement Officer | `officer@cpcl.gov.in` | `OfficerPassword123` |
+| **Procurement Officer** | Procurement Officer | `officer@example.com` | `OfficerPassword123` |
+| **Demo Bidder** | Demo Supplier | `bidder@example.com` | `BidderPassword123` |
+

@@ -157,3 +157,26 @@ To start the platform locally:
    ```
 
 Open browser at `http://localhost:5173`.
+
+---
+
+## 🔐 Admin Console & User Management Updates
+
+- **Full Administrative User Profile Management**:
+  - Update user name, email, department, and role (`Super Admin`, `Procurement Officer`, `Verification Officer`, `Auditor`, `Bidder`).
+  - Account status lifecycle: `Active`, `Pending Approval`, `Suspended`, `Inactive`.
+  - Quick **[ Grant Access ]** button on Pending account rows for instant officer onboarding.
+  - Administrative password resets and secure user account deletion.
+  - **Mandatory Admin Authorization Password**: All sensitive administrative actions require password re-verification (`admin_authorization_password`) to ensure account security.
+
+---
+
+## 🌐 Hybrid Verification Gateway & `data.gov.in` MCA21 Live Integration
+
+- **Real MCA21 Master Data Lookup**:
+  - Integrates directly with Government of India Open Data Platform (`data.gov.in`) MCA21 Company Master Data endpoint (~3.67M company records, GODL licensed).
+  - Environment setting: `MCA_GATEWAY_MODE=live` and `DATA_GOV_IN_API_KEY`.
+  - Automatic graceful fallback to local database when offline or API limit reached.
+- **Simulated Adapters**:
+  - GSTN, PAN, Udyam, EPFO, ESIC, DigiLocker, and Debarment adapters are configured with modular adapter interfaces ready for production endpoint swap (Sandbox.co.in / Setu).
+

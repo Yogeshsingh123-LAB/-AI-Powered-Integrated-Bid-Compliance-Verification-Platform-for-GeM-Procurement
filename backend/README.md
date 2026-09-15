@@ -106,12 +106,21 @@ The platform provides administrative APIs for managing user accounts, officer ac
 
 The verification gateway uses an extensible **Adapter Pattern** with per-registry mode configuration:
 
-- **MCA21 Adapter (`DataGovMCAAdapter`)**: Queries the Government of India Open Data Platform (`data.gov.in`) MCA Company Master Data dataset (~3.67 million company records under GODL license).
-  - Configurable via `MCA_GATEWAY_MODE=live` (or `simulated`) and `DATA_GOV_IN_API_KEY` in `backend/.env`.
-  - Includes local fallback mechanism if external API is unreachable.
+- **MCA21 Adapter (`DataGovMCAAdapter`)**: Integrates live with the Government of India Open Data Platform (`data.gov.in`) MCA Company Master Data (~3.67M corporate entries under GODL license).
+  - **API Endpoint**: `https://api.data.gov.in/resource/41233261-26c9-4f24-9b1a-ae970c675f92`
+  - **Query Parameters**: `api-key=<key>&format=json&limit=5&filters[corporate_identification_number]=<CIN>` or `filters[company_name]=<NAME>`
+  - **Extracted Attributes**: `corporate_identification_number`, `company_name`, `company_status`, `roc_code`, `authorized_capital`, `paid_up_capital`, `date_of_registration`, `registered_office_address`.
+  - **Configuration (`backend/.env`)**:
+    ```ini
+    MCA_GATEWAY_MODE=live
+    DATA_GOV_IN_API_KEY=579b464db66ec23bdd000001cdd3946968444ef77000e0461fb3a123
+    DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
+    ```
+  - Includes local fallback mechanism if external API is unreachable or rate limited.
 - **Other Registries**: GSTN, PAN, Udyam, EPFO, ESIC, DigiLocker, and Debarment use simulated adapters pre-wired for production gateway swap (Sandbox.co.in / Setu).
 
 ---
+
 
 ## Security & Audit Features
 - **Cryptographic Audit Trail**: Every security and compliance action writes a SHA-256 chain hash (`blockchain_hash`) linking to the previous audit log entry.

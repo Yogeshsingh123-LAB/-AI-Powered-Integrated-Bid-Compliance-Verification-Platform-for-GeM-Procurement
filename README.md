@@ -16,8 +16,7 @@
 > [!IMPORTANT]
 > **Core Product Principle**: Bid Zee is an **AI-assisted decision-support & verification platform**. The AI NEVER independently qualifies or disqualifies a bidder. All final qualification and disqualification decisions remain exclusively with the Procurement Officer.
 
-![Bid Zee Compliance Dashboard](docs/screenshots/dashboard-view.png)
-![Bid Zee Governance & Audit Reports](docs/screenshots/reports-analysis.png)
+![Bid Zee Compliance Dashboard](docs/screenshots/compliance-dashboard.png)
 
 [▶ Watch Full Platform Video Demo](https://youtu.be/8_x7qEE0GNA) | [🌐 Visit Live Website](https://ai-powered-integrated-bid-complianc-kappa.vercel.app/) | [▶ Watch Bidder Walkthrough](https://youtu.be/-qEZH7ONSDo)
 

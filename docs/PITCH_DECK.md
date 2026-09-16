@@ -55,29 +55,41 @@
 
 ---
 
-### Slide 6: System Performance & High-Throughput Load Testing
+### Slide 6: Live Prototype & Repository
+- **🔗 GitHub**: [github.com/Yogeshsingh123-LAB/-AI-Powered-Integrated-Bid-Compliance-Verification-Platform-for-GeM-Procurement](https://github.com/Yogeshsingh123-LAB/-AI-Powered-Integrated-Bid-Compliance-Verification-Platform-for-GeM-Procurement)
+- **🌐 Live Demo**: [ai-powered-integrated-bid-compliance-kappa.vercel.app](https://ai-powered-integrated-bid-compliance-kappa.vercel.app/)
+- **🎥 Demo Video**: [youtu.be/8_x7qEE0GNA](https://youtu.be/8_x7qEE0GNA)
+
+![Bid Zee Compliance Dashboard](screenshots/dashboard-view.png)
+![Bid Zee Governance & Audit Reports](screenshots/reports-analysis.png)
+
+> **Key Differentiator**: Almost no SIH team has a fully working, documented, live-deployed repository with a production-ready README, multi-language Indic OCR, cartel collusion graph, and live `data.gov.in` MCA21 integration.
+
+---
+
+### Slide 7: System Performance & High-Throughput Load Testing
 - **Benchmarked Concurrency**: Tested with Locust load testing framework.
 - **Throughput Capability**: Supports 500+ document uploads/minute with sub-second API verification responses.
 - **Scalable Infrastructure**: Containerized with Docker Compose & asynchronous FastAPI task processing.
 
 ---
 
-### Slide 7: Technical Stack & Engineering Quality
+### Slide 8: Technical Stack & Engineering Quality
 - **Backend**: Python 3.12, FastAPI, SQLAlchemy, Alembic, Pytest (47+ tests passing)
 - **AI/ML**: spaCy, PyMuPDF, OpenCV ELA, Google Gemini 1.5 Flash API
-- **Frontend**: React, Vite, Lucide Icons, Modern Vanilla CSS Design System
+- **Frontend**: React 19, Vite 8, Lucide Icons, Modern Vanilla CSS Design System
 - **Database**: SQLite / PostgreSQL ready with Alembic migrations
 - **DevOps**: Docker, Docker Compose, Locust Load Testing
 
 ---
 
-### Slide 8: Real-World Sandbox Integration Transparency
+### Slide 9: Real-World Sandbox Integration Transparency
 - **Sandbox Architecture**: Realistic mock microservices in `app/mock_apis/` reproducing production API contracts for CBIC GSTN, Income Tax PAN, Udyam Registration, and UIDAI e-KYC.
 - **Production Onboarding Plan**: Standard OAuth2 / API Key handshake interfaces ready for seamless transition to live government APIs upon portal integration approval.
 
 ---
 
-### Slide 9: Live Platform Demonstration Flow
+### Slide 10: Live Platform Demonstration Flow
 1. **Bidder Document Upload**: Upload PDF tender submission containing GSTIN, PAN, Udyam, and certificates.
 2. **Instant Compliance Scoring**: System calculates score (0-100), risk level (Low/Medium/High/Critical), and detailed score deductions.
 3. **Semantic Clause Comparator**: Interactive side-by-side view showing clause compliance (`MET`, `PARTIALLY_MET`, `NOT_MET`).
@@ -85,21 +97,23 @@
 
 ---
 
-### Slide 10: Governance, Security & Audit Readiness
+### Slide 11: Governance, Security & Audit Readiness
 - **Role-Based Access Control (RBAC)**: Distinct permissions for Bidders, Procurement Officers, and Platform Admins.
 - **JWT Authentication**: Secure stateless token authentication.
 - **Immutable Log Ledger**: Audit entries cryptographically hashed to prevent post-procurement tampering.
 
 ---
 
-### Slide 11: Future Roadmap & Impact
+### Slide 12: Future Roadmap & Impact
 - **Phase 1 (Current)**: Fully functional prototype with 8 GeM compliance rules, AI forgery detection, and semantic clause matching.
 - **Phase 2 (Post-Hackathon)**: Live integration with GeM API Gateway and Ministry of MSME / DPIIT real-time sandboxes.
 - **Phase 3**: Automated contract award recommendation engine and ERP integration for PSU buyers.
 
 ---
 
-### Slide 12: Conclusion & Q&A
+### Slide 13: Conclusion & Q&A / References
 - **Summary**: BidVerify transforms manual GeM bid evaluation into an instantaneous, transparent, and fraud-resistant process.
 - **Repository**: [GitHub Repository](https://github.com/Yogeshsingh123-LAB/-AI-Powered-Integrated-Bid-Compliance-Verification-Platform-for-GeM-Procurement)
+- **Live Demo**: [Live Website](https://ai-powered-integrated-bid-compliance-kappa.vercel.app/)
+- **Demo Video**: [Watch YouTube Video](https://youtu.be/8_x7qEE0GNA)
 - **Thank You!** Ready for Questions.

@@ -117,16 +117,33 @@ DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
 ### 6. Role-Based Workflows & User Management
 - **Procurement Officer**: Create/configure tenders, view submitted bidders, run/re-run verification, review AI findings & evidence, request clarification, approve/reject requirements, make final qualification decision, view audit trail.
 - **Bidder**: Explore active tenders, apply to tender, drag-and-drop document uploader with real-time status & replacement controls, view compliance status, respond to clarification requests.
-- **Admin Console**: Full user profile editing (`PUT /api/admin/users/{id}`), role assignment (`Super Admin`, `Procurement Officer`, `Verification Officer`, `Auditor`, `Bidder`), department & permission configuration, quick **[ Grant Access ]** account approvals for pending officers, password resets, account suspension/reactivation, system-wide audit logs, and mandatory Admin Password Authorization.
+- **Admin Console & Security**: Full user profile management (`PUT /api/admin/users/{id}`), role assignment (`Super Admin`, `Procurement Officer`, `Verification Officer`, `Auditor`, `Bidder`), department configuration, **[ Grant Access ]** account approvals for pending officers, password resets, account suspension/reactivation, system-wide audit logs, strict **user data isolation**, and **IDOR protection** on documents and bid records.
 
 ---
 
-### 7. Advanced Integrity & Intelligence Features
+### 7. Advanced Integrity, Intelligence & Real-Time Monitoring Features
 
 - **Cartel Collusion Graph** — Neo4j/NetworkX-based detection of bid-rigging patterns using shared DINs, addresses, bank accounts, and IP patterns.
 - **Merkle Tree Blockchain Audit** — SHA-256 hash-chained, tamper-evident audit trail with Merkle proof verification for every bid decision.
-- **Explainable AI (XAI) & Officer Override** — Every AI recommendation shows document title, page number, quote snippet, confidence score, and an officer override path with justification.
+- **Explainable AI (XAI) & Officer Override** — Every AI recommendation shows document title, page number, quote snippet, confidence score, and an officer override path with mandatory justification.
 - **Multi-Language Indic OCR** — Supports English, Hindi, Gujarati, Marathi, Tamil, Bengali, Telugu, and other Indic languages for inclusive bid participation.
+- **WebSocket Live Bid Stream & Real-Time Monitoring** — Real-time bid submission feed, status updates, and live monitoring via WebSocket endpoint (`/api/monitoring/ws`).
+- **System Performance & Latency Benchmark Dashboard** — Built-in benchmarking dashboard measuring verification latency, throughput, OCR processing time, and indexed query performance.
+- **Mobile Officer App (PWA & Web Push)** — Mobile-optimized officer interface with web push notifications for critical bid compliance events.
+
+---
+
+### 8. Synthetic Datasets & Mock Verification Importer
+
+The platform includes a complete test dataset importer and document generator for rapid offline demonstration and evaluation:
+
+- **Script**: `scripts/import_mock_dataset.py`
+- **Data Location**: `mock-data/dataset/`
+- **Features**: Generates sample PNG/PDF statutory certificates (GST, PAN, Udyam) and imports structured test bidder profiles directly into the platform database.
+- **Usage**:
+  ```bash
+  python scripts/import_mock_dataset.py
+  ```
 
 ---
 
@@ -148,14 +165,20 @@ DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
 
 ---
 
-## 🎯 Key Assets & Quick Links
+## 🎯 Key Assets & Documentation Quick Links
 
+### Platform Guides & Media
 - 📄 **Implementation Plan**: [`implementation_plan.md`](implementation_plan.md)
-- 🎬 **Walkthrough & Demo Guide**: [`walkthrough.md`](walkthrough.md)
+- 🎬 **Walkthrough & Evaluation Guide**: [`walkthrough.md`](walkthrough.md) | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 - ⚡ **Platform Launcher Scripts**: [`run_platform.ps1`](run_platform.ps1) & [`run_platform.bat`](run_platform.bat)
-- 🔴 **Live Demo**: *(add link once deployed)*
 - 🎥 **Bidder Portal Walkthrough**: [▶ Watch User Video](https://youtu.be/-qEZH7ONSDo)
-- 🏆 **Full Platform / Judges Video**: *(to be provided)*
+
+### Technical Verification & Performance Reports
+- 📊 **User Auth & Stability Report**: [`USER_AUTH_STABILITY_REPORT.md`](USER_AUTH_STABILITY_REPORT.md)
+- ⚡ **Database Performance Report**: [`DATABASE_PERFORMANCE_REPORT.md`](DATABASE_PERFORMANCE_REPORT.md)
+- 🛡️ **Production Readiness Report**: [`PRODUCTION_READINESS_REPORT.md`](PRODUCTION_READINESS_REPORT.md)
+- 🚀 **Pre-Launch Infrastructure Audit**: [`PRE_LAUNCH_REPORT.md`](PRE_LAUNCH_REPORT.md)
+- 🔧 **API Production Fix Log**: [`API_PRODUCTION_FIX.md`](API_PRODUCTION_FIX.md)
 
 ---
 

@@ -9,16 +9,16 @@
 **Problem Statement ID**: SIH26100  
 **Project Name**: Bid Zee / GeM Integrated Bid Compliance Verification Platform  
 **Target Platform**: Government e-Marketplace (GeM) Procurement Portal  
-**Live Demo**: https://your-live-demo-url  
+**Live Website**: https://ai-powered-integrated-bid-complianc-kappa.vercel.app/  
+**Full Platform / Judges Demo**: https://youtu.be/8_x7qEE0GNA  
 **Bidder Portal Walkthrough**: https://youtu.be/-qEZH7ONSDo  
-**Full Platform / Judges Demo**: *(coming soon)*  
 
 > [!IMPORTANT]
 > **Core Product Principle**: Bid Zee is an **AI-assisted decision-support & verification platform**. The AI NEVER independently qualifies or disqualifies a bidder. All final qualification and disqualification decisions remain exclusively with the Procurement Officer.
 
 ![Bid Zee Compliance Dashboard](docs/screenshots/compliance-dashboard.png)
 
-[▶ Watch Bidder Portal Walkthrough Video](https://youtu.be/-qEZH7ONSDo)
+[▶ Watch Full Platform Video Demo](https://youtu.be/8_x7qEE0GNA) | [🌐 Visit Live Website](https://ai-powered-integrated-bid-complianc-kappa.vercel.app/) | [▶ Watch Bidder Walkthrough](https://youtu.be/-qEZH7ONSDo)
 
 ---
 
@@ -168,10 +168,12 @@ The platform includes a complete test dataset importer and document generator fo
 ## 🎯 Key Assets & Documentation Quick Links
 
 ### Platform Guides & Media
+- 🌐 **Live Website**: [ai-powered-integrated-bid-complianc-kappa.vercel.app](https://ai-powered-integrated-bid-complianc-kappa.vercel.app/)
+- 🏆 **Full Platform / Judges Video Demo**: [▶ Watch Full Demo (YouTube)](https://youtu.be/8_x7qEE0GNA)
+- 🎥 **Bidder Portal Walkthrough**: [▶ Watch User Walkthrough (YouTube)](https://youtu.be/-qEZH7ONSDo)
 - 📄 **Implementation Plan**: [`implementation_plan.md`](implementation_plan.md)
 - 🎬 **Walkthrough & Evaluation Guide**: [`walkthrough.md`](walkthrough.md) | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 - ⚡ **Platform Launcher Scripts**: [`run_platform.ps1`](run_platform.ps1) & [`run_platform.bat`](run_platform.bat)
-- 🎥 **Bidder Portal Walkthrough**: [▶ Watch User Video](https://youtu.be/-qEZH7ONSDo)
 
 ### Technical Verification & Performance Reports
 - 📊 **User Auth & Stability Report**: [`USER_AUTH_STABILITY_REPORT.md`](USER_AUTH_STABILITY_REPORT.md)

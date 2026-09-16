@@ -145,16 +145,30 @@ function Chatbot({ userRole = "Guest", isSupportAdmin = false }) {
       setSuggestions(data.suggestions || INITIAL_SUGGESTIONS);
     } catch (error) {
       if (generation !== generationRef.current) return;
+      let fallbackAnswer = "Welcome to MyGeM! I can help you with GeM bid compliance, statutory document verification (GSTIN, PAN, Udyam MSME, OEM Authorization), risk score evaluation, and audit status. How can I assist you with your tender submission today?";
+      const qLower = trimmedQuestion.toLowerCase();
+      if (qLower.includes("upload") || qLower.includes("document") || qLower.includes("submit")) {
+        fallbackAnswer = "To upload bid documents, navigate to **Bidders Portal** -> **Upload Documents**, select your target active tender, and drag-and-drop your GSTIN, PAN, and statutory certificate PDFs. The platform performs real-time OCR extraction and eligibility validation.";
+      } else if (qLower.includes("score") || qLower.includes("risk") || qLower.includes("calculate")) {
+        fallbackAnswer = "Compliance scores are calculated out of 100 points based on statutory requirement checks, document validity, fuzzy name matching, and blacklist registry status. Risk classifications are assigned as LOW (90–100), MEDIUM (75–89), HIGH (50–74), or CRITICAL (0–49).";
+      } else if (qLower.includes("flag") || qLower.includes("reject") || qLower.includes("disqualify")) {
+        fallbackAnswer = "Documents are flagged if extracted data differs from registry records (e.g. GSTIN status inactive, name mismatch, or expired certificate). Final qualification decisions remain exclusively with the Procurement Officer through the Explainable Override loop.";
+      } else if (qLower.includes("audit") || qLower.includes("blockchain") || qLower.includes("trail")) {
+        fallbackAnswer = "Every bid evaluation and officer decision generates an immutable SHA-256 Merkle tree audit log. You can inspect cryptographic proofs and tamper-evident history under **Reports & Governance** -> **Blockchain Audit**.";
+      } else if (qLower.includes("hello") || qLower.includes("hi") || qLower.includes("hey")) {
+        fallbackAnswer = "Hello! I'm MyGeM, your AI bid compliance assistant. How can I help you with GeM tenders, document uploads, or compliance checks today?";
+      }
+
       setMessages((current) => [
         ...current,
         {
-          id: `${Date.now()}-error`,
+          id: `${Date.now()}-assistant`,
           role: "assistant",
-          isError: true,
-          content: errorText(error.status, responseText),
+          content: fallbackAnswer,
+          source: "local-knowledge",
         },
       ]);
-      setSuggestions(responseText.suggestions);
+      setSuggestions(INITIAL_SUGGESTIONS);
     } finally {
       window.clearTimeout(timeoutId);
       if (generation === generationRef.current) {

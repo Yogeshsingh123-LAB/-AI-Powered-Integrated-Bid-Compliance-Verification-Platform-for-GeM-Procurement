@@ -1,0 +1,63 @@
+name: Production Deployment & CI Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
+
+jobs:
+  build-and-verify:
+    name: Build Frontend & Run Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install & Build Frontend
+        run: |
+          cd frontend
+          npm ci || npm install
+          npm run build
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt PyMuPDF httpx
+
+      - name: Run Backend Regression Tests
+        run: |
+          cd backend
+          python -m unittest tests/test_deployment.py
+
+  github-deployment-status:
+    name: Publish GitHub Deployment Status
+    needs: build-and-verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub Deployment Status
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: "${{ github.token }}"
+          environment: production
+          environment_url: https://ai-powered-integrated-bid-compliance-kappa.vercel.app/
+          initial_status: success

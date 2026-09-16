@@ -68,7 +68,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
   useEffect(() => {
     generateCaptcha();
     // Sync backend biometric feature status on mount
-    apiFetch(`${BACKEND_URL}/api/auth/biometric/status`)
+    apiFetch("/api/auth/biometric/status")
       .then((res) => safeJson(res))
       .then((data) => {
         if (data && typeof data.enabled === "boolean") {
@@ -87,7 +87,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     setBiometricEnabled(newVal);
     localStorage.setItem("admin_biometric_enabled", newVal ? "true" : "false");
     try {
-      await apiFetch(`${BACKEND_URL}/api/auth/biometric/toggle`, {
+      await apiFetch("/api/auth/biometric/toggle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: newVal })
@@ -130,7 +130,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       try {
         setBiometricScanMsg("Verifying biometric hash & cryptographic challenge...");
         const targetEmail = loginEmail.trim() || "admin@example.com";
-        const response = await apiFetch(`${BACKEND_URL}/api/auth/biometric/verify`, {
+        const response = await apiFetch("/api/auth/biometric/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -198,10 +198,9 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     }
 
     setLoading(true);
-    setLoading(true);
     try {
       const cleanLoginEmail = (loginEmail || "").trim().toLowerCase();
-      const response = await apiFetch(`${BACKEND_URL}/api/auth/login`, {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -231,7 +230,12 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       }, 1000);
 
     } catch (err) {
-      setAuthError(err.message || "Connection refused by authentication server.");
+      const errMsg = err?.message || "";
+      if (errMsg.includes("Failed to fetch") || errMsg.includes("NetworkError") || errMsg.includes("fetch")) {
+        setAuthError("Unable to connect to authentication server. Please verify backend API status or network connection.");
+      } else {
+        setAuthError(errMsg || "Connection refused by authentication server.");
+      }
       generateCaptcha();
     } finally {
       setLoading(false);
@@ -256,7 +260,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     const cleanSignUpEmail = (signUpEmail || "").trim().toLowerCase();
     setLoading(true);
     try {
-      const response = await apiFetch(`${BACKEND_URL}/api/auth/register`, {
+      const response = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

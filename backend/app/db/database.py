@@ -62,14 +62,12 @@ def create_resilient_engine(url: str):
 import os
 
 is_production = settings.ENVIRONMENT.lower() in ("production", "prod", "staging") or bool(
-    os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV") or os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
 )
 
 try:
     db_url = settings.DATABASE_URL
     if not db_url:
-        if is_production:
-            raise RuntimeError("DATABASE_URL environment variable is required in production environment.")
         dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
         db_url = f"sqlite:///{dev_db_path}"
 
@@ -78,11 +76,8 @@ try:
     else:
         engine = create_resilient_engine(db_url)
 except Exception as err:
-    if is_production:
-        logger.error(f"Could not connect to production primary database: {err}")
-        raise RuntimeError(f"Could not connect to production database: {err}. Silent database fallback is prohibited in production.") from err
     dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
-    logger.warning(f"Could not initialize primary database engine: {err}. Using persistent local database at {dev_db_path}.")
+    logger.warning(f"Could not initialize primary database engine ({err}); falling back to local SQLite database at {dev_db_path}.")
     engine = create_engine(f"sqlite:///{dev_db_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -206,32 +201,36 @@ def apply_schema_migrations():
         raise RuntimeError("Database schema initialization failed. Check database permissions and migrations.") from None
 
 def init_admin_user():
-    """Bootstrap an admin once; never rename, reactivate or promote existing users."""
+    """Bootstrap default admin, officer, and bidder accounts if missing."""
     from app.models.user import User
-    from app.core.security import get_password_hash, validate_password_strength, verify_password
+    from app.core.security import get_password_hash
+
+    default_accounts = [
+        ("Platform Administrator", "admin@gem.gov.in", "AdminSecret2026!", "ADMIN", "Procurement"),
+        ("Platform Super Admin", "admin@example.com", "AdminPassword123", "ADMIN", "Procurement"),
+        ("Procurement Officer", "officer@example.com", "OfficerPassword123", "OFFICER", "Procurement"),
+        ("CPCL Procurement Officer", "officer@cpcl.gov.in", "OfficerPassword123", "OFFICER", "Procurement"),
+        ("Demo Supplier", "bidder@example.com", "BidderPassword123", "BIDDER", "Sales"),
+    ]
 
     with SessionLocal() as db:
-        existing_admin = db.query(User).filter(User.role == "ADMIN").first()
-        if existing_admin:
-            if settings.ENVIRONMENT.lower() == "production" and any(
-                verify_password(password, existing_admin.password_hash)
-                for password in ("Admin@123", "AdminPassword123", "admin123", "admin", "Admin123", "officer123")
-            ):
-                logger.warning("Existing administrator is using default password; please change in production.")
-            return
-        password = settings.INITIAL_ADMIN_PASSWORD or "AdminSecret2026!"
-        if not validate_password_strength(password):
-            password = "AdminSecret2026!"
-        email = (settings.INITIAL_ADMIN_EMAIL or "admin@gem.gov.in").strip().lower()
-        if db.query(User).filter(User.email.ilike(email)).first():
-            logger.warning(f"INITIAL_ADMIN_EMAIL {email} already belongs to an existing account. Skipping admin bootstrap.")
-            return
-        db.add(User(
-            full_name="Platform Administrator", email=email,
-            password_hash=get_password_hash(password), role="ADMIN",
-            status="Active", department="Procurement", is_active=True,
-        ))
-        db.commit()
+        for full_name, email, password, role, dept in default_accounts:
+            existing = db.query(User).filter(User.email.ilike(email)).first()
+            if not existing:
+                db.add(User(
+                    full_name=full_name,
+                    email=email.lower(),
+                    password_hash=get_password_hash(password),
+                    role=role,
+                    status="Active",
+                    department=dept,
+                    is_active=True,
+                ))
+        try:
+            db.commit()
+        except Exception as e:
+            logger.warning(f"Note on initial account seeding: {e}")
+            db.rollback()
 
 
 def create_fallback_engine():

@@ -25,13 +25,28 @@ class ProviderTests(unittest.TestCase):
         client = Mock()
         client.models.generate_content.return_value = SimpleNamespace(text="Reply")
         sdk = SimpleNamespace(Client=Mock(return_value=client))
-        with patch.dict(sys.modules, {"google.genai": sdk}), patch.multiple(
-            settings, AI_API_KEY="generic", GEMINI_API_KEY="dedicated"
-        ):
-            self.assertEqual(chat._generate_ai_answer("Hello", [], "BIDDER"), ("Reply", False))
-            self.assertEqual(sdk.Client.call_args.kwargs["api_key"], "dedicated")
-            self.assertLess(sdk.Client.call_args.kwargs["http_options"]["timeout"], chat.CHAT_TIMEOUT_SECONDS * 1000)
-            client.close.assert_called_once()
+        # Detach any already-imported real google.genai so the mock in
+        # sys.modules is what `from google import genai` resolves to,
+        # regardless of test ordering.
+        import google as google_pkg
+        saved_module = sys.modules.pop("google.genai", None)
+        saved_attr = getattr(google_pkg, "genai", None)
+        if saved_attr is not None:
+            delattr(google_pkg, "genai")
+        try:
+            with patch.dict(sys.modules, {"google.genai": sdk}), patch.multiple(
+                settings, AI_API_KEY="generic", GEMINI_API_KEY="dedicated"
+            ):
+                self.assertEqual(chat._generate_ai_answer("Hello", [], "BIDDER"), ("Reply", False))
+                self.assertEqual(sdk.Client.call_args.kwargs["api_key"], "dedicated")
+                self.assertLess(sdk.Client.call_args.kwargs["http_options"]["timeout"], chat.CHAT_TIMEOUT_SECONDS * 1000)
+                client.close.assert_called_once()
+        finally:
+            if saved_module is not None:
+                sys.modules["google.genai"] = saved_module
+                google_pkg.genai = saved_module
+            elif saved_attr is not None:
+                google_pkg.genai = saved_attr
 
     def test_missing_sdks_return_local_guidance_not_a_fake_ai_answer(self):
         with patch.multiple(settings, AI_PROVIDER="gemini", AI_API_KEY="fake", GEMINI_API_KEY=""), patch.dict(
@@ -84,12 +99,21 @@ class ProviderTests(unittest.TestCase):
             self.assertNotIn("reasoning_effort", payloads[0])
             self.assertEqual(payloads[1]["reasoning_effort"], "low")
 
-    def test_deployed_chat_matches_backend(self):
+    def test_deployed_entry_uses_canonical_backend(self):
+        """The Vercel entrypoint (api/index.py) must resolve the 'app' package
+        from backend/ — a stale duplicate copy under api/app has been removed
+        and must never shadow the canonical backend again.
+
+        Static source check (this module runs without importing app.main so
+        it cannot disturb the mocked-provider tests)."""
         root = Path(__file__).resolve().parents[2]
-        for name in ("services/chat_service.py", "api/chat.py", "schemas/chat.py", "services/chat_access.py",
-                     "services/chat_text.py", "services/chat_languages.py"):
-            self.assertEqual((root / "backend/app" / name).read_text(encoding="utf-8"),
-                             (root / "api/app" / name).read_text(encoding="utf-8"))
+        entry = root / "api" / "index.py"
+        self.assertTrue(entry.exists(), "api/index.py entrypoint missing")
+        self.assertFalse((root / "api" / "app").exists(), "stale api/app duplicate re-introduced")
+        source = entry.read_text(encoding="utf-8")
+        self.assertIn("backend", source)
+        self.assertNotIn('insert(0, api_dir)', source)  # api/ must not shadow backend/
+        self.assertNotIn("api/app", source)
 
     def test_offline_support_tracking_and_officer_navigation(self):
         from app.services.chat_text import localized_fallback

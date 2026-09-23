@@ -9414,8 +9414,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
     role === "Super Admin" ||
     user?.role?.toUpperCase() === "ADMIN" ||
     user?.role?.toUpperCase() === "SUPER ADMIN" ||
-    user?.role?.toUpperCase()?.includes("ADMIN") ||
-    user?.email === "admin@gem.gov.in";
+    user?.role?.toUpperCase()?.includes("ADMIN");
 
   const navigationItems = role === "Supplier" ? supplierNav : buyerNav;
 

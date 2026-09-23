@@ -263,12 +263,16 @@ def seed_dev_data(db: Session = Depends(get_db)):
             detail="Database seeding is disabled in this environment."
         )
 
-    # Seed Users
+    # Seed Users. Passwords are generated per run and returned ONCE in this
+    # response — no default credentials live in the source code.
+    import secrets as _secrets
     users_data = [
-        {"email": "bidder@example.com", "role": "BIDDER", "full_name": "Mock Bidder Company", "password": "BidderPassword123"},
-        {"email": "officer@example.com", "role": "OFFICER", "full_name": "Procurement Officer 1", "password": "OfficerPassword123"},
-        {"email": "admin@example.com", "role": "ADMIN", "full_name": "Admin User", "password": "AdminPassword123"}
+        {"email": "bidder@example.com", "role": "BIDDER", "full_name": "Mock Bidder Company"},
+        {"email": "officer@example.com", "role": "OFFICER", "full_name": "Procurement Officer 1"},
+        {"email": "admin@example.com", "role": "ADMIN", "full_name": "Admin User"}
     ]
+    for ud in users_data:
+        ud["password"] = _secrets.token_urlsafe(12)
 
     seeded_users = {}
     for ud in users_data:
@@ -279,14 +283,17 @@ def seed_dev_data(db: Session = Depends(get_db)):
                 email=ud["email"],
                 password_hash=get_password_hash(ud["password"]),
                 role=ud["role"],
-                is_active=True
+                is_active=True,
+                must_change_password=True,
             )
             db.add(u)
             db.commit()
             db.refresh(u)
             seeded_users[ud["role"]] = u
+            ud["created"] = True
         else:
             seeded_users[ud["role"]] = existing
+            ud["created"] = False
 
     # Seed Tender
     tender_id = "GEM/2026/001"
@@ -341,9 +348,22 @@ def seed_dev_data(db: Session = Depends(get_db)):
         "success": True,
         "message": "Database seeded with development accounts (development only).",
         "accounts": {
-            "BIDDER": "bidder@example.com (Password: BidderPassword123, Bid ID: 550e8400-e29b-11d4-a716-446655440000)",
-            "OFFICER": "officer@example.com (Password: OfficerPassword123)",
-            "ADMIN": "admin@example.com (Password: AdminPassword123)",
+            "BIDDER": {
+                "email": "bidder@example.com",
+                "password": users_data[0]["password"],
+                "password_shown_once": users_data[0]["created"],
+                "bid_id": "550e8400-e29b-11d4-a716-446655440000",
+            },
+            "OFFICER": {
+                "email": "officer@example.com",
+                "password": users_data[1]["password"],
+                "password_shown_once": users_data[1]["created"],
+            },
+            "ADMIN": {
+                "email": "admin@example.com",
+                "password": users_data[2]["password"],
+                "password_shown_once": users_data[2]["created"],
+            },
             "TENDER_ID": tender_id,
             "REQUIREMENT_ID": "440e8400-e29b-11d4-a716-446655440000 (Code: GST)"
         }

@@ -249,8 +249,10 @@ def bootstrap_accounts():
       a list of common/demo passwords.
     - In production, if there is no active ADMIN after bootstrapping, startup
       FAILS (a production system must have an administrator).
-    - Demo accounts are created ONLY in isolated development when
-      SEED_DEMO_ACCOUNTS=true.
+    - No demo accounts are seeded at startup (no default credentials exist in
+      the source). For isolated development, create labelled dev accounts via
+      the gated POST /auth/seed endpoint (ALLOW_SEED_ENDPOINT=true), which
+      generates one-time passwords and flags must_change_password.
     """
     from app.models.user import User
     from app.core.security import get_password_hash, is_weak_or_demo_password
@@ -279,33 +281,6 @@ def bootstrap_accounts():
             ))
             db.commit()
             logger.info("Bootstrapped initial administrator account (password change required at first login).")
-
-        # --- Demo accounts: isolated development only ---
-        if settings.is_demo_only and settings.SEED_DEMO_ACCOUNTS and user_count == 0:
-            demo_accounts = [
-                ("Demo Administrator", "admin@gem.gov.in", "AdminSecret2026!", "ADMIN"),
-                ("Demo Procurement Officer", "officer@example.com", "OfficerPassword123", "OFFICER"),
-                ("Demo Supplier", "bidder@example.com", "BidderPassword123", "BIDDER"),
-            ]
-            for full_name, email, password, role in demo_accounts:
-                existing = db.query(User).filter(User.email.ilike(email)).first()
-                if not existing:
-                    db.add(User(
-                        full_name=full_name,
-                        email=email.lower(),
-                        password_hash=get_password_hash(password),
-                        role=role,
-                        status="Active",
-                        department="Procurement" if role != "BIDDER" else "Sales",
-                        is_active=True,
-                        must_change_password=True,
-                    ))
-            try:
-                db.commit()
-                logger.info("Seeded labelled demo accounts (development only, SEED_DEMO_ACCOUNTS=true).")
-            except Exception as e:
-                logger.warning(f"Note on demo account seeding: {e}")
-                db.rollback()
 
         # --- Production must always have an active administrator ---
         if settings.is_production:

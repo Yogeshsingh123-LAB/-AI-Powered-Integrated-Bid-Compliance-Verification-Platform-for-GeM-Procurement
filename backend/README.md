@@ -135,9 +135,7 @@ The platform contains **no hardcoded account passwords**. Bootstrap behaviour:
 
 - **Production / cloud:** first admin created from `INITIAL_ADMIN_EMAIL` + `INITIAL_ADMIN_PASSWORD`
   (environment). Forced password change at first login. Startup fails if no active ADMIN exists.
-- **Development only:** `SEED_DEMO_ACCOUNTS=true` creates clearly-labelled demo accounts;
-  `ALLOW_SEED_ENDPOINT=true` enables the dev-only `POST /api/auth/seed` route (never mounted in
-  production or on cloud runtimes).
+- **Development only:** `SEED_DEMO_ACCOUNTS=true` seeds clearly-labelled synthetic demo tenders. Demo user accounts come only from the gated `POST /auth/seed` endpoint (`ALLOW_SEED_ENDPOINT=true`), which generates one-time passwords;
 
 The previously published default credentials are retired and must be treated as compromised.
 See the root `README.md` → "Security Posture" for the rotation checklist.

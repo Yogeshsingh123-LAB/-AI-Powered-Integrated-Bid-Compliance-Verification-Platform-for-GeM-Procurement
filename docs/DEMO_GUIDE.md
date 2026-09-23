@@ -34,7 +34,7 @@ npm run dev
 
 ### Step 1: Login & Dashboard Overview (0:00 - 0:30)
 1. Navigate to `http://localhost:3000` (or your live deployed link).
-2. Log in with an officer or admin account. In a local development setup, enable `SEED_DEMO_ACCOUNTS=true` (development only) to obtain clearly-labelled demo accounts; in any shared/production environment use accounts provisioned by the deployment owner — never publish passwords.
+2. Log in with an officer or admin account. In a local development setup, create clearly-labelled demo accounts with the gated `POST /auth/seed` endpoint (`ALLOW_SEED_ENDPOINT=true`); it generates one-time passwords that must be changed at first login. In any shared/production environment use accounts provisioned by the deployment owner — never publish passwords.
 3. Point out key dashboard metrics:
    - Total Bids Processed
    - Average Compliance Score

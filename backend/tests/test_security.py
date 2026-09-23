@@ -134,6 +134,28 @@ def test_seed_endpoint_forbidden_without_flag(client):
     assert r.status_code == 403
 
 
+def test_seed_issues_generated_onetime_passwords(client, monkeypatch):
+    """The dev seed endpoint must not use any hardcoded/default password."""
+    monkeypatch.setattr(settings, "ALLOW_SEED_ENDPOINT", True)
+    r = client.post("/api/auth/seed")
+    assert r.status_code == 200, r.text
+    accounts = r.json()["accounts"]
+    known_defaults = {
+        "BidderPassword123", "OfficerPassword123", "AdminPassword123",
+        "AdminSecret2026!", "password123", "admin123",
+    }
+    for role in ("BIDDER", "OFFICER", "ADMIN"):
+        acct = accounts[role]
+        assert acct["password"]
+        assert acct["password"] not in known_defaults
+        login = client.post(
+            "/api/auth/login",
+            json={"email": acct["email"], "password": acct["password"]},
+        )
+        assert login.status_code == 200, login.text
+        assert login.json().get("must_change_password") is True
+
+
 # ---------------------------------------------------------------------------
 # Authorization / IDOR
 # ---------------------------------------------------------------------------

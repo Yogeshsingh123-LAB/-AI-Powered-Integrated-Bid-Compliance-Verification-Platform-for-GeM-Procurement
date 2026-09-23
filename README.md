@@ -266,9 +266,7 @@ rotate them in any live deployment immediately.
 - **Production:** the first administrator is created from `INITIAL_ADMIN_EMAIL` + `INITIAL_ADMIN_PASSWORD`
   (environment only). The account is forced to change its password at first login. Production refuses to
   start if no active administrator exists or if the bootstrap password is a common/demo password.
-- **Development:** set `SEED_DEMO_ACCOUNTS=true` (development only, never on cloud runtimes) to create
-  clearly-labelled demo accounts, or use the dev-only `POST /api/auth/seed` endpoint (requires
-  `ALLOW_SEED_ENDPOINT=true`). Demo passwords are for local evaluation only.
+- **Development:** set `SEED_DEMO_ACCOUNTS=true` (development only, never on cloud runtimes) to seed clearly-labelled synthetic demo tenders. Demo user accounts are created only through the gated `POST /auth/seed` endpoint (`ALLOW_SEED_ENDPOINT=true`), which returns one-time generated passwords.
 
 ---
 
@@ -298,9 +296,9 @@ rotate them in any live deployment immediately.
 2. Rewrite Git history to remove the old keys, e.g.:
    ```bash
    pip install git-filter-repo
-   git filter-repo --replace-text <(printf '==>
-==>
-AdminSecret2026!=>CHANGED
+   git filter-repo --replace-text <(printf '<full Groq key==>REDACTED
+<full data.gov.in key==>REDACTED
+<old default admin password==>REDACTED
 ')
    ```
 3. Enable GitHub secret scanning + push protection on the repository.

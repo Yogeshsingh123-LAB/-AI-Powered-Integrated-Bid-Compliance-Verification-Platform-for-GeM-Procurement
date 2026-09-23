@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.services.auth_service import get_current_user, require_role
 from app.db.database import SessionLocal
 from app.core.config import settings
+from app.scoring.risk_classifier import risk_level_for_score
 from app.services.websocket_manager import ws_manager
 from app.services.alert_service import AlertService
 from app.scoring.compliance_scorer import ComplianceScorer
@@ -22,7 +23,24 @@ class SimulateBidRequest(BaseModel):
     include_forgery_alert: bool = Field(default=False)
     include_cartel_alert: bool = Field(default=False)
 
+OFFICER_ROLES = {"ADMIN", "OFFICER", "PROCUREMENT_OFFICER", "VERIFICATION_OFFICER", "AUDITOR"}
+
+
+def _is_officer_role(role: Optional[str]) -> bool:
+    if not role:
+        return False
+    norm = role.upper().replace(" ", "_")
+    return norm in OFFICER_ROLES or role.upper() in OFFICER_ROLES
+
+
 async def authenticate_socket(websocket: WebSocket) -> bool:
+    """WebSocket handshake authentication.
+
+    - Origin (when present) must be on the exact CORS allow-list.
+    - A valid, non-expired JWT must be delivered within 10 seconds.
+    - Only officer/admin/auditor roles (read from the database, never from the
+      token claim) may subscribe.
+    """
     origin = websocket.headers.get("origin")
     if origin and origin not in settings.cors_origins_list:
         await websocket.close(code=1008)
@@ -34,14 +52,20 @@ async def authenticate_socket(websocket: WebSocket) -> bool:
         if not isinstance(token, str) or not token:
             raise ValueError("Missing token")
         from app.db.database import SessionLocal
+        from app.services.auth_service import get_user_by_token
         with SessionLocal() as db:
-            user = get_current_user(db=db, token=token)
-            if user.role not in {"ADMIN", "OFFICER", "VERIFICATION OFFICER", "AUDITOR"}:
+            user = get_user_by_token(db, token)
+            if getattr(user, "must_change_password", False):
+                raise ValueError("Password change required")
+            if not _is_officer_role(user.role):
                 raise ValueError("Officer access required")
         await websocket.send_json({"type": "authenticated"})
         return True
     except (HTTPException, ValueError, AttributeError, asyncio.TimeoutError, WebSocketDisconnect):
-        await websocket.close(code=1008)
+        try:
+            await websocket.close(code=1008)
+        except Exception:
+            pass
         return False
 
 
@@ -88,7 +112,7 @@ async def simulate_live_bid_evaluation(payload: SimulateBidRequest):
     """API trigger to simulate an incoming live bid evaluation for real-time WebSocket broadcast and alert testing."""
     mock_report = {
         "score": payload.score,
-        "risk_level": "HIGH" if payload.score < 60 else "LOW",
+        "risk_level": risk_level_for_score(payload.score),
         "breakdown": {
             "document_completeness": "20/30",
             "database_verification": "15/40",
@@ -97,7 +121,7 @@ async def simulate_live_bid_evaluation(payload: SimulateBidRequest):
         "deductions": [
             "GSTIN status is 'Suspended' (-10 pts)",
             "Missing mandatory Udyam registration certificate (-10 pts)"
-        ] if payload.score < 70 else []
+        ] if payload.score < settings.RISK_MEDIUM_MIN else []
     }
 
     mock_forgery = {

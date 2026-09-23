@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, Optional
 
-router = APIRouter(prefix="/api/verify", tags=["Verification Gateway (Mock Govt APIs)"])
+router = APIRouter(prefix="/verify", tags=["Verification Gateway (Mock Govt APIs)"])
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

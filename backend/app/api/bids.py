@@ -15,11 +15,12 @@ from app.models.document import Document
 from app.models.requirement import Requirement
 from app.schemas.bid import BidCreate, BidResponse
 from app.services.auth_service import get_current_user, get_optional_current_user, oauth2_scheme_optional, require_role, create_audit_record
+from app.scoring.risk_classifier import risk_level_for_score
+from app.core.config import settings as app_settings
 
 router = APIRouter(prefix="/bids", tags=["Bid Applications & Management"])
 
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
-@router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def apply_bid(
     req: BidCreate,
     request: Request,
@@ -132,8 +133,8 @@ def get_my_bids(
         doc_count = db.query(Document).filter(Document.bid_id == b.id, Document.document_status != "REPLACED").count()
         score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
 
-        # Calculate risk derived from actual score
-        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+        # Centralized risk mapping (single source of truth in config).
+        risk_level = risk_level_for_score(score_val)
 
         results.append({
             "id": str(b.id),
@@ -151,7 +152,6 @@ def get_my_bids(
     return results
 
 @router.get("", response_model=List[Dict[str, Any]])
-@router.get("/all", response_model=List[Dict[str, Any]])
 def list_all_bids(
     current_user: User = Depends(require_role("OFFICER", "ADMIN")),
     db: Session = Depends(get_db)
@@ -164,7 +164,8 @@ def list_all_bids(
         bidder = db.query(User).filter(User.id == b.bidder_id).first()
         tender = db.query(Tender).filter(Tender.id == b.tender_id).first()
         score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
-        risk_level = "LOW" if score_val >= 80 else ("MEDIUM" if score_val >= 50 else "HIGH")
+        # Centralized risk mapping (single source of truth in config).
+        risk_level = risk_level_for_score(score_val)
 
         doc_count = db.query(Document).filter(Document.bid_id == b.id, Document.document_status != "REPLACED").count()
 
@@ -188,6 +189,12 @@ def list_all_bids(
 
     return results
 
+@router.get("/all", response_model=List[Dict[str, Any]], include_in_schema=False)
+def list_all_bids_alias(current_user: User = Depends(require_role("OFFICER", "ADMIN")), db: Session = Depends(get_db)):
+    """Alias of GET /bids (kept for client compatibility)."""
+    return list_all_bids(current_user=current_user, db=db)
+
+
 @router.get("/tender/{tender_id:path}", response_model=List[Dict[str, Any]])
 def list_bids_for_tender(
     tender_id: str,
@@ -204,14 +211,9 @@ def list_bids_for_tender(
     results = []
     for b in bids:
         bidder = db.query(User).filter(User.id == b.bidder_id).first()
-        raw_score = float(b.compliance_score) if b.compliance_score is not None else 0.0
-        score_val = raw_score if raw_score > 0 else 86.0
-        if score_val >= 85:
-            risk_level = "LOW"
-        elif score_val >= 65:
-            risk_level = "MEDIUM"
-        else:
-            risk_level = "HIGH"
+        # Integrity: never fabricate a score. Unscored bids report 0 until verified.
+        score_val = float(b.compliance_score) if b.compliance_score is not None else 0.0
+        risk_level = risk_level_for_score(score_val)
 
         doc_count = db.query(Document).filter(Document.bid_id == b.id, Document.document_status != "REPLACED").count()
 
@@ -244,9 +246,8 @@ def invalidate_stats_cache():
     _stats_cache.clear()
 
 @router.get("/stats", response_model=Dict[str, Any])
-@router.get("/summary", response_model=Dict[str, Any])
 def get_officer_bid_stats(
-    token: Optional[str] = Depends(oauth2_scheme_optional),
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -255,7 +256,7 @@ def get_officer_bid_stats(
     """
     try:
         from sqlalchemy import case, func
-        current_user = get_optional_current_user(db=db, token=token)
+        current_user = get_optional_current_user(request=request, db=db)
         user_key = str(current_user.id) if (current_user and current_user.role and current_user.role.upper() == "BIDDER") else "ALL"
         
         now_ts = datetime.now(timezone.utc).timestamp()
@@ -264,14 +265,12 @@ def get_officer_bid_stats(
             if now_ts - cached_ts < STATS_CACHE_TTL_SECONDS:
                 return cached_data
 
-        # 1. Total Active Tenders count
+        # 1. Active tenders = published/open for application ONLY.
+        #    Drafts are excluded and there is no fallback to counting every
+        #    tender, which produced misleading dashboard totals.
         active_tenders_count = db.query(func.count(Tender.id)).filter(
-            func.upper(func.coalesce(Tender.status, "")).in_(["ACTIVE", "PUBLISHED", "DRAFT"])
+            func.upper(func.coalesce(Tender.status, "")).in_(["ACTIVE", "PUBLISHED"])
         ).scalar() or 0
-
-        # Fallback count if 0 active tenders matched
-        if active_tenders_count == 0:
-            active_tenders_count = db.query(func.count(Tender.id)).scalar() or 0
 
         # 2. Aggregated Bids Metrics in ONE single database query
         bids_query = db.query(
@@ -287,7 +286,7 @@ def get_officer_bid_stats(
                 ), 1)
             )).label("pending_verification"),
             func.count(case(
-                (func.coalesce(Bid.compliance_score, 0.0) < 50.0, 1)
+                (func.coalesce(Bid.compliance_score, 0.0) < app_settings.RISK_HIGH_MIN, 1)
             )).label("high_risk"),
             func.coalesce(func.avg(Bid.compliance_score), 0.0).label("avg_compliance_score")
         )
@@ -337,6 +336,12 @@ def get_officer_bid_stats(
             "data": fallback_payload,
             **fallback_payload
         }
+
+@router.get("/summary", response_model=Dict[str, Any], include_in_schema=False)
+def get_officer_bid_stats_alias(request: Request, db: Session = Depends(get_db)):
+    """Alias of GET /bids/stats (kept for client compatibility)."""
+    return get_officer_bid_stats(request=request, db=db)
+
 
 @router.get("/{bid_id}", response_model=Dict[str, Any])
 def get_bid_details(
@@ -394,15 +399,10 @@ def get_bid_details(
     documents = db.query(Document).filter(Document.bid_id == bid.id, Document.document_status != "REPLACED").all()
     requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
 
-    # Determine risk level derived from score
-    raw_score = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
-    score_val = raw_score if raw_score > 0 else 86.0
-    if score_val >= 85:
-        risk_level = "LOW"
-    elif score_val >= 65:
-        risk_level = "MEDIUM"
-    else:
-        risk_level = "HIGH"
+    # Integrity: report the stored score as-is (0 when unscored); risk is
+    # derived from the centralized thresholds.
+    score_val = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
+    risk_level = risk_level_for_score(score_val)
 
     # Map requirement items to uploaded documents
     doc_map = {str(d.requirement_id): d for d in documents}
@@ -451,9 +451,12 @@ def get_bid_details(
 
     # Fetch audit logs for this bid
     from app.models.audit_log import AuditLog
-    audit_records = db.query(AuditLog).filter(
-        (AuditLog.bid_id == bid.id) | (AuditLog.entity_id == str(bid.id))
-    ).order_by(AuditLog.created_at.desc()).all()
+    try:
+        bid_uuid_val = uuid.UUID(str(bid.id))
+        audit_cond = (AuditLog.bid_id == bid_uuid_val) | (AuditLog.entity_id == bid_uuid_val)
+    except (ValueError, AttributeError, TypeError):
+        audit_cond = AuditLog.bid_id == bid.id
+    audit_records = db.query(AuditLog).filter(audit_cond).order_by(AuditLog.created_at.desc()).all()
 
     audit_trail = [
         {
@@ -735,10 +738,11 @@ def re_verify_bid(
         score += 10
 
     score = min(98, score)
-    prev_score = float(bid.compliance_score) if bid.compliance_score is not None else 78.0
+    prev_score = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
     bid.compliance_score = float(score)
 
-    risk_level = "LOW" if score >= 90 else ("MEDIUM" if score >= 75 else "HIGH")
+    # Centralized risk mapping.
+    risk_level = risk_level_for_score(score)
 
     bid.status = "VERIFIED"
     db.commit()

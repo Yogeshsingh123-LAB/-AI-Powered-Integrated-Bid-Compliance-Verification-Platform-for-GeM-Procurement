@@ -40,8 +40,10 @@ def _bootstrap_demo_data() -> None:
 
     - When the variable is unset, nothing is seeded and the app stays
       fail-closed (no default credentials).
-    - Users are only created when missing; existing users are never
-      overwritten, so in-instance password changes survive warm starts.
+    - Listed demo accounts are pinned to the configured credentials on
+      every cold start, so the public demo always logs in with the
+      documented accounts (in-instance password changes for those demo
+      accounts revert on the next cold start).
     """
     import json
     import logging
@@ -85,7 +87,14 @@ def _bootstrap_demo_data() -> None:
                 continue
             existing = db.query(User).filter(User.email == email).first()
             if existing is not None:
-                if (ud.get("role") or "").upper() == "BIDDER":
+                # Pin demo accounts to the documented credentials.
+                existing.password_hash = get_password_hash(password)
+                existing.must_change_password = False
+                if (ud.get("role") or "").upper():
+                    existing.role = (ud.get("role") or "").upper()
+                if (ud.get("full_name") or "").strip():
+                    existing.full_name = (ud.get("full_name") or "").strip()
+                if existing.role == "BIDDER":
                     bidder_user = existing
                 continue
             user = User(

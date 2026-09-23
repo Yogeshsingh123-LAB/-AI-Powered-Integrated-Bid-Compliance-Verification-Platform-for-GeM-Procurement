@@ -89,7 +89,7 @@ Bid Zee integrates live with the **Government of India Open Data Platform (`data
 ##### Configuration (`backend/.env`)
 ```ini
 MCA_GATEWAY_MODE=live
-DATA_GOV_IN_API_KEY=
+DATA_GOV_IN_API_KEY=<your-data.gov.in-api-key>   # request at https://api.data.gov.in (do not commit real keys)
 DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
 ```
 
@@ -257,15 +257,54 @@ cd frontend
 npm run build
 ```
 
-## 🔑 Default Platform Credentials
+## 🔑 Account Bootstrap (No Hardcoded Credentials)
 
-| Account Role | Display Name | Email | Password |
-|---|---|---|---|
-| **Super Admin** | Platform Super Admin | `admin@example.com` | `AdminPassword123` |
-| **System Admin** | Platform Administrator | `admin@gem.gov.in` | `AdminSecret2026!` |
-| **Procurement Officer** | Procurement Officer | `officer@example.com` | `OfficerPassword123` |
-| **Procurement Officer (CPCL)** | Procurement Officer | `officer@cpcl.gov.in` | `OfficerPassword123` |
-| **Demo Bidder** | Demo Supplier | `bidder@example.com` | `BidderPassword123` |
+**Security note:** this platform ships with **no hardcoded account passwords**. The previously published
+default credentials have been removed from code and documentation and are considered compromised —
+rotate them in any live deployment immediately.
+
+- **Production:** the first administrator is created from `INITIAL_ADMIN_EMAIL` + `INITIAL_ADMIN_PASSWORD`
+  (environment only). The account is forced to change its password at first login. Production refuses to
+  start if no active administrator exists or if the bootstrap password is a common/demo password.
+- **Development:** set `SEED_DEMO_ACCOUNTS=true` (development only, never on cloud runtimes) to create
+  clearly-labelled demo accounts, or use the dev-only `POST /api/auth/seed` endpoint (requires
+  `ALLOW_SEED_ENDPOINT=true`). Demo passwords are for local evaluation only.
+
+---
+
+## 🛡️ Security Posture
+
+- **JWT**: no default secret; production refuses to start without a unique 32+ character `JWT_SECRET`.
+  Tokens carry `iss`/`aud`/`iat`/`jti`; user lookup is strict by subject UUID (no role-claim recovery).
+- **Sessions**: JWTs are delivered to browsers in an `HttpOnly`, `SameSite=Lax`, (production) `Secure`
+  cookie — not localStorage.
+- **Login abuse**: backend per-IP throttling and per-email lockout after repeated failures (no client CAPTCHA).
+- **Uploads**: server-side byte limit enforced while reading, magic-byte validation (client MIME ignored),
+  PDF page-count cap, filename length limit, optional ClamAV scanning, atomic cleanup on DB failure.
+- **Audit trail**: append-only SHA-256 chain with sequence numbers, transaction locking, and canonical
+  payloads; security-critical actions fail closed if the audit write fails.
+- **Fail-closed**: SQLite fallback and demo seeding are prohibited in production/cloud; CORS is an exact
+  origin allow-list; global errors return generic messages + an error ID.
+- **Biometric login**: the former public toggle/verify endpoints were removed pending a real server-side
+  WebAuthn implementation (challenge generation, credential registry, assertion verification).
+
+> **DO NOT DEPLOY FOR REAL PROCUREMENT DATA** until the rotated credentials have been reissued, the exposed
+> keys have been purged from Git history (see below), and a durable document-processing worker is provisioned.
+
+### Credential rotation checklist (run once)
+
+1. Revoke the previously committed Groq API key and the data.gov.in API key; request fresh ones and store
+   them in the hosting provider's secret store (never in the repository).
+2. Rewrite Git history to remove the old keys, e.g.:
+   ```bash
+   pip install git-filter-repo
+   git filter-repo --replace-text <(printf '==>
+==>
+AdminSecret2026!=>CHANGED
+')
+   ```
+3. Enable GitHub secret scanning + push protection on the repository.
+4. Re-issue any JWT secret and invalidate existing sessions (users must sign in again).
 
 ---
 

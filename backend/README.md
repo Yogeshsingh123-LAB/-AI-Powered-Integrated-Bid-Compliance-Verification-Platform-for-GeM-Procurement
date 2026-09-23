@@ -113,7 +113,7 @@ The verification gateway uses an extensible **Adapter Pattern** with per-registr
   - **Configuration (`backend/.env`)**:
     ```ini
     MCA_GATEWAY_MODE=live
-    DATA_GOV_IN_API_KEY=
+    DATA_GOV_IN_API_KEY=<your-data.gov.in-api-key>   # never commit real keys
     DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
     ```
   - Includes local fallback mechanism if external API is unreachable or rate limited.
@@ -129,13 +129,16 @@ The verification gateway uses an extensible **Adapter Pattern** with per-registr
 
 ---
 
-## 🔑 Default Platform Credentials
+## 🔑 Account Bootstrap (No Hardcoded Credentials)
 
-| Account Role | Display Name | Email | Password |
-|---|---|---|---|
-| **System Admin** | Platform Administrator | `admin@gem.gov.in` | `AdminSecret2026!` |
-| **Super Admin** | Platform Super Admin | `admin@example.com` | `AdminPassword123` |
-| **Procurement Officer (CPCL)** | Procurement Officer | `officer@cpcl.gov.in` | `OfficerPassword123` |
-| **Procurement Officer** | Procurement Officer | `officer@example.com` | `OfficerPassword123` |
-| **Demo Bidder** | Demo Supplier | `bidder@example.com` | `BidderPassword123` |
+The platform contains **no hardcoded account passwords**. Bootstrap behaviour:
+
+- **Production / cloud:** first admin created from `INITIAL_ADMIN_EMAIL` + `INITIAL_ADMIN_PASSWORD`
+  (environment). Forced password change at first login. Startup fails if no active ADMIN exists.
+- **Development only:** `SEED_DEMO_ACCOUNTS=true` creates clearly-labelled demo accounts;
+  `ALLOW_SEED_ENDPOINT=true` enables the dev-only `POST /api/auth/seed` route (never mounted in
+  production or on cloud runtimes).
+
+The previously published default credentials are retired and must be treated as compromised.
+See the root `README.md` → "Security Posture" for the rotation checklist.
 

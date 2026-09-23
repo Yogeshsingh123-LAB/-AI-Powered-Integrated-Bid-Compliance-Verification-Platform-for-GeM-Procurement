@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 import secrets
@@ -37,9 +38,19 @@ _KNOWN_LEAKED_JWT_SECRETS = {
     "production_super_secret_jwt_key_sih_2026_gem_procurement_fallback_secure_hash_32",
 }
 
-_KNOWN_LEAKED_DATA_GOV_KEYS = {
-    "",
+# SECURITY: blocklist of previously leaked data.gov.in API keys, stored as
+# SHA-256 digests so the revoked secrets themselves never appear in source.
+_KNOWN_LEAKED_DATA_GOV_KEY_SHA256 = {
+    "225190901f2fbd13f2b96e25b2cdfded92e565e9c953bad607b58cdf0b04ccd5",
 }
+
+
+def is_leaked_data_gov_key(key: str) -> bool:
+    """True if the configured data.gov.in key matches a known leaked key."""
+    key = (key or "").strip()
+    if not key:
+        return False
+    return hashlib.sha256(key.encode("utf-8")).hexdigest() in _KNOWN_LEAKED_DATA_GOV_KEY_SHA256
 
 
 class Settings(BaseSettings):
@@ -173,7 +184,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_settings(self):
         # data.gov.in key committed in an earlier release is revoked.
-        if self.DATA_GOV_IN_API_KEY.strip() in _KNOWN_LEAKED_DATA_GOV_KEYS:
+        if is_leaked_data_gov_key(self.DATA_GOV_IN_API_KEY):
             raise ValueError(
                 "DATA_GOV_IN_API_KEY matches a previously committed (revoked) key. "
                 "Request a fresh key at https://api.data.gov.in and set it via environment."

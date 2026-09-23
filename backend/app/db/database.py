@@ -69,13 +69,24 @@ import os
 is_production = settings.is_production or settings.is_cloud
 
 # --- Engine creation: fail closed in production -----------------------------
+# Demo opt-in: a serverless demo deployment (e.g. the public Vercel demo) may
+# explicitly set ALLOW_EPHEMERAL_SQLITE=true to run on the runtime's writable
+# temp directory. Demo data is re-provisioned on every cold start by the
+# deployment bootstrap; every non-demo deployment still fails closed.
+_allow_ephemeral_sqlite = os.environ.get("ALLOW_EPHEMERAL_SQLITE", "").strip().lower() == "true"
+
 db_url = settings.DATABASE_URL
 if not db_url:
-    if is_production:
+    if is_production and not _allow_ephemeral_sqlite:
         raise RuntimeError(
             "DATABASE_URL is not configured and the environment is "
             f"'{settings.ENVIRONMENT}' (production/cloud). A persistent database "
             "URL is mandatory; the SQLite fallback is disabled in production."
+        )
+    if is_production and _allow_ephemeral_sqlite:
+        logger.warning(
+            "ALLOW_EPHEMERAL_SQLITE=true: running on the ephemeral temp-directory "
+            "database (demo deployment). Data is re-created on every cold start."
         )
     dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
     db_url = f"sqlite:///{dev_db_path}"
@@ -86,7 +97,7 @@ try:
     else:
         engine = create_resilient_engine(db_url)
 except Exception as err:
-    if is_production:
+    if is_production and not _allow_ephemeral_sqlite:
         logger.error(f"Production database engine initialization failed: {err}")
         raise RuntimeError(
             "Database engine initialization failed and the SQLite fallback is "

@@ -5,27 +5,21 @@ import {
   User,
   Lock,
   Mail,
-  RefreshCw,
   ShieldCheck,
   Eye,
   EyeOff,
-  ArrowRight,
   Building,
   FileText,
   TrendingUp,
   Shield,
-  Briefcase,
   Fingerprint,
-  Laptop,
-  Usb,
   CheckCircle2,
   AlertCircle,
-  X,
-  KeyRound
+  Info
 } from "lucide-react";
 import "./Login.css";
 
-function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavigateSection }) {
+function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavigateSection, onNavigateLegal }) {
   const [selectedPortal, setSelectedPortal] = useState("Supplier"); // Supplier (Bidder) or Buyer (Officer/Admin)
   const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
   const [loading, setLoading] = useState(false);
@@ -37,17 +31,11 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [captcha, setCaptcha] = useState("");
-  const [captchaText, setCaptchaText] = useState("6MJLN");
 
-  // Admin Biometric Authentication states (OFF by default)
-  const [biometricEnabled, setBiometricEnabled] = useState(() => {
-    return localStorage.getItem("admin_biometric_enabled") === "true";
-  });
-  const [biometricDevice] = useState("external_hardware_key"); // Strictly External Biometric Device
-  const [showBiometricModal, setShowBiometricModal] = useState(false);
-  const [biometricScanStatus, setBiometricScanStatus] = useState("idle"); // "idle", "scanning", "success", "error"
-  const [biometricScanMsg, setBiometricScanMsg] = useState("");
+  // Biometric hardware-key login: reported as disabled by the backend until a
+  // secure server-side WebAuthn implementation ships (the previous public
+  // toggle/verify endpoints were removed after audit).
+  const [biometricStatus, setBiometricStatus] = useState({ enabled: false, message: "Biometric login is not available in this release." });
 
   // Sign Up states
   const [signUpName, setSignUpName] = useState("");
@@ -66,117 +54,17 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
   const API_BASE = BACKEND_URL;
 
   useEffect(() => {
-    generateCaptcha();
-    // Sync backend biometric feature status on mount
     apiFetch("/api/auth/biometric/status")
       .then((res) => safeJson(res))
       .then((data) => {
         if (data && typeof data.enabled === "boolean") {
-          // If local storage is not set yet, sync with backend state (OFF by default)
-          if (localStorage.getItem("admin_biometric_enabled") === null) {
-            setBiometricEnabled(data.enabled);
-          }
+          setBiometricStatus({ enabled: data.enabled, message: data.message || "" });
         }
       })
       .catch(() => {
-        // Fallback silently if offline or endpoint unreachable
+        /* offline: keep the default disabled state */
       });
   }, []);
-
-  const handleToggleBiometric = async (newVal) => {
-    setBiometricEnabled(newVal);
-    localStorage.setItem("admin_biometric_enabled", newVal ? "true" : "false");
-    try {
-      await apiFetch("/api/auth/biometric/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: newVal })
-      });
-    } catch (err) {
-      console.warn("Could not sync biometric toggle with backend:", err);
-    }
-  };
-
-  const triggerBiometricScan = async (deviceType = "external_hardware_key") => {
-    setBiometricScanStatus("scanning");
-    setBiometricScanMsg("Searching for external biometric device... Connect scanner or place finger on external reader.");
-    setShowBiometricModal(true);
-    setAuthError("");
-
-    // Simulate/Attempt hardware WebAuthn credential retrieval
-    let webAuthnSuccess = false;
-    if (window.PublicKeyCredential && typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === "function") {
-      try {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-        const credential = await navigator.credentials.get({
-          publicKey: {
-            challenge: challenge,
-            timeout: 5000,
-            userVerification: "preferred"
-          }
-        });
-        if (credential) {
-          webAuthnSuccess = true;
-        }
-      } catch (err) {
-        // WebAuthn prompt cancelled or unavailable on localhost/http - fallback to simulated hardware authentication
-        console.log("WebAuthn API fallback to secure hardware simulator:", err.message);
-      }
-    }
-
-    // Wait short moment for visual feedback
-    setTimeout(async () => {
-      try {
-        setBiometricScanMsg("Verifying biometric hash & cryptographic challenge...");
-        const targetEmail = loginEmail.trim() || "admin@example.com";
-        const response = await apiFetch("/api/auth/biometric/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: targetEmail,
-            device_type: deviceType,
-            credential_id: webAuthnSuccess ? "webauthn_hardware_id" : "laptop_sensor_hash_99"
-          })
-        });
-
-        const data = await readLoginSession(response);
-
-        setBiometricScanStatus("success");
-        setBiometricScanMsg(`Biometric Verification Successful! Welcome, ${data.user?.full_name || 'Admin'}.`);
-
-        setTimeout(() => {
-          setShowBiometricModal(false);
-          onLogin(data.access_token, data.user);
-        }, 1200);
-
-      } catch (err) {
-        setBiometricScanStatus("error");
-        setBiometricScanMsg(err.message || "Biometric verification failed. Please try again.");
-      }
-    }, 1500);
-  };
-
-
-  const generateCaptcha = () => {
-    const charSets = [
-      "ABCDEFGHJKLMNPQRSTUVWXYZ",
-      "abcdefghijkmnpqrstuvwxyz",
-      "23456789",
-      "@#$%&*!"
-    ];
-    let newCaptcha = "";
-    charSets.forEach(set => {
-      newCaptcha += set.charAt(Math.floor(Math.random() * set.length));
-    });
-    const allChars = charSets.join("");
-    for (let i = 0; i < 2; i++) {
-      newCaptcha += allChars.charAt(Math.floor(Math.random() * allChars.length));
-    }
-    newCaptcha = newCaptcha.split('').sort(() => 0.5 - Math.random()).join('');
-    setCaptchaText(newCaptcha);
-    setCaptcha("");
-  };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -187,77 +75,30 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       setAuthError("Please enter Email Address and Password.");
       return;
     }
-    if (!captcha) {
-      setAuthError("Please enter the security verification CAPTCHA.");
-      return;
-    }
-    if ((captcha || "").trim() !== captchaText) {
-      setAuthError("Verification failed. The CAPTCHA security code is incorrect.");
-      generateCaptcha();
-      return;
-    }
 
     setLoading(true);
     try {
       const cleanLoginEmail = (loginEmail || "").trim().toLowerCase();
-      let token = null;
-      let user = null;
-
+      let response;
       try {
-        const response = await apiFetch("/api/auth/login", {
+        response = await apiFetch("/api/auth/login", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: cleanLoginEmail,
             password: password
           })
         });
-
-        const data = await readLoginSession(response);
-        token = data.access_token;
-        user = data.user;
       } catch (networkErr) {
-        console.warn("Backend API login unreachable, attempting resilient authentication fallback:", networkErr);
-        const fallbackUsers = {
-          "admin@gem.gov.in": { name: "Platform Administrator", role: "ADMIN", dept: "Procurement" },
-          "admin@example.com": { name: "Platform Super Admin", role: "ADMIN", dept: "Procurement" },
-          "admin@bidzee.gov.in": { name: "Platform Administrator", role: "ADMIN", dept: "Procurement" },
-          "officer@example.com": { name: "Procurement Officer", role: "OFFICER", dept: "Procurement" },
-          "officer@cpcl.gov.in": { name: "CPCL Procurement Officer", role: "OFFICER", dept: "Procurement" },
-          "bidder@example.com": { name: "Demo Supplier", role: "BIDDER", dept: "Sales" },
-        };
-        const matched = fallbackUsers[cleanLoginEmail];
-        if (matched) {
-          const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-          const payload = btoa(JSON.stringify({ sub: cleanLoginEmail, role: matched.role, exp: Math.floor(Date.now() / 1000) + 86400 }));
-          token = `${header}.${payload}.signature_demo_fallback`;
-          user = {
-            id: `usr_${cleanLoginEmail.replace(/[^a-z0-9]/g, "_")}`,
-            email: cleanLoginEmail,
-            full_name: matched.name,
-            role: matched.role,
-            department: matched.dept,
-            status: "Active"
-          };
-        } else if (cleanLoginEmail.includes("@")) {
-          const defaultRole = (cleanLoginEmail.includes("officer") || cleanLoginEmail.includes("admin")) ? "OFFICER" : "BIDDER";
-          const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-          const payload = btoa(JSON.stringify({ sub: cleanLoginEmail, role: defaultRole, exp: Math.floor(Date.now() / 1000) + 86400 }));
-          token = `${header}.${payload}.signature_demo_fallback`;
-          user = {
-            id: `usr_${cleanLoginEmail.replace(/[^a-z0-9]/g, "_")}`,
-            email: cleanLoginEmail,
-            full_name: cleanLoginEmail.split("@")[0].toUpperCase(),
-            role: defaultRole,
-            department: "General",
-            status: "Active"
-          };
-        } else {
-          throw networkErr;
-        }
+        // SECURITY: there is no client-side fallback authentication. If the
+        // authentication service is unreachable, the user is told so — a
+        // session is NEVER created locally.
+        throw new Error("The authentication service is currently unreachable. Please check your connection and try again.");
       }
+
+      const data = await readLoginSession(response);
+      const user = data.user;
+      const token = data.access_token;
 
       // Seamless auto-detection and portal routing based on user's authorized role
       const userRole = (user?.role || "").toUpperCase();
@@ -273,8 +114,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       }, 800);
 
     } catch (err) {
-      setAuthError(err.message || "Invalid credentials or security code. Please try again.");
-      generateCaptcha();
+      setAuthError(err.message || "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -300,9 +140,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     try {
       const response = await apiFetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: `${signUpName.trim()} (${organization.trim()})`,
           email: cleanSignUpEmail,
@@ -323,7 +161,6 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
         setSelectedPortal("Supplier");
         setIsSignUp(false);
         setSuccessMsg("");
-        generateCaptcha();
       }, 1500);
 
     } catch (err) {
@@ -333,14 +170,16 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
     }
   };
 
+  const legalLink = (page) => onNavigateLegal ? () => onNavigateLegal(page) : () => {};
+
   return (
     <div className="login-redesign-page-wrapper">
       {/* NAVBAR */}
       <header className="login-page-navbar">
         <div className="login-nav-wrapper">
-          <div className="login-brand-logo" onClick={onBackToHome}>
+          <button type="button" className="login-brand-logo" onClick={onBackToHome} aria-label="Back to home">
             <img src="/logo.png" alt="Bid Zee Logo" className="login-brand-img" />
-          </div>
+          </button>
 
           <nav className="login-nav-links">
             <button type="button" className="login-nav-item" onClick={() => handleNavClick("home")}>Home</button>
@@ -362,8 +201,8 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
       {/* HERO / MAIN BODY */}
       <main className="login-hero-container">
         {/* Background Image Overlay */}
-        <div className="login-bg-overlay">
-          <img src="/hero_government_building.jpg" alt="Parliament backdrop" className="login-bg-img" />
+        <div className="login-bg-overlay" aria-hidden="true">
+          <img src="/hero_government_building.jpg" alt="" className="login-bg-img" />
           <div className="login-bg-scrim"></div>
         </div>
 
@@ -389,9 +228,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
             {/* 3 Feature Boxes */}
             <div className="login-features-boxes-row">
               <div className="login-feature-card">
-                <div className="feature-card-icon-wrap">
-                  <Shield size={20} />
-                </div>
+                <div className="feature-card-icon-wrap"><Shield size={20} /></div>
                 <div className="feature-card-text">
                   <strong>Secure &</strong>
                   <span>Role-Based Access</span>
@@ -399,9 +236,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
               </div>
 
               <div className="login-feature-card">
-                <div className="feature-card-icon-wrap">
-                  <FileText size={20} />
-                </div>
+                <div className="feature-card-icon-wrap"><FileText size={20} /></div>
                 <div className="feature-card-text">
                   <strong>Government</strong>
                   <span>Portal Integration</span>
@@ -409,9 +244,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
               </div>
 
               <div className="login-feature-card">
-                <div className="feature-card-icon-wrap">
-                  <TrendingUp size={20} />
-                </div>
+                <div className="feature-card-icon-wrap"><TrendingUp size={20} /></div>
                 <div className="feature-card-text">
                   <strong>Accurate Insights</strong>
                   <span>& Decisions</span>
@@ -473,67 +306,39 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                     </button>
                   </div>
 
-                  {/* Admin Biometric Feature Switch Card (Shown on Administrative Console Tab) */}
+                  {/* Biometric status notice (feature disabled in this release) */}
                   {selectedPortal === "Buyer" && (
-                    <div className="admin-biometric-toggle-card">
+                    <div className="admin-biometric-toggle-card" role="note">
                       <div className="bio-toggle-header">
                         <div className="bio-toggle-title-wrap">
-                          <Fingerprint size={20} className={`bio-icon ${biometricEnabled ? "active-glow" : ""}`} />
+                          <Fingerprint size={20} className="bio-icon" />
                           <div>
                             <div className="bio-label-row">
                               <span className="bio-card-title">External Biometric Authentication</span>
-                              <span className={`bio-badge ${biometricEnabled ? "badge-on" : "badge-off"}`}>
-                                {biometricEnabled ? "FEATURE ON" : "FEATURE OFF"}
-                              </span>
+                              <span className="bio-badge badge-off">FEATURE OFF</span>
                             </div>
                             <span className="bio-card-sub">
-                              {biometricEnabled
-                                ? "External USB / NFC biometric fingerprint device scanner enabled."
-                                : "Biometric login is turned OFF. Toggle switch to enable."}
+                              {biometricStatus.message || "Biometric login is not available in this release. Please use email and password."}
                             </span>
                           </div>
                         </div>
-                        <label className="switch-toggle-wrapper" title="Toggle External Biometric Authentication ON/OFF">
-                          <input
-                            type="checkbox"
-                            checked={biometricEnabled}
-                            onChange={(e) => handleToggleBiometric(e.target.checked)}
-                          />
-                          <span className="slider-round"></span>
-                        </label>
+                        <Info size={18} aria-hidden="true" />
                       </div>
-
-                      {/* If Biometric Feature is turned ON */}
-                      {biometricEnabled && (
-                        <div className="biometric-login-box">
-                          <button
-                            type="button"
-                            className="biometric-scan-trigger-btn"
-                            onClick={() => triggerBiometricScan("external_hardware_key")}
-                            disabled={loading}
-                          >
-                            <Usb size={20} className="pulse-fingerprint-icon" />
-                            <span>Scan External Biometric Device</span>
-                          </button>
-                          
-                          <div className="bio-divider">
-                            <span>OR LOGIN WITH PASSWORD</span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
 
                   {/* Email Input */}
                   <div className="form-input-group">
-                    <label>Email Address</label>
+                    <label htmlFor="login-email">Email Address</label>
                     <div className="input-field-wrapper">
-                      <Mail size={18} className="field-icon-left" />
+                      <Mail size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="login-email"
                         type="email"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         placeholder="Enter your email address"
+                        autoComplete="email"
                         required
                       />
                     </div>
@@ -541,78 +346,41 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
                   {/* Password Input */}
                   <div className="form-input-group">
-                    <label>Password</label>
+                    <label htmlFor="login-password">Password</label>
                     <div className="input-field-wrapper">
-                      <Lock size={18} className="field-icon-left" />
+                      <Lock size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="login-password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
+                        autoComplete="current-password"
                         required
                       />
                       <button
                         type="button"
                         className="toggle-password-btn"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                     <div className="forgot-pass-wrapper">
-                      <span className="forgot-link" onClick={() => setAuthError("Reset instructions sent to your email.")}>
-                        Forgot Password?
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Security Code (CAPTCHA) */}
-                  <div className="form-input-group">
-                    <label>Security Code</label>
-                    <div className="captcha-control-row">
-                      <div className="input-field-wrapper captcha-input-field">
-                        <ShieldCheck size={18} className="field-icon-left" />
-                        <input
-                          type="text"
-                          value={captcha}
-                          onChange={(e) => setCaptcha(e.target.value)}
-                          placeholder="Enter captcha code"
-                          required
-                        />
-                      </div>
-                      <div className="captcha-code-display">
-                        {captchaText.split("").join(" ")}
-                      </div>
-                      <button
-                        type="button"
-                        className="captcha-refresh-btn"
-                        onClick={generateCaptcha}
-                        title="Refresh Security Code"
+                      <a
+                        href="mailto:support@bidzee.example"
+                        className="forgot-link"
                       >
-                        <RefreshCw size={16} />
-                      </button>
+                        Forgot Password?
+                      </a>
                     </div>
                   </div>
 
-                  {authError && <div className="login-error-alert">{authError}</div>}
-                  {successMsg && <div className="login-success-alert">{successMsg}</div>}
-
-                  {/* Admin Credential Hint Box (Shown on Administrative Console Tab) */}
-                  {selectedPortal === "Buyer" && (
-                    <div style={{
-                      margin: '10px 0 14px 0',
-                      padding: '10px 14px',
-                      background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                      border: '1px solid #86efac',
-                      borderRadius: '10px',
-                      fontSize: '0.82rem',
-                      color: '#166534'
-                    }}>
-                      <strong style={{ display: 'block', marginBottom: '4px' }}>🔑 Default Admin Credentials:</strong>
-                      <div>Email: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@gem.gov.in</code> or <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>admin@bidzee.gov.in</code></div>
-                      <div style={{ marginTop: '2px' }}>Password: <code style={{ fontWeight: 'bold', background: '#ffffff', padding: '2px 5px', borderRadius: '4px' }}>AdminSecret2026!</code></div>
-                    </div>
-                  )}
+                  <div aria-live="assertive">
+                    {authError && <div className="login-error-alert" role="alert">{authError}</div>}
+                    {successMsg && <div className="login-success-alert" role="status">{successMsg}</div>}
+                  </div>
 
                   {/* Submit Button */}
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
@@ -641,14 +409,16 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
                   {/* Name Input */}
                   <div className="form-input-group">
-                    <label>Full Name</label>
+                    <label htmlFor="signup-name">Full Name</label>
                     <div className="input-field-wrapper">
-                      <User size={18} className="field-icon-left" />
+                      <User size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="signup-name"
                         type="text"
                         value={signUpName}
                         onChange={(e) => setSignUpName(e.target.value)}
                         placeholder="Enter your full name"
+                        autoComplete="name"
                         required
                       />
                     </div>
@@ -656,14 +426,16 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
                   {/* Email Input */}
                   <div className="form-input-group">
-                    <label>Email Address</label>
+                    <label htmlFor="signup-email">Email Address</label>
                     <div className="input-field-wrapper">
-                      <Mail size={18} className="field-icon-left" />
+                      <Mail size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="signup-email"
                         type="email"
                         value={signUpEmail}
                         onChange={(e) => setSignUpEmail(e.target.value)}
                         placeholder="Enter your email address"
+                        autoComplete="email"
                         required
                       />
                     </div>
@@ -671,14 +443,16 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
                   {/* Password Input */}
                   <div className="form-input-group">
-                    <label>Password</label>
+                    <label htmlFor="signup-password">Password</label>
                     <div className="input-field-wrapper">
-                      <Lock size={18} className="field-icon-left" />
+                      <Lock size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="signup-password"
                         type={showSignUpPassword ? "text" : "password"}
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
                         placeholder="Create a strong password"
+                        autoComplete="new-password"
                         required
                       />
                       <button
@@ -686,6 +460,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                         className="toggle-password-btn"
                         onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                         title={showSignUpPassword ? "Hide password" : "Show password"}
+                        aria-label={showSignUpPassword ? "Hide password" : "Show password"}
                       >
                         {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
@@ -717,7 +492,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
                           <CheckCircle2 size={13} className="rule-icon" />
                           <span>At least 1 Numeric digit (0–9)</span>
                         </div>
-                        <div className={`pass-rule-item ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(signUpPassword) ? "valid" : ""}`}>
+                        <div className={`pass-rule-item ${/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(signUpPassword) ? "valid" : ""}`}>
                           <CheckCircle2 size={13} className="rule-icon" />
                           <span>At least 1 Special character (e.g. @ # $ % ! & *)</span>
                         </div>
@@ -727,21 +502,25 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
 
                   {/* Organization Input */}
                   <div className="form-input-group">
-                    <label>Organization / Company Name</label>
+                    <label htmlFor="signup-org">Organization / Company Name</label>
                     <div className="input-field-wrapper">
-                      <Building size={18} className="field-icon-left" />
+                      <Building size={18} className="field-icon-left" aria-hidden="true" />
                       <input
+                        id="signup-org"
                         type="text"
                         value={organization}
                         onChange={(e) => setOrganization(e.target.value)}
                         placeholder="Enter company or department"
+                        autoComplete="organization"
                         required
                       />
                     </div>
                   </div>
 
-                  {authError && <div className="login-error-alert">{authError}</div>}
-                  {successMsg && <div className="login-success-alert">{successMsg}</div>}
+                  <div aria-live="assertive">
+                    {authError && <div className="login-error-alert" role="alert">{authError}</div>}
+                    {successMsg && <div className="login-success-alert" role="status">{successMsg}</div>}
+                  </div>
 
                   {/* Submit Button */}
                   <button type="submit" className="login-submit-orange-btn" disabled={loading}>
@@ -773,7 +552,7 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
             <div className="emblem-item">
               <span className="emblem-icon">🏛️</span>
               <div className="emblem-text">
-                <strong>Ministry of Petroleum & Natural Gas</strong>
+                <strong>Ministry of Petroleum &amp; Natural Gas</strong>
                 <span>Government of India</span>
               </div>
             </div>
@@ -799,70 +578,12 @@ function Login({ onLogin, onDemo, initialIsSignUp = false, onBackToHome, onNavig
           </div>
 
           <div className="login-footer-legal-links">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Contact</span>
+            <button type="button" onClick={legalLink("privacy")}>Privacy</button>
+            <button type="button" onClick={legalLink("terms")}>Terms</button>
+            <button type="button" onClick={legalLink("contact")}>Contact</button>
           </div>
         </div>
       </footer>
-
-      {/* BIOMETRIC AUTHENTICATION SCANNER MODAL */}
-      {showBiometricModal && (
-        <div className="biometric-modal-overlay">
-          <div className="biometric-modal-card">
-            <button
-              type="button"
-              className="biometric-modal-close-btn"
-              onClick={() => setShowBiometricModal(false)}
-            >
-              <X size={20} />
-            </button>
-
-            <div className="biometric-modal-header">
-              <div className="biometric-device-badge">
-                <Usb size={18} />
-                <span>External Biometric Device (USB / NFC Fingerprint Reader)</span>
-              </div>
-              <h3 className="biometric-modal-title">External Biometric Verification</h3>
-            </div>
-
-            <div className="biometric-scanner-visual-container">
-              <div className={`biometric-fingerprint-ring ${biometricScanStatus}`}>
-                <Fingerprint size={64} className="biometric-glowing-fingerprint" />
-                <div className="scanner-line-beam"></div>
-              </div>
-            </div>
-
-            <div className="biometric-status-msg-box">
-              {biometricScanStatus === "scanning" && (
-                <p className="bio-status-text scanning">{biometricScanMsg}</p>
-              )}
-              {biometricScanStatus === "success" && (
-                <div className="bio-status-text success">
-                  <CheckCircle2 size={18} />
-                  <span>{biometricScanMsg}</span>
-                </div>
-              )}
-              {biometricScanStatus === "error" && (
-                <div className="bio-status-text error">
-                  <AlertCircle size={18} />
-                  <span>{biometricScanMsg}</span>
-                </div>
-              )}
-            </div>
-
-            {biometricScanStatus === "error" && (
-              <button
-                type="button"
-                className="biometric-retry-btn"
-                onClick={() => triggerBiometricScan("external_hardware_key")}
-              >
-                Retry External Biometric Scan
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

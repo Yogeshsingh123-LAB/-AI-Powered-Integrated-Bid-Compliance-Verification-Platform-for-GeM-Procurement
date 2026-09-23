@@ -1,0 +1,40 @@
+name: Weekly database backup
+
+# Supabase free tier has no automatic backups. This workflow dumps Postgres
+# weekly and stores the dump as a GitHub Actions artifact (free storage,
+# 90-day retention). Set the DATABASE_URL secret (pooler string is fine for
+# pg_dump) to enable it.
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pg_dump
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+      - name: Dump database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret not set — skipping backup."
+            exit 0
+          fi
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" --format=custom --file=backups/bidzee-$(date +%Y%m%d).dump
+          echo "Backup created."
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bidzee-db-backup
+          path: backups/*.dump
+          retention-days: 90
+          if-no-files-found: warn

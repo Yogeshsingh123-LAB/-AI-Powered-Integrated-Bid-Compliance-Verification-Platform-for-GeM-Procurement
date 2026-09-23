@@ -11,7 +11,8 @@ import {
   ShieldAlert,
   FileText,
   Loader2,
-  BadgeCheck
+  BadgeCheck,
+  RefreshCw
 } from "lucide-react";
 
 function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
@@ -361,6 +362,43 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
     }
   };
 
+  // Re-run the server-side processing pipeline for a document whose previous
+  // run failed or was cut off (e.g. serverless function timeout).
+  const [reprocessingDoc, setReprocessingDoc] = useState(null);
+
+  const handleReprocess = async (bidGroup, req) => {
+    if (!req.document_id) return;
+    setReprocessingDoc(req.document_id);
+    try {
+      const res = await apiFetch(`/api/documents/${req.document_id}/reprocess`, { method: "POST" });
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON */ }
+      if (!res.ok) throw new Error(data?.detail || "Reprocessing failed.");
+      const newStatus = (data.document && data.document.status) || "PROCESSING";
+      showToast(
+        `Processing re-run finished with status: ${newStatus}.`,
+        newStatus === "PROCESSING_FAILED" ? "error" : "success",
+        6000
+      );
+      setRequirementsList((prev) =>
+        prev.map((g) =>
+          g.bidId === bidGroup.bidId
+            ? {
+                ...g,
+                documents: g.documents.map((d) =>
+                  d.document_id === req.document_id ? { ...d, status: newStatus } : d
+                ),
+              }
+            : g
+        )
+      );
+    } catch (err) {
+      showToast(err.message || "Reprocessing failed.", "error");
+    } finally {
+      setReprocessingDoc(null);
+    }
+  };
+
   const triggerRowUpload = (bidId, requirementId, docCode) => {
     setActiveTargetDoc({ bidId, requirementId, docCode });
     if (fileInputRef.current) {
@@ -497,7 +535,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
               requirementsList.map((bidGroup) => {
                 const filteredDocs = bidGroup.documents.filter((doc) => {
                   const s = (doc.status || "").toUpperCase();
-                  if (docFilter === "pending") return s === "MISSING" || s === "PENDING" || s === "UPLOADED" || s === "REJECTED" || s === "MISMATCH";
+                  if (docFilter === "pending") return s === "MISSING" || s === "PENDING" || s === "UPLOADED" || s === "REJECTED" || s === "MISMATCH" || s === "PROCESSING_FAILED";
                   if (docFilter === "completed") return s === "VERIFIED";
                   return true;
                 });
@@ -621,6 +659,10 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
                                       {req.rejectionReason || `Does not match ${req.code} requirements.`}
                                     </span>
                                   </div>
+                                ) : statusUpper === "PROCESSING_FAILED" ? (
+                                  <span className="status-badge error" style={{ background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5", display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                    <XCircle size={14} /> PROCESSING FAILED
+                                  </span>
                                 ) : (
                                   <span className="status-badge pending" style={{ background: "#fef3c7", color: "#b45309", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                                     <AlertTriangle size={14} /> MISSING
@@ -628,7 +670,33 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
                                 )}
                               </td>
                               <td>
-                                {statusUpper === "VERIFIED" ? (
+                                {statusUpper === "PROCESSING_FAILED" && req.document_id ? (
+                                  <button
+                                    type="button"
+                                    disabled={reprocessingDoc === req.document_id}
+                                    style={{
+                                      background: "#ea580c",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      borderRadius: "6px",
+                                      fontWeight: "600",
+                                      padding: "6px 14px",
+                                      fontSize: "0.82rem",
+                                      cursor: reprocessingDoc === req.document_id ? "wait" : "pointer",
+                                      boxShadow: "0 2px 6px rgba(234, 88, 12, 0.3)",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                      opacity: reprocessingDoc === req.document_id ? 0.7 : 1
+                                    }}
+                                    onClick={() => handleReprocess(bidGroup, req)}
+                                  >
+                                    {reprocessingDoc === req.document_id
+                                      ? <Loader2 size={14} className="spin" />
+                                      : <RefreshCw size={14} />}
+                                    {reprocessingDoc === req.document_id ? "Reprocessing..." : "Retry Processing"}
+                                  </button>
+                                ) : statusUpper === "VERIFIED" ? (
                                   <span style={{ color: "#10b981", fontWeight: 700, fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                     <CheckCircle2 size={15} /> Verified
                                   </span>

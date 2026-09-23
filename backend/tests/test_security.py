@@ -287,6 +287,115 @@ def test_upload_accepts_valid_small_pdf(client):
 
 
 # ---------------------------------------------------------------------------
+# Serverless (cloud) synchronous processing + reprocess
+# ---------------------------------------------------------------------------
+
+def _cloud_sync(monkeypatch):
+    """Make the app believe it runs on a serverless cloud runtime with inline
+    processing enabled (Vercel Fluid Compute mode)."""
+    import app.core.config as cfg
+    monkeypatch.setattr(cfg, "_is_cloud_runtime", lambda: True)
+    monkeypatch.setattr(settings, "INLINE_PROCESSING", True)
+
+
+def _real_pdf_bytes(text: str) -> bytes:
+    import fitz  # PyMuPDF (test-only dependency)
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), text)
+    data = doc.tobytes()
+    doc.close()
+    return data
+
+
+def test_cloud_upload_processes_synchronously_and_returns_final_status(client, monkeypatch):
+    _cloud_sync(monkeypatch)
+    token, bid_id, req_id = _bidder_upload_ctx(client, "cloudsync@test.com")
+    pdf = _real_pdf_bytes("GSTIN 29ABCDE1234F1Z5 Status: Active")
+    files = {"file": ("gst_certificate.pdf", io.BytesIO(pdf), "application/pdf")}
+    data = {"bid_id": str(bid_id), "requirement_id": req_id}
+    r = client.post("/api/documents/upload", files=files, data=data,
+                    headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert "synchronously" in body["message"]
+    # The pipeline ran to a terminal status inside the request — no queueing.
+    assert body["document"]["status"] in {"PROCESSED", "REQUIRES_REVIEW", "VERIFIED", "REJECTED"}
+
+
+def _fake_failed_pipeline(monkeypatch, final_status="PROCESSING_FAILED"):
+    """Replace the processing task with a stub that marks the document with a
+    given final status — simulates a pipeline crash mid-function (e.g. a
+    serverless 504) without depending on OCR behavior."""
+    import app.api.documents as documents_module
+    from app.db.database import SessionLocal
+
+    def stub(document_id, user_id=None):
+        with SessionLocal() as db:
+            doc = db.query(__import__("app.models.document", fromlist=["Document"]).Document).filter(
+                __import__("app.models.document", fromlist=["Document"]).Document.id == document_id).first()
+            doc.document_status = final_status
+            db.commit()
+
+    monkeypatch.setattr(documents_module, "process_document_background", stub)
+
+
+_TINY_VALID_PDF = (
+    b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\n"
+    b"xref\n0 4\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n0\n%%EOF"
+)
+def test_cloud_upload_failed_pipeline_returns_processing_failed(client, monkeypatch):
+    _cloud_sync(monkeypatch)
+    _fake_failed_pipeline(monkeypatch)
+    token, bid_id, req_id = _bidder_upload_ctx(client, "cloudfail@test.com")
+    files = {"file": ("gst.pdf", io.BytesIO(_TINY_VALID_PDF), "application/pdf")}
+    data = {"bid_id": str(bid_id), "requirement_id": req_id}
+    r = client.post("/api/documents/upload", files=files, data=data,
+                    headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 201, r.text
+    assert r.json()["document"]["status"] == "PROCESSING_FAILED"
+
+
+def test_reprocess_endpoint_access_and_attempt_limit(client, monkeypatch):
+    _cloud_sync(monkeypatch)
+    _fake_failed_pipeline(monkeypatch)
+    token, bid_id, req_id = _bidder_upload_ctx(client, "reproc@test.com")
+    files = {"file": ("gst.pdf", io.BytesIO(_TINY_VALID_PDF), "application/pdf")}
+    data = {"bid_id": str(bid_id), "requirement_id": req_id}
+    r = client.post("/api/documents/upload", files=files, data=data,
+                    headers={"Authorization": f"Bearer {token}"})
+    doc_id = r.json()["document"]["id"]
+
+    # Unknown document -> 404
+    r404 = client.post("/api/documents/6f1e0000-0000-4000-8000-000000000000/reprocess",
+                       headers={"Authorization": f"Bearer {token}"})
+    assert r404.status_code == 404
+
+    # Another bidder cannot reprocess this document -> 403
+    other = client.post("/api/auth/register", json={
+        "full_name": "Other Bidder", "email": "other-reproc@test.com", "password": "Passw0rdAbc"})
+    assert other.status_code == 201
+    other_token = login(client, "other-reproc@test.com", "Passw0rdAbc").json()["access_token"]
+    r403 = client.post(f"/api/documents/{doc_id}/reprocess",
+                       headers={"Authorization": f"Bearer {other_token}"})
+    assert r403.status_code == 403
+
+    # Owner reprocesses: allowed up to the attempt limit, then 409.
+    from app.api.documents import MAX_PROCESSING_ATTEMPTS
+    for expected in range(1, MAX_PROCESSING_ATTEMPTS + 1):
+        r = client.post(f"/api/documents/{doc_id}/reprocess",
+                        headers={"Authorization": f"Bearer {token}"})
+        assert r.status_code == 200, r.text
+        assert r.json()["document"]["processing_attempts"] == expected
+        assert r.json()["document"]["status"] == "PROCESSING_FAILED"  # stub keeps failing
+    r = client.post(f"/api/documents/{doc_id}/reprocess",
+                    headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 409
+
+
+# ---------------------------------------------------------------------------
 # Login abuse protection
 # ---------------------------------------------------------------------------
 

@@ -19,9 +19,36 @@ export default function LiveBidMonitoring({ tenderId = null }) {
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
+        wsRef.current = null;
       }
     };
   }, [tenderId]);
+
+  // Polling fallback: serverless hosts (Vercel) cannot hold persistent
+  // WebSocket connections, so whenever the socket is not connected we poll
+  // the REST recent-events endpoint every 10 seconds instead.
+  useEffect(() => {
+    if (isConnected) return; // live socket active — polling unnecessary
+    if (isDemoMode()) return; // demo mode shows static sample events
+    const iv = setInterval(async () => {
+      try {
+        const res = await apiFetch('/api/v1/monitoring/recent-events');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.events) && data.events.length > 0) {
+            setEvents((prev) => {
+              const seen = new Set(prev.map((e) => `${e.bid_id}|${e.timestamp}`));
+              const fresh = data.events.filter((e) => !seen.has(`${e.bid_id}|${e.timestamp}`));
+              return fresh.length ? [...fresh, ...prev].slice(0, 50) : prev;
+            });
+          }
+        }
+      } catch {
+        /* transient network error — retry on the next tick */
+      }
+    }, 10000);
+    return () => clearInterval(iv);
+  }, [isConnected, tenderId]);
 
   const connectWebSocket = () => {
     if (isDemoMode()) return;

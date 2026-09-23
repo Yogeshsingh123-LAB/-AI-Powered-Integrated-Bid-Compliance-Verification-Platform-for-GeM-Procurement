@@ -1,4 +1,5 @@
 import os
+from app.models.document_ocr import DocumentOCR
 import re
 import uuid
 import hashlib
@@ -299,22 +300,32 @@ def upload_document(
         ip_address=ip_address
     )
 
-    # 13. Queue background processing.
+    # 13. Processing strategy.
     #
-    # On serverless runtimes (Vercel) inline BackgroundTasks are killed at the
-    # function time limit (15s) mid-pipeline. There, the document stays in
-    # status UPLOADED and the durable worker (backend/worker.py on a
-    # long-lived platform) picks it up. INLINE_PROCESSING must be false on
-    # those deployments unless a worker is also running.
-    if settings.INLINE_PROCESSING and not settings.is_cloud:
-        background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
-        processing_note = "queued for in-process processing"
+    # - Cloud + INLINE_PROCESSING (Vercel Fluid Compute, maxDuration 300): run
+    #   the pipeline synchronously inside the request. BackgroundTasks are
+    #   unreliable on serverless (killed after the response), so the 300s
+    #   function budget does the work and the final status is returned in the
+    #   response. Upload size/page caps keep a single document inside the
+    #   budget; if the function still times out (504) the document stays in a
+    #   pre-final status and can be re-run via POST /{id}/reprocess.
+    # - Cloud without INLINE_PROCESSING: leave UPLOADED for a durable worker
+    #   (backend/worker.py on a long-lived platform).
+    # - Local development: in-process background task.
+    if settings.is_cloud and settings.INLINE_PROCESSING:
+        processing_note = "processing synchronously (serverless)"
+        logger.info(
+            "Serverless deployment: processing document %s synchronously "
+            "within the function time budget.",
+            new_doc.id,
+        )
+        process_document_background(new_doc.id, current_user.id)
+        db.expire(new_doc)
     elif settings.is_cloud:
         logger.warning(
             "Cloud deployment: document %s left queued (status=UPLOADED) for the "
-            "durable worker. Vercel BackgroundTasks would be terminated at the "
-            "15s function limit. Ensure backend/worker.py is running on a "
-            "long-lived platform (Render/Railway/Docker).",
+            "durable worker (backend/worker.py). Set INLINE_PROCESSING=true to "
+            "process synchronously inside the function instead.",
             new_doc.id,
         )
         processing_note = "queued for durable worker"
@@ -331,6 +342,80 @@ def upload_document(
             "status": new_doc.document_status
         }
     }
+
+# Statuses from which a (re)processing run is allowed. Anything else is
+# either a terminal success (VERIFIED) or an officer decision (REJECTED).
+_REPROCESSABLE_STATUSES = {
+    "UPLOADED", "PROCESSING", "TEXT_EXTRACTION", "DOCUMENT_CLASSIFICATION",
+    "FIELD_EXTRACTION", "VALIDATION", "PROCESSED", "REQUIRES_REVIEW",
+    "PROCESSING_FAILED",
+}
+MAX_PROCESSING_ATTEMPTS = 3
+
+
+@router.post("/{doc_id}/reprocess", response_model=Dict[str, Any])
+def reprocess_document(
+    request: Request,
+    doc_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Re-run the processing pipeline for a document (synchronously).
+
+    Used when a serverless invocation timed out mid-pipeline (504) or a
+    previous attempt failed. Access: the document owner, or any
+    officer/admin/auditor. Limited to MAX_PROCESSING_ATTEMPTS runs.
+    """
+    doc = db.query(Document).filter(Document.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    is_privileged = current_user.role in ("OFFICER", "ADMIN", "AUDITOR")
+    if doc.uploaded_by != current_user.id and not is_privileged:
+        raise HTTPException(status_code=403, detail="You can only reprocess your own documents.")
+
+    if (doc.document_status or "").upper() not in _REPROCESSABLE_STATUSES:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Document is in status '{doc.document_status}'; reprocessing is not allowed.",
+        )
+    if doc.processing_attempts >= MAX_PROCESSING_ATTEMPTS:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Processing attempt limit ({MAX_PROCESSING_ATTEMPTS}) reached for this document.",
+        )
+
+    doc.processing_attempts += 1
+    # Clean partial results from the previous attempt for a clean re-run.
+    db.query(DocumentOCR).filter(DocumentOCR.document_id == doc.id).delete()
+    db.query(DocumentExtraction).filter(DocumentExtraction.document_id == doc.id).delete()
+    db.commit()
+
+    ip_address = request.client.host if request and request.client else None
+    process_document_background(doc.id, current_user.id)
+    db.expire(doc)
+
+    create_audit_record(
+        db=db,
+        action="DOCUMENT_REPROCESSED",
+        user_id=current_user.id,
+        entity_type="Document",
+        entity_id=doc.id,
+        bid_id=doc.bid_id,
+        new_value=f"Reprocessing attempt {doc.processing_attempts} finished with status {doc.document_status}",
+        ip_address=ip_address,
+    )
+
+    return {
+        "success": True,
+        "document": {
+            "id": str(doc.id),
+            "document_type": doc.document_type,
+            "status": doc.document_status,
+            "processing_attempts": doc.processing_attempts,
+        }
+    }
+
 
 @router.get("/bid/{bid_id}", response_model=List[DocumentResponse])
 def list_documents(

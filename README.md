@@ -304,6 +304,65 @@ rotate them in any live deployment immediately.
 3. Enable GitHub secret scanning + push protection on the repository.
 4. Re-issue any JWT secret and invalidate existing sessions (users must sign in again).
 
+## Deploying on Vercel (free tier) + Supabase
+
+The platform is designed to run entirely on the Vercel Hobby plan (Fluid
+Compute) plus one free Supabase project:
+
+```text
+Vercel (Hobby, Fluid Compute, maxDuration 300)
+ ├── frontend/dist          → static SPA
+ └── api/index.py           → FastAPI (canonical backend in backend/)
+
+Supabase (free)
+ ├── Postgres (pooler, port 6543) → users, tenders, bids, audit log
+ └── Storage (bid-documents)      → uploaded documents
+```
+
+### Document processing on serverless
+
+`api/vercel.json` raises the Python function's `maxDuration` to 300 seconds
+(Fluid Compute). With the default `INLINE_PROCESSING=true`, uploads are
+processed **synchronously inside the function** — the response includes the
+final document status. This keeps everything on Vercel:
+
+- Keep documents small (the server enforces 10 MB and a page cap) so a single
+  document stays inside the 300 s budget.
+- If a function is still cut off (HTTP 504), the document keeps its
+  pre-final status and can be re-run with `POST /api/documents/{id}/reprocess`
+  (the UI shows a "Retry Processing" button for failed documents). Each
+  document allows up to 3 processing attempts.
+- Alternative: set `INLINE_PROCESSING=false` and run `backend/worker.py` on a
+  long-lived host (Docker/Railway/Render) that polls and processes queued
+  documents.
+
+### Real-time monitoring
+
+The officer dashboard prefers an authenticated WebSocket, but serverless
+hosts cannot hold persistent connections. When the socket is unavailable the
+UI automatically falls back to polling `GET /api/v1/monitoring/recent-events`
+every 10 seconds (the status badge shows "POLLING").
+
+### Keeping the free stack alive
+
+Free Supabase projects pause after ~7 days without API traffic, and the free
+tier has no automatic backups:
+
+- `.github/workflows/keepalive.yml` pings `/api/health` every 3 days (set the
+  `APP_URL` repository variable to enable).
+- `.github/workflows/backup-database.yml` runs a weekly `pg_dump` into a
+  GitHub Actions artifact (set the `DATABASE_URL` secret to enable; 90-day
+  retention).
+
+### Vercel environment variables
+
+`ENVIRONMENT=production`, `DATABASE_URL` (Supabase pooler, port 6543),
+`JWT_SECRET` (long random value — the app refuses to start with the old
+leaked default), `CORS_ORIGINS` (your exact Vercel domain), `SUPABASE_URL`,
+`SUPABASE_SECRET_KEY`, `SUPABASE_BUCKET`, `GROQ_API_KEY` / `GEMINI_API_KEY`,
+and `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` (strong, unique — the
+account is forced to change it at first login).
+
 ---
 
 ## License

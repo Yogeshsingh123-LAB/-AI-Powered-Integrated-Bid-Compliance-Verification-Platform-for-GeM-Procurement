@@ -171,6 +171,7 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
         allowed_types = EXPECTED_DOC_TYPES.get(req_code, [req_code, "OTHER"])
         is_valid_type = False
         rejection_reason = None
+        overall_conf = extraction_res.get("confidence", 0.85)
 
         if detected_type in allowed_types:
             is_valid_type = True
@@ -199,7 +200,6 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
             rejection_reason = f"Uploaded document ({doc.original_filename}) appears to be a {detected_type.replace('_', ' ').title()}, which does not match the required {req_title} requirement."
         else:
             # Document type matches! Evaluate OCR extraction confidence
-            overall_conf = extraction_res.get("confidence", 0.85)
             requires_review = extraction_res.get("requires_review", False)
             
             # If text extraction was empty or low confidence, mark as REQUIRES_REVIEW (NOT REJECTED!)

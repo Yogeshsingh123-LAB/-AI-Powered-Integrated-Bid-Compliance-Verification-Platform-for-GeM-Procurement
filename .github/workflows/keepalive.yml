@@ -1,0 +1,27 @@
+name: Keep Supabase + Vercel warm
+
+# Free-tier Supabase projects pause after ~7 days without API requests.
+# Pinging /api/health (which runs a lightweight DB check) every 3 days keeps
+# the project alive. Set the APP_URL repository variable (Settings → Variables)
+# to your deployed URL; the workflow is a no-op until then.
+
+on:
+  schedule:
+    - cron: "0 6 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL repository variable not set — skipping ping."
+            exit 0
+          fi
+          echo "Pinging $APP_URL/api/health"
+          curl -fsS --max-time 30 "$APP_URL/api/health" | head -c 500 || \
+            echo "::warning::Health ping failed — check the deployment."

@@ -23,7 +23,6 @@ import "./LandingPage.css";
 
 function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", stats = {} }) {
   const [activeTab, setActiveTab] = useState(initialSection || "home");
-  const [showDemoModal, setShowDemoModal] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
 
   const scrollToSection = (sectionId) => {
@@ -166,7 +165,10 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
                 <Lock size={16} />
                 Get Started <ArrowRight size={16} />
               </button>
-              <button className="btn-hero-secondary-ghost" onClick={() => setShowDemoModal(true)}>
+              <button
+                className="btn-hero-secondary-ghost"
+                onClick={() => window.open("https://youtu.be/-qEZH7ONSDo", "_blank", "noopener,noreferrer")}
+              >
                 <Play size={15} fill="currentColor" />
                 Watch Demo
               </button>
@@ -603,37 +605,6 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
         </div>
       </footer>
 
-      {/* WATCH DEMO MODAL */}
-      {showDemoModal && (
-        <div className="demo-modal-overlay" onClick={() => setShowDemoModal(false)}>
-          <div className="demo-modal-container" onClick={(e) => e.stopPropagation()}>
-            <button className="close-modal-btn" onClick={() => setShowDemoModal(false)}>
-              <X size={20} />
-            </button>
-            <div className="demo-modal-header">
-              <Sparkles size={20} className="icon-orange" />
-              <h3>Bid Zee — User Walkthrough</h3>
-            </div>
-            <div className="demo-modal-body">
-              <div className="demo-video-wrapper">
-                <iframe
-                  className="demo-video-embed"
-                  src="https://www.youtube.com/embed/-qEZH7ONSDo?autoplay=1&rel=0&modestbranding=1"
-                  title="Bid Zee User Walkthrough"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-              <div className="demo-video-footer">
-                <span>Prefer it on YouTube?</span>
-                <a href="https://youtu.be/-qEZH7ONSDo" target="_blank" rel="noopener noreferrer">
-                  Watch on YouTube <ExternalLink size={13} />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

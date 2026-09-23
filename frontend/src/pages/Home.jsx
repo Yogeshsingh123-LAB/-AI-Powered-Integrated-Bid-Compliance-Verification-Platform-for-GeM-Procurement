@@ -77,6 +77,122 @@ import {
   Radio
 } from "lucide-react";
 
+// ---------------------------------------------------------------------------
+// Account Profile view (Officer / Admin)
+// Shows account details and provides SELF-SERVICE password change for any
+// account via POST /api/auth/change-password (current + new, strength rules
+// enforced server-side). No admin involvement needed.
+// ---------------------------------------------------------------------------
+const AccountProfileView = ({ user }) => {
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const displayRole =
+    (user?.role || "").toUpperCase() === "ADMIN"
+      ? "Super Administrator"
+      : (user?.role || "").toUpperCase() === "OFFICER"
+        ? "Procurement Officer"
+        : (user?.role || "Portal User");
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwError("");
+    if (pwNew.length < 8) {
+      setPwError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (!/[A-Z]/.test(pwNew) || !/[a-z]/.test(pwNew) || !/[0-9]/.test(pwNew)) {
+      setPwError("New password must contain uppercase, lowercase, and numbers.");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError("New password and confirmation do not match.");
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const res = await apiFetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: pwCurrent, new_password: pwNew })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || "Password change failed.");
+      setPwCurrent("");
+      setPwNew("");
+      setPwConfirm("");
+      showToast("Password changed successfully. Your current session stays active.", "success");
+    } catch (err) {
+      setPwError(err?.message || "Password change failed.");
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e1",
+    fontSize: "0.9rem",
+    outline: "none"
+  };
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <User size={18} style={{ color: "#2563eb" }} />
+          <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>My Account</h2>
+        </div>
+        {[
+          ["Full name", user?.full_name || "—"],
+          ["Email", user?.email || "—"],
+          ["Role", displayRole],
+          ["Department", user?.department || "—"],
+          ["Status", user?.status || "Active"],
+          ["Last login", user?.last_login ? new Date(user.last_login).toLocaleString() : "—"]
+        ].map(([label, value]) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid #f1f5f9", fontSize: "0.88rem" }}>
+            <span style={{ color: "#64748b", fontWeight: 600 }}>{label}</span>
+            <span style={{ color: "#0f172a", fontWeight: 700, textAlign: "right", maxWidth: "60%", wordBreak: "break-word" }}>{value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+          <Lock size={18} style={{ color: "#9333ea" }} />
+          <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#0f172a" }}>Change Password</h2>
+        </div>
+        <p style={{ margin: "0 0 14px", fontSize: "0.8rem", color: "#64748b" }}>
+          Minimum 8 characters with uppercase, lowercase and a number. Works for every account — no admin needed.
+        </p>
+        <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <input style={inputStyle} type="password" placeholder="Current password" value={pwCurrent}
+                 onChange={(e) => setPwCurrent(e.target.value)} autoComplete="current-password" required />
+          <input style={inputStyle} type="password" placeholder="New password" value={pwNew}
+                 onChange={(e) => setPwNew(e.target.value)} autoComplete="new-password" required />
+          <input style={inputStyle} type="password" placeholder="Confirm new password" value={pwConfirm}
+                 onChange={(e) => setPwConfirm(e.target.value)} autoComplete="new-password" required />
+          {pwError && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "#dc2626", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "8px 10px" }}>
+              <XCircle size={15} /> {pwError}
+            </div>
+          )}
+          <button type="submit" disabled={pwBusy}
+                  style={{ marginTop: "4px", padding: "11px", borderRadius: "8px", border: "none", background: pwBusy ? "#a78bfa" : "#7c3aed", color: "#ffffff", fontSize: "0.9rem", fontWeight: 700, cursor: pwBusy ? "wait" : "pointer" }}>
+            {pwBusy ? "Updating…" : "Update Password"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Fresh Database of submitted bids (starts empty for real production/testing launch)
 const INITIAL_BIDS = [];
 const INITIAL_BIDDERS_LIST = [];
@@ -9974,16 +10090,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     switch (activeSection) {
       case "profile":
         return role === "Buyer" ? (
-          <SectionPlaceholder
-            title="Officer Profile"
-            description="Review details relating to your security clearances and portal role."
-            rows={[
-              { label: "Officer Name", value: user ? user.full_name : "Dr. Shashi Kumar (Auditor)" },
-              { label: "Clearance Authority", value: "GeM Audit Division" },
-              { label: "Clearance Level", value: user?.role === "ADMIN" ? "Super Administrator" : "Level-3 Compliance Officer" },
-              { label: "Officer Email", value: user ? user.email : "officer@gem.gov.in" }
-            ]}
-          />
+          <AccountProfileView user={user} />
         ) : (
           <BidderProfile user={user} />
         );

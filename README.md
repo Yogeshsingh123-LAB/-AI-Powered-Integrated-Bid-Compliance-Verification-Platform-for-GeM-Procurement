@@ -170,7 +170,7 @@ The platform includes a complete test dataset importer and document generator fo
 ### Platform Guides & Media
 - 🌐 **Live Website**: [ai-powered-integrated-bid-complianc-kappa.vercel.app](https://ai-powered-integrated-bid-complianc-kappa.vercel.app/)
 - 🏆 **Full Platform / Judges Video Demo**: [▶ Watch Full Demo (YouTube)](https://youtu.be/8_x7qEE0GNA)
-- 🎥 **Bidder Portal Walkthrough**: [▶ Watch User Walkthrough (YouTube)](https://youtu.be/-qEZH7ONSDo)
+- 🎥 **Bidder Portal Walkthrough**: [▶ Watch User Walkthrough (YouTube)](https://youtu.be/-qEZH7ONSDo) — the landing page **Watch Demo** button opens this video directly in a new tab (no in-app video player)
 - 📄 **Implementation Plan**: [`implementation_plan.md`](implementation_plan.md)
 - 🎬 **Walkthrough & Evaluation Guide**: [`walkthrough.md`](walkthrough.md) | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 - ⚡ **Platform Launcher Scripts**: [`run_platform.ps1`](run_platform.ps1) & [`run_platform.bat`](run_platform.bat)

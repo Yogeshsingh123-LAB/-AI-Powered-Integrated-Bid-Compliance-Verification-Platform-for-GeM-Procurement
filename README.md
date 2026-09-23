@@ -348,7 +348,7 @@ every 10 seconds (the status badge shows "POLLING").
 Free Supabase projects pause after ~7 days without API traffic, and the free
 tier has no automatic backups:
 
-- `.github/workflows/keepalive.yml` pings `/api/health` every 3 days (set the
+- `.github/workflows/keepalive.yml` pings `/health` (runs a real `SELECT 1`) every 3 days (set the
   `APP_URL` repository variable to enable).
 - `.github/workflows/backup-database.yml` runs a weekly `pg_dump` into a
   GitHub Actions artifact (set the `DATABASE_URL` secret to enable; 90-day

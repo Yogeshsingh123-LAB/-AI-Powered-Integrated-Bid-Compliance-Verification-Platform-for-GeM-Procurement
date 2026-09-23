@@ -22,6 +22,6 @@ jobs:
             echo "APP_URL repository variable not set — skipping ping."
             exit 0
           fi
-          echo "Pinging $APP_URL/api/health"
-          curl -fsS --max-time 30 "$APP_URL/api/health" | head -c 500 || \
+          echo "Pinging $APP_URL/health"
+          curl -fsS --max-time 30 "$APP_URL/health" | head -c 500 || \
             echo "::warning::Health ping failed — check the deployment."

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime, UUID
+from sqlalchemy import Column, String, Text, ForeignKey, DateTime, UUID, BigInteger
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -8,6 +8,9 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Monotonic append-only sequence number for the hash chain. Assigned under
+    # a transaction lock so concurrent writers cannot produce competing chains.
+    sequence = Column(BigInteger, nullable=True, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     action = Column(String(100), nullable=False)  # e.g., "DOCUMENT_UPLOADED"
     entity_type = Column(String(50), nullable=False)  # e.g., "Document"

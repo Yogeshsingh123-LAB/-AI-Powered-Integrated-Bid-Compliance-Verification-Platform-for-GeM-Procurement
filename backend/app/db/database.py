@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
+
 def create_resilient_engine(url: str):
     is_sqlite = url.startswith("sqlite")
     if is_sqlite:
@@ -59,35 +60,57 @@ def create_resilient_engine(url: str):
     if last_error:
         raise last_error
 
+
 import os
 
-is_production = settings.ENVIRONMENT.lower() in ("production", "prod", "staging") or bool(
-    os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
-)
+# Production includes real serverless/PaaS runtimes: SQLite fallback is never
+# allowed there because their local disk is ephemeral (data loss, per-instance
+# databases, re-created default accounts).
+is_production = settings.is_production or settings.is_cloud
+
+# --- Engine creation: fail closed in production -----------------------------
+db_url = settings.DATABASE_URL
+if not db_url:
+    if is_production:
+        raise RuntimeError(
+            "DATABASE_URL is not configured and the environment is "
+            f"'{settings.ENVIRONMENT}' (production/cloud). A persistent database "
+            "URL is mandatory; the SQLite fallback is disabled in production."
+        )
+    dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
+    db_url = f"sqlite:///{dev_db_path}"
 
 try:
-    db_url = settings.DATABASE_URL
-    if not db_url:
-        dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
-        db_url = f"sqlite:///{dev_db_path}"
-
     if db_url.startswith("sqlite"):
         engine = create_engine(db_url, connect_args={"check_same_thread": False}, pool_pre_ping=True)
     else:
         engine = create_resilient_engine(db_url)
 except Exception as err:
+    if is_production:
+        logger.error(f"Production database engine initialization failed: {err}")
+        raise RuntimeError(
+            "Database engine initialization failed and the SQLite fallback is "
+            "prohibited in production. Fix DATABASE_URL / connectivity and restart."
+        ) from err
     dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
     logger.warning(f"Could not initialize primary database engine ({err}); falling back to local SQLite database at {dev_db_path}.")
     engine = create_engine(f"sqlite:///{dev_db_path}", connect_args={"check_same_thread": False}, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def apply_schema_migrations():
-    """Self-healing migration: Ensure all tables, columns, and indexes exist in PostgreSQL or SQLite."""
+    """Self-healing migration: Ensure all tables, columns, and indexes exist in PostgreSQL or SQLite.
+
+    NOTE: This is a compatibility shim for existing deployments. New schema
+    changes should be shipped as Alembic migrations (see backend/alembic) run
+    as a separate deployment step; this function only back-fills columns that
+    legacy databases may be missing.
+    """
     try:
         import app.models  # Ensure models register with Base.metadata
         Base.metadata.create_all(bind=engine)
-        
+
         from sqlalchemy import text, inspect
         inspector = inspect(engine)
 
@@ -98,7 +121,8 @@ def apply_schema_migrations():
                 ("status", "VARCHAR(20) DEFAULT 'Active'"),
                 ("permissions", "VARCHAR(500)"),
                 ("last_login", "TIMESTAMP WITH TIME ZONE" if engine.dialect.name != "sqlite" else "DATETIME"),
-                ("auth_user_id", "VARCHAR(100)")
+                ("auth_user_id", "VARCHAR(100)"),
+                ("must_change_password", "BOOLEAN NOT NULL DEFAULT FALSE" if engine.dialect.name != "sqlite" else "BOOLEAN DEFAULT 0"),
             ]
             for col_name, col_type in user_columns:
                 if col_name not in existing_user_cols:
@@ -116,6 +140,12 @@ def apply_schema_migrations():
                         ddl_conn.execute(text("ALTER TABLE audit_logs ADD COLUMN blockchain_hash VARCHAR(64)"))
                 except Exception as e:
                     logger.warning(f"Failed to add column blockchain_hash to audit_logs: {e}")
+            if "sequence" not in existing_audit_cols:
+                try:
+                    with engine.begin() as ddl_conn:
+                        ddl_conn.execute(text("ALTER TABLE audit_logs ADD COLUMN sequence BIGINT"))
+                except Exception as e:
+                    logger.warning(f"Failed to add column sequence to audit_logs: {e}")
 
         # Tender columns self-healing migrations
         if "tenders" in inspector.get_table_names():
@@ -174,6 +204,12 @@ def apply_schema_migrations():
                         ddl_conn.execute(text("ALTER TABLE documents ADD COLUMN rejection_reason TEXT"))
                 except Exception as e:
                     logger.warning(f"Failed to add column rejection_reason to documents: {e}")
+            if "processing_attempts" not in existing_doc_cols:
+                try:
+                    with engine.begin() as ddl_conn:
+                        ddl_conn.execute(text("ALTER TABLE documents ADD COLUMN processing_attempts INTEGER NOT NULL DEFAULT 0"))
+                except Exception as e:
+                    logger.warning(f"Failed to add column processing_attempts to documents: {e}")
 
         # Ensure performance indexes exist
         if engine.dialect.name != "sqlite":
@@ -200,42 +236,105 @@ def apply_schema_migrations():
     except Exception as create_err:
         raise RuntimeError("Database schema initialization failed. Check database permissions and migrations.") from None
 
-def init_admin_user():
-    """Bootstrap default admin, officer, and bidder accounts if missing."""
-    from app.models.user import User
-    from app.core.security import get_password_hash
 
-    default_accounts = [
-        ("Platform Administrator", "admin@gem.gov.in", "AdminSecret2026!", "ADMIN", "Procurement"),
-        ("Platform Super Admin", "admin@example.com", "AdminPassword123", "ADMIN", "Procurement"),
-        ("Procurement Officer", "officer@example.com", "OfficerPassword123", "OFFICER", "Procurement"),
-        ("CPCL Procurement Officer", "officer@cpcl.gov.in", "OfficerPassword123", "OFFICER", "Procurement"),
-        ("Demo Supplier", "bidder@example.com", "BidderPassword123", "BIDDER", "Sales"),
-    ]
+def bootstrap_accounts():
+    """
+    Bootstrap privileged accounts. SECURITY: no hardcoded credentials exist.
+
+    - The first ADMIN is created only from INITIAL_ADMIN_EMAIL /
+      INITIAL_ADMIN_PASSWORD supplied through the environment. The account is
+      flagged must_change_password so the credential must be rotated at first
+      login.
+    - In production the initial password must be strong and is checked against
+      a list of common/demo passwords.
+    - In production, if there is no active ADMIN after bootstrapping, startup
+      FAILS (a production system must have an administrator).
+    - Demo accounts are created ONLY in isolated development when
+      SEED_DEMO_ACCOUNTS=true.
+    """
+    from app.models.user import User
+    from app.core.security import get_password_hash, is_weak_or_demo_password
 
     with SessionLocal() as db:
-        for full_name, email, password, role, dept in default_accounts:
-            existing = db.query(User).filter(User.email.ilike(email)).first()
-            if not existing:
-                db.add(User(
-                    full_name=full_name,
-                    email=email.lower(),
-                    password_hash=get_password_hash(password),
-                    role=role,
-                    status="Active",
-                    department=dept,
-                    is_active=True,
-                ))
-        try:
+        user_count = db.query(User).count()
+        admin_count = db.query(User).filter(User.role == "ADMIN", User.is_active == True).count()  # noqa: E712
+
+        # --- Initial admin from environment (dev and production) ---
+        if user_count == 0 and settings.INITIAL_ADMIN_EMAIL and settings.INITIAL_ADMIN_PASSWORD:
+            password = settings.INITIAL_ADMIN_PASSWORD
+            if settings.is_production and is_weak_or_demo_password(password):
+                raise RuntimeError(
+                    "INITIAL_ADMIN_PASSWORD is a common/demo password and is not "
+                    "accepted in production. Set a strong unique password via environment."
+                )
+            db.add(User(
+                full_name="Platform Administrator",
+                email=settings.INITIAL_ADMIN_EMAIL.lower(),
+                password_hash=get_password_hash(password),
+                role="ADMIN",
+                status="Active",
+                department="Procurement",
+                is_active=True,
+                must_change_password=True,
+            ))
             db.commit()
-        except Exception as e:
-            logger.warning(f"Note on initial account seeding: {e}")
-            db.rollback()
+            logger.info("Bootstrapped initial administrator account (password change required at first login).")
+
+        # --- Demo accounts: isolated development only ---
+        if settings.is_demo_only and settings.SEED_DEMO_ACCOUNTS and user_count == 0:
+            demo_accounts = [
+                ("Demo Administrator", "admin@gem.gov.in", "AdminSecret2026!", "ADMIN"),
+                ("Demo Procurement Officer", "officer@example.com", "OfficerPassword123", "OFFICER"),
+                ("Demo Supplier", "bidder@example.com", "BidderPassword123", "BIDDER"),
+            ]
+            for full_name, email, password, role in demo_accounts:
+                existing = db.query(User).filter(User.email.ilike(email)).first()
+                if not existing:
+                    db.add(User(
+                        full_name=full_name,
+                        email=email.lower(),
+                        password_hash=get_password_hash(password),
+                        role=role,
+                        status="Active",
+                        department="Procurement" if role != "BIDDER" else "Sales",
+                        is_active=True,
+                        must_change_password=True,
+                    ))
+            try:
+                db.commit()
+                logger.info("Seeded labelled demo accounts (development only, SEED_DEMO_ACCOUNTS=true).")
+            except Exception as e:
+                logger.warning(f"Note on demo account seeding: {e}")
+                db.rollback()
+
+        # --- Production must always have an active administrator ---
+        if settings.is_production:
+            final_admin_count = db.query(User).filter(User.role == "ADMIN", User.is_active == True).count()  # noqa: E712
+            if final_admin_count == 0:
+                raise RuntimeError(
+                    "No active ADMIN account exists and no INITIAL_ADMIN_EMAIL/"
+                    "INITIAL_ADMIN_PASSWORD was provided. Refusing to start a "
+                    "production system without an administrator."
+                )
+        elif user_count == 0 and not (settings.INITIAL_ADMIN_EMAIL and settings.INITIAL_ADMIN_PASSWORD):
+            logger.info(
+                "No users exist and no INITIAL_ADMIN_* credentials were provided. "
+                "Create an administrator via /auth/seed (development) or set "
+                "INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD."
+            )
+
+
+# Kept for backwards compatibility with existing scripts; delegates to the
+# environment-driven bootstrap.
+def init_admin_user():
+    bootstrap_accounts()
 
 
 def create_fallback_engine():
+    """Development-only fallback. Never invoked in production (guarded at call sites)."""
     global engine, SessionLocal
-    import os
+    if is_production:
+        raise RuntimeError("SQLite fallback engine is prohibited in production.")
     dev_db_path = os.path.join(settings.safe_upload_dir, "bid_compliance_persistent.db")
     fallback_url = f"sqlite:///{dev_db_path}"
     logger.info(f"Initializing fallback SQLite database at {fallback_url}")
@@ -250,14 +349,18 @@ def create_fallback_engine():
 
 
 def initialize_database():
-    global engine
-    is_prod = settings.ENVIRONMENT.lower() == "production" or os.environ.get("VERCEL") == "1"
+    """
+    Application startup database initialization.
+
+    Fail-closed: in production every step that cannot be completed raises and
+    stops startup. In development, non-fatal problems are logged as warnings.
+    """
     try:
         with engine.connect() as connection:
             from sqlalchemy import text
             connection.execute(text("SELECT 1"))
     except Exception as exc:
-        if is_prod:
+        if is_production:
             logger.error(f"Production database connection check failed: {exc}")
             raise RuntimeError(f"Production database connection failed: {exc}. Ephemeral SQLite fallback is prohibited in production.") from exc
         logger.warning(f"Development database connection warning ({exc}); initializing development SQLite engine.")
@@ -268,14 +371,20 @@ def initialize_database():
 
     try:
         apply_schema_migrations()
-        init_admin_user()
-        seed_initial_tenders()
+        bootstrap_accounts()
+        if settings.is_demo_only and settings.SEED_DEMO_ACCOUNTS:
+            seed_initial_tenders()
     except Exception as exc:
+        if is_production:
+            logger.error(f"Database initialization failed in production: {exc}")
+            raise
         logger.warning(f"Database schema initialization check warning: {exc}")
 
 
 def seed_initial_tenders():
-    """Seed realistic initial procurement tenders into database if empty."""
+    """Seed realistic initial procurement tenders into the database when empty.
+    Development/demo-only: production databases must receive tenders through
+    the officer workflow, not startup seeding."""
     from datetime import datetime, timezone, timedelta
     from app.models.tender import Tender
     from app.models.user import User
@@ -335,7 +444,7 @@ def seed_initial_tenders():
             ]
             db.add_all(sample_tenders)
             db.commit()
-            logger.info("Successfully seeded initial sample tenders into PostgreSQL database.")
+            logger.info("Successfully seeded initial sample tenders (development/demo mode).")
         except Exception as err:
             logger.warning(f"Note on initial tender seeding: {err}")
             db.rollback()
@@ -347,4 +456,3 @@ def get_db():
         yield db
     finally:
         db.close()
-

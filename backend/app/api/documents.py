@@ -20,14 +20,19 @@ from app.schemas.document import DocumentResponse
 from app.services.auth_service import get_current_user, require_role, create_audit_record
 from app.services.storage_service import StorageService
 from app.services.document_processing_service import process_document, process_document_background
+from app.services.malware_scan import scan_file_bytes
 from app.models.document_extraction import DocumentExtraction
+from app.core.config import settings
+settings = settings
 
 
 router = APIRouter(prefix="/documents", tags=["Document Storage & Verification"])
 
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".tiff", ".bmp"}
 ALLOWED_MIMES = {"application/pdf", "image/jpeg", "image/png", "image/tiff", "image/bmp"}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+# Canonical limit lives in settings; keep this alias for backward compatibility.
+MAX_FILE_SIZE = settings.max_upload_bytes
+
 
 def get_safe_filename(filename: str) -> str:
     """Sanitize the original filename to prevent path traversal and shell injection."""
@@ -35,45 +40,128 @@ def get_safe_filename(filename: str) -> str:
     safe_name = re.sub(r'[^a-zA-Z0-9._-]', '_', basename)
     return safe_name
 
+
+def detect_content_type_magic(data: bytes) -> str:
+    """
+    Identify the real file type from magic bytes. The client-supplied
+    Content-Type header is NOT trusted for authorization decisions.
+    Returns a canonical type string or "" if unrecognized.
+    """
+    if data[:5] == b"%PDF-":
+        return "application/pdf"
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if data[:4] in (b"II*\x00", b"MM\x00*"):
+        return "image/tiff"
+    if data[:2] == b"BM":
+        return "image/bmp"
+    return ""
+
+
+def _validate_pdf_limits(data: bytes) -> None:
+    """PDF decompression-bomb / resource protection: cap page count."""
+    try:
+        import io
+        import pdfplumber
+        with pdfplumber.open(io.BytesIO(data)) as pdf:
+            page_count = len(pdf.pages)
+        if page_count > settings.MAX_UPLOAD_PAGES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"PDF exceeds the maximum allowed page count of {settings.MAX_UPLOAD_PAGES}."
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Unparseable PDF: reject rather than pass it to the OCR pipeline.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not parse the PDF. The file appears to be corrupted or malformed."
+        ) from e
+
+
 def validate_file(file: UploadFile) -> bytes:
-    """Validate file extension, MIME type, and size. Returns file bytes."""
-    # Validate extension
-    ext = os.path.splitext(file.filename or "")[1].lower()
+    """
+    Server-side upload validation (never trusts the client):
+
+    1. Filename length limit (path/shell safety).
+    2. Extension allow-list.
+    3. Chunked read with a hard byte limit (the limit is enforced while
+       reading, not only from the reported size).
+    4. Magic-byte content type check (client Content-Type ignored for
+       authorization).
+    5. PDF page-count cap (decompression-bomb protection).
+    6. Optional ClamAV malware scan when CLAMAV_SOCKET is configured.
+    """
+    filename = file.filename or ""
+    if len(filename) > settings.MAX_FILENAME_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Filename exceeds the maximum length of {settings.MAX_FILENAME_LENGTH} characters."
+        )
+
+    # 1. Extension allow-list
+    ext = os.path.splitext(filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Unsupported file extension. Only PDF, JPG, JPEG, PNG, TIFF, and BMP are allowed."
         )
 
-    # Validate MIME type
-    if file.content_type not in ALLOWED_MIMES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Unsupported MIME type. Only PDF, JPG, JPEG, PNG, TIFF, and BMP are allowed."
-        )
-
-    # Validate size safely
+    # 2. Chunked read with hard byte limit
+    max_bytes = settings.max_upload_bytes
+    chunks = []
+    total = 0
     try:
-        file.file.seek(0, 2)
-        file_size = file.file.tell()
-        file.file.seek(0)
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_bytes:
+                raise HTTPException(
+                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    detail=f"File size exceeds the maximum limit of {settings.MAX_UPLOAD_MB} MB."
+                )
+            chunks.append(chunk)
+    except HTTPException:
+        raise
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Could not read file size."
-        )
+        raise HTTPException(status_code=400, detail="Could not read the uploaded file.")
 
-    if file_size == 0:
+    if total == 0:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
 
-    if file_size > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="File size exceeds the maximum limit of 10 MB."
-        )
+    file_bytes = b"".join(chunks)
 
-    # Read bytes
-    file_bytes = file.file.read()
+    # 3. Magic-byte content type (client MIME is not trusted)
+    detected = detect_content_type_magic(file_bytes)
+    if detected == "":
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="File content does not match an allowed document type."
+        )
+    if ext in {".jpg", ".jpeg"} and detected != "image/jpeg":
+        raise HTTPException(status_code=415, detail="File content is not a valid JPEG image.")
+    if ext == ".png" and detected != "image/png":
+        raise HTTPException(status_code=415, detail="File content is not a valid PNG image.")
+    if ext == ".pdf" and detected != "application/pdf":
+        raise HTTPException(status_code=415, detail="File content is not a valid PDF document.")
+    if ext in {".tiff", ".tif"} and detected != "image/tiff":
+        raise HTTPException(status_code=415, detail="File content is not a valid TIFF image.")
+    if ext == ".bmp" and detected != "image/bmp":
+        raise HTTPException(status_code=415, detail="File content is not a valid BMP image.")
+
+    # 4. PDF page-count / decompression-bomb protection
+    if detected == "application/pdf":
+        _validate_pdf_limits(file_bytes)
+
+    # 5. Optional malware scan (ClamAV over TCP when configured)
+    if settings.CLAMAV_SOCKET:
+        scan_file_bytes(file_bytes, filename or "upload")
+
     return file_bytes
 
 @router.post("/upload", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
@@ -185,9 +273,15 @@ def upload_document(
         db.refresh(new_doc)
     except Exception as e:
         db.rollback()
-        # If DB save fails after successful upload, log and raise error
-        logger.error(f"Database insertion failed after Supabase upload: {e}")
-        # Note: In production we could clean up the uploaded storage file
+        # Atomicity: if the metadata insert fails after the file reached
+        # storage, remove the orphaned file so storage never accumulates
+        # unreferenced uploads.
+        try:
+            StorageService.delete_file(storage_path)
+            logger.info(f"Cleaned up orphaned storage file after DB failure: {storage_path}")
+        except Exception as cleanup_err:
+            logger.error(f"Failed to clean up orphaned file {storage_path}: {cleanup_err}")
+        logger.error(f"Database insertion failed after storage upload: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database metadata insertion failed after storage upload."
@@ -205,12 +299,32 @@ def upload_document(
         ip_address=ip_address
     )
 
-    # 13. Queue background processing
-    background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
+    # 13. Queue background processing.
+    #
+    # On serverless runtimes (Vercel) inline BackgroundTasks are killed at the
+    # function time limit (15s) mid-pipeline. There, the document stays in
+    # status UPLOADED and the durable worker (backend/worker.py on a
+    # long-lived platform) picks it up. INLINE_PROCESSING must be false on
+    # those deployments unless a worker is also running.
+    if settings.INLINE_PROCESSING and not settings.is_cloud:
+        background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
+        processing_note = "queued for in-process processing"
+    elif settings.is_cloud:
+        logger.warning(
+            "Cloud deployment: document %s left queued (status=UPLOADED) for the "
+            "durable worker. Vercel BackgroundTasks would be terminated at the "
+            "15s function limit. Ensure backend/worker.py is running on a "
+            "long-lived platform (Render/Railway/Docker).",
+            new_doc.id,
+        )
+        processing_note = "queued for durable worker"
+    else:
+        background_tasks.add_task(process_document_background, new_doc.id, current_user.id)
+        processing_note = "queued for in-process processing"
 
     return {
         "success": True,
-        "message": "Document uploaded successfully",
+        "message": f"Document uploaded successfully ({processing_note}).",
         "document": {
             "id": str(new_doc.id),
             "document_type": new_doc.document_type,

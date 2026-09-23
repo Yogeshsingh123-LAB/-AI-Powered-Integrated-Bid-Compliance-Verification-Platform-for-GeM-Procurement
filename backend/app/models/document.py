@@ -18,6 +18,10 @@ class Document(Base):
     file_hash = Column(String(64), nullable=False, index=True)  # SHA-256 is 64 hex chars
     document_status = Column(String(50), nullable=False, default="UPLOADED")  # "UPLOADED", "PROCESSING", "VERIFIED", "REJECTED", etc.
     rejection_reason = Column(String(512), nullable=True)
+    # Durable queue support: how many times the worker has (re)tried this
+    # document. Documents exceeding MAX_PROCESSING_ATTEMPTS stay in
+    # PROCESSING_FAILED for manual review instead of retrying forever.
+    processing_attempts = Column(Integer, nullable=False, default=0)
     uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

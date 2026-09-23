@@ -23,7 +23,20 @@ if backend_dir not in sys.path:
 # Remove this directory from the import path (defensive): only backend/ provides 'app'.
 sys.path = [p for p in sys.path if os.path.abspath(p) != api_dir]
 
-from app.main import app as fastapi_app  # noqa: E402
+BOOT_ERROR = None
+try:
+    from app.main import app as fastapi_app  # noqa: E402
+except Exception:  # pragma: no cover - serverless diagnostic shim
+    import traceback
+
+    import fastapi as _fastapi
+
+    BOOT_ERROR = traceback.format_exc()
+    fastapi_app = _fastapi.FastAPI()
+
+    @fastapi_app.get("/api/{path:path}")
+    async def _diagnostic(path: str):  # noqa: ANN202
+        return {"error": "backend failed to start", "detail": BOOT_ERROR[-4000:]}
 
 app = fastapi_app
 
@@ -160,6 +173,7 @@ def _bootstrap_demo_data() -> None:
         db.close()
 
 
-_bootstrap_demo_data()
+if BOOT_ERROR is None:
+    _bootstrap_demo_data()
 
 __all__ = ["app"]

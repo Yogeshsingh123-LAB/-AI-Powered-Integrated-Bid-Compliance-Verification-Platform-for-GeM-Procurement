@@ -10,6 +10,7 @@ from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate, UserStatusUpdate, AdminUserCreate, AdminUserUpdate, AdminPasswordResetRequest, BlacklistBidderRequest, UnblacklistBidderRequest
 from app.services.auth_service import AuthService, get_current_user, require_role, create_audit_record
+from app.scoring.risk_classifier import risk_level_for_score
 from app.core.security import get_password_hash, verify_password
 import os
 import json
@@ -61,7 +62,6 @@ def update_user_me(
 # --- Registered Bidders Listing Endpoint ---
 
 @router.get("/bidders", response_model=List[Dict[str, Any]])
-@router.get("/admin/bidders", response_model=List[Dict[str, Any]])
 def get_all_bidders(
     current_user: User = Depends(require_role("OFFICER", "ADMIN")),
     db: Session = Depends(get_db)
@@ -77,12 +77,15 @@ def get_all_bidders(
         user_bids = db.query(Bid).filter(Bid.bidder_id == user.id).all()
         doc_count = db.query(Document).filter(Document.uploaded_by == user.id).count()
 
-        # Determine highest compliance score and risk
+        # Integrity fix: the headline score is the ACTUAL average of scored
+        # bids (previously max(), which made a bidder with one strong bid and
+        # several poor bids look safer than they are). The max is still
+        # exposed, clearly named, as highest_score.
         scores = [float(b.compliance_score) for b in user_bids if b.compliance_score is not None]
-        avg_score = max(scores) if scores else 0.0
-        risk_level = "LOW" if avg_score >= 80 else ("MEDIUM" if avg_score >= 50 else "HIGH")
-        if not user_bids:
-            risk_level = "PENDING"
+        avg_score = round(sum(scores) / len(scores), 2) if scores else 0.0
+        highest_score = max(scores) if scores else 0.0
+        # Centralized risk mapping applied to the average.
+        risk_level = risk_level_for_score(avg_score) if user_bids else "PENDING"
 
         verif_status = "Verified" if any(b.officer_status == "Qualified" for b in user_bids) else ("Under Review" if user_bids else "Registered")
 
@@ -97,6 +100,8 @@ def get_all_bidders(
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "bids_count": len(user_bids),
             "active_tenders": len(user_bids),
+            "average_score": avg_score,
+            "highest_score": highest_score,
             "compliance": avg_score,
             "score": avg_score,
             "risk": risk_level,
@@ -107,6 +112,12 @@ def get_all_bidders(
         })
 
     return results
+
+@router.get("/admin/bidders", response_model=List[Dict[str, Any]], include_in_schema=False)
+def get_all_bidders_alias(current_user: User = Depends(require_role("OFFICER", "ADMIN")), db: Session = Depends(get_db)):
+    """Alias of GET /bidders (kept for client compatibility)."""
+    return get_all_bidders(current_user=current_user, db=db)
+
 
 # --- Admin User Management Endpoints ---
 

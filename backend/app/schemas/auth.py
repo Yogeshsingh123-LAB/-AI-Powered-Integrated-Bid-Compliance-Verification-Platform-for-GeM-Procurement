@@ -15,6 +15,9 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+    # Set when the account was bootstrapped/admin-created and must rotate its
+    # password on first login.
+    must_change_password: bool = False
 
 class ChangePassword(BaseModel):
     current_password: str = Field(...)

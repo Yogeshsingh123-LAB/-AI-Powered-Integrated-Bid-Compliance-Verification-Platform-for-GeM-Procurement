@@ -17,6 +17,9 @@ class User(Base):
     permissions = Column(String(500), nullable=True)
     last_login = Column(DateTime, nullable=True)
     auth_user_id = Column(String(100), nullable=True)
+    # True for bootstrapped / admin-created accounts: the user must change the
+    # password on first login (see /auth/change-password).
+    must_change_password = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

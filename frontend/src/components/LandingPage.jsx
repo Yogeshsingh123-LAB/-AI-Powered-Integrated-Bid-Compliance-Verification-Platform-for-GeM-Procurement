@@ -612,19 +612,23 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             </button>
             <div className="demo-modal-header">
               <Sparkles size={20} className="icon-orange" />
-              <h3>Bid Zee Platform Demonstration</h3>
+              <h3>Bid Zee — User Walkthrough</h3>
             </div>
             <div className="demo-modal-body">
               <div className="demo-video-wrapper">
-                <video
-                  src="/SIH_USER.mp4"
-                  controls
-                  autoPlay
-                  playsInline
-                  className="demo-video-player"
-                >
-                  Your browser does not support the video tag.
-                </video>
+                <iframe
+                  className="demo-video-embed"
+                  src="https://www.youtube.com/embed/-qEZH7ONSDo?autoplay=1&rel=0&modestbranding=1"
+                  title="Bid Zee User Walkthrough"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              <div className="demo-video-footer">
+                <span>Prefer it on YouTube?</span>
+                <a href="https://youtu.be/-qEZH7ONSDo" target="_blank" rel="noopener noreferrer">
+                  Watch on YouTube <ExternalLink size={13} />
+                </a>
               </div>
             </div>
           </div>

@@ -1190,6 +1190,37 @@
   display: block;
 }
 
+.demo-video-embed {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 75vh;
+  border: 0;
+  display: block;
+}
+
+.demo-video-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.demo-video-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.demo-video-footer a:hover {
+  text-decoration: underline;
+}
+
 /* RESPONSIVE BREAKPOINTS */
 @media (max-width: 1024px) {
   .hero-container {

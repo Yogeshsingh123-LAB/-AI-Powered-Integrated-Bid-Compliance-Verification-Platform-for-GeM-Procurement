@@ -57,7 +57,7 @@ class ProcurementFraudDetector:
 
                 for ext in matched_extractions:
                     if ext.document and ext.document.bid:
-                        existing_bidder = ext.document.bid.bidder_name or ""
+                        existing_bidder = (ext.document.bid.bidder.full_name if ext.document.bid.bidder else "") or ""
                         if existing_bidder and current_bidder_name and existing_bidder.lower() != current_bidder_name.lower():
                             is_collusion_risk = True
                             collusion_penalty += 50
@@ -77,7 +77,7 @@ class ProcurementFraudDetector:
 
                 for ext in matched_extractions:
                     if ext.document and ext.document.bid:
-                        existing_bidder = ext.document.bid.bidder_name or ""
+                        existing_bidder = (ext.document.bid.bidder.full_name if ext.document.bid.bidder else "") or ""
                         if existing_bidder and current_bidder_name and existing_bidder.lower() != current_bidder_name.lower():
                             if not is_collusion_risk: # prevent redundant message if GSTIN already caught it
                                 is_collusion_risk = True

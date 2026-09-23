@@ -162,7 +162,7 @@ def verify_bid_audit_chain(
 
     return {
         "bid_id": str(bid_id),
-        "bid_number": bid.bid_number,
+        "bid_number": str(bid.id),
         "total_records": len(logs),
         "chain_integrity_verified": all_valid,
         "status": "CHAIN_VALID" if all_valid else "CHAIN_COMPROMISED",

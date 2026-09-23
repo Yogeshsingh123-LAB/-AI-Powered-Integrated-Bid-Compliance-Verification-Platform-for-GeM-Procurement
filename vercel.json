@@ -5,7 +5,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 15,
-      "excludeFiles": "{frontend/**,node_modules/**,storage/**,uploads/**,scratch/**,logs/**,docs/**,tests/**}"
+      "excludeFiles": "{frontend/**,node_modules/**,storage/**,uploads/**,scratch/**,logs/**,docs/**,tests/**,backend/tests/**}"
     }
   },
   "rewrites": [

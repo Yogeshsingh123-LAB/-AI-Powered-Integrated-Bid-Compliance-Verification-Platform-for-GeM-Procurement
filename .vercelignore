@@ -2,8 +2,8 @@
 node_modules
 frontend/node_modules
 
-# Non-frontend code and data
-backend
+# Non-frontend data (NOTE: backend/ must NOT be ignored — the Vercel
+# serverless function in api/ imports the app package from backend/)
 storage
 uploads
 scratch

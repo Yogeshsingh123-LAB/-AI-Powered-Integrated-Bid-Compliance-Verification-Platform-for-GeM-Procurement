@@ -167,7 +167,11 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
               </button>
               <button
                 className="btn-hero-secondary-ghost"
-                onClick={() => window.open("https://youtu.be/-qEZH7ONSDo", "_blank", "noopener,noreferrer")}
+                onClick={() => {
+                  const url = "https://youtu.be/-qEZH7ONSDo";
+                  const win = window.open(url, "_blank", "noopener,noreferrer");
+                  if (!win) window.location.href = url; // popups blocked (e.g. sandboxed preview) -> same tab
+                }}
               >
                 <Play size={15} fill="currentColor" />
                 Watch Demo

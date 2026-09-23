@@ -1,4 +1,6 @@
 import { apiFetch, BACKEND_URL } from "../services/api";
+import { getSessionToken } from "../services/session";
+import { showToast } from "../services/toast";
 import { useState, useEffect } from "react";
 import profileImage from "../assets/profile.png";
 import "../App.css";
@@ -418,60 +420,8 @@ const MyBidsSection = ({ bids, setActiveSection, setSelectedBid }) => {
     const [myBidsFilter, setMyBidsFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
 
-    const sampleBidsList = [
-      {
-        id: "GEM-CPCL-2026-001",
-        title: "Supply of Industrial Safety Equipment",
-        category: "Goods",
-        department: "Chennai Petroleum Corporation Limited (CPCL)",
-        submittedOn: "22 Sep 2026\n11:30 AM",
-        status: "Under Verification",
-        score: null,
-        risk: "In progress"
-      },
-      {
-        id: "GEM-MOPNG-2026-021",
-        title: "IT Hardware Procurement",
-        category: "Goods",
-        department: "Ministry of Petroleum &\nNatural Gas",
-        submittedOn: "15 Sep 2026\n04:20 PM",
-        status: "Submitted",
-        score: "92/100",
-        risk: "Low Risk"
-      },
-      {
-        id: "GEM-HPCL-2026-014",
-        title: "Manpower Support Services",
-        category: "Services",
-        department: "Hindustan Petroleum\nCorporation Limited",
-        submittedOn: "10 Sep 2026\n09:15 AM",
-        status: "Pending Action",
-        score: "78/100",
-        risk: "Medium Risk"
-      },
-      {
-        id: "GEM-BPCL-2026-067",
-        title: "Office Furniture Supply",
-        category: "Goods",
-        department: "Bharat Petroleum\nCorporation Limited",
-        submittedOn: "28 Aug 2026\n03:40 PM",
-        status: "Submitted",
-        score: "88/100",
-        risk: "Low Risk"
-      },
-      {
-        id: "GEM-GAIL-2026-033",
-        title: "Digital Infrastructure Upgrade",
-        category: "Services",
-        department: "GAIL (India) Limited",
-        submittedOn: "18 Aug 2026\n10:10 AM",
-        status: "Under Verification",
-        score: null,
-        risk: "In progress"
-      }
-    ];
-
-    const displayBidsList = bids && bids.length > 0 ? bids : sampleBidsList;
+    // NOTE: sample/placeholder bids removed — the table only shows the user's own bids.
+    const displayBidsList = bids && bids.length > 0 ? bids : [];
 
     const filteredBids = displayBidsList.filter((bid) => {
       const matchesFilter =
@@ -679,6 +629,14 @@ const MyBidsSection = ({ bids, setActiveSection, setSelectedBid }) => {
                 </tr>
               </thead>
               <tbody>
+                {filteredBids.length === 0 && (
+                  <tr>
+                    <td colSpan={9} style={{ padding: "48px 24px", textAlign: "center", color: "#64748b", fontSize: "14px", lineHeight: 1.6 }}>
+                      No bids found{searchQuery ? " for this search" : ""}.<br />
+                      Submit a compliance document against a registered tender (Document Upload) to see your bids here.
+                    </td>
+                  </tr>
+                )}
                 {filteredBids.map((bid, idx) => (
                   <tr key={bid.id || idx} onClick={() => setSelectedBid(bid)} className="mybids-tr-hover">
                     <td className="td-num">{idx + 1}</td>
@@ -786,7 +744,7 @@ const TendersSection = ({ tendersList, setActiveSection, setSelectedTender, setS
     const handleCreateBidForTender = async (tItem) => {
       setSelectedTender(tItem);
       try {
-        const activeToken = localStorage.getItem("gem_token") || token;
+        const activeToken = getSessionToken() || token;
         if (activeToken) {
           const res = await apiFetch(`${API_BASE}/api/bids`, {
             method: "POST",
@@ -1811,7 +1769,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
 
       const fetchTenderBidders = async () => {
         try {
-          const activeToken = localStorage.getItem("gem_token") || token;
+          const activeToken = getSessionToken() || token;
           const tenderRef = selectedTenderForBidders.id || selectedTenderForBidders.title;
           const res = await apiFetch(`${API_BASE}/api/bids/tender/${encodeURIComponent(tenderRef)}`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
@@ -2602,7 +2560,7 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
                       }));
 
                       try {
-                        const activeToken = localStorage.getItem("gem_token") || token;
+                        const activeToken = getSessionToken() || token;
                         const res = await apiFetch(`${API_BASE}/api/tenders/${editingRequirementsTender.id}/requirements`, {
                           method: "PUT",
                           headers: {
@@ -2616,10 +2574,10 @@ const TendersView = ({ tendersList, setTendersList, fetchTenders, setActiveSecti
                           if (typeof fetchTenders === "function") fetchTenders();
                         } else {
                           const errData = await res.json();
-                          alert(`Failed to update requirements: ${errData.detail || "Server error"}`);
+                          showToast(`Failed to update requirements: ${errData.detail || "Server error"}`, "error");
                         }
                       } catch (err) {
-                        alert("Network error updating tender requirements.");
+                        showToast("Network error updating tender requirements.", "error");
                       }
                     }}
                     style={{ background: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "8px 20px", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}
@@ -2658,7 +2616,7 @@ const BiddersView = ({ bids, setBids, tendersList, setActiveSection, setSelected
       const fetchBiddersData = async (isBackground = false) => {
         if (!isBackground) setLoadingBidders(true);
         try {
-          const activeToken = localStorage.getItem("gem_token") || token;
+          const activeToken = getSessionToken() || token;
           const res = await apiFetch(`${API_BASE}/api/bidders`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
@@ -3291,7 +3249,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
 
       const fetchBidDetails = async () => {
         try {
-          const activeToken = localStorage.getItem("gem_token") || token;
+          const activeToken = getSessionToken() || token;
           const res = await apiFetch(`${API_BASE}/api/bids/${targetId}`, {
             headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
           });
@@ -3391,7 +3349,7 @@ const VerificationView = ({ bids, setBids, selectedVerificationBidder, setSelect
 
       let result;
       try {
-        const activeToken = localStorage.getItem("gem_token") || token;
+        const activeToken = getSessionToken() || token;
         const targetId = fetchedBidDetails?.id || selectedVerificationBidder?.bid_id || selectedVerificationBidder?.id;
         if (!targetId) throw new Error("Select a saved bid before submitting a decision.");
         const response = await apiFetch(`${API_BASE}/api/v1/override/decision`, {
@@ -4496,7 +4454,7 @@ const IntegrationsView = ({ API_BASE, token }) => {
         })
       );
       setConfigModalItem(null);
-      alert(`Integration configuration saved for ${configModalItem.name}`);
+      showToast(`Integration configuration saved for ${configModalItem.name}`, "success");
     };
 
     const activities = [
@@ -4848,7 +4806,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
 
     const fetchUsersList = async (isBackground = false) => {
       const apiBaseUrl = BACKEND_URL;
-      const token = localStorage.getItem("gem_token");
+      const token = getSessionToken();
       if (!isBackground) setLoadingUsers(true);
       try {
         const res = await apiFetch(`${apiBaseUrl}/api/admin/users`, {
@@ -5010,29 +4968,29 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
     const handleSaveUser = async (e) => {
       e.preventDefault();
       if (!userForm.name || !userForm.email) {
-        alert("Please provide Full Name and Email Address.");
+        showToast("Please provide Full Name and Email Address.", "error");
         return;
       }
 
       if (!editingUser) {
         if (!userForm.password) {
-          alert("Please enter an Account Password for the new user.");
+          showToast("Please enter an Account Password for the new user.", "error");
           return;
         }
         if (userForm.password !== userForm.confirmPassword) {
-          alert("Account Password and Confirm Password do not match.");
+          showToast("Account Password and Confirm Password do not match.", "error");
           return;
         }
       }
 
       const inputAdminPass = userForm.adminAuthorizationPassword ? userForm.adminAuthorizationPassword.trim() : "";
       if (!inputAdminPass) {
-        alert("Admin Authorization Required: Please enter your Admin Password to authorize this action.");
+        showToast("Admin Authorization Required: Please enter your Admin Password to authorize this action.", "error");
         return;
       }
 
       const apiBaseUrl = BACKEND_URL;
-      const token = localStorage.getItem("gem_token");
+      const token = getSessionToken();
 
       let targetRole = "OFFICER";
       if (userForm.role === "Super Admin") targetRole = "ADMIN";
@@ -5062,15 +5020,15 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             })
           });
           if (res.ok) {
-            alert(`User '${userForm.name}' updated successfully!`);
+            showToast(`User '${userForm.name}' updated successfully!`, "success");
             fetchUsersList();
             setIsAddEditModalOpen(false);
           } else {
             const err = await res.json();
-            alert(`Error updating user: ${err.detail || "Failed to update user"}`);
+            showToast(`Error updating user: ${err.detail || "Failed to update user"}`, "error");
           }
         } catch (err) {
-          alert(`Error updating user: ${err.message}`);
+          showToast(`Error updating user: ${err.message}`, "error");
         }
       } else {
         try {
@@ -5094,15 +5052,15 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
           });
 
           if (res.ok) {
-            alert(`User account created successfully.`);
+            showToast(`User account created successfully.`, "success");
             fetchUsersList();
             setIsAddEditModalOpen(false);
           } else {
             const errData = await res.json();
-            alert(`User account could not be completed: ${errData.detail || "Registration error"}`);
+            showToast(`User account could not be completed: ${errData.detail || "Registration error"}`, "error");
           }
         } catch (err) {
-          alert(`Failed to create account: ${err.message}`);
+          showToast(`Failed to create account: ${err.message}`, "error");
         }
       }
     };
@@ -5161,7 +5119,7 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
       }
 
       const apiBaseUrl = BACKEND_URL;
-      const token = localStorage.getItem("gem_token");
+      const token = getSessionToken();
 
       if (actionType === "GRANT_ACCESS") {
         try {
@@ -5179,14 +5137,14 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             })
           });
           if (res.ok) {
-            alert(`Officer access successfully granted to ${targetUser.name}! Account is now Active.`);
+            showToast(`Officer access successfully granted to ${targetUser.name}! Account is now Active.`, "success");
             fetchUsersList();
           } else {
             const err = await res.json();
-            alert(`Failed to grant access: ${err.detail || "Operation denied"}`);
+            showToast(`Failed to grant access: ${err.detail || "Operation denied"}`, "error");
           }
         } catch (e) {
-          alert(`Network error: ${e.message}`);
+          showToast(`Network error: ${e.message}`, "error");
         }
       } else if (actionType === "SUSPEND") {
         const newStatus = targetUser.status === "Suspended" ? "Active" : "Suspended";
@@ -5203,14 +5161,14 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             })
           });
           if (res.ok) {
-            alert(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`);
+            showToast(`User ${targetUser.name} has been ${newStatus === "Suspended" ? "suspended" : "reactivated"}.`, "success");
             fetchUsersList();
           } else {
             const err = await res.json();
-            alert(`Action failed: ${err.detail}`);
+            showToast(`Action failed: ${err.detail}`, "error");
           }
         } catch (e) {
-          alert(`Network error: ${e.message}`);
+          showToast(`Network error: ${e.message}`, "error");
         }
       } else if (actionType === "RESET_PASSWORD") {
         try {
@@ -5224,13 +5182,13 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
           });
           if (res.ok) {
             const data = await res.json();
-            alert(`Password reset successfully!\nNew Temporary Password for ${targetUser.email}: ${data.temp_password}`);
+            showToast(`Password reset successful. New temporary password for ${targetUser.email}: ${data.temp_password} — share it with the user and have them change it at first login.`, "success", 10000);
           } else {
             const err = await res.json();
-            alert(`Password reset failed: ${err.detail}`);
+            showToast(`Password reset failed: ${err.detail}`, "error");
           }
         } catch (e) {
-          alert(`Network error: ${e.message}`);
+          showToast(`Network error: ${e.message}`, "error");
         }
       } else if (actionType === "DELETE") {
         try {
@@ -5242,14 +5200,14 @@ const UserManagementView = ({ user, role, isAdmin, API_BASE, token }) => {
             }
           });
           if (res.ok) {
-            alert(`User account ${targetUser.name} deleted permanently.`);
+            showToast(`User account ${targetUser.name} deleted permanently.`, "success");
             fetchUsersList();
           } else {
             const err = await res.json();
-            alert(`Failed to delete user: ${err.detail}`);
+            showToast(`Failed to delete user: ${err.detail}`, "error");
           }
         } catch (e) {
-          alert(`Network error: ${e.message}`);
+          showToast(`Network error: ${e.message}`, "error");
         }
       }
 
@@ -6131,7 +6089,7 @@ const AuditTrailView = ({ bids, tendersList, notifications, user, role }) => {
     };
 
     const handleDownloadReport = () => {
-      alert(`Generating Official Audit Trail Executive Compliance Report...\n\nTotal Records Exported: ${filteredLogs.length}\nFormat: PDF Audit Ledger`);
+      showToast(`Generating Official Audit Trail Executive Compliance Report... Total records: ${filteredLogs.length} (PDF).`, "info");
     };
 
     // UI Helpers
@@ -6920,7 +6878,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
       };
 
       try {
-        const activeToken = localStorage.getItem("gem_token") || token;
+        const activeToken = getSessionToken() || token;
         const res = await apiFetch(`${API_BASE}/api/tenders`, {
           method: "POST",
           headers: {
@@ -6977,7 +6935,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
       };
 
       try {
-        const activeToken = localStorage.getItem("gem_token") || token;
+        const activeToken = getSessionToken() || token;
         const res = await apiFetch(`${API_BASE}/api/tenders`, {
           method: "POST",
           headers: {
@@ -6996,7 +6954,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
           }, 1500);
         } else {
           const errData = await res.json();
-          alert(`Error publishing tender: ${errData.detail || "Database creation error"}`);
+          showToast(`Error publishing tender: ${errData.detail || "Database creation error"}`, "error");
         }
       } catch (err) {
         console.error("Publish tender backend error:", err);
@@ -7008,7 +6966,7 @@ const CreateTenderView = ({ tendersList, setTendersList, fetchTenders, setActive
 
     const handleNext = () => {
       if (currentStep === 1 && !formData.title.trim()) {
-        alert("Please enter a Tender Title before proceeding.");
+        showToast("Please enter a Tender Title before proceeding.", "error");
         return;
       }
       if (currentStep < 4) {
@@ -7700,18 +7658,18 @@ const ReportsView = ({ bids, tendersList, setActiveSection }) => {
     const documentIssues = bids.reduce((acc, b) => acc + ((b.anomalies || []).filter(a => a.toLowerCase().includes("expiry") || a.toLowerCase().includes("format") || a.toLowerCase().includes("date")).length), 0);
 
     const handleExportPDF = () => {
-      alert(`Generating Official GeM Governance PDF Report for period: ${selectedDateRange}\n\nDownloading 'GeM_Bid_Compliance_Report.pdf' (${totalBidsCount} Records)...`);
+      showToast(`Generating Official GeM Governance PDF Report (${selectedDateRange}) — ${totalBidsCount} records.`, "info");
     };
 
     const handleExportExcel = () => {
-      alert(`Exporting Data Matrix to Excel (.xlsx)...\n\nDownloading 'GeM_Compliance_Data.xlsx' (${totalBidsCount} Records).`);
+      showToast(`Exporting compliance data matrix to Excel (.xlsx) — ${totalBidsCount} records.`, "info");
     };
 
     const handleGenerateReport = () => {
       setIsGenerating(true);
       setTimeout(() => {
         setIsGenerating(false);
-        alert(`Report refreshed successfully! ${totalBidsCount} bids synchronized with live database records.`);
+        showToast(`Report refreshed successfully! ${totalBidsCount} bids synchronized with live database records.`, "success");
       }, 1000);
     };
 
@@ -9149,14 +9107,14 @@ function Home({ role, user, onLogout, isDemo = false }) {
   const [deleteNoticeModal, setDeleteNoticeModal] = useState({ open: false, title: "", message: "" });
 
   const API_BASE = BACKEND_URL;
-  const token = typeof window !== "undefined" ? localStorage.getItem("gem_token") : null;
+  const token = typeof window !== "undefined" ? getSessionToken() : null;
 
   const [tendersList, setTendersList] = useState(INITIAL_TENDERS_DATA);
 
   // Fetch Tenders from backend
   const fetchTenders = async () => {
     try {
-      const activeToken = localStorage.getItem("gem_token") || token;
+      const activeToken = getSessionToken() || token;
       const res = await apiFetch(`${API_BASE}/api/tenders`, {
         headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
       });
@@ -9178,7 +9136,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
   // Fetch Bids from backend (Role-based: /all for Officer/Admin, /my-bids for Bidder)
   const fetchBids = async () => {
     try {
-      const activeToken = localStorage.getItem("gem_token") || token;
+      const activeToken = getSessionToken() || token;
       if (!activeToken) return;
 
       const currentRole = (role || user?.role || "").toUpperCase();
@@ -9204,7 +9162,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
     try {
       setLoadingDashboardStats(true);
       setDashboardStatsError(false);
-      const activeToken = localStorage.getItem("gem_token") || token;
+      const activeToken = getSessionToken() || token;
       const headers = activeToken ? { Authorization: `Bearer ${activeToken}` } : {};
 
       let res = await apiFetch(`${API_BASE}/api/bids/stats`, { headers });
@@ -9261,7 +9219,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
   // Fetch persistent notifications from backend DB
   const fetchNotifications = async () => {
     try {
-      const activeToken = localStorage.getItem("gem_token") || token;
+      const activeToken = getSessionToken() || token;
       if (!activeToken) return;
       const res = await apiFetch(`${API_BASE}/api/notifications`, {
         headers: { Authorization: `Bearer ${activeToken}` }
@@ -9426,7 +9384,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
         return bid;
       })
     );
-    alert(`Success: Bid status updated to ${newStatus}`);
+    showToast(`Success: Bid status updated to ${newStatus}`, "success");
     setSelectedBid(null);
     setOfficerNotes("");
   };
@@ -9511,7 +9469,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     if (!isBackground) setLoading(true);
     setError("");
     try {
-      const activeToken = localStorage.getItem("gem_token") || token;
+      const activeToken = getSessionToken() || token;
       const res = await apiFetch(`${API_BASE}/api/admin/blacklist`, {
         headers: {
           Authorization: `Bearer ${activeToken}`
@@ -9581,7 +9539,7 @@ function BlacklistManagementView({ API_BASE, token, user }) {
     setIsSubmitting(true);
     setActionError("");
 
-    const activeToken = localStorage.getItem("gem_token") || token;
+    const activeToken = getSessionToken() || token;
     const endpoint = modalState.type === "BLACKLIST" 
       ? `${API_BASE}/api/admin/blacklist`
       : `${API_BASE}/api/admin/unblacklist`;

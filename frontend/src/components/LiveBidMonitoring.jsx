@@ -1,4 +1,7 @@
 import { apiFetch, websocketUrl, isDemoMode } from "../services/api";
+import { websocketToken } from "../services/api";
+import { showToast } from "../services/toast";
+import { getSessionToken } from "../services/session";
 import React, { useState, useEffect, useRef } from 'react';
 import { Radio, Zap, Inbox, AlertTriangle, ChevronRight } from 'lucide-react';
 import './LiveBidMonitoring.css';
@@ -30,8 +33,12 @@ export default function LiveBidMonitoring({ tenderId = null }) {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
-      ws.onopen = () => {
-        ws.send(JSON.stringify({ token: localStorage.getItem("gem_token") }));
+      ws.onopen = async () => {
+        // Browsers cannot send cookies/headers on a socket handshake, so use a
+        // short-lived ticket minted by GET /api/auth/ws-token (falls back to
+        // the in-memory session token if the ticket endpoint is unreachable).
+        const ticket = await websocketToken().catch(() => getSessionToken());
+        ws.send(JSON.stringify({ token: ticket }));
       };
 
       ws.onmessage = (event) => {
@@ -117,7 +124,7 @@ export default function LiveBidMonitoring({ tenderId = null }) {
         })
       });
     } catch (err) {
-      alert("Simulated event broadcasted.");
+      showToast("Simulated event broadcasted (demo sandbox).", "info");
     } finally {
       setSimulating(false);
     }

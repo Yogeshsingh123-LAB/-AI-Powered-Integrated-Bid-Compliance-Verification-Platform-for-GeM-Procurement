@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /signup
+
+Sitemap: https://ai-powered-integrated-bid-complianc-kappa.vercel.app/sitemap.xml

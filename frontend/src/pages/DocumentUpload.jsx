@@ -1,4 +1,6 @@
 import { apiFetch, BACKEND_URL } from "../services/api";
+import { showToast } from "../services/toast";
+import { getSessionToken } from "../services/session";
 import { useState, useRef, useEffect } from "react";
 import {
   CloudUpload,
@@ -63,7 +65,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
     const missingMandatory = bidGroup.documents.filter(d => (d.status || "").toUpperCase() === "MISSING");
     if (missingMandatory.length > 0) {
       const missingNames = missingMandatory.map(d => d.name).join(", ");
-      alert(`${missingMandatory.length} mandatory document(s) are still missing:\n- ${missingNames}\n\nPlease upload all required documents before submitting.`);
+      showToast(`${missingMandatory.length} mandatory document(s) are still missing: ${missingNames}. Please upload all required documents before submitting.`, "error", 7000);
       return;
     }
     setSubmittingBidGroup(bidGroup);
@@ -74,7 +76,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
 
   const confirmSubmitDocuments = async () => {
     if (!submittingBidGroup) return;
-    const activeToken = localStorage.getItem("gem_token");
+    const activeToken = getSessionToken();
     const API_BASE = BACKEND_URL;
 
     try {
@@ -114,7 +116,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   };
 
   const fetchMyBidsAndRequirements = async () => {
-    const activeToken = localStorage.getItem("gem_token");
+    const activeToken = getSessionToken();
     if (!activeToken) return;
     const API_BASE = BACKEND_URL;
 
@@ -220,9 +222,9 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   };
 
   const triggerComplianceAnalysis = async (uploadedFile) => {
-    const MAX_SIZE_MB = 16;
+    const MAX_SIZE_MB = 10; // kept in sync with the backend 10MB upload limit
     if (uploadedFile.size > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`Verification System Error: File too large. Maximum allowed size is ${MAX_SIZE_MB}MB.`);
+      showToast(`File too large. Maximum allowed size is ${MAX_SIZE_MB}MB.`, "error");
       setFile(null);
       return;
     }
@@ -234,7 +236,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
       allowedExts.includes(fileExt);
 
     if (!isAllowed) {
-      alert("Verification System Error: Only PDF (.pdf) and Image files (.jpg, .jpeg, .png) are permitted.");
+      showToast("Only PDF (.pdf) and image files (.jpg, .jpeg, .png) are permitted.", "error");
       setFile(null);
       return;
     }
@@ -369,7 +371,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
   const handleRowFileChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const uploadedFile = e.target.files[0];
-      const activeToken = localStorage.getItem("gem_token");
+      const activeToken = getSessionToken();
       const API_BASE = BACKEND_URL;
 
       if (activeTargetDoc && activeTargetDoc.bidId && activeTargetDoc.requirementId) {
@@ -401,7 +403,7 @@ function DocumentUploadPage({ onAddBid, user, selectedBid, selectedTender }) {
           await fetchMyBidsAndRequirements();
         } catch (err) {
           console.error("Document upload error:", err);
-          alert(`Upload Error: ${err.message}`);
+          showToast(`Upload error: ${err.message}`, "error");
           addLog(`Upload error: ${err.message}`, "danger");
         } finally {
           setUploading(false);

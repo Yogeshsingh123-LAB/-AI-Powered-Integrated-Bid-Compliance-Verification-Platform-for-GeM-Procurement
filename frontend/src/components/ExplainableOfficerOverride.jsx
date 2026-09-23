@@ -1,4 +1,6 @@
 import { apiFetch } from "../services/api";
+import { showToast } from "../services/toast";
+import { getSessionToken } from "../services/session";
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, Scale, Search, FileText, MessageSquare } from 'lucide-react';
 import './ExplainableOfficerOverride.css';
@@ -89,7 +91,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
 
   const handleSubmitDecision = async () => {
     if (justification.length < 10) {
-      alert("Please enter a mandatory justification (minimum 10 characters).");
+      showToast("Please enter a mandatory justification (minimum 10 characters).", "error");
       return;
     }
 
@@ -101,7 +103,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
     setSubmitting(true);
     setPasswordError("");
     try {
-      const token = localStorage.getItem("gem_token");
+      const token = getSessionToken();
       const res = await apiFetch('/api/v1/override/decision', {
         method: 'POST',
         headers: { 
@@ -118,13 +120,13 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
       });
 
       if (res.ok) {
-        alert("🔒 Officer Final Decision submitted & permanently LOCKED in audit ledger!");
+        showToast("Officer Final Decision submitted and permanently locked in the audit ledger.", "success", 7000);
         setShowOverrideModal(false);
         setPasswordInput("");
         fetchXAIReport();
       } else {
         const errData = await res.json().catch(() => ({}));
-        alert(errData.detail || "Failed to submit officer decision.");
+        showToast(errData.detail || "Failed to submit officer decision.", "error");
       }
     } catch (err) {
       setPasswordError(err.message || "Could not save the decision. Please try again.");
@@ -150,7 +152,7 @@ export default function ExplainableOfficerOverride({ bidId = "123e4567-e89b-12d3
       setCommentText("");
       fetchXAIReport();
     } catch (err) {
-      alert(err.message || "Could not save the annotation.");
+      showToast(err.message || "Could not save the annotation.", "error");
     }
   };
 

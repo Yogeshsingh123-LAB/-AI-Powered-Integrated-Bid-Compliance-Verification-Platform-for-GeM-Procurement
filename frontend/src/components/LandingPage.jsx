@@ -54,7 +54,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
     },
     {
       q: "Is Bid Zee secure and compliant with government data standards?",
-      a: "Yes. Bid Zee uses end-to-end encryption, consent-driven API access, role-based access control (RBAC), and immutable audit logging for full legal transparency and compliance."
+      a: "Bid Zee protects sessions with TLS and server-side authentication, and uses role-based access control (RBAC) with tamper-evident audit logging. Statutory lookups run through consented, documented API integrations; demo mode clearly labels simulated data."
     },
     {
       q: "Can procurement officers override AI compliance recommendations?",
@@ -62,7 +62,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
     },
     {
       q: "How long does automated bid verification take?",
-      a: "Automated OCR extraction and statutory database verification complete in under 30 seconds per document batch, reducing manual evaluation effort by 60–80%."
+      a: "In the reference test environment, OCR extraction plus the statutory checks typically complete in under 30 seconds per document batch. Real-world time varies with document complexity and gateway latency; the 60–80% figure is an internal benchmark, not a guarantee."
     }
   ];
 
@@ -72,9 +72,9 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
       <header className="landing-navbar">
         <div className="nav-content-wrapper">
           {/* Brand Logo */}
-          <div className="brand-logo-container" onClick={() => scrollToSection("home")}>
+          <button type="button" className="brand-logo-container" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }} onClick={() => scrollToSection("home")}>
             <img src="/logo.png" alt="Bid Zee Logo" className="brand-logo-img" />
-          </div>
+          </button>
 
           {/* Navigation Links */}
           <nav className="nav-links">
@@ -367,7 +367,7 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
             </div>
             <div className="metric-details">
               <h3 className="metric-num">60–80%</h3>
-              <p className="metric-label">Reduction in Verification Effort</p>
+              <p className="metric-label">Projected reduction in manual verification effort (internal benchmark)</p>
             </div>
           </div>
 
@@ -544,10 +544,10 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
         <div className="faqs-accordion">
           {faqs.map((faq, idx) => (
             <div key={idx} className={`faq-item ${openFaq === idx ? "open" : ""}`}>
-              <div className="faq-question" onClick={() => toggleFaq(idx)}>
+              <button type="button" className="faq-question" style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", width: "100%", padding: "16px 20px", color: "inherit" }} onClick={() => toggleFaq(idx)}>
                 <h3>{faq.q}</h3>
                 <ChevronDown className={`faq-chevron ${openFaq === idx ? "rotated" : ""}`} size={20} />
-              </div>
+              </button>
               {openFaq === idx && (
                 <div className="faq-answer">
                   <p>{faq.a}</p>
@@ -596,9 +596,9 @@ function LandingPage({ onOpenLogin, onOpenRegister, initialSection = "home", sta
         <div className="footer-bottom-row">
           <p>© 2026 Bid Zee Platform. Developed for GeM Procurement Verification. All rights reserved.</p>
           <div className="footer-legal-links">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Security Statement</span>
+            <button type="button" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }} onClick={() => onNavigateLegal && onNavigateLegal("privacy")}>Privacy Policy</button>
+            <button type="button" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }} onClick={() => onNavigateLegal && onNavigateLegal("terms")}>Terms of Service</button>
+            <button type="button" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }} onClick={() => onNavigateLegal && onNavigateLegal("help")}>Security Statement</button>
           </div>
         </div>
       </footer>

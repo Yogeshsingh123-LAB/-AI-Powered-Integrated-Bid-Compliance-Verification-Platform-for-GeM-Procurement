@@ -1,4 +1,6 @@
 import { apiFetch, BACKEND_URL } from "../services/api";
+import { showToast } from "../services/toast";
+import { getSessionToken } from "../services/session";
 import React, { useState, useEffect } from "react";
 import {
   MOCK_BIDDER_PROFILE,
@@ -95,7 +97,7 @@ function BidderProfile() {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    const token = localStorage.getItem("gem_token");
+    const token = getSessionToken();
     setLoading(true);
     getBidderProfile(token)
       .then((data) => {
@@ -144,7 +146,7 @@ function BidderProfile() {
     e.preventDefault();
 
     const API_BASE = BACKEND_URL;
-    const token = localStorage.getItem("gem_token");
+    const token = getSessionToken();
 
     if (token) {
       try {
@@ -197,12 +199,53 @@ function BidderProfile() {
     handleEditProfileClick();
   };
 
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwError, setPwError] = useState("");
+
   const handleChangePasswordClick = () => {
-    alert("Change Password: Passcode verification workflow initiated.");
+    setPwError("");
+    setPwCurrent("");
+    setPwNew("");
+    setPwConfirm("");
+    setPwModalOpen(true);
+  };
+
+  const handlePasswordChangeSubmit = async (e) => {
+    e.preventDefault();
+    setPwError("");
+    if (pwNew.length < 8) {
+      setPwError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError("New password and confirmation do not match.");
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const res = await apiFetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: pwCurrent, new_password: pwNew })
+      });
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON */ }
+      if (!res.ok) throw new Error(data?.detail || "Password change failed.");
+      showToast("Password changed successfully. Please use it at your next sign-in.", "success");
+      setPwModalOpen(false);
+    } catch (err) {
+      setPwError(err.message || "Password change failed.");
+    } finally {
+      setPwBusy(false);
+    }
   };
 
   const handleDocAction = (action, docName) => {
-    alert(`${action} document: ${docName}`);
+    showToast(`${action} document: ${docName}`, "info");
   };
 
   if (loading) {
@@ -699,6 +742,43 @@ function BidderProfile() {
               <div className="modal-footer">
                 <button type="button" className="modal-cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                 <button type="submit" className="modal-save-btn">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
+      {/* CHANGE PASSWORD MODAL */}
+      {pwModalOpen && (
+        <div className="edit-profile-modal-overlay" onClick={() => setPwModalOpen(false)}>
+          <div className="edit-profile-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "460px" }}>
+            <div className="modal-header">
+              <h2>Change Password</h2>
+              <button className="modal-close-btn" onClick={() => setPwModalOpen(false)}>✕</button>
+            </div>
+            <form onSubmit={handlePasswordChangeSubmit} className="modal-form">
+              <div className="form-section-title">Security</div>
+              <div className="form-group">
+                <label>Current Password</label>
+                <input type="password" value={pwCurrent} onChange={(e) => setPwCurrent(e.target.value)} autoComplete="current-password" required />
+              </div>
+              <div className="form-group">
+                <label>New Password</label>
+                <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} autoComplete="new-password" required minLength={8} />
+              </div>
+              <div className="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} autoComplete="new-password" required />
+              </div>
+              <div aria-live="assertive" style={{ minHeight: "18px" }}>
+                {pwError && <div role="alert" style={{ color: "#b91c1c", fontSize: "0.85rem" }}>{pwError}</div>}
+              </div>
+              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+                <button type="button" className="btn-secondary" onClick={() => setPwModalOpen(false)}>Cancel</button>
+                <button type="submit" disabled={pwBusy} style={{ background: "#ea580c", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontWeight: 700, cursor: pwBusy ? "wait" : "pointer" }}>
+                  {pwBusy ? "Updating..." : "Change Password"}
+                </button>
               </div>
             </form>
           </div>

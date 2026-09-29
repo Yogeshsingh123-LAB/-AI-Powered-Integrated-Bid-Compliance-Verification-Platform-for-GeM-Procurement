@@ -267,21 +267,33 @@ def process_document(db: Session, document_id: uuid.UUID, user_id: Optional[uuid
         except Exception as notif_err:
             logger.warning(f"Failed to generate persistent notification: {notif_err}")
 
-        # 11. Recalculate and update associated bid's compliance score based on actual verified documents
+        # 11. Recalculate and update associated bid's compliance score.
+        # Uses the same weighted ComplianceScorer as /api/analyze and
+        # /bids/{id}/re-verify (audit Defect 7) instead of a bare
+        # verified/total document ratio.
         try:
             if bid:
-                total_reqs = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).count()
-                verified_docs = db.query(Document).filter(
-                    Document.bid_id == bid.id,
-                    Document.document_status.in_(["VERIFIED", "PROCESSED"])
-                ).count()
-                if total_reqs > 0:
-                    score = min(100.0, round((verified_docs / max(1, total_reqs)) * 100.0, 2))
-                    bid.compliance_score = score
-                else:
-                    bid.compliance_score = 100.0 if verified_docs > 0 else 0.0
+                from app.services.bid_scoring import apply_bid_score
+                apply_bid_score(db, bid)
         except Exception as score_err:
-            logger.warning(f"Failed to calculate bid compliance score: {score_err}")
+            logger.warning(f"Failed to recalculate bid compliance score: {score_err}")
+            # Last-resort fallback so the bid is never left unscored.
+            try:
+                if bid:
+                    total_reqs = db.query(Requirement).filter(
+                        Requirement.tender_id == bid.tender_id).count()
+                    verified_docs = db.query(Document).filter(
+                        Document.bid_id == bid.id,
+                        Document.document_status.in_(["VERIFIED", "PROCESSED"])
+                    ).count()
+                    bid.compliance_score = (
+                        min(100.0, round((verified_docs / max(1, total_reqs)) * 100.0, 2))
+                        if total_reqs > 0
+                        else (100.0 if verified_docs > 0 else 0.0)
+                    )
+                    db.commit()
+            except Exception:
+                db.rollback()
 
         db.commit()
         db.refresh(doc)

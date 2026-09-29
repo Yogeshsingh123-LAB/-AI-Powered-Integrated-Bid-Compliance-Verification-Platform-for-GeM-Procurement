@@ -95,6 +95,13 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = Field(default="")
     SUPABASE_SECRET_KEY: str = Field(default="", repr=False)
     SUPABASE_BUCKET: str = Field(default="bid-documents")
+    # Bid-document byte storage backend: "auto" (default) | "supabase" | "db" | "local".
+    # "auto" picks Supabase when configured, otherwise the durable database
+    # (which works on serverless), otherwise the local filesystem in dev.
+    DOCUMENT_STORAGE_BACKEND: str = Field(default="auto")
+    # Demo-only escape hatch: permit local (ephemeral) filesystem uploads in a
+    # production/serverless runtime. Files are lost on the next cold start.
+    ALLOW_LOCAL_UPLOADS: bool = Field(default=False)
     AI_PROVIDER: str = Field(default="groq")
     AI_API_KEY: str = Field(default="", repr=False)
     GEMINI_API_KEY: str = Field(default="", repr=False)

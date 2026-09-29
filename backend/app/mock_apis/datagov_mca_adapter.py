@@ -21,6 +21,43 @@ class DataGovMCAAdapter:
     DEFAULT_RESOURCE_ID = "41233261-26c9-4f24-9b1a-ae970c675f92"
 
     @classmethod
+    def configuration_status(cls) -> Dict[str, Any]:
+        """Report honestly whether the live data.gov.in lookup can run.
+
+        The adapter used to fall back to the simulated response *silently*, so
+        a deployment with ``MCA_GATEWAY_MODE=live`` but no API key advertised
+        "LIVE API (data.gov.in)" in the UI while returning simulated data.
+        Callers should surface this instead of claiming live status.
+        """
+        mode = getattr(settings, "MCA_GATEWAY_MODE", "live").strip().lower()
+        api_key = getattr(settings, "DATA_GOV_IN_API_KEY", "").strip()
+        resource_id = (getattr(settings, "DATA_GOV_IN_MCA_RESOURCE_ID",
+                               cls.DEFAULT_RESOURCE_ID).strip()
+                       or cls.DEFAULT_RESOURCE_ID)
+
+        if mode != "live":
+            reason = (f"MCA_GATEWAY_MODE is '{mode}', not 'live' — "
+                      "the adapter is intentionally in simulated mode.")
+            configured = False
+        elif not api_key:
+            reason = ("DATA_GOV_IN_API_KEY is not set, so the live MCA21 dataset "
+                      "cannot be queried. Request a free key at https://api.data.gov.in "
+                      "and set it in the environment to enable live lookups.")
+            configured = False
+        else:
+            reason = None
+            configured = True
+
+        return {
+            "live_lookup_configured": configured,
+            "gateway_mode": mode,
+            "resource_id": resource_id,
+            "reason_not_live": reason,
+            "dataset": "MCA Company Master Data (GODL-India licensed)",
+            "endpoint": f"{cls.BASE_URL}/{resource_id}",
+        }
+
+    @classmethod
     def verify_company(cls, cin_or_name: str) -> Dict[str, Any]:
         query = (cin_or_name or "").strip().upper()
         mode = getattr(settings, "MCA_GATEWAY_MODE", "live").lower()
@@ -109,7 +146,8 @@ class DataGovMCAAdapter:
         # Structured Fallback Response
         fallback_cin = query if is_cin else f"U72900TN2018PTC{(abs(hash(query)) % 900000) + 100000}"
         fallback_name = query if not is_cin else "ABC TECHNOLOGIES PRIVATE LIMITED"
-        
+        config = cls.configuration_status()
+
         return {
             "cin": fallback_cin,
             "company_name": fallback_name,
@@ -125,5 +163,11 @@ class DataGovMCAAdapter:
             "data_license": "Simulated Demo Mode",
             "gateway_mode": "SIMULATED_FALLBACK",
             "is_live": False,
+            # Honesty fields: a caller can now tell *why* this is not live
+            # instead of having to guess from the source string.
+            "live_lookup_configured": config["live_lookup_configured"],
+            "reason_not_live": config["reason_not_live"],
+            "dataset": config["dataset"],
+            "endpoint": config["endpoint"],
             "verified_at": datetime.now(timezone.utc).isoformat()
         }

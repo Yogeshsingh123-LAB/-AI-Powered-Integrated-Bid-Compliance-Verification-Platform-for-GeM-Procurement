@@ -9,6 +9,53 @@ router = APIRouter(prefix="/verify", tags=["Verification Gateway (Mock Govt APIs
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
+
+@router.get("/status", summary="Live vs simulated status of every registry adapter")
+def gateway_status() -> Dict[str, Any]:
+    """Report, per registry, whether the adapter is live or simulated.
+
+    The platform must never advertise a live government integration it cannot
+    demonstrate. This endpoint is the single source of truth the UI renders,
+    so the officer/bidder screens show the same disclosure as the admin
+    Integrations view.
+    """
+    from app.mock_apis.datagov_mca_adapter import DataGovMCAAdapter
+
+    mca_config = DataGovMCAAdapter.configuration_status()
+    registries = {
+        "gstn": {"label": "GSTN (GST registration)", "mode": "simulated"},
+        "pan": {"label": "Income Tax / PAN", "mode": "simulated"},
+        "udyam": {"label": "Udyam / MSME", "mode": "simulated"},
+        "mca21": {
+            "label": "MCA21 (data.gov.in)",
+            "mode": "live" if mca_config["live_lookup_configured"] else "simulated",
+            "reason_not_live": mca_config["reason_not_live"],
+            "endpoint": mca_config["endpoint"],
+        },
+        "epfo": {"label": "EPFO", "mode": "simulated"},
+        "esic": {"label": "ESIC", "mode": "simulated"},
+        "startup_india": {"label": "Startup India (DIPP)", "mode": "simulated"},
+        "nsic": {"label": "NSIC", "mode": "simulated"},
+        "debarment": {"label": "Central Debarment Registry", "mode": "simulated"},
+        "digilocker": {"label": "DigiLocker", "mode": "simulated"},
+    }
+
+    live = [k for k, v in registries.items() if v["mode"] == "live"]
+    return {
+        "success": True,
+        "sandbox_active": True,
+        "disclosure": (
+            "Government registries are queried through the platform's adapter layer. "
+            "Only MCA21 can be live, and only when a data.gov.in API key is configured; "
+            "every other registry is a simulated adapter because no student-accessible "
+            "sandbox exists. Extracted document values are compared against adapter "
+            "responses, not live registry data."
+        ),
+        "live_registries": live,
+        "simulated_registries": [k for k, v in registries.items() if v["mode"] != "live"],
+        "registries": registries,
+    }
+
 def load_db(filename: str) -> Dict[str, Any]:
     path = os.path.join(DATA_DIR, filename)
     if not os.path.exists(path):
@@ -138,9 +185,22 @@ def verify_mca_portal(cin: str):
 
 
 # 5. EPFO Compliance Verification
-@router.get("/epfo/{epfo_id}")
+def _normalise_establishment_id(raw: str) -> str:
+    """Normalise an establishment/employer identifier for comparison.
+
+    EPFO establishment codes are conventionally written with slashes
+    (``MH/BAN/0045123/000``) and ESIC employer codes may be written with
+    dashes. Callers send them percent-encoded, so the route uses the ``:path``
+    converter; this helper strips separators so ``MH%2FBAN%2F0045123`` and
+    ``MHBAN0045123`` resolve to the same record.
+    """
+    return re.sub(r"[^A-Z0-9]", "", (raw or "").upper())
+
+
+@router.get("/epfo/{epfo_id:path}")
 def verify_epfo_portal(epfo_id: str):
-    epfo_id = epfo_id.upper().strip()
+    # `:path` is required: real EPFO establishment codes contain '/'.
+    epfo_id = _normalise_establishment_id(epfo_id)
     # Check if this is the deliberate mismatch test ID
     if "MISMATCH" in epfo_id or "FLAG" in epfo_id:
         return {
@@ -165,9 +225,9 @@ def verify_epfo_portal(epfo_id: str):
     }
 
 # 6. ESIC Compliance Verification
-@router.get("/esic/{esic_id}")
+@router.get("/esic/{esic_id:path}")
 def verify_esic_portal(esic_id: str):
-    esic_id = esic_id.upper().strip()
+    esic_id = _normalise_establishment_id(esic_id)
     return {
         "employer_number": esic_id,
         "employer_name": "ABC TECHNOLOGIES PRIVATE LIMITED",
@@ -206,9 +266,9 @@ def verify_nsic_portal(nsic_id: str):
     }
 
 # 9. Blacklist / Debarment Registry Verification
-@router.get("/blacklist/{identifier}")
+@router.get("/blacklist/{identifier:path}")
 def verify_blacklist_portal(identifier: str):
-    identifier = identifier.upper().strip()
+    identifier = _normalise_establishment_id(identifier)
     db = load_db("blacklist_db.json")
     record = db.get(identifier)
     

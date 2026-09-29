@@ -9,6 +9,7 @@ import StatusPage from "./Status";
 import BidderProfile from "./BidderProfile";
 import CreateTenderWizard from "../components/CreateTenderWizard";
 import BidderVerificationView from "../components/BidderVerificationView";
+import IntegrityIntelligencePanel from "../components/IntegrityIntelligencePanel";
 import {
   Building, Unlock, RefreshCw, X, Ban,
   LayoutDashboard,
@@ -4526,6 +4527,42 @@ const IntegrationsView = ({ API_BASE, token }) => {
 
     const [integrationsList, setIntegrationsList] = useState(initialIntegrations);
     const [testingId, setTestingId] = useState(null);
+    const [gatewayStatus, setGatewayStatus] = useState(null);
+
+    // Real adapter state from GET /api/verify/status. The static list above
+    // advertised fabricated uptimes and "LIVE API (data.gov.in)" for registries
+    // that are actually simulated adapters; the live status replaces those
+    // claims with what the platform can actually demonstrate.
+    useEffect(() => {
+      let cancelled = false;
+      (async () => {
+        try {
+          const res = await apiFetch('/api/verify/status');
+          if (res.ok && !cancelled) {
+            const data = await res.json();
+            setGatewayStatus(data);
+            setIntegrationsList((prev) => prev.map((p) => {
+              const reg = data.registries?.[p.key];
+              if (!reg) {
+                return { ...p, apiStatus: 'Not integrated (no adapter)', adapterMode: 'none' };
+              }
+              const live = reg.mode === 'live';
+              return {
+                ...p,
+                apiStatus: live
+                  ? 'LIVE API (data.gov.in)'
+                  : 'Simulated adapter — key not configured',
+                adapterMode: reg.mode,
+                reasonNotLive: reg.reason_not_live
+              };
+            }));
+          }
+        } catch {
+          /* leave the static list; the sandbox banner still applies */
+        }
+      })();
+      return () => { cancelled = true; };
+    }, []);
     const [configModalItem, setConfigModalItem] = useState(null);
     const [configEndpoint, setConfigEndpoint] = useState("");
     const [configTimeout, setConfigTimeout] = useState("3000ms");
@@ -4714,10 +4751,19 @@ const IntegrationsView = ({ API_BASE, token }) => {
                       <strong style={{ color: "#0f172a" }}>{portal.requests}</strong>
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem" }}>
-                      <span style={{ color: "#64748b" }}>API Status</span>
-                      <strong style={{ color: isConnected ? "#15803d" : isAttention ? "#b45309" : "#b91c1c" }}>{portal.apiStatus}</strong>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem", gap: "8px" }}>
+                      <span style={{ color: "#64748b", flexShrink: 0 }}>API Status</span>
+                      <strong style={{
+                        textAlign: "right",
+                        color: portal.adapterMode === "live" ? "#15803d"
+                          : portal.adapterMode === "none" ? "#b91c1c" : "#b45309"
+                      }}>{portal.apiStatus}</strong>
                     </div>
+                    {portal.reasonNotLive && (
+                      <div style={{ fontSize: "0.68rem", color: "#92400e", marginTop: "4px", lineHeight: 1.4 }}>
+                        {portal.reasonNotLive}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -9520,6 +9566,7 @@ function Home({ role, user, onLogout, isDemo = false }) {
     { id: "tenders", label: "Tenders" },
     { id: "bidders", label: "Bidders" },
     { id: "verification", label: "Verification" },
+    { id: "integrity", label: "Integrity" },
     { id: "reports", label: "Reports" }
   ];
 
@@ -10159,6 +10206,14 @@ function BlacklistManagementView({ API_BASE, token, user }) {
             API_BASE={API_BASE}
             token={token}
             user={user}
+          />
+        );
+      case "integrity":
+        return (
+          <IntegrityIntelligencePanel
+            tenderId={selectedTender?.id || tendersList?.[0]?.id || "GEM/2026/001"}
+            bidId={selectedBid?.id || selectedVerificationBidder?.id || null}
+            token={token}
           />
         );
       case "reports":

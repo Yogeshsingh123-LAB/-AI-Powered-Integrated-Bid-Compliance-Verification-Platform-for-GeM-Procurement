@@ -1,5 +1,4 @@
 # pyrefly: ignore [missing-import]
-import hashlib
 import uuid
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -11,22 +10,86 @@ from app.models.audit_log import AuditLog
 from app.models.bid import Bid
 from app.models.user import User
 from app.services.auth_service import get_current_user
+from app.services.audit_chain import (
+    GENESIS_HASH,
+    expected_hash_for_record,
+    verify_record,
+)
 
 router = APIRouter(prefix="/audit", tags=["Audit Log & Blockchain Integrity"])
 
 
-def calculate_log_hash(prev_hash: str, log: AuditLog) -> str:
-    """Computes expected SHA-256 hash for an audit log record based on chain payload."""
-    chain_payload = (
-        f"{prev_hash}:"
-        f"{log.action}:"
-        f"{log.user_id or ''}:"
-        f"{log.entity_type}:"
-        f"{log.entity_id or ''}:"
-        f"{log.bid_id or ''}:"
-        f"{log.new_value or ''}"
-    )
-    return hashlib.sha256(chain_payload.encode("utf-8")).hexdigest()
+# ----------------------------------------------------------------------
+# Chain helpers
+#
+# The previous implementation resolved a record's ``prev_hash`` with
+# "the most recent row created before this one" (``created_at < target``).
+# That is wrong twice over:
+#   1. the real chain is ordered by ``sequence`` (the writer assigns the
+#      predecessor by sequence, not by wall-clock time), and
+#   2. it issued one extra query per record — O(n^2) on a full-chain verify.
+# Predecessors are now resolved once, against the global sequence order.
+# ----------------------------------------------------------------------
+def _resolve_predecessors(db: Session, records: List[AuditLog]) -> Dict[str, str]:
+    """Return ``{record_id: prev_hash}`` for ``records`` using the global chain.
+
+    A record whose predecessor cannot be located falls back to the genesis
+    hash, which is what the writer uses for the very first chain entry.
+    """
+    predecessors: Dict[str, str] = {}
+    seq_records = [r for r in records if getattr(r, "sequence", None) is not None]
+
+    if seq_records:
+        lo = min(int(r.sequence) for r in seq_records) - 1
+        hi = max(int(r.sequence) for r in seq_records)
+        # One indexed range scan instead of a query per record.
+        window = db.query(AuditLog).filter(
+            AuditLog.sequence >= lo, AuditLog.sequence <= hi
+        ).all()
+        by_seq: Dict[int, AuditLog] = {}
+        for row in window:
+            if row.sequence is None:
+                continue
+            # Keep the newest row if a duplicate sequence ever appears.
+            existing = by_seq.get(int(row.sequence))
+            if existing is None or (row.created_at, row.id) > (existing.created_at, existing.id):
+                by_seq[int(row.sequence)] = row
+
+        for record in seq_records:
+            prev_row = by_seq.get(int(record.sequence) - 1)
+            predecessors[str(record.id)] = (
+                prev_row.blockchain_hash
+                if (prev_row and prev_row.blockchain_hash)
+                else GENESIS_HASH
+            )
+
+    # Legacy rows (sequence is NULL) keep the timestamp-based lookup.
+    for record in records:
+        if str(record.id) in predecessors:
+            continue
+        prev_log = db.query(AuditLog).filter(
+            AuditLog.created_at < record.created_at
+        ).order_by(desc(AuditLog.created_at)).first()
+        predecessors[str(record.id)] = (
+            prev_log.blockchain_hash
+            if (prev_log and prev_log.blockchain_hash)
+            else GENESIS_HASH
+        )
+
+    return predecessors
+
+
+def _verification_entry(record: AuditLog, prev_hash: str) -> Dict[str, Any]:
+    result = verify_record(record, prev_hash)
+    return {
+        "log_id": str(record.id),
+        "action": record.action,
+        "recorded_hash": record.blockchain_hash,
+        "expected_hash": result["expected_hash"],
+        "integrity_verified": result["integrity_verified"],
+        "payload_version": result["payload_version"],
+        "legacy_record": result["legacy_record"],
+    }
 
 
 @router.get("/logs", summary="List system audit logs")
@@ -79,6 +142,10 @@ def verify_audit_log(
     """
     Cryptographically verifies that a single audit record's SHA-256 blockchain hash
     matches its payload and chain sequence without unauthorized tampering.
+
+    The expected hash is recomputed with the *same* canonical serialiser the
+    writer used (``services/audit_chain.py``), and the predecessor is resolved
+    against the global sequence order.
     """
     target_log = db.query(AuditLog).filter(AuditLog.id == log_id).first()
     if not target_log:
@@ -87,19 +154,24 @@ def verify_audit_log(
             detail=f"Audit log entry '{log_id}' not found."
         )
 
-    # Fetch preceding record in chronological order to resolve previous hash
-    prev_log = db.query(AuditLog).filter(
-        AuditLog.created_at < target_log.created_at
-    ).order_by(desc(AuditLog.created_at)).first()
-
-    prev_hash = prev_log.blockchain_hash if (prev_log and prev_log.blockchain_hash) else "0" * 64
-    expected_hash = calculate_log_hash(prev_hash, target_log)
+    predecessors = _resolve_predecessors(db, [target_log])
+    prev_hash = predecessors[str(target_log.id)]
+    expected_hash = expected_hash_for_record(target_log, prev_hash)
     is_valid = (target_log.blockchain_hash == expected_hash)
+
+    if not is_valid:
+        # Recognise rows written by the old (broken) v1 formula so a deploy
+        # does not retroactively invalidate the pre-existing audit trail.
+        result = verify_record(target_log, prev_hash)
+        is_valid = result["integrity_verified"]
+        if is_valid:
+            expected_hash = result["expected_hash"]
 
     return {
         "log_id": str(target_log.id),
         "action": target_log.action,
         "entity_type": target_log.entity_type,
+        "sequence": target_log.sequence,
         "recorded_hash": target_log.blockchain_hash,
         "expected_hash": expected_hash,
         "previous_hash": prev_hash,
@@ -126,7 +198,7 @@ def verify_bid_audit_chain(
 
     logs = db.query(AuditLog).filter(
         AuditLog.bid_id == bid_id
-    ).order_by(asc(AuditLog.created_at)).all()
+    ).order_by(asc(AuditLog.sequence).nullslast(), asc(AuditLog.created_at), asc(AuditLog.id)).all()
 
     if not logs:
         return {
@@ -137,28 +209,16 @@ def verify_bid_audit_chain(
             "message": "No audit records registered for this bid yet."
         }
 
+    predecessors = _resolve_predecessors(db, logs)
     all_valid = True
     verification_details = []
 
     for log in logs:
-        prev_log = db.query(AuditLog).filter(
-            AuditLog.created_at < log.created_at
-        ).order_by(desc(AuditLog.created_at)).first()
-
-        prev_hash = prev_log.blockchain_hash if (prev_log and prev_log.blockchain_hash) else "0" * 64
-        expected_hash = calculate_log_hash(prev_hash, log)
-        valid = (log.blockchain_hash == expected_hash)
-
-        if not valid:
+        prev_hash = predecessors[str(log.id)]
+        entry = _verification_entry(log, prev_hash)
+        if not entry["integrity_verified"]:
             all_valid = False
-
-        verification_details.append({
-            "log_id": str(log.id),
-            "action": log.action,
-            "recorded_hash": log.blockchain_hash,
-            "expected_hash": expected_hash,
-            "integrity_verified": valid
-        })
+        verification_details.append(entry)
 
     return {
         "bid_id": str(bid_id),
@@ -166,5 +226,6 @@ def verify_bid_audit_chain(
         "total_records": len(logs),
         "chain_integrity_verified": all_valid,
         "status": "CHAIN_VALID" if all_valid else "CHAIN_COMPROMISED",
+        "genesis_hash": GENESIS_HASH,
         "verification_details": verification_details
     }

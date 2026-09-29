@@ -39,6 +39,10 @@
 - Intelligently suggests required documents, compliance checks, and scoring weights (summing to 100).
 - Categorizes requirements into `MANDATORY` (for explicit rules), `OPTIONAL`, and `REVIEW_REQUIRED` (for inferred requirements).
 - Provides tender-specific explanations for every recommendation.
+- Surfaced in the tender-creation wizard: **Step 2 → "AI Suggest Requirements"** posts the tender to
+  `POST /api/tenders/analyze-requirements` and renders each suggestion with its classification,
+  suggested weight, verification source/method and risk-if-missing. Requirements the analyzer was
+  unsure about are shown as explicit warnings rather than silently dropped.
 
 ---
 
@@ -54,16 +58,21 @@ Provides modular verification endpoints simulating live government portals:
 - `GET /api/verify/nsic/{nsic_id}` — NSIC registration status
 - `GET /api/verify/blacklist/{identifier}` — Central Debarment Database lookup
 - `GET /api/verify/digilocker/{doc_id}` — DigiLocker official document verification
+- `GET /api/verify/status` — reports the live/simulated state, adapter label and `reason_not_live` for every registry
+
+> **Identifier syntax**: the EPFO, ESIC and debarment endpoints use a `:path` capture, so establishment
+> IDs that legitimately contain slashes resolve correctly — e.g.
+> `GET /api/verify/epfo/MH%2FBAN%2F0045123` returns the employer record instead of a 404.
 
 ### Verification Gateway — Hybrid Live & Simulated Adapters
 
 The platform uses a pluggable **adapter pattern** for verification services:
 
-> **Verification Gateway**: MCA21 registry is queried live via the Government of India Open Data platform (`data.gov.in`, GODL-licensed). Other registries (GSTN, PAN, EPFO, ESIC, DigiLocker) use simulated adapters in demo mode; a production adapter layer is ready for Sandbox.co.in / Setu integration.
+> **Verification Gateway**: the MCA21 adapter queries the Government of India Open Data platform (`data.gov.in`, GODL-licensed) **when `DATA_GOV_IN_API_KEY` is configured** — otherwise it returns a clearly-labelled simulated response and reports `is_live: false` with the reason. Every other registry (GSTN, PAN, EPFO, ESIC, DigiLocker, Startup India, NSIC, Debarment) uses a simulated adapter, because no student-accessible sandbox exists for them. `GET /api/verify/status` reports the live/simulated state of every registry, and the UI renders that disclosure rather than claiming live status it cannot demonstrate.
 
 | System | Gateway Adapter | Gateway Mode | Data Source & License |
 |---|---|---|---|
-| **MCA21** | `DataGovMCAAdapter` | **Live (`data.gov.in`)** | Government of India Open Data Platform (~3.67M MCA Records, GODL License) |
+| **MCA21** | `DataGovMCAAdapter` | **Adapter ready — live only when `DATA_GOV_IN_API_KEY` is set** | Government of India Open Data Platform (~3.67M MCA Records, GODL License) |
 | **GSTN** | `GSTAdapter` | Simulated Demo Mode | Prepared for GSTN Sandbox v2.0 / Sandbox.co.in |
 | **PAN** | `PANAdapter` | Simulated Demo Mode | Prepared for NSDL / ITD verification API |
 | **Udyam** | `UdyamAdapter` | Simulated Demo Mode | Prepared for Udyam MSME verification API |
@@ -73,7 +82,7 @@ The platform uses a pluggable **adapter pattern** for verification services:
 
 #### 🌐 Open Government Data Platform (`data.gov.in`) Live API Specs
 
-Bid Zee integrates live with the **Government of India Open Data Platform (`data.gov.in`)** for instant verification of corporate entities under the **Government Open Data License – India (GODL)**:
+The MCA21 adapter integrates with the **Government of India Open Data Platform (`data.gov.in`)** for verification of corporate entities under the **Government Open Data License – India (GODL)**. It is live **only** when a valid API key is configured; without one it degrades to a labelled simulated response:
 
 - **API Endpoint**: `https://api.data.gov.in/resource/41233261-26c9-4f24-9b1a-ae970c675f92`
 - **Resource ID**: `41233261-26c9-4f24-9b1a-ae970c675f92` (Ministry of Corporate Affairs - Master Data)
@@ -93,15 +102,17 @@ DATA_GOV_IN_API_KEY=<your-data.gov.in-api-key>   # request at https://api.data.g
 DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
 ```
 
-> **Automatic Graceful Fallback**: If the external `data.gov.in` API endpoint is unreachable or encounters network latency, `DataGovMCAAdapter` automatically falls back to internal database verification to guarantee uninterrupted platform availability.
+> **Automatic Graceful Fallback**: If the external `data.gov.in` API endpoint is unreachable, the key is missing, or the request times out, `DataGovMCAAdapter` falls back to a simulated response — and reports `is_live: false`, `live_lookup_configured: false` and a `reason_not_live` string, so the caller can tell the difference instead of advertising live status it does not have.
 
 ---
 
 
 ### 4. Evidence-First AI & Bidder Verification View
-- Displays overall compliance score dial (`86 / 100`), risk classification (`MEDIUM`), and status (`UNDER REVIEW`).
-- Interactive requirement checklist showing `✓ VERIFIED`, `⚠ NEEDS REVIEW`, and `❌ MISSING / FAILED`.
-- Clickable Evidence Modal displaying: *WHAT was checked*, *WHERE checked*, *Extracted vs Registry Data*, *RESULT*, *WHEN verified*, and *WHAT officer should do next*.
+- Displays the overall compliance score dial and risk classification **computed by the scoring engine** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), driven entirely by the bid's real `compliance_score` and `risk_level`. An unscored bid shows "Not yet verified" rather than a placeholder number.
+- Interactive requirement checklist showing `✓ VERIFIED`, `⚠ NEEDS REVIEW`, and `❌ MISSING / FAILED`, built from the per-requirement `compliance_matrix` the backend returns.
+- Clickable Evidence Modal displaying: *WHAT was checked*, *WHERE checked*, *Extracted vs Registry Data*, *RESULT*, *WHEN verified*, and *WHAT officer should do next* — including a per-row note of which adapter produced the registry response and whether it was live or simulated.
+- Live registry evidence: identifiers extracted from uploaded documents (GSTIN, PAN, Udyam, CIN, EPFO, ESIC) are looked up against the verification gateway and shown side-by-side with what was read off the document.
+- A disclosure banner states plainly which registries are simulated adapters and which, if any, are live.
 - AI recommendation outputs `"Procurement Officer Review Required"`.
 
 ---
@@ -130,6 +141,9 @@ DATA_GOV_IN_MCA_RESOURCE_ID=41233261-26c9-4f24-9b1a-ae970c675f92
 - **WebSocket Live Bid Stream & Real-Time Monitoring** — Real-time bid submission feed, status updates, and live monitoring via WebSocket endpoint (`/api/monitoring/ws`).
 - **System Performance & Latency Benchmark Dashboard** — Built-in benchmarking dashboard measuring verification latency, throughput, OCR processing time, and indexed query performance.
 - **Mobile Officer App (PWA & Web Push)** — Mobile-optimized officer interface with web push notifications for critical bid compliance events.
+
+All of the above are reachable from the officer dashboard's **Integrity** tab (`IntegrityIntelligencePanel`),
+each in a collapsible section pre-loaded with the tender/bid context where the component accepts one.
 
 ---
 
@@ -310,31 +324,49 @@ The platform is designed to run entirely on the Vercel Hobby plan (Fluid
 Compute) plus one free Supabase project:
 
 ```text
-Vercel (Hobby, Fluid Compute, maxDuration 300)
+Vercel (Hobby, Fluid Compute, maxDuration 15)
  ├── frontend/dist          → static SPA
  └── api/index.py           → FastAPI (canonical backend in backend/)
 
 Supabase (free)
  ├── Postgres (pooler, port 6543) → users, tenders, bids, audit log
- └── Storage (bid-documents)      → uploaded documents
+ └── Storage (bid-documents)      → uploaded documents (optional — see below)
 ```
+
+### Document storage backends
+
+Uploaded bidder documents are written through `StorageService`, which resolves
+one backend from `DOCUMENT_STORAGE_BACKEND` (`auto` by default):
+
+| Backend | When `auto` picks it | Durability |
+|---|---|---|
+| `supabase` | `SUPABASE_URL` + `SUPABASE_SECRET_KEY` are set | Durable (object storage) |
+| `db` | No Supabase **and** the database is not SQLite | Durable (bytes in `document_blobs`) |
+| `local` | No Supabase and a local SQLite/dev database | **Ephemeral** — dev only |
+
+`db` exists because a serverless runtime has no writable persistent filesystem:
+without it, a Vercel deployment with no Supabase Storage bucket configured
+rejected every upload. The production guard against ephemeral storage is still
+enforced — only the durable backends are permitted unless you explicitly set
+`ALLOW_LOCAL_UPLOADS=true` (demo-only; files are lost on cold start).
+
+Downloads try the active backend first and then fall back to the others, so a
+document written before a backend change is still readable.
 
 ### Document processing on serverless
 
-`api/vercel.json` raises the Python function's `maxDuration` to 300 seconds
-(Fluid Compute). With the default `INLINE_PROCESSING=true`, uploads are
-processed **synchronously inside the function** — the response includes the
-final document status. This keeps everything on Vercel:
+`api/vercel.json` caps the Python function's `maxDuration` at **15 seconds** (the Hobby-plan
+limit). With the default `INLINE_PROCESSING=true`, uploads are processed **synchronously inside
+the function** — the response includes the final document status. This keeps everything on
+Vercel, but the 15 s ceiling is the real constraint:
 
-- Keep documents small (the server enforces 10 MB and a page cap) so a single
-  document stays inside the 300 s budget.
-- If a function is still cut off (HTTP 504), the document keeps its
-  pre-final status and can be re-run with `POST /api/documents/{id}/reprocess`
-  (the UI shows a "Retry Processing" button for failed documents). Each
-  document allows up to 3 processing attempts.
-- Alternative: set `INLINE_PROCESSING=false` and run `backend/worker.py` on a
-  long-lived host (Docker/Railway/Render) that polls and processes queued
-  documents.
+- Keep documents small (the server enforces 10 MB and a page cap) so a single document stays
+  inside the 15 s budget.
+- If a function is still cut off (HTTP 504), the document keeps its pre-final status and can be
+  re-run with `POST /api/documents/{id}/reprocess` (the UI shows a "Retry Processing" button for
+  failed documents). Each document allows up to 3 processing attempts.
+- Alternative: set `INLINE_PROCESSING=false` and run `backend/worker.py` on a long-lived host
+  (Docker/Railway/Render) that polls and processes queued documents.
 
 ### Real-time monitoring
 
@@ -348,8 +380,9 @@ every 10 seconds (the status badge shows "POLLING").
 Free Supabase projects pause after ~7 days without API traffic, and the free
 tier has no automatic backups:
 
-- `.github/workflows/keepalive.yml` pings `/health` (runs a real `SELECT 1`) every 3 days (set the
-  `APP_URL` repository variable to enable).
+- `.github/workflows/keepalive.yml` pings `/api/health` (falling back to
+  `/health`, both run a real `SELECT 1`) every 3 days (set the `APP_URL`
+  repository variable to enable).
 - `.github/workflows/backup-database.yml` runs a weekly `pg_dump` into a
   GitHub Actions artifact (set the `DATABASE_URL` secret to enable; 90-day
   retention).
@@ -362,6 +395,39 @@ leaked default), `CORS_ORIGINS` (your exact Vercel domain), `SUPABASE_URL`,
 `SUPABASE_SECRET_KEY`, `SUPABASE_BUCKET`, `GROQ_API_KEY` / `GEMINI_API_KEY`,
 and `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` (strong, unique — the
 account is forced to change it at first login).
+
+Optionally set `DATA_GOV_IN_API_KEY` (and `DATA_GOV_IN_MCA_RESOURCE_ID`) to
+make the MCA21 adapter genuinely live against `data.gov.in`. Without it every
+registry — including MCA21 — runs as a simulated adapter, and the platform says
+so on the verification view and the admin Integrations screen rather than
+implying a live lookup.
+
+Supabase Storage is **optional**: leave `SUPABASE_URL`/`SUPABASE_SECRET_KEY`
+empty and uploads are stored durably in the Postgres `document_blobs` table
+instead. Set `DOCUMENT_STORAGE_BACKEND=supabase` only when a bucket exists.
+
+---
+
+## ✅ Verification & QA
+
+The platform is validated by a 44-check audit probe (`live_audit_probe.py`) covering the SPA,
+authentication and role isolation, all ten verification-gateway registries, the AI requirement
+analyzer, a full end-to-end tender → bid → document → decision walkthrough, audit-chain
+integrity, and a repository cross-check confirming that no README-advertised component is dead
+code.
+
+```
+TOTAL 44   PASS 44   FAIL 0   WARN 0
+```
+
+Backend tests: `python3 -m pytest tests/ -q` in `backend/`. The suite includes a standalone
+end-to-end regression runner that boots the real FastAPI app in two configurations — `--mode dev`
+and `--mode serverless` (the latter reproduces the exact production environment, including the
+no-Supabase document-storage path).
+
+Scores are produced by the real `ComplianceScorer` weighted engine and are reported with a
+`scoring_method` (`compliance_scorer`, or a transparent document-coverage ratio if the scorer
+itself cannot run), so a number is never a magic heuristic.
 
 ---
 

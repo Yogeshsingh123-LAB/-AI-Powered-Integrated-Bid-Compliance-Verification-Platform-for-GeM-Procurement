@@ -163,11 +163,16 @@ class ComplianceScorer:
                 integrity_score = max(0, integrity_score - 15)
                 deductions.append("Missing primary mandatory procurement identifiers (GSTIN/PAN) (-15 pts)")
 
-            # Check if blacklisted
+            # Check if blacklisted.
+            # verification_results may legitimately carry non-list entries
+            # (e.g. the scalar `is_wrong_document` flag the scorer itself reads
+            # at the top of this method), so guard the iteration by type.
             blacklisted = any(
                 item.get("verified") and item.get("data", {}).get("blacklisted", False)
                 for items in verification_results.values()
+                if isinstance(items, list)
                 for item in items
+                if isinstance(item, dict)
             )
             if blacklisted:
                 integrity_score = 0

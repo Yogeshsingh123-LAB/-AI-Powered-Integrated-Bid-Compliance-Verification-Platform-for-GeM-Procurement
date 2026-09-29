@@ -196,6 +196,7 @@ def create_app() -> FastAPI:
         }
 
     @app.get("/health")
+    @app.get("/api/health")
     def read_health():
         from fastapi import HTTPException
         from sqlalchemy import text

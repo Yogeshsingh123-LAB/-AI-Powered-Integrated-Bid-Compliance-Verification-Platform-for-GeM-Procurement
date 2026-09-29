@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Building2, FileText, CheckCircle2, ShieldAlert, Award, FileSpreadsheet, 
-  ChevronRight, ChevronLeft, Plus, Trash2, Info, AlertTriangle, Layers, Calendar, DollarSign
+import {
+  Building2, FileText, CheckCircle2, ShieldAlert, Award, FileSpreadsheet,
+  ChevronRight, ChevronLeft, Plus, Trash2, Info, AlertTriangle, Layers, Calendar, DollarSign, Sparkles, Loader2
 } from 'lucide-react';
 import { apiFetch } from '../services/api';
 
@@ -39,6 +39,70 @@ export default function CreateTenderWizard({ onTenderCreated, onCancel }) {
 
   // Step 2: Eligibility Requirements
   const [requirements, setRequirements] = useState(DEFAULT_REQUIREMENTS);
+
+  // AI tender requirement analyzer (POST /api/tenders/analyze-requirements).
+  // The wizard used to rely entirely on DEFAULT_REQUIREMENTS, so a working
+  // backend feature was invisible to the officer.
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiSummary, setAiSummary] = useState(null);
+
+  const handleAiSuggest = async () => {
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const res = await apiFetch('/api/tenders/analyze-requirements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tender_title: basicInfo.title,
+          tender_description: basicInfo.description,
+          tender_category: basicInfo.category,
+          estimated_value: Number(basicInfo.estimatedValue) || undefined,
+          additional_conditions: basicInfo.additionalConditions || undefined
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Analyzer returned ${res.status}`);
+      }
+      const data = await res.json();
+      const suggested = Array.isArray(data.suggested_documents) ? data.suggested_documents : [];
+      if (suggested.length === 0) {
+        setAiError('The analyzer returned no suggestions for this tender text.');
+        return;
+      }
+
+      const mapped = suggested.map((doc, i) => ({
+        id: `ai-${Date.now()}-${i}`,
+        name: doc.document_name || doc.name || 'Untitled requirement',
+        category: (doc.category || 'General').split('/')[0].trim(),
+        mandatory: String(doc.status || '').toUpperCase() === 'MANDATORY',
+        condition: 'All Bidders',
+        document: doc.document_name || 'Document Proof',
+        method: (doc.verification_methods || ['Document Verification'])[0],
+        source: doc.verification_source || 'Manual/API',
+        weight: Number(doc.suggested_weight) || 10,
+        passCriteria: doc.reason || 'Document valid and verified',
+        failCriteria: 'Document missing or invalid',
+        riskSeverity: (doc.risk_if_missing || 'MEDIUM').toUpperCase()
+      }));
+
+      setRequirements(mapped);
+      setAiSummary({
+        procurement_type: data.procurement_type,
+        detected_keywords: data.detected_keywords || [],
+        uncertain: data.uncertain_requirements || [],
+        checks: data.suggested_compliance_checks || [],
+        count: mapped.length
+      });
+    } catch (e) {
+      console.error('AI analyzer failed:', e);
+      setAiError(e.message || 'AI analysis failed. The default requirement set is unchanged.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   // Step 3: Required Documents
   const [documents, setDocuments] = useState([
@@ -288,13 +352,55 @@ export default function CreateTenderWizard({ onTenderCreated, onCancel }) {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', color: '#f8fafc' }}>Statutory & Technical Requirements</h3>
-            <button 
-              onClick={() => setRequirements([...requirements, { id: `${Date.now()}`, name: 'New Custom Requirement', category: 'General', mandatory: true, condition: 'All Bidders', document: 'Document Proof', method: 'Document Verification', source: 'Manual/API', weight: 10, passCriteria: 'Document Valid', failCriteria: 'Document Missing', riskSeverity: 'MEDIUM' }])}
-              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
-            >
-              <Plus size={16} /> Add Requirement
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={handleAiSuggest}
+                disabled={aiLoading}
+                title="Analyse the tender text and suggest the required compliance documents"
+                style={{ background: aiLoading ? '#475569' : '#7c3aed', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', cursor: aiLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+              >
+                {aiLoading ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
+                {aiLoading ? 'Analysing…' : 'AI Suggest Requirements'}
+              </button>
+              <button
+                onClick={() => setRequirements([...requirements, { id: `${Date.now()}`, name: 'New Custom Requirement', category: 'General', mandatory: true, condition: 'All Bidders', document: 'Document Proof', method: 'Document Verification', source: 'Manual/API', weight: 10, passCriteria: 'Document Valid', failCriteria: 'Document Missing', riskSeverity: 'MEDIUM' }])}
+                style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+              >
+                <Plus size={16} /> Add Requirement
+              </button>
+            </div>
           </div>
+
+          {aiError && (
+            <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid #ef4444', color: '#fca5a5', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '12px' }}>
+              <AlertTriangle size={14} style={{ verticalAlign: '-2px', marginRight: '6px' }} />
+              {aiError}
+            </div>
+          )}
+
+          {aiSummary && (
+            <div style={{ background: 'rgba(124,58,237,0.10)', border: '1px solid #7c3aed', borderRadius: '10px', padding: '14px 16px', marginBottom: '14px', fontSize: '0.82rem', color: '#e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#c4b5fd', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={15} /> AI analysis applied — {aiSummary.count} requirements suggested
+                {aiSummary.procurement_type ? <span style={{ fontWeight: 500, color: '#94a3b8' }}> · {aiSummary.procurement_type}</span> : null}
+              </div>
+              {aiSummary.detected_keywords.length > 0 && (
+                <div style={{ color: '#94a3b8', marginBottom: '4px' }}>
+                  Detected: {aiSummary.detected_keywords.join(' · ')}
+                </div>
+              )}
+              {aiSummary.uncertain.length > 0 && (
+                <div style={{ color: '#fcd34d' }}>
+                  <AlertTriangle size={13} style={{ verticalAlign: '-2px', marginRight: '4px' }} />
+                  {aiSummary.uncertain.length} requirement{aiSummary.uncertain.length === 1 ? '' : 's'} need officer review:{' '}
+                  {aiSummary.uncertain.map(u => u.requirement).join(', ')}
+                </div>
+              )}
+              <div style={{ color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
+                AI suggestions are decision support only — review and edit every requirement before publishing.
+              </div>
+            </div>
+          )}
 
           <div style={{ maxHeight: '420px', overflowY: 'auto', display: 'grid', gap: '12px' }}>
             {requirements.map((req, index) => (

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, UUID
+from sqlalchemy import Column, String, Integer, BigInteger, ForeignKey, DateTime, UUID, LargeBinary
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -33,3 +33,33 @@ class Document(Base):
     ocr_records = relationship("DocumentOCR", back_populates="document", cascade="all, delete-orphan")
     extractions = relationship("DocumentExtraction", back_populates="document", cascade="all, delete-orphan")
 
+
+
+class DocumentBlob(Base):
+    """Durable byte store for uploaded bid documents.
+
+    Why this exists
+    ---------------
+    ``StorageService`` used to refuse to write anything when Supabase Storage
+    was not configured and the app ran in a production/serverless environment
+    ("Local storage is prohibited").  On Vercel that is exactly the situation,
+    so ``POST /api/documents/upload`` returned HTTP 500 for every bidder and
+    the whole downstream pipeline (OCR, extraction, verification, scoring) was
+    unreachable.
+
+    The guard's *intent* — "never store bidder evidence on an ephemeral
+    filesystem" — is still honoured: the bytes now go into the configured
+    PostgreSQL database, which is durable across cold starts, instead of
+    ``/tmp``.  Use ``DOCUMENT_STORAGE_BACKEND=supabase`` to keep cloud object
+    storage as the primary backend when it is configured.
+    """
+
+    __tablename__ = "document_blobs"
+
+    # storage_path is the application-level key used everywhere else
+    # (Document.storage_path), so no schema change is needed on `documents`.
+    storage_path = Column(String(512), primary_key=True)
+    file_data = Column(LargeBinary, nullable=False)
+    mime_type = Column(String(100), nullable=True)
+    file_size = Column(BigInteger, nullable=False, default=0)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

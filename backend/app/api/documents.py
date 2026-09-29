@@ -475,9 +475,12 @@ def download_document(
                 detail="You are not authorized to download this document."
             )
 
-    # 3. Generate signed URL
+    # 3. Generate signed URL (or, when no object store is configured, an
+    #    authenticated API route that re-checks bidder ownership).
     try:
-        signed_url = StorageService.get_signed_url(doc.storage_path, expires_in=300)
+        signed_url = StorageService.get_signed_url(
+            doc.storage_path, expires_in=300, document_id=str(doc.id)
+        )
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

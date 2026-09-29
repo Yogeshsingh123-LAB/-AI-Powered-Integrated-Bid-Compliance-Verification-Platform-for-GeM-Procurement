@@ -25,6 +25,11 @@ from app.models.tender import Tender
 from app.models.requirement import Requirement
 from app.models.bid import Bid
 from app.models.audit_log import AuditLog
+from app.services.audit_chain import (
+    GENESIS_HASH,
+    canonical_payload,
+    compute_block_hash,
+)
 from app.schemas.auth import UserRegister, UserLogin, ChangePassword
 from app.schemas.user import AdminUserCreate
 from app.core.config import settings
@@ -64,6 +69,10 @@ def create_audit_record(
       computed under a row lock (SELECT ... FOR UPDATE on the latest record,
       pg_advisory_xact_lock on PostgreSQL) so concurrent writers cannot race.
     - The hash covers the full canonical payload (sequence, timestamp, all fields).
+      The payload shape and the block-hash formula live in
+      ``services/audit_chain.py`` and MUST be shared with the verifier
+      (``api/audit.py``) — two different formulas silently make every chain
+      look tampered.
     - For security-critical actions a failed audit write RE-RAISES so the
       operation cannot silently succeed without an audit trail.
     """
@@ -100,7 +109,7 @@ def create_audit_record(
             .order_by(AuditLog.sequence.desc().nullslast(), AuditLog.created_at.desc(), AuditLog.id.desc())
             .first()
         )
-        prev_hash = "0" * 64
+        prev_hash = GENESIS_HASH
         next_seq = 1
         if last_log is not None:
             if last_log.blockchain_hash:
@@ -108,21 +117,20 @@ def create_audit_record(
             if last_log.sequence is not None:
                 next_seq = int(last_log.sequence) + 1
 
-        canonical_payload = {
-            "seq": next_seq,
-            "ts": now.isoformat(),
-            "action": action,
-            "user_id": str(clean_user_id) if clean_user_id else None,
-            "entity_type": entity_type,
-            "entity_id": str(clean_entity_id) if clean_entity_id else None,
-            "bid_id": str(clean_bid_id) if clean_bid_id else None,
-            "old_value": old_value,
-            "new_value": effective_new_val,
-            "ip_address": ip_address,
-            "prev_hash": prev_hash,
-        }
-        canonical = json.dumps(canonical_payload, sort_keys=True, ensure_ascii=True, default=str)
-        block_hash = hashlib.sha256(f"{prev_hash}:{canonical}".encode("utf-8")).hexdigest()
+        canonical_payload_dict = canonical_payload(
+            sequence=next_seq,
+            created_at=now,
+            action=action,
+            user_id=clean_user_id,
+            entity_type=entity_type,
+            entity_id=clean_entity_id,
+            bid_id=clean_bid_id,
+            old_value=old_value,
+            new_value=effective_new_val,
+            ip_address=ip_address,
+            prev_hash=prev_hash,
+        )
+        block_hash = compute_block_hash(prev_hash, canonical_payload_dict)
 
         log = AuditLog(
             sequence=next_seq,

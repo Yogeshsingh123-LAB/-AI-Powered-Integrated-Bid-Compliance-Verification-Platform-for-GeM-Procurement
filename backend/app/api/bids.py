@@ -15,10 +15,57 @@ from app.models.document import Document
 from app.models.requirement import Requirement
 from app.schemas.bid import BidCreate, BidResponse
 from app.services.auth_service import get_current_user, get_optional_current_user, oauth2_scheme_optional, require_role, create_audit_record
+from app.services.bid_scoring import recalculate_bid_score
 from app.scoring.risk_classifier import risk_level_for_score
 from app.core.config import settings as app_settings
 
 router = APIRouter(prefix="/bids", tags=["Bid Applications & Management"])
+
+
+def _collect_extracted_identifiers(db: Session, documents) -> Dict[str, Any]:
+    """Gather the registry identifiers extracted from a bid's documents.
+
+    The verification view uses these to query the government registry adapters
+    and show "extracted vs. registry" evidence to the officer.
+    """
+    from app.models.document_extraction import DocumentExtraction
+
+    buckets: Dict[str, list] = {"gstin": [], "pan": [], "udyam": [], "aadhaar": [],
+                                "cin": [], "epfo": [], "esic": []}
+    for doc in documents:
+        extraction = (
+            db.query(DocumentExtraction)
+            .filter(DocumentExtraction.document_id == doc.id)
+            .order_by(DocumentExtraction.processed_at.desc())
+            .first()
+        )
+        if extraction is None or not isinstance(extraction.extracted_data, dict):
+            continue
+        for key, value in extraction.extracted_data.items():
+            k = str(key).lower()
+            bucket = None
+            if "gstin" in k:
+                bucket = "gstin"
+            elif "udyam" in k:
+                bucket = "udyam"
+            elif "aadhaar" in k:
+                bucket = "aadhaar"
+            elif "cin" in k or "corporate_identification" in k:
+                bucket = "cin"
+            elif "epfo" in k or "establishment" in k:
+                bucket = "epfo"
+            elif "esic" in k:
+                bucket = "esic"
+            elif k == "pan" or k.endswith("_pan") or "pan_number" in k:
+                bucket = "pan"
+            if bucket is None:
+                continue
+            for candidate in (value if isinstance(value, list) else [value]):
+                text = str(candidate or "").strip().upper()
+                if text and text not in buckets[bucket]:
+                    buckets[bucket].append(text)
+
+    return {k: (v[0] if v else None) for k, v in buckets.items()}
 
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def apply_bid(
@@ -399,6 +446,11 @@ def get_bid_details(
     documents = db.query(Document).filter(Document.bid_id == bid.id, Document.document_status != "REPLACED").all()
     requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
 
+    # Real identifiers extracted from this bid's documents. The response used to
+    # hard-code pan/gstin/udyam to None, which left the verification view with
+    # nothing to compare against the government registry adapters.
+    extracted_identifiers = _collect_extracted_identifiers(db, documents)
+
     # Integrity: report the stored score as-is (0 when unscored); risk is
     # derived from the centralized thresholds.
     score_val = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
@@ -481,13 +533,14 @@ def get_bid_details(
         "bidder_phone": bidder.phone if bidder else None,
         "bidder_status": bidder.status if bidder else "Active",
         "bidder_organization": (bidder.department or bidder.full_name) if bidder else None,
-        "pan": None,
-        "gstin": None,
-        "udyam": None,
+        "pan": extracted_identifiers.get("pan"),
+        "gstin": extracted_identifiers.get("gstin"),
+        "udyam": extracted_identifiers.get("udyam"),
         "constitution": None,
         "incorporation_date": None,
         "address": None,
         "country": None,
+        "extracted_identifiers": extracted_identifiers,
         "bid_value": getattr(bid, "bid_value", None),
         "status": bid.status,
         "officer_status": bid.officer_status or "Pending",
@@ -720,31 +773,18 @@ def re_verify_bid(
     requirements = db.query(Requirement).filter(Requirement.tender_id == bid.tender_id).all()
     tender = db.query(Tender).filter(Tender.id == bid.tender_id).first()
 
-    # Re-calculate score based on documents uploaded
-    doc_types = {d.document_type.upper() for d in documents}
-    
-    # Calculate score based on present documents
-    score = 60
-    if len(documents) > 0:
-        score += min(34, len(documents) * 6)
-    
-    # Boost score if OEM Authorization & EPFO documents are present
-    has_oem = any("OEM" in d.document_type.upper() or "AUTHORIZATION" in d.document_type.upper() or "AUTH" in d.document_type.upper() for d in documents)
-    has_epfo = any("EPFO" in d.document_type.upper() or "PF" in d.document_type.upper() for d in documents)
-
-    if has_oem:
-        score += 10
-    if has_epfo:
-        score += 10
-
-    score = min(98, score)
+    # Score with the real weighted ComplianceScorer (audit Defect 7). The old
+    # heuristic (60 + min(34, docs*6) + 10 if OEM + 10 if EPFO) produced a
+    # number with no relationship to the documents' actual contents.
     prev_score = float(bid.compliance_score) if bid.compliance_score is not None else 0.0
-    bid.compliance_score = float(score)
+    report = recalculate_bid_score(db, bid)
+    score = float(report.get("score", 0) or 0)
 
     # Centralized risk mapping.
     risk_level = risk_level_for_score(score)
 
     bid.status = "VERIFIED"
+    bid.compliance_score = score
     db.commit()
 
     # Create audit record
@@ -783,6 +823,12 @@ def re_verify_bid(
         "new_score": score,
         "risk_level": risk_level,
         "status": bid.status,
+        "scoring_method": report.get("scoring_method"),
+        "score_breakdown": {
+            "recommendations": report.get("recommendations", []),
+            "deductions": report.get("deductions", []),
+            "document_counts": report.get("document_counts", {}),
+        },
         "ai_recommendation": f"Bidder compliance score updated to {score}/100 ({risk_level} Risk). Procurement Officer Review Required for final decision."
     }
 
